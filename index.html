@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>푸디 공식 커뮤니티 허브</title>
+    <title>Foodie Lounge</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
     <style>
         body { font-family: 'Noto Sans KR', sans-serif; }
-        .gradient-bg { background: linear-gradient(135deg, #fbab7e 0%, #f7ce68 100%); }
+        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
         .card-hover { transition: transform 0.3s ease, box-shadow 0.3s ease; }
         .card-hover:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
         .loader {
             border: 5px solid #f3f3f3;
-            border-top: 5px solid #f59e0b;
+            border-top: 5px solid #667eea;
             border-radius: 50%;
             width: 50px;
             height: 50px;
@@ -23,7 +23,7 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .disabled-card { opacity: 0.6; pointer-events: none; }
         .tab-btn { transition: all 0.3s ease; }
-        .tab-btn.active { color: white; background-color: #34495e; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .tab-btn.active { color: white; background-color: #4a5568; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         .star-rating .fa-star { color: #d1d5db; cursor: pointer; transition: color 0.2s; }
@@ -37,13 +37,13 @@
 
     <div id="loading-screen" class="fixed inset-0 bg-white flex flex-col justify-center items-center z-50">
         <div class="loader"></div>
-        <p class="mt-4 text-gray-600">푸디 허브에 오신 것을 환영합니다...</p>
+        <p class="mt-4 text-gray-600">Foodie Lounge에 오신 것을 환영합니다...</p>
     </div>
 
     <div class="container mx-auto p-4 md:p-8 flex-grow">
         <header class="text-center mb-10">
-            <h1 class="text-4xl md:text-5xl font-bold text-gray-800">🍤 푸디 공식 커뮤니티 허브 🍜</h1>
-            <p class="text-gray-600 mt-2">우리의 모든 맛있는 순간을 이곳에</p>
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-800 tracking-tight">✈️ Foodie Lounge ✈️</h1>
+            <p class="text-gray-600 mt-3 text-lg">맛집 탐방 전, 필수 체크인</p>
         </header>
 
         <main id="app" class="space-y-12 hidden">
@@ -51,10 +51,10 @@
             <div id="login-section" class="bg-white p-8 rounded-2xl shadow-lg max-w-md mx-auto">
                 <h2 class="text-2xl font-bold mb-6 text-center text-gray-700">푸디 회원 인증</h2>
                 <div class="space-y-4">
-                    <input type="text" id="studentId" placeholder="학번" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400">
-                    <input type="text" id="studentName" placeholder="이름" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400">
+                    <input type="text" id="studentId" placeholder="학번" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                    <input type="text" id="studentName" placeholder="이름" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400">
                     <button onclick="login()" class="w-full gradient-bg text-white font-bold py-3 px-4 rounded-lg hover:opacity-90 transition-opacity">
-                        <i class="fas fa-arrow-right mr-2"></i>푸디 허브 입장하기
+                        <i class="fas fa-ticket-alt mr-2"></i>라운지 입장하기
                     </button>
                 </div>
             </div>
@@ -68,9 +68,9 @@
 
                 <!-- 탭 네비게이션 -->
                 <div class="mb-8 bg-gray-200 rounded-lg p-2 flex flex-wrap justify-center space-x-2">
-                    <button onclick="showTab('reservation')" class="tab-btn flex-1 py-2 px-4 rounded-md font-semibold text-gray-600 active"><i class="fas fa-calendar-check mr-2"></i>현재 미식회</button>
-                    <button onclick="showTab('history')" class="tab-btn flex-1 py-2 px-4 rounded-md font-semibold text-gray-600"><i class="fas fa-trophy mr-2"></i>맛집 명예의 전당</button>
-                    <button onclick="showTab('suggestions')" class="tab-btn flex-1 py-2 px-4 rounded-md font-semibold text-gray-600"><i class="fas fa-lightbulb mr-2"></i>익명 건의함</button>
+                    <button onclick="showTab('reservation')" class="tab-btn flex-1 py-2 px-4 rounded-md font-semibold text-gray-600 active"><i class="fas fa-plane-departure mr-2"></i>탑승 게이트</button>
+                    <button onclick="showTab('history')" class="tab-btn flex-1 py-2 px-4 rounded-md font-semibold text-gray-600"><i class="fas fa-trophy mr-2"></i>명예의 전당</button>
+                    <button onclick="showTab('suggestions')" class="tab-btn flex-1 py-2 px-4 rounded-md font-semibold text-gray-600"><i class="fas fa-lightbulb mr-2"></i>아이디어 건의</button>
                     <button id="dashboard-tab-btn" onclick="showTab('dashboard')" class="tab-btn flex-1 py-2 px-4 rounded-md font-semibold text-gray-600 hidden"><i class="fas fa-chart-line mr-2"></i>관리자 대시보드</button>
                 </div>
 
@@ -186,26 +186,26 @@
             let adminPanelHTML = '';
              if(isAdmin){
                 adminPanelHTML = `
-                <div class="bg-yellow-100 border-l-4 border-yellow-500 p-6 rounded-lg mb-8">
-                    <h3 class="text-xl font-bold text-yellow-800 mb-4"><i class="fas fa-crown mr-2"></i>회장님 관리자 패널</h3>
+                <div class="bg-indigo-50 border-l-4 border-indigo-500 p-6 rounded-lg mb-8">
+                    <h3 class="text-xl font-bold text-indigo-800 mb-4"><i class="fas fa-crown mr-2"></i>회장님 관리자 패널</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        <input type="text" id="event-title" value="${title || ''}" placeholder="미식회 이름" class="w-full px-4 py-2 border rounded-lg">
+                        <input type="text" id="event-title" value="${title || ''}" placeholder="미식 탐방 이름 (예: 6월 전주 미식 투어)" class="w-full px-4 py-2 border rounded-lg">
                         <input type="datetime-local" id="event-datetime" value="${datetime || ''}" class="w-full px-4 py-2 border rounded-lg">
-                        <input type="number" id="event-limit" value="${limit || ''}" placeholder="식당별 참여 인원" class="w-full px-4 py-2 border rounded-lg md:col-span-2">
+                        <input type="number" id="event-limit" value="${limit || ''}" placeholder="식당별 탑승 인원" class="w-full px-4 py-2 border rounded-lg md:col-span-2">
                     </div>
-                    <h4 class="font-bold text-yellow-700 mb-2">선택 가능한 식당 목록</h4>
+                    <h4 class="font-bold text-indigo-700 mb-2">선택 가능한 맛집 (게이트)</h4>
                     <div id="restaurants-container" class="space-y-3 mb-4">${(restaurants.length > 0 ? restaurants.map(r => restaurantFieldHTML(r.name, r.info)).join('') : restaurantFieldHTML())}</div>
-                    <button type="button" onclick="addRestaurantField()" class="mb-4 text-sm bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-4 rounded-lg"><i class="fas fa-plus mr-2"></i>식당 추가</button>
+                    <button type="button" onclick="addRestaurantField()" class="mb-4 text-sm bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-4 rounded-lg"><i class="fas fa-plus mr-2"></i>맛집(게이트) 추가</button>
                     <div class="flex space-x-2">
-                        <button onclick="updateCurrentEvent()" class="flex-1 bg-yellow-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-yellow-600"><i class="fas fa-check-circle mr-2"></i>생성/업데이트</button>
-                        ${title ? `<button onclick="archiveCurrentEvent()" class="flex-1 bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600"><i class="fas fa-archive mr-2"></i>활동 종료</button>` : ''}
+                        <button onclick="updateCurrentEvent()" class="flex-1 bg-indigo-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-600"><i class="fas fa-check-circle mr-2"></i>탐방 생성/업데이트</button>
+                        ${title ? `<button onclick="archiveCurrentEvent()" class="flex-1 bg-gray-700 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-800"><i class="fas fa-archive mr-2"></i>탐방 종료 (보관)</button>` : ''}
                     </div>
                 </div>`;
              }
 
             let eventContainerHTML = '';
             if(!title){
-                eventContainerHTML = `<div class="text-center py-12"><i class="fas fa-utensils-slash text-5xl text-gray-300"></i><p class="mt-4 text-gray-500">현재 진행중인 미식회가 없습니다.</p></div>`;
+                eventContainerHTML = `<div class="text-center py-12"><i class="fas fa-plane text-5xl text-gray-300"></i><p class="mt-4 text-gray-500">현재 예정된 맛집 탐방이 없습니다. 다음 여정을 기대해주세요!</p></div>`;
             } else {
                  let userReservationRestaurantId = null;
                 if (currentUser) {
@@ -219,7 +219,7 @@
                 eventContainerHTML = `
                 <div class="bg-white p-8 rounded-2xl shadow-lg">
                     <h2 class="text-3xl font-bold mb-2 text-center text-gray-800">${title}</h2>
-                    <p class="text-center text-gray-500 mb-6">🗓️ ${datetime ? new Date(datetime).toLocaleString('ko-KR') : '날짜 미정'}</p>
+                    <p class="text-center text-gray-500 mb-6">🗓️ 출발 시각: ${datetime ? new Date(datetime).toLocaleString('ko-KR') : '날짜 미정'}</p>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">${restaurantCardsHTML}</div>
                 </div>`;
             }
@@ -234,16 +234,16 @@
             const reservedCount = reservations.length;
             const percentage = limit > 0 ? (reservedCount / limit) * 100 : 0;
             
-            const participantListHTML = reservations.length > 0 ? reservations.map(p => `<li class="text-sm text-gray-600">${p.studentId} ${p.name}</li>`).join('') : '<li class="text-sm text-gray-400">예약자 없음</li>';
+            const participantListHTML = reservations.length > 0 ? reservations.map(p => `<li class="text-sm text-gray-600">${p.studentId} ${p.name}</li>`).join('') : '<li class="text-sm text-gray-400">탑승객 없음</li>';
             const waitingListHTML = waiting.length > 0 ? `<h5 class="font-semibold mt-2 text-orange-600">대기 명단</h5><ul>${waiting.map((p, i) => `<li class="text-sm text-gray-600">${p.studentId} ${p.name} (대기 ${i+1})</li>`).join('')}</ul>` : '';
 
             let buttonHTML;
             if (isReservedByUser) {
-                buttonHTML = `<button onclick="cancelReservation('${r.id}')" class="w-full mt-4 bg-gray-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-600"><i class="fas fa-times mr-2"></i>예약 취소</button>`;
+                buttonHTML = `<button onclick="cancelReservation('${r.id}')" class="w-full mt-4 bg-gray-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-600"><i class="fas fa-times mr-2"></i>탑승 취소</button>`;
             } else if (reservedCount >= limit) {
                 buttonHTML = `<button onclick="makeReservation('${r.id}')" class="w-full mt-4 bg-orange-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-orange-600"><i class="fas fa-hourglass-start mr-2"></i>대기 신청</button>`;
             } else {
-                buttonHTML = `<button onclick="makeReservation('${r.id}')" class="w-full mt-4 bg-green-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600"><i class="fas fa-utensils mr-2"></i>예약하기</button>`;
+                buttonHTML = `<button onclick="makeReservation('${r.id}')" class="w-full mt-4 bg-green-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600"><i class="fas fa-utensils mr-2"></i>탐방 탑승하기</button>`;
             }
 
             return `
@@ -254,9 +254,9 @@
                     <div class="w-full bg-gray-200 rounded-full h-5 mb-2">
                         <div class="bg-green-500 h-5 text-xs font-medium text-white text-center p-0.5 leading-none rounded-full" style="width: ${percentage}%">${Math.round(percentage)}%</div>
                     </div>
-                    <p class="text-right text-sm font-semibold text-gray-600">${reservedCount} / ${limit} 명</p>
+                    <p class="text-right text-sm font-semibold text-gray-600">탑승 현황: ${reservedCount} / ${limit} 명</p>
                     <div class="mt-4">
-                        <h4 class="font-semibold text-blue-800">예약 확정자</h4>
+                        <h4 class="font-semibold text-indigo-800">탑승객 명단</h4>
                         <ul class="mt-1">${participantListHTML}</ul>
                         ${waitingListHTML}
                     </div>
@@ -355,28 +355,13 @@
             </div>`;
         }
 
-        window.login = () => { /* ... */ };
-        window.logout = () => { /* ... */ };
-        window.showTab = (tabName) => { /* ... */ };
-        window.restaurantFieldHTML = (n='', i='') => `<div class="flex items-center space-x-2 restaurant-entry"><input type="text" value="${n}" placeholder="식당 이름" class="flex-grow px-4 py-2 border rounded-lg restaurant-name"><input type="text" value="${i}" placeholder="식당 정보" class="flex-grow px-4 py-2 border rounded-lg restaurant-info"><button type="button" onclick="this.parentElement.remove()" class="bg-red-500 text-white p-2 rounded-full hover:bg-red-600 w-10 h-10 flex-shrink-0"><i class="fas fa-trash"></i></button></div>`;
-        window.addRestaurantField = () => document.getElementById('restaurants-container').insertAdjacentHTML('beforeend', restaurantFieldHTML());
-        
-        // [NEW] Delete Suggestion Function
-        window.deleteSuggestion = async function(suggestionId) {
-            if (!confirm('정말로 이 건의사항을 삭제하시겠습니까?')) return;
-            try {
-                await deleteDoc(doc(db, "suggestions", suggestionId));
-                showAlert('🗑️', '건의사항이 성공적으로 삭제되었습니다.');
-            } catch (e) {
-                console.error("Failed to delete suggestion: ", e);
-                showAlert('😥', '삭제에 실패했습니다.');
-            }
-        }
-        
         // Full function definitions
         window.login = () => { const sId = document.getElementById('studentId').value.trim(); const sName = document.getElementById('studentName').value.trim(); if (!sId || !sName) return showAlert('😥', '학번과 이름을 모두 입력해주세요.'); localStorage.setItem('foodieUser', JSON.stringify({ studentId: sId, name: sName })); location.reload(); };
         window.logout = () => { localStorage.removeItem('foodieUser'); location.reload(); };
         window.showTab = (t) => { document.querySelectorAll('.tab-content, .tab-btn').forEach(e => e.classList.remove('active')); document.getElementById(`${t}-tab`).classList.add('active'); document.querySelector(`button[onclick="showTab('${t}')"]`).classList.add('active'); };
+        window.restaurantFieldHTML = (n='', i='') => `<div class="flex items-center space-x-2 restaurant-entry"><input type="text" value="${n}" placeholder="식당 이름" class="flex-grow px-4 py-2 border rounded-lg restaurant-name"><input type="text" value="${i}" placeholder="식당 정보" class="flex-grow px-4 py-2 border rounded-lg restaurant-info"><button type="button" onclick="this.parentElement.remove()" class="bg-red-500 text-white p-2 rounded-full hover:bg-red-600 w-10 h-10 flex-shrink-0"><i class="fas fa-trash"></i></button></div>`;
+        window.addRestaurantField = () => document.getElementById('restaurants-container').insertAdjacentHTML('beforeend', restaurantFieldHTML());
+        window.deleteSuggestion = async function(suggestionId) { if (!confirm('정말로 이 건의사항을 삭제하시겠습니까?')) return; try { await deleteDoc(doc(db, "suggestions", suggestionId)); showAlert('🗑️', '건의사항이 삭제되었습니다.'); } catch (e) { console.error("Failed to delete suggestion: ", e); showAlert('😥', '삭제에 실패했습니다.'); } }
         window.updateCurrentEvent = async function() { const t=document.getElementById('event-title').value.trim(),d=document.getElementById('event-datetime').value,l=parseInt(document.getElementById('event-limit').value,10),rI=Array.from(document.querySelectorAll('.restaurant-entry')).map(e=>({name:e.querySelector('.restaurant-name').value.trim(),info:e.querySelector('.restaurant-info').value.trim()})).filter(r=>r.name);if(!t||!d||!l||rI.length===0)return showAlert('😥','모든 필드를 채워주세요.');try{await runTransaction(db,async e=>{const n=doc(db,"events","current"),o=await e.get(n),a=o.exists()?o.data().restaurants||[]:[],s=rI.map(t=>{const n=a.find(e=>e.name===t.name);return n?{...n,info:t.info}:{id:`res_${Date.now()}_${Math.random().toString(36).substr(2,9)}`,...t,reservations:[],waiting:[],reviews:[]}});e.set(n,{title:t,datetime:d,limit:l,restaurants:s})}),showAlert('🎉','미식회 정보가 업데이트되었습니다!')}catch(e){console.error("Update failed: ",e),showAlert('😥','업데이트에 실패했습니다.')}};
         window.archiveCurrentEvent = async function(){if(!confirm('현재 미식회를 종료하고 보관하시겠습니까?'))return;const e={...currentEventData,archivedAt:serverTimestamp()};try{await addDoc(collection(db,"history"),e),await runTransaction(db,async e=>e.set(doc(db,"events","current"),{title:""})),showAlert('📁','활동이 보관되었습니다.')}catch(e){console.error("Archive failed: ",e),showAlert('😥','활동 보관에 실패했습니다.')}};
         window.submitSuggestion = async function(){const e=document.getElementById('suggestion-input'),t=e.value.trim();if(!t)return;if(!currentUser)return showAlert('😥','로그인 후 이용해주세요.');try{await addDoc(collection(db,"suggestions"),{text:t,timestamp:serverTimestamp(),author:{name:currentUser.name,studentId:currentUser.studentId}}),e.value="",showAlert('💡','소중한 의견 감사합니다!')}catch(e){console.error("Suggestion submission failed: ",e),showAlert('😥','제출에 실패했습니다.')}};
