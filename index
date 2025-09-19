@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>푸디 미식회 예약 시스템 (v5)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <style>
+        body { font-family: 'Noto Sans KR', sans-serif; }
+        .gradient-bg { background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%); }
+        .card-hover { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .card-hover:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
+        .loader {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <!-- 초기 로딩 화면 -->
+    <div id="loading-screen" class="fixed inset-0 bg-white flex flex-col justify-center items-center z-50">
+        <div class="loader"></div>
+        <p class="mt-4 text-gray-600">실시간 데이터를 불러오는 중...</p>
+    </div>
+
+    <div class="container mx-auto p-4 md:p-8">
+        <header class="text-center mb-10">
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-800">🍤 푸디 미식회 예약 🍜 (v5)</h1>
+            <p class="text-gray-600 mt-2">동아리 회원들을 위한 가장 빠르고 공정한 미식회 예약 시스템</p>
+        </header>
+
+        <main id="app" class="space-y-12 hidden">
+            <!-- [수정됨] "로그인" -> "참가자 정보 입력" 으로 텍스트 변경 -->
+            <div id="login-section" class="bg-white p-8 rounded-2xl shadow-lg max-w-md mx-auto">
+                 <h2 class="text-2xl font-bold mb-6 text-center text-gray-700">참가자 정보 입력</h2>
+                <div class="space-y-4">
+                    <input type="text" id="studentId" placeholder="학번을 입력하세요" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400">
+                    <input type="text" id="studentName" placeholder="이름을 입력하세요" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400">
+                    <button onclick="login()" class="w-full gradient-bg text-white font-bold py-3 px-4 rounded-lg hover:opacity-90 transition-opacity">
+                        <i class="fas fa-arrow-right mr-2"></i>내 정보 입력하고 예약하기
+                    </button>
+                </div>
+            </div>
+
+            <div id="reservation-system" class="hidden">
+                 <div class="text-right mb-4">
+                    <p class="text-gray-700"><span id="userNameDisplay" class="font-bold"></span>님, 환영합니다!</p>
+                    <button onclick="logout()" class="text-sm text-gray-500 hover:text-red-500">로그아웃</button>
+                </div>
+
+                <div id="admin-panel" class="hidden bg-yellow-100 border-l-4 border-yellow-500 p-6 rounded-lg mb-8">
+                    <h3 class="text-xl font-bold text-yellow-800 mb-4"><i class="fas fa-crown mr-2"></i>회장님 관리자 패널</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <input type="text" id="event-title" placeholder="미식회 이름 (예: 5월 정기 미식회)" class="w-full px-4 py-2 border rounded-lg">
+                        <input type="datetime-local" id="event-datetime" class="w-full px-4 py-2 border rounded-lg">
+                        <input type="number" id="event-limit" placeholder="참여 인원 (예: 30)" class="w-full px-4 py-2 border rounded-lg">
+                        <input type="text" id="event-restaurant-name" placeholder="식당 이름" class="w-full px-4 py-2 border rounded-lg">
+                        <input type="text" id="event-restaurant-info" placeholder="식당 정보 (주소, 대표 메뉴 등)" class="w-full px-4 py-2 border rounded-lg md:col-span-2">
+                        <button onclick="createEvent()" class="w-full bg-yellow-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-yellow-600 col-span-1 md:col-span-2">
+                            <i class="fas fa-plus-circle mr-2"></i>새로운 미식회 생성
+                        </button>
+                    </div>
+                </div>
+
+                <div id="event-container" class="bg-white p-8 rounded-2xl shadow-lg">
+                    <h2 class="text-3xl font-bold mb-2 text-center text-gray-800" id="current-event-title"></h2>
+                    <p class="text-center text-gray-500 mb-6" id="current-event-time"></p>
+
+                    <div id="restaurant-info-display" class="hidden text-center mb-8 bg-green-50 p-4 rounded-lg border border-green-200">
+                        <h3 class="text-xl font-bold text-green-800"><i class="fas fa-map-marker-alt mr-2"></i>이번 미식회 장소</h3>
+                        <p id="restaurant-name-display" class="text-lg font-semibold text-gray-700 mt-1"></p>
+                        <p id="restaurant-details-display" class="text-gray-600 mt-1"></p>
+                    </div>
+
+                    <div id="reservation-dashboard" class="hidden">
+                        <div class="bg-gray-50 p-6 rounded-xl mb-6">
+                             <div class="flex justify-between items-center">
+                                <h3 class="text-xl font-semibold text-gray-700">실시간 예약 현황</h3>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-6 mt-3">
+                                <div id="progress-bar" class="gradient-bg h-6 text-xs font-medium text-white text-center p-1 leading-none rounded-full" style="width: 0%"></div>
+                            </div>
+                            <p class="text-right mt-2 font-semibold text-gray-600">
+                                <span id="current-reservations">0</span> / <span id="max-reservations">30</span> 명
+                            </p>
+                        </div>
+    
+                        <div class="text-center mb-6">
+                            <button id="reserve-button" onclick="makeReservation()" class="bg-green-500 text-white font-bold py-4 px-8 rounded-full hover:bg-green-600 transition-transform transform hover:scale-105 shadow-lg text-lg"></button>
+                            <button id="cancel-button" onclick="cancelReservation()" class="hidden bg-gray-500 text-white font-bold py-4 px-8 rounded-full hover:bg-gray-600 transition-transform transform hover:scale-105 shadow-lg text-lg">
+                                <i class="fas fa-times mr-2"></i>예약 취소
+                            </button>
+                        </div>
+    
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="bg-blue-50 p-4 rounded-lg">
+                                <h4 class="font-bold text-lg mb-3 text-blue-800"><i class="fas fa-check-circle mr-2"></i>예약 확정 명단</h4>
+                                <ul id="confirmed-list" class="space-y-2 text-gray-700"></ul>
+                            </div>
+                            <div class="bg-orange-50 p-4 rounded-lg">
+                                <h4 class="font-bold text-lg mb-3 text-orange-800"><i class="fas fa-hourglass-half mr-2"></i>예비 대기 명단</h4>
+                                <ul id="waiting-list" class="space-y-2 text-gray-700"></ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="alert-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center px-4 z-50">
+        <div class="bg-white p-8 rounded-2xl shadow-xl text-center max-w-sm w-full">
+            <div id="modal-icon" class="text-5xl mb-4"></div>
+            <p id="alert-message" class="text-lg font-medium text-gray-700"></p>
+            <button onclick="closeModal()" class="mt-6 bg-gray-800 text-white font-bold py-2 px-6 rounded-lg hover:bg-gray-700">확인</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, doc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : { /* 로컬 테스트용 */ };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        let currentUser = null;
+        const ADMIN_ID = "20201234";
+        let eventDocRef;
+
+        const loadingScreen = document.getElementById('loading-screen');
+        const mainApp = document.getElementById('app');
+
+        async function main() {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+                setupFirestoreListener();
+            } catch (error) {
+                console.error("Firebase Auth Error:", error);
+                showAlert('😥', '인증에 실패했습니다. 새로고침 해주세요.');
+                loadingScreen.classList.add('hidden');
+            }
+        }
+
+        function setupFirestoreListener() {
+            const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+            eventDocRef = doc(db, "artifacts", appId, "public", "data", "events", "current");
+
+            onSnapshot(eventDocRef, (docSnap) => {
+                loadingScreen.classList.add('hidden');
+                mainApp.classList.remove('hidden');
+
+                let eventData;
+                if (docSnap.exists()) {
+                    eventData = docSnap.data();
+                } else {
+                    eventData = { title: "진행 중인 미식회가 없습니다.", reservations: [], waiting: [] };
+                }
+                updateUI(eventData);
+            }, (error) => {
+                console.error("데이터 수신 오류:", error);
+                showAlert('😥', '데이터를 불러오는 데 실패했습니다.');
+            });
+        }
+
+        function updateUI(event) {
+            const { title, datetime, limit, reservations = [], waiting = [], restaurantName, restaurantInfo } = event;
+            
+            currentUser = JSON.parse(localStorage.getItem('foodieUser'));
+            if(currentUser) {
+                document.getElementById('login-section').classList.add('hidden');
+                document.getElementById('reservation-system').classList.remove('hidden');
+                document.getElementById('userNameDisplay').textContent = currentUser.name;
+                document.getElementById('admin-panel').classList.toggle('hidden', currentUser.studentId !== ADMIN_ID);
+            } else {
+                document.getElementById('login-section').classList.remove('hidden');
+                document.getElementById('reservation-system').classList.add('hidden');
+            }
+
+            document.getElementById('current-event-title').textContent = title;
+            const eventTimeEl = document.getElementById('current-event-time');
+            const reservationDashboard = document.getElementById('reservation-dashboard');
+            const restaurantDisplay = document.getElementById('restaurant-info-display');
+            
+            if (title === "진행 중인 미식회가 없습니다.") {
+                eventTimeEl.textContent = "회장님이 새로운 미식회를 생성할 때까지 기다려주세요.";
+                reservationDashboard.classList.add('hidden');
+                restaurantDisplay.classList.add('hidden');
+            } else {
+                const eventDate = new Date(datetime);
+                eventTimeEl.textContent = `🗓️ ${eventDate.toLocaleString('ko-KR')}`;
+                reservationDashboard.classList.remove('hidden');
+
+                if(restaurantName) {
+                    document.getElementById('restaurant-name-display').textContent = restaurantName;
+                    document.getElementById('restaurant-details-display').textContent = restaurantInfo || '';
+                    restaurantDisplay.classList.remove('hidden');
+                } else {
+                    restaurantDisplay.classList.add('hidden');
+                }
+            }
+
+            const reservedCount = reservations.length;
+            const maxCount = limit;
+            document.getElementById('current-reservations').textContent = reservedCount;
+            document.getElementById('max-reservations').textContent = maxCount;
+            const percentage = maxCount > 0 ? (reservedCount / maxCount) * 100 : 0;
+            const progressBar = document.getElementById('progress-bar');
+            progressBar.style.width = `${percentage}%`;
+            progressBar.textContent = `${Math.round(percentage)}%`;
+
+            const confirmedList = document.getElementById('confirmed-list');
+            confirmedList.innerHTML = reservations.length ? '' : `<li class="text-gray-400">아직 예약자가 없습니다.</li>`;
+            reservations.forEach(p => { confirmedList.innerHTML += `<li class="px-3 py-2 bg-white rounded-md shadow-sm">${p.studentId} - ${p.name}</li>`; });
+
+            const waitingList = document.getElementById('waiting-list');
+            waitingList.innerHTML = waiting.length ? '' : `<li class="text-gray-400">대기자가 없습니다.</li>`;
+            waiting.forEach((p, index) => { waitingList.innerHTML += `<li class="px-3 py-2 bg-white rounded-md shadow-sm">${p.studentId} - ${p.name} (대기 ${index + 1}번)</li>`; });
+
+            const reserveButton = document.getElementById('reserve-button');
+            const cancelButton = document.getElementById('cancel-button');
+            if (currentUser) {
+                const isParticipating = reservations.some(r => r.studentId === currentUser.studentId) || waiting.some(w => w.studentId === currentUser.studentId);
+                reserveButton.classList.toggle('hidden', isParticipating);
+                cancelButton.classList.toggle('hidden', !isParticipating);
+
+                if (reservedCount >= maxCount) {
+                    reserveButton.innerHTML = `<i class="fas fa-hourglass-start mr-2"></i>대기 신청하기`;
+                    reserveButton.classList.replace('bg-green-500', 'bg-orange-500');
+                    reserveButton.classList.replace('hover:bg-green-600', 'hover:bg-orange-600');
+                } else {
+                    reserveButton.innerHTML = `<i class="fas fa-utensils mr-2"></i>미식회 예약하기!`;
+                    reserveButton.classList.replace('bg-orange-500', 'bg-green-500');
+                    reserveButton.classList.replace('hover:bg-orange-600', 'hover:bg-green-600');
+                }
+            }
+        }
+        
+        // [수정됨] 함수 이름은 login을 유지하되, 기능은 '정보 등록'의 의미로 사용됨
+        window.login = function() {
+            const studentId = document.getElementById('studentId').value.trim();
+            const studentName = document.getElementById('studentName').value.trim();
+            if (!studentId || !studentName) return showAlert('😥', '학번과 이름을 모두 입력해주세요.');
+            currentUser = { studentId, name: studentName };
+            localStorage.setItem('foodieUser', JSON.stringify(currentUser));
+            location.reload(); 
+        }
+
+        window.logout = function() {
+            localStorage.removeItem('foodieUser');
+            currentUser = null;
+            location.reload();
+        }
+
+        window.createEvent = async function() {
+            const title = document.getElementById('event-title').value;
+            const datetime = document.getElementById('event-datetime').value;
+            const limit = parseInt(document.getElementById('event-limit').value, 10);
+            const restaurantName = document.getElementById('event-restaurant-name').value;
+            const restaurantInfo = document.getElementById('event-restaurant-info').value;
+
+            if (!title || !datetime || !limit || !restaurantName) {
+                return showAlert('😥', '식당 이름을 포함한 모든 필드를 채워주세요.');
+            }
+
+            try {
+                await runTransaction(db, async (transaction) => {
+                    const newEventData = { title, datetime, limit, restaurantName, restaurantInfo, reservations: [], waiting: [] };
+                    transaction.set(eventDocRef, newEventData);
+                });
+                showAlert('🎉', '새로운 미식회가 성공적으로 생성되었습니다!');
+            } catch (e) {
+                console.error("Transaction failed: ", e);
+                showAlert('😥', '미식회 생성에 실패했습니다.');
+            }
+        }
+
+        window.makeReservation = async function() {
+            if (!currentUser) return showAlert('😥', '참가자 정보를 먼저 입력해주세요.');
+            try {
+                await runTransaction(db, async (transaction) => {
+                    const eventDoc = await transaction.get(eventDocRef);
+                    if (!eventDoc.exists()) throw "Event does not exist!";
+                    const event = eventDoc.data();
+                    const { limit, reservations = [], waiting = [] } = event;
+                    const participant = { ...currentUser, timestamp: new Date().toISOString() };
+                    const isAlreadyIn = reservations.some(r => r.studentId === currentUser.studentId) || waiting.some(w => w.studentId === currentUser.studentId);
+                    if (isAlreadyIn) { showAlert('🤔', '이미 예약 또는 대기 신청을 하셨습니다.'); return; }
+                    if (reservations.length < limit) {
+                        reservations.push(participant);
+                        reservations.sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
+                        transaction.update(eventDocRef, { reservations });
+                        showAlert('✅', `${currentUser.name}님, 예약이 확정되었습니다!`);
+                    } else {
+                        waiting.push(participant);
+                        waiting.sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
+                        transaction.update(eventDocRef, { waiting });
+                        showAlert('✋', `예약이 마감되어 대기 명단에 등록되었습니다. (대기 ${waiting.length}번)`);
+                    }
+                });
+            } catch (e) { console.error("Transaction failed: ", e); showAlert('😥', '예약 처리 중 오류가 발생했습니다.'); }
+        }
+
+        window.cancelReservation = async function() {
+             if (!currentUser) return;
+            try {
+                await runTransaction(db, async (transaction) => {
+                    const eventDoc = await transaction.get(eventDocRef);
+                    if (!eventDoc.exists()) throw "Event does not exist!";
+                    let event = eventDoc.data();
+                    let { reservations = [], waiting = [] } = event;
+                    const initialResCount = reservations.length;
+                    reservations = reservations.filter(r => r.studentId !== currentUser.studentId);
+                    if (reservations.length < initialResCount) {
+                         if (reservations.length < event.limit && waiting.length > 0) {
+                            const nextInLine = waiting.shift();
+                            reservations.push(nextInLine);
+                            reservations.sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
+                        }
+                    } else { waiting = waiting.filter(w => w.studentId !== currentUser.studentId); }
+                    transaction.update(eventDocRef, { reservations, waiting });
+                    showAlert('🗑️', '예약이 정상적으로 취소되었습니다.');
+                });
+            } catch(e) { console.error("Transaction failed: ", e); showAlert('😥', '예약 취소 중 오류가 발생했습니다.'); }
+        }
+
+        window.showAlert = function(icon, message) {
+            document.getElementById('modal-icon').innerHTML = icon;
+            document.getElementById('alert-message').textContent = message;
+            document.getElementById('alert-modal').classList.remove('hidden');
+        }
+        window.closeModal = function() {
+            document.getElementById('alert-modal').classList.add('hidden');
+        }
+        
+        main();
+    </script>
+</body>
+</html>
