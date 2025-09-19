@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>푸디 미식회 예약 시스템 (v8.1 - 안정성 수정)</title>
+    <title>푸디 미식회 예약 시스템 (v9 - 최종 안정화)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
@@ -184,7 +184,6 @@
 
                 let userReservationRestaurantId = null;
                 restaurants.forEach(r => {
-                    // [수정] r.reservations 또는 r.waiting이 없을 경우를 대비해 빈 배열로 처리
                     const currentReservations = r.reservations || [];
                     const currentWaiting = r.waiting || [];
                     if (currentReservations.some(p => p.studentId === currentUser?.studentId) || currentWaiting.some(p => p.studentId === currentUser?.studentId)) {
@@ -200,7 +199,6 @@
                     const isDisabled = userReservationRestaurantId !== null && !isReservedByUser;
                     if(isDisabled) card.classList.add('disabled-card');
 
-                    // [수정] r.reservations 또는 r.waiting이 없을 경우를 대비해 빈 배열로 처리
                     const reservations = r.reservations || [];
                     const waiting = r.waiting || [];
 
@@ -276,6 +274,7 @@
             container.appendChild(newRestaurantDiv);
         }
 
+        // [수정] 똑똑한 업데이트 로직으로 변경
         window.createNewEvent = async function() {
             const title = document.getElementById('event-title').value;
             const datetime = document.getElementById('event-datetime').value;
@@ -296,15 +295,22 @@
             try {
                 await runTransaction(db, async (transaction) => {
                     const eventDoc = await transaction.get(eventDocRef);
-                    const oldRestaurants = eventDoc.exists() ? eventDoc.data().restaurants : [];
+                    const oldRestaurants = eventDoc.exists() ? (eventDoc.data().restaurants || []) : [];
                     
-                    const newRestaurants = restaurantInputs.map(r => {
-                        const existing = oldRestaurants.find(oldR => oldR.name === r.name);
-                        return existing ? existing : {
+                    const newRestaurants = restaurantInputs.map(rInput => {
+                        // 이름과 정보가 모두 동일한 기존 식당을 찾아서 예약자 명단 보존
+                        const existingRestaurant = oldRestaurants.find(oldR => oldR.name === rInput.name && oldR.info === rInput.info);
+                        
+                        if (existingRestaurant) {
+                            return existingRestaurant; // 기존 정보 그대로 사용
+                        }
+                        
+                        // 새로운 식당이거나 정보가 변경된 경우
+                        return {
                             id: `res_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-                            name: r.name,
-                            info: r.info,
-                            reservations: [],
+                            name: rInput.name,
+                            info: rInput.info,
+                            reservations: [], // 새 식당이므로 예약자 명단은 비움
                             waiting: []
                         };
                     });
@@ -326,13 +332,12 @@
                     const eventDoc = await transaction.get(eventDocRef);
                     if (!eventDoc.exists()) throw "Event does not exist!";
                     
-                    const event = eventDoc.data();
-                    
+                    let event = eventDoc.data();
+                    if (!event.restaurants) event.restaurants = [];
+
                     let alreadyReservedAnywhere = false;
                     event.restaurants.forEach(r => {
-                        const currentReservations = r.reservations || [];
-                        const currentWaiting = r.waiting || [];
-                        if (currentReservations.some(p => p.studentId === currentUser.studentId) || currentWaiting.some(p => p.studentId === currentUser.studentId)) {
+                        if ((r.reservations || []).some(p => p.studentId === currentUser.studentId) || (r.waiting || []).some(p => p.studentId === currentUser.studentId)) {
                             alreadyReservedAnywhere = true;
                         }
                     });
@@ -342,7 +347,10 @@
                     }
 
                     const restaurantIndex = event.restaurants.findIndex(r => r.id === restaurantId);
-                    if (restaurantIndex === -1) throw "Restaurant not found!";
+                    if (restaurantIndex === -1) {
+                         // 오류의 원인이 되었던 부분. 여기서 throw를 하면 catch로 넘어감.
+                        throw new Error("Restaurant not found!");
+                    }
 
                     const restaurant = event.restaurants[restaurantIndex];
                     const participant = { ...currentUser, timestamp: new Date().toISOString() };
@@ -362,7 +370,10 @@
                     
                     transaction.update(eventDocRef, { restaurants: event.restaurants });
                 });
-            } catch (e) { console.error("Transaction failed: ", e); showAlert('😥', '예약 처리 중 오류가 발생했습니다.'); }
+            } catch (e) { 
+                console.error("Transaction failed: ", e.message); // e.message로 더 명확한 오류 확인
+                showAlert('😥', '예약 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'); 
+            }
         }
 
         window.cancelReservation = async function(restaurantId) {
@@ -372,9 +383,11 @@
                     const eventDoc = await transaction.get(eventDocRef);
                     if (!eventDoc.exists()) throw "Event does not exist!";
                     
-                    const event = eventDoc.data();
+                    let event = eventDoc.data();
+                    if (!event.restaurants) event.restaurants = [];
+                    
                     const restaurantIndex = event.restaurants.findIndex(r => r.id === restaurantId);
-                    if (restaurantIndex === -1) throw "Restaurant not found!";
+                    if (restaurantIndex === -1) throw new Error("Restaurant not found!");
 
                     const restaurant = event.restaurants[restaurantIndex];
                     if (!restaurant.reservations) restaurant.reservations = [];
@@ -397,7 +410,10 @@
                     transaction.update(eventDocRef, { restaurants: event.restaurants });
                     showAlert('🗑️', `${restaurant.name} 예약이 정상적으로 취소되었습니다.`);
                 });
-            } catch(e) { console.error("Transaction failed: ", e); showAlert('😥', '예약 취소 중 오류가 발생했습니다.'); }
+            } catch(e) { 
+                console.error("Transaction failed: ", e.message); 
+                showAlert('😥', '예약 취소 중 오류가 발생했습니다.'); 
+            }
         }
 
         window.showAlert = function(icon, message) {
