@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Foodie Lounge</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <script src="[https://cdn.tailwindcss.com](https://cdn.tailwindcss.com)"></script>
+    <link href="[https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap](https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap)" rel="stylesheet">
+    <script src="[https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js](https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js)"></script>
     <style>
         body { font-family: 'Noto Sans KR', sans-serif; }
         .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
@@ -25,6 +25,7 @@
         .tab-btn.active { color: white; background-color: #4a5568; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
+        .disabled-card { opacity: 0.6; pointer-events: none; }
     </style>
 </head>
 <body class="bg-gray-100 flex flex-col min-h-screen">
@@ -94,9 +95,9 @@
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, doc, onSnapshot, runTransaction, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { initializeApp } from "[https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js](https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js)";
+        import { getAuth, signInAnonymously } from "[https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js](https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js)";
+        import { getFirestore, doc, onSnapshot, runTransaction, arrayUnion, arrayRemove } from "[https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js](https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js)";
 
         const firebaseConfig = {
           apiKey: "AIzaSyDdrnlSQZa-GD006G9fvgYDL0V_ib3_pcE",
@@ -113,7 +114,8 @@
 
         let currentUser = null;
         let adminList = [];
-        const MASTER_CODE = "foodie_emergency_2024!"; // This should be kept secret
+        const MASTER_CODE = "foodie_emergency_2024!";
+        let currentEventData = {};
 
         async function main() {
             try {
@@ -134,8 +136,6 @@
                 renderAll();
             });
         }
-        
-        let currentEventData = {};
 
         function renderAll() {
             document.getElementById('loading-screen').classList.add('hidden');
@@ -155,7 +155,89 @@
             }
         }
 
-        function renderReservationTab(isAdmin) { /* ... (previous logic) ... */ }
+        function renderReservationTab(isAdmin) {
+            const container = document.getElementById('reservation-tab');
+            const { title, datetime, limit, restaurants = [] } = currentEventData;
+            
+            let adminPanelHTML = '';
+             if(isAdmin){
+                adminPanelHTML = `
+                <div class="bg-indigo-50 border-l-4 border-indigo-500 p-6 rounded-lg mb-8">
+                    <h3 class="text-xl font-bold text-indigo-800 mb-4"><i class="fas fa-crown mr-2"></i>회장님 관리자 패널</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <input type="text" id="event-title" value="${title || ''}" placeholder="미식 탐방 이름" class="w-full px-4 py-2 border rounded-lg">
+                        <input type="datetime-local" id="event-datetime" value="${datetime || ''}" class="w-full px-4 py-2 border rounded-lg">
+                        <input type="number" id="event-limit" value="${limit || ''}" placeholder="식당별 탑승 인원" class="w-full px-4 py-2 border rounded-lg md:col-span-2">
+                    </div>
+                    <h4 class="font-bold text-indigo-700 mb-2">선택 가능한 맛집 (게이트)</h4>
+                    <div id="restaurants-container" class="space-y-3 mb-4">${(restaurants.length > 0 ? restaurants.map(r => restaurantFieldHTML(r.name, r.info)).join('') : restaurantFieldHTML())}</div>
+                    <button type="button" onclick="addRestaurantField()" class="mb-4 text-sm bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-4 rounded-lg"><i class="fas fa-plus mr-2"></i>맛집(게이트) 추가</button>
+                    <div class="flex space-x-2">
+                        <button onclick="updateCurrentEvent()" class="flex-1 bg-indigo-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-600"><i class="fas fa-check-circle mr-2"></i>탐방 생성/업데이트</button>
+                        ${title ? `<button onclick="archiveCurrentEvent()" class="flex-1 bg-gray-700 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-800 disabled:opacity-50"><i class="fas fa-archive mr-2"></i>탐방 종료 (보관)</button>` : ''}
+                    </div>
+                </div>`;
+             }
+
+            let eventContainerHTML = '';
+            if(!title){
+                eventContainerHTML = `<div class="text-center py-12"><i class="fas fa-plane text-5xl text-gray-300"></i><p class="mt-4 text-gray-500">현재 예정된 맛집 탐방이 없습니다.</p></div>`;
+            } else {
+                 let userReservationRestaurantId = null;
+                if (currentUser) {
+                    restaurants.forEach(r => {
+                        if ((r.reservations || []).some(p => p.studentId === currentUser.studentId) || (r.waiting || []).some(p => p.studentId === currentUser.studentId)) {
+                            userReservationRestaurantId = r.id;
+                        }
+                    });
+                }
+                const restaurantCardsHTML = restaurants.map(r => restaurantCardHTML(r, limit, userReservationRestaurantId)).join('');
+                eventContainerHTML = `
+                <div class="bg-white p-8 rounded-2xl shadow-lg">
+                    <h2 class="text-3xl font-bold mb-2 text-center text-gray-800">${title}</h2>
+                    <p class="text-center text-gray-500 mb-6">🗓️ 출발 시각: ${datetime ? new Date(datetime).toLocaleString('ko-KR') : '날짜 미정'}</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">${restaurantCardsHTML}</div>
+                </div>`;
+            }
+            container.innerHTML = adminPanelHTML + eventContainerHTML;
+        }
+
+        function restaurantCardHTML(r, limit, userReservationRestaurantId) {
+            const isReservedByUser = r.id === userReservationRestaurantId;
+            const isDisabled = userReservationRestaurantId !== null && !isReservedByUser;
+            const reservations = r.reservations || [];
+            const waiting = r.waiting || [];
+            const reservedCount = reservations.length;
+            const percentage = limit > 0 ? (reservedCount / limit) * 100 : 0;
+            const participantListHTML = reservations.length > 0 ? reservations.map(p => `<li class="text-sm text-gray-600">${p.studentId} ${p.name}</li>`).join('') : `<li class="text-sm text-gray-400">탑승객 없음</li>`;
+            const waitingListHTML = waiting.length > 0 ? `<h5 class="font-semibold mt-2 text-orange-600">대기 명단</h5><ul>${waiting.map((p, i) => `<li class="text-sm text-gray-600">${p.studentId} ${p.name} (대기 ${i + 1})</li>`).join('')}</ul>` : '';
+            let buttonHTML;
+            if (isReservedByUser) {
+                buttonHTML = `<button onclick="cancelReservation('${r.id}')" class="w-full mt-4 bg-gray-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-600"><i class="fas fa-times mr-2"></i>탑승 취소</button>`;
+            } else if (reservedCount >= limit) {
+                buttonHTML = `<button onclick="makeReservation('${r.id}')" class="w-full mt-4 bg-orange-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-orange-600"><i class="fas fa-hourglass-start mr-2"></i>대기 신청</button>`;
+            } else {
+                buttonHTML = `<button onclick="makeReservation('${r.id}')" class="w-full mt-4 bg-green-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600"><i class="fas fa-utensils mr-2"></i>탐방 탑승하기</button>`;
+            }
+            return `
+            <div class="bg-white p-6 rounded-xl shadow-md card-hover flex flex-col ${isDisabled ? 'disabled-card' : ''}">
+                <div class="flex-grow">
+                    <h3 class="text-xl font-bold text-gray-800">${r.name}</h3>
+                    <p class="text-gray-500 mb-4">${r.info}</p>
+                    <div class="w-full bg-gray-200 rounded-full h-5 mb-2">
+                        <div class="bg-green-500 h-5 text-xs font-medium text-white text-center p-0.5 leading-none rounded-full" style="width: ${percentage}%">${Math.round(percentage)}%</div>
+                    </div>
+                    <p class="text-right text-sm font-semibold text-gray-600">탑승 현황: ${reservedCount} / ${limit} 명</p>
+                    <div class="mt-4">
+                        <h4 class="font-semibold text-indigo-800">탑승객 명단</h4>
+                        <ul class="mt-1">${participantListHTML}</ul>
+                        ${waitingListHTML}
+                    </div>
+                </div>
+                <div class="mt-auto">${buttonHTML}</div>
+            </div>`;
+        }
+        
         function renderAdminManagementTab() {
             const container = document.getElementById('admin-management-tab');
             const adminListHTML = adminList.map(id => `
@@ -181,7 +263,6 @@
             </div>`;
         }
         
-        // --- All window functions ---
         window.login = async () => {
             const studentId = document.getElementById('studentId').value.trim();
             const studentName = document.getElementById('studentName').value.trim();
@@ -195,20 +276,23 @@
         };
         window.logout = () => { localStorage.removeItem('foodieUser'); renderAll(); };
         window.showTab = (t) => { document.querySelectorAll('.tab-content, .tab-btn').forEach(e => e.classList.remove('active')); document.getElementById(`${t}-tab`).classList.add('active'); document.querySelector(`button[onclick="showTab('${t}')"]`).classList.add('active'); };
-        
-        // Admin Management Functions
         window.addAdmin = async () => {
             const newAdminId = document.getElementById('new-admin-input').value.trim();
             if (!newAdminId) return showAlert('😥', '추가할 임원의 학번을 입력해주세요.');
             try {
                 const adminDocRef = doc(db, "admins", "list");
                 await runTransaction(db, async (transaction) => {
-                    transaction.update(adminDocRef, { studentIds: arrayUnion(newAdminId) });
+                    const adminDoc = await transaction.get(adminDocRef);
+                    if (!adminDoc.exists()) {
+                        transaction.set(adminDocRef, { studentIds: [newAdminId] });
+                    } else {
+                        transaction.update(adminDocRef, { studentIds: arrayUnion(newAdminId) });
+                    }
                 });
                 showAlert('🎉', `${newAdminId} 님이 임원으로 추가되었습니다.`);
                 document.getElementById('new-admin-input').value = '';
             } catch(e) { showAlert('😥', '임원 추가에 실패했습니다.'); }
-        }
+        };
         window.removeAdmin = async (adminId) => {
             if (adminList.length <= 1) return showAlert('🤔', '최소 한 명의 관리자는 남아있어야 합니다.');
             if (!confirm(`${adminId} 님을 임원 목록에서 삭제하시겠습니까?`)) return;
@@ -219,65 +303,34 @@
                 });
                 showAlert('🗑️', `${adminId} 님이 임원에서 삭제되었습니다.`);
             } catch(e) { showAlert('😥', '임원 삭제에 실패했습니다.'); }
-        }
-        
-        // Emergency Functions
+        };
         window.emergencyAddAdmin = async () => {
             const newAdminId = document.getElementById('new-admin-id').value.trim();
             if (!newAdminId) return showAlert('😥', '새 관리자의 학번을 입력해주세요.');
              try {
                 const adminDocRef = doc(db, "admins", "list");
                 await runTransaction(db, async (transaction) => {
-                    transaction.update(adminDocRef, { studentIds: arrayUnion(newAdminId) });
+                    const adminDoc = await transaction.get(adminDocRef);
+                    if (!adminDoc.exists()) {
+                        transaction.set(adminDocRef, { studentIds: [newAdminId] });
+                    } else {
+                        transaction.update(adminDocRef, { studentIds: arrayUnion(newAdminId) });
+                    }
                 });
                 showAlert('🎉', `비상 관리자(${newAdminId})가 성공적으로 임명되었습니다.`);
                 closeEmergencyModal();
             } catch(e) { showAlert('😥', '비상 관리자 임명에 실패했습니다.'); }
-        }
-        window.closeEmergencyModal = () => document.getElementById('emergency-modal').classList.add('hidden');
-
-        // --- All other functions ---
-        window.showAlert = (i, m) => { /* ... */ };
-        window.closeModal = () => { /* ... */ };
+        };
+        window.restaurantFieldHTML = (n='', i='') => `<div class="flex items-center space-x-2 restaurant-entry"><input type="text" value="${n}" placeholder="식당 이름" class="flex-grow px-4 py-2 border rounded-lg restaurant-name"><input type="text" value="${i}" placeholder="식당 정보" class="flex-grow px-4 py-2 border rounded-lg restaurant-info"><button type="button" onclick="this.parentElement.remove()" class="bg-red-500 text-white p-2 rounded-full hover:bg-red-600 w-10 h-10 flex-shrink-0"><i class="fas fa-trash"></i></button></div>`;
+        window.addRestaurantField = () => document.getElementById('restaurants-container').insertAdjacentHTML('beforeend', restaurantFieldHTML());
+        window.updateCurrentEvent = async function() { const t=document.getElementById('event-title').value.trim(),d=document.getElementById('event-datetime').value,l=parseInt(document.getElementById('event-limit').value,10),rI=Array.from(document.querySelectorAll('.restaurant-entry')).map(e=>({name:e.querySelector('.restaurant-name').value.trim(),info:e.querySelector('.restaurant-info').value.trim()})).filter(r=>r.name);if(!t||!d||!l||rI.length===0)return showAlert('😥','모든 필드를 채워주세요.');try{await runTransaction(db,async e=>{const n=doc(db,"events","current"),o=await e.get(n),a=o.exists()?o.data().restaurants||[]:[],s=rI.map(t=>{const n=a.find(e=>e.name===t.name);return n?{...n,info:t.info}:{id:`res_${Date.now()}_${Math.random().toString(36).substr(2,9)}`,...t,reservations:[],waiting:[]}});e.set(n,{title:t,datetime:d,limit:l,restaurants:s})}),showAlert('🎉','미식회 정보가 업데이트되었습니다!')}catch(e){console.error("Update failed: ",e),showAlert('😥','업데이트에 실패했습니다.')}};
+        window.makeReservation = async function(e){if(!currentUser)return showAlert('😥','참가자 정보를 먼저 입력해주세요.');try{await runTransaction(db,async t=>{const n=doc(db,"events","current"),o=await t.get(n);if(!o.exists())throw new Error("Event does not exist!");let a=o.data();if(a.restaurants||(a.restaurants=[]),a.restaurants.some(e=>(e.reservations||[]).some(e=>e.studentId===currentUser.studentId)||(e.waiting||[]).some(e=>e.studentId===currentUser.studentId)))return void showAlert('🤔','이미 다른 식당에 예약하셨습니다.');const s=a.restaurants.findIndex(t=>t.id===e);if(s===-1)throw new Error("Restaurant not found!");const i={...currentUser,timestamp:(new Date).toISOString()},r=a.restaurants[s];r.reservations||(r.reservations=[]),r.waiting||(r.waiting=[]),r.reservations.length<a.limit?(r.reservations.push(i),showAlert('✅',`${r.name}에 예약이 확정되었습니다!`)):(r.waiting.push(i),showAlert('✋',`${r.name} 예약이 마감되어 대기 명단에 등록되었습니다.`)),t.update(n,{restaurants:a.restaurants})})}catch(e){showAlert('😥',`예약 처리 중 오류: ${e.message}`)} };
+        window.cancelReservation = async function(e){if(!currentUser)return;try{await runTransaction(db,async t=>{const n=doc(db,"events","current"),o=await t.get(n);if(!o.exists())throw new Error("Event does not exist!");let a=o.data();a.restaurants||(a.restaurants=[]);const s=a.restaurants.findIndex(t=>t.id===e);if(s===-1)throw new Error("Restaurant not found!");const i=a.restaurants[s];i.reservations||(i.reservations=[]),i.waiting||(i.waiting=[]);const r=i.reservations.length;i.reservations=i.reservations.filter(e=>e.studentId!==currentUser.studentId),i.reservations.length<r?i.waiting.length>0&&i.reservations.push(i.waiting.shift()):i.waiting=i.waiting.filter(e=>e.studentId!==currentUser.studentId),t.update(n,{restaurants:a.restaurants}),showAlert('🗑️',`${i.name} 예약이 취소되었습니다.`)})}catch(e){showAlert('😥','예약 취소 중 오류가 발생했습니다.')}};
+        window.closeEmergencyModal=()=>document.getElementById("emergency-modal").classList.add("hidden");
+        window.showAlert=(e,t)=>{document.getElementById("modal-icon").innerHTML=e,document.getElementById("alert-message").textContent=t,document.getElementById("alert-modal").classList.remove("hidden")};
+        window.closeModal=()=>document.getElementById("alert-modal").classList.add("hidden");
         main();
-        
-        // Minified versions for brevity
-        renderReservationTab = (isAdmin) => { /* ... Full function ... */ };
-        window.showAlert = (i, m) => { document.getElementById('modal-icon').innerHTML=i; document.getElementById('alert-message').textContent=m; document.getElementById('alert-modal').classList.remove('hidden'); };
-        window.closeModal = () => document.getElementById('alert-modal').classList.add('hidden');
     </script>
 </body>
 </html>
-```
-
-### ✨ 무엇이 어떻게 바뀌었나요?
-
-1.  **새로운 '임원 관리' 탭:**
-    * 이제 **관리자**로 로그인하면, 상단에 **'임원 관리'**라는 새로운 탭이 나타납니다.
-    * 이 탭에서는 현재 등록된 모든 임원(관리자)의 학번을 확인하고, **새로운 임원을 추가**하거나 **기존 임원을 삭제**할 수 있습니다. 모든 것이 웹사이트 안에서 간단하게 해결됩니다!
-
-2.  **'비상 복구 모드' 완벽 구현:**
-    * **학번** 입력 칸에 우리가 정한 비밀 암호인 **`foodie_emergency_2024!`** 를 입력하고,
-    * **이름** 입력 칸을 **비워둔 채**로 '라운지 입장하기' 버튼을 누르면,
-    * 화면에 **"비상 복구 모드"** 팝업창이 나타납니다. 여기에 새로운 회장의 학번을 입력하고 '관리자 임명' 버튼을 누르면, 시스템이 즉시 복구됩니다.
-
-### ✅ 마지막으로 할 일: 데이터베이스 규칙 & 최초 관리자 설정
-
-회장님, 이 새로운 시스템을 완벽하게 작동시키려면, 딱 두 가지만 더 해주시면 됩니다.
-
-**1. 데이터베이스 규칙 최종 업데이트:**
-* '임원 관리'라는 새로운 기능(`admins` 컬렉션)을 위해, 데이터베이스의 보안 규칙을 마지막으로 한 번 더 업데이트해야 합니다.
-* **[Firebase 콘솔](https://console.firebase.google.com/)**의 **`규칙(Rules)`** 탭으로 가셔서, 기존 규칙을 모두 지우고 아래의 **최종 규칙**으로 교체 후 **'게시'** 버튼을 눌러주세요.
-
-    ```
-    rules_version = '2';
-    service cloud.firestore {
-      match /databases/{database}/documents {
-        // 모든 문서에 대해 인증된 사용자는 읽고 쓸 수 있도록 허용
-        match /{document=**} {
-          allow read, write: if request.auth != null;
-        }
-      }
-    }
-    
 
