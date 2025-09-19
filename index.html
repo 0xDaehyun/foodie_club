@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>푸디 미식회 예약 시스템 (최종 수정)</title>
+    <title>푸디 미식회 예약 시스템 (v7 - 다중 식당 추가)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
@@ -54,29 +54,39 @@
                     <button onclick="logout()" class="text-sm text-gray-500 hover:text-red-500">정보 다시 입력</button>
                 </div>
 
+                <!-- [업그레이드] 관리자 패널 -->
                 <div id="admin-panel" class="hidden bg-yellow-100 border-l-4 border-yellow-500 p-6 rounded-lg mb-8">
                     <h3 class="text-xl font-bold text-yellow-800 mb-4"><i class="fas fa-crown mr-2"></i>회장님 관리자 패널</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <input type="text" id="event-title" placeholder="미식회 이름 (예: 5월 정기 미식회)" class="w-full px-4 py-2 border rounded-lg">
                         <input type="datetime-local" id="event-datetime" class="w-full px-4 py-2 border rounded-lg">
-                        <input type="number" id="event-limit" placeholder="참여 인원 (예: 30)" class="w-full px-4 py-2 border rounded-lg">
-                        <input type="text" id="event-restaurant-name" placeholder="식당 이름" class="w-full px-4 py-2 border rounded-lg">
-                        <input type="text" id="event-restaurant-info" placeholder="식당 정보 (주소, 대표 메뉴 등)" class="w-full px-4 py-2 border rounded-lg md:col-span-2">
-                        <!-- [수정됨] 함수 이름을 createNewEvent로 변경 -->
-                        <button onclick="createNewEvent()" class="w-full bg-yellow-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-yellow-600 col-span-1 md:col-span-2">
-                            <i class="fas fa-plus-circle mr-2"></i>새로운 미식회 생성
-                        </button>
+                        <input type="number" id="event-limit" placeholder="참여 인원 (예: 30)" class="w-full px-4 py-2 border rounded-lg md:col-span-2">
                     </div>
+                    
+                    <h4 class="font-bold text-yellow-700 mb-2">방문할 식당 목록</h4>
+                    <div id="restaurants-container" class="space-y-3 mb-4">
+                        <!-- 식당 입력 필드가 여기에 동적으로 추가됩니다 -->
+                    </div>
+
+                    <button type="button" onclick="addRestaurantField()" class="mb-4 text-sm bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-4 rounded-lg">
+                        <i class="fas fa-plus mr-2"></i>식당 추가
+                    </button>
+                    
+                    <button onclick="createNewEvent()" class="w-full bg-yellow-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-yellow-600">
+                        <i class="fas fa-check-circle mr-2"></i>미식회 생성 / 업데이트
+                    </button>
                 </div>
 
                 <div id="event-container" class="bg-white p-8 rounded-2xl shadow-lg">
                     <h2 class="text-3xl font-bold mb-2 text-center text-gray-800" id="current-event-title"></h2>
                     <p class="text-center text-gray-500 mb-6" id="current-event-time"></p>
 
-                    <div id="restaurant-info-display" class="hidden text-center mb-8 bg-green-50 p-4 rounded-lg border border-green-200">
-                        <h3 class="text-xl font-bold text-green-800"><i class="fas fa-map-marker-alt mr-2"></i>이번 미식회 장소</h3>
-                        <p id="restaurant-name-display" class="text-lg font-semibold text-gray-700 mt-1"></p>
-                        <p id="restaurant-details-display" class="text-gray-600 mt-1"></p>
+                    <!-- [업그레이드] 다중 식당 정보 표시 -->
+                    <div id="restaurant-info-display" class="hidden text-left mb-8 bg-green-50 p-6 rounded-lg border border-green-200">
+                        <h3 class="text-xl font-bold text-green-800 mb-4 text-center"><i class="fas fa-map-marker-alt mr-2"></i>이번 미식회 코스</h3>
+                        <div id="restaurant-list-display" class="space-y-4">
+                            <!-- 식당 목록이 여기에 동적으로 표시됩니다 -->
+                        </div>
                     </div>
 
                     <div id="reservation-dashboard" class="hidden">
@@ -143,7 +153,7 @@
         const auth = getAuth(app);
 
         let currentUser = null;
-        const ADMIN_ID = "202327942";
+        const ADMIN_ID = "20201234";
         let eventDocRef;
 
         const loadingScreen = document.getElementById('loading-screen');
@@ -162,7 +172,6 @@
 
         function setupFirestoreListener() {
             eventDocRef = doc(db, "events", "current");
-
             onSnapshot(eventDocRef, (docSnap) => {
                 loadingScreen.classList.add('hidden');
                 mainApp.classList.remove('hidden');
@@ -175,22 +184,36 @@
         }
 
         function updateUI(event) {
-            const { title, datetime, limit, reservations = [], waiting = [], restaurantName, restaurantInfo } = event;
+            const { title, datetime, limit, reservations = [], waiting = [], restaurants = [] } = event;
             currentUser = JSON.parse(localStorage.getItem('foodieUser'));
+            
             if(currentUser) {
                 document.getElementById('login-section').classList.add('hidden');
                 document.getElementById('reservation-system').classList.remove('hidden');
                 document.getElementById('userNameDisplay').textContent = currentUser.name;
-                document.getElementById('admin-panel').classList.toggle('hidden', currentUser.studentId !== ADMIN_ID);
+                const isAdmin = currentUser.studentId === ADMIN_ID;
+                document.getElementById('admin-panel').classList.toggle('hidden', !isAdmin);
+                if (isAdmin) {
+                    // 관리자일 경우, 현재 이벤트 정보를 입력 필드에 채워넣기
+                    document.getElementById('event-title').value = title || '';
+                    document.getElementById('event-datetime').value = datetime || '';
+                    document.getElementById('event-limit').value = limit || '';
+                    const restaurantsContainer = document.getElementById('restaurants-container');
+                    restaurantsContainer.innerHTML = ''; // 기존 목록 초기화
+                    restaurants.forEach(r => addRestaurantField(r.name, r.info));
+                }
             } else {
                 document.getElementById('login-section').classList.remove('hidden');
                 document.getElementById('reservation-system').classList.add('hidden');
             }
-            document.getElementById('current-event-title').textContent = title;
+
+            document.getElementById('current-event-title').textContent = title || "진행 중인 미식회가 없습니다.";
             const eventTimeEl = document.getElementById('current-event-time');
             const reservationDashboard = document.getElementById('reservation-dashboard');
             const restaurantDisplay = document.getElementById('restaurant-info-display');
-            if (title === "진행 중인 미식회가 없습니다.") {
+            const restaurantListDisplay = document.getElementById('restaurant-list-display');
+
+            if (!title) {
                 eventTimeEl.textContent = "회장님이 새로운 미식회를 생성할 때까지 기다려주세요.";
                 reservationDashboard.classList.add('hidden');
                 restaurantDisplay.classList.add('hidden');
@@ -198,14 +221,23 @@
                 const eventDate = new Date(datetime);
                 eventTimeEl.textContent = `🗓️ ${eventDate.toLocaleString('ko-KR')}`;
                 reservationDashboard.classList.remove('hidden');
-                if(restaurantName) {
-                    document.getElementById('restaurant-name-display').textContent = restaurantName;
-                    document.getElementById('restaurant-details-display').textContent = restaurantInfo || '';
+
+                if(restaurants && restaurants.length > 0) {
+                    restaurantListDisplay.innerHTML = '';
+                    restaurants.forEach((r, index) => {
+                        const restaurantEl = document.createElement('div');
+                        restaurantEl.innerHTML = `
+                            <p class="font-semibold text-lg text-gray-800">${index + 1}차: ${r.name}</p>
+                            <p class="text-gray-600 ml-5">- ${r.info}</p>
+                        `;
+                        restaurantListDisplay.appendChild(restaurantEl);
+                    });
                     restaurantDisplay.classList.remove('hidden');
                 } else {
                     restaurantDisplay.classList.add('hidden');
                 }
             }
+            
             const reservedCount = reservations.length;
             const maxCount = limit;
             document.getElementById('current-reservations').textContent = reservedCount;
@@ -214,18 +246,21 @@
             const progressBar = document.getElementById('progress-bar');
             progressBar.style.width = `${percentage}%`;
             progressBar.textContent = `${Math.round(percentage)}%`;
+            
             const confirmedList = document.getElementById('confirmed-list');
             confirmedList.innerHTML = reservations.length ? '' : `<li class="text-gray-400">아직 예약자가 없습니다.</li>`;
             reservations.forEach(p => { confirmedList.innerHTML += `<li class="px-3 py-2 bg-white rounded-md shadow-sm">${p.studentId} - ${p.name}</li>`; });
+            
             const waitingList = document.getElementById('waiting-list');
             waitingList.innerHTML = waiting.length ? '' : `<li class="text-gray-400">대기자가 없습니다.</li>`;
             waiting.forEach((p, index) => { waitingList.innerHTML += `<li class="px-3 py-2 bg-white rounded-md shadow-sm">${p.studentId} - ${p.name} (대기 ${index + 1}번)</li>`; });
+            
             const reserveButton = document.getElementById('reserve-button');
             const cancelButton = document.getElementById('cancel-button');
             if (currentUser) {
                 const isParticipating = reservations.some(r => r.studentId === currentUser.studentId) || waiting.some(w => w.studentId === currentUser.studentId);
-                reserveButton.classList.toggle('hidden', isParticipating);
-                cancelButton.classList.toggle('hidden', !isParticipating);
+                reserveButton.classList.toggle('hidden', !title || isParticipating);
+                cancelButton.classList.toggle('hidden', !title || !isParticipating);
                 if (reservedCount >= maxCount) {
                     reserveButton.innerHTML = `<i class="fas fa-hourglass-start mr-2"></i>대기 신청하기`;
                     reserveButton.classList.replace('bg-green-500', 'bg-orange-500');
@@ -237,6 +272,7 @@
                 }
             }
         }
+
         window.login = function() {
             const studentId = document.getElementById('studentId').value.trim();
             const studentName = document.getElementById('studentName').value.trim();
@@ -245,34 +281,73 @@
             localStorage.setItem('foodieUser', JSON.stringify(currentUser));
             location.reload();
         }
+
         window.logout = function() {
             localStorage.removeItem('foodieUser');
             currentUser = null;
             location.reload();
         }
         
-        // [수정됨] 함수 이름을 createNewEvent로 변경
+        // [신규] 관리자 패널에 식당 입력 필드를 추가하는 함수
+        window.addRestaurantField = function(name = '', info = '') {
+            const container = document.getElementById('restaurants-container');
+            const newRestaurantDiv = document.createElement('div');
+            newRestaurantDiv.className = 'flex items-center space-x-2 restaurant-entry';
+            newRestaurantDiv.innerHTML = `
+                <input type="text" value="${name}" placeholder="식당 이름" class="flex-grow px-4 py-2 border rounded-lg restaurant-name">
+                <input type="text" value="${info}" placeholder="식당 정보 (메뉴, 주소 등)" class="flex-grow px-4 py-2 border rounded-lg restaurant-info">
+                <button type="button" onclick="this.parentElement.remove()" class="bg-red-500 text-white p-2 rounded-full hover:bg-red-600 w-10 h-10 flex-shrink-0">
+                    <i class="fas fa-trash"></i>
+                </button>
+            `;
+            container.appendChild(newRestaurantDiv);
+        }
+
         window.createNewEvent = async function() {
             const title = document.getElementById('event-title').value;
             const datetime = document.getElementById('event-datetime').value;
             const limit = parseInt(document.getElementById('event-limit').value, 10);
-            const restaurantName = document.getElementById('event-restaurant-name').value;
-            const restaurantInfo = document.getElementById('event-restaurant-info').value;
-            if (!title || !datetime || !limit || !restaurantName) {
-                return showAlert('😥', '식당 이름을 포함한 모든 필드를 채워주세요.');
+            
+            const restaurants = [];
+            document.querySelectorAll('.restaurant-entry').forEach(entry => {
+                const name = entry.querySelector('.restaurant-name').value.trim();
+                const info = entry.querySelector('.restaurant-info').value.trim();
+                if (name) { // 식당 이름이 있는 경우에만 추가
+                    restaurants.push({ name, info });
+                }
+            });
+
+            if (!title || !datetime || !limit) {
+                return showAlert('😥', '미식회 기본 정보를 모두 채워주세요.');
             }
+            if (restaurants.length === 0) {
+                return showAlert('😥', '식당을 최소 1개 이상 추가해주세요.');
+            }
+
             try {
                 await runTransaction(db, async (transaction) => {
-                    const newEventData = { title, datetime, limit, restaurantName, restaurantInfo, reservations: [], waiting: [] };
+                    const eventDoc = await transaction.get(eventDocRef);
+                    const currentReservations = eventDoc.exists() ? eventDoc.data().reservations : [];
+                    const currentWaiting = eventDoc.exists() ? eventDoc.data().waiting : [];
+                    
+                    const newEventData = { 
+                        title, 
+                        datetime, 
+                        limit, 
+                        restaurants, 
+                        reservations: currentReservations, // 기존 예약/대기 명단 유지
+                        waiting: currentWaiting
+                    };
                     transaction.set(eventDocRef, newEventData);
                 });
-                showAlert('🎉', '새로운 미식회가 성공적으로 생성되었습니다!');
+                showAlert('🎉', '미식회 정보가 성공적으로 업데이트되었습니다!');
             } catch (e) {
                 console.error("Transaction failed: ", e);
-                showAlert('😥', '미식회 생성에 실패했습니다.');
+                showAlert('😥', '미식회 정보 업데이트에 실패했습니다.');
             }
         }
 
+        // --- 이하 예약/취소, 모달 관련 함수는 이전과 동일 ---
         window.makeReservation = async function() {
             if (!currentUser) return showAlert('😥', '참가자 정보를 먼저 입력해주세요.');
             try {
@@ -328,6 +403,7 @@
         window.closeModal = function() {
             document.getElementById('alert-modal').classList.add('hidden');
         }
+        
         main();
     </script>
 </body>
