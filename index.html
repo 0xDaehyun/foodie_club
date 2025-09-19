@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Foodie Lounge</title>
-    <script src="[https://cdn.tailwindcss.com](https://cdn.tailwindcss.com)"></script>
-    <link href="[https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap](https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap)" rel="stylesheet">
-    <script src="[https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js](https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js)"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
     <style>
         body { font-family: 'Noto Sans KR', sans-serif; }
         .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
@@ -26,6 +26,23 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         .disabled-card { opacity: 0.6; pointer-events: none; }
+        /* Accordion Styles */
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-out, padding 0.5s ease;
+            padding: 0 1.5rem;
+        }
+        .accordion-item.active .accordion-content {
+            max-height: 1000px; /* 충분히 큰 값 */
+            padding: 1.5rem 1.5rem;
+        }
+        .accordion-header .fa-chevron-down {
+            transition: transform 0.5s ease;
+        }
+        .accordion-item.active .accordion-header .fa-chevron-down {
+            transform: rotate(180deg);
+        }
     </style>
 </head>
 <body class="bg-gray-100 flex flex-col min-h-screen">
@@ -41,30 +58,56 @@
             <p class="text-gray-600 mt-3 text-lg">맛집 탐방 전, 필수 체크인</p>
         </header>
 
-        <main id="app" class="space-y-12">
+        <main id="app" class="space-y-8">
              <div id="app-wrapper">
-                <div id="login-section" class="bg-white p-8 rounded-2xl shadow-lg max-w-lg mx-auto">
-                    <h2 class="text-2xl font-bold mb-6 text-center text-gray-700">푸디 회원 인증</h2>
-                    <div class="space-y-4">
-                        <input type="text" id="studentId" placeholder="학번" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400">
-                        <input type="text" id="studentName" placeholder="이름" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400">
-                        <button onclick="login()" class="w-full gradient-bg text-white font-bold py-3 px-4 rounded-lg hover:opacity-90 transition-opacity"><i class="fas fa-ticket-alt mr-2"></i>라운지 입장하기</button>
+                <!-- 로그인 전 표시되는 정보 섹션 -->
+                <div id="pre-login-info" class="space-y-8">
+                    <!-- 1. 푸디 회원 인증 -->
+                    <div id="login-section" class="bg-white p-8 rounded-2xl shadow-lg max-w-lg mx-auto">
+                        <h2 class="text-2xl font-bold mb-6 text-center text-gray-700">푸디 회원 인증</h2>
+                        <div class="space-y-4">
+                            <input type="text" id="studentId" placeholder="학번" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                            <input type="text" id="studentName" placeholder="이름" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                             <p class="text-xs text-center text-red-500 px-2">학번과 이름을 정확하게 기입해주세요!<br>(정확하게 기입하지 않을 경우 예약이 무효화 될 수 있습니다)</p>
+                            <button onclick="login()" class="w-full gradient-bg text-white font-bold py-3 px-4 rounded-lg hover:opacity-90 transition-opacity">
+                                <i class="fas fa-ticket-alt mr-2"></i>라운지 입장하기
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 2. 가로 배치 정보 섹션 -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <!-- 조별 점수 현황 아코디언 -->
+                        <div class="accordion-item bg-white rounded-2xl shadow-lg">
+                            <div class="accordion-header cursor-pointer p-6 flex justify-between items-center" onclick="toggleAccordion(this)">
+                                <h3 class="text-xl font-bold text-gray-700"><i class="fas fa-chart-bar mr-2 text-indigo-500"></i>조별 점수 실시간 현황</h3>
+                                <i class="fas fa-chevron-down text-gray-500"></i>
+                            </div>
+                            <div class="accordion-content">
+                                <div id="team-scores-container" class="space-y-3"></div>
+                            </div>
+                        </div>
+                        <!-- Foodie 미식회란? 아코디언 -->
+                        <div class="accordion-item bg-white rounded-2xl shadow-lg">
+                            <div class="accordion-header cursor-pointer p-6 flex justify-between items-center" onclick="toggleAccordion(this)">
+                                <h3 class="text-xl font-bold text-gray-700"><i class="fas fa-question-circle mr-2 text-indigo-500"></i>Foodie 미식회란?</h3>
+                                <i class="fas fa-chevron-down text-gray-500"></i>
+                            </div>
+                            <div class="accordion-content">
+                                <div class="space-y-4">
+                                    <div><p class="font-semibold">🤔 Foodie 미식회, 그게 뭔가요?</p><p class="mt-1 text-gray-600 pl-6">👨‍🏫 저희 푸디의 핵심 활동으로, 매주 전주 곳곳에 숨겨진 진짜 맛집을 찾아 떠나는 미식 탐험이에요! 단순한 맛집 방문을 넘어, 새로운 맛을 발견하고 사람들과 즐거움을 나누는 특별한 경험이죠.</p></div>
+                                    <div><p class="font-semibold">🚕 정말 교통비는 지원해주나요?</p><p class="mt-1 text-gray-600 pl-6">👨‍🏫 물론이죠! 동아리원들의 편안하고 안전한 이동을 위해, 미식회 장소까지 이동하는 택시비를 전액 지원해드리고 있습니다. 여러분은 오직 맛에만 집중하세요!</p></div>
+                                    <div><p class="font-semibold">🙋‍♂️ 인원 제한이 있다던데, 왜죠?</p><p class="mt-1 text-gray-600 pl-6">👨‍🏫 맞아요! 저희는 쾌적하고 깊이 있는 미식 경험을 위해 각 식당마다 탑승(?) 인원을 제한하고 있어요. 덕분에 더 오붓하게 음식을 즐기고, 사장님께 메뉴에 대한 이야기도 들을 수 있답니다. 인기 있는 곳은 서둘러야겠죠?</p></div>
+                                    <div><p class="font-semibold">🍻 미식회가 끝나면 바로 헤어지나요?</p><p class="mt-1 text-gray-600 pl-6">👨‍🏫 그럴 리가요! 맛있는 음식으로 1차를 즐겼다면, 2차부터는 모든 조가 함께 모여 신나는 친목 도모의 시간을 갖습니다! 미식회의 감동을 나누고 새로운 친구를 사귀는, 푸디만의 즐거운 마무리를 놓치지 마세요!</p></div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
+                <!-- 로그인 후 표시되는 메인 컨텐츠 -->
                 <div id="main-content" class="hidden">
-                    <div class="text-right mb-6">
-                        <p class="text-gray-700"><span id="userNameDisplay" class="font-bold"></span>님, 환영합니다!</p>
-                        <button onclick="logout()" class="text-sm text-gray-500 hover:text-red-500">로그아웃</button>
-                    </div>
-                    <div class="mb-8 bg-gray-200 rounded-lg p-2 flex flex-wrap justify-center space-x-2">
-                        <button onclick="showTab('reservation')" class="tab-btn flex-1 py-2 px-4 rounded-md font-semibold text-gray-600 active"><i class="fas fa-plane-departure mr-2"></i>탑승 게이트</button>
-                        <button id="admin-management-tab-btn" onclick="showTab('admin-management')" class="tab-btn flex-1 py-2 px-4 rounded-md font-semibold text-gray-600 hidden"><i class="fas fa-user-shield mr-2"></i>임원 관리</button>
-                    </div>
-                    <div id="tab-content-container">
-                        <div id="reservation-tab" class="tab-content active"></div>
-                        <div id="admin-management-tab" class="tab-content"></div>
-                    </div>
+                    <!-- 내용이 동적으로 채워집니다 -->
                 </div>
             </div>
         </main>
@@ -73,7 +116,7 @@
     <footer class="text-center py-4 text-gray-500 text-sm">
         웹 개발자: 소프트웨어 공학과 이대현
     </footer>
-
+    
     <div id="alert-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center px-4 z-50">
         <div class="bg-white p-8 rounded-2xl shadow-xl text-center max-w-sm w-full">
             <div id="modal-icon" class="text-5xl mb-4"></div>
@@ -95,9 +138,9 @@
     </div>
 
     <script type="module">
-        import { initializeApp } from "[https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js](https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js)";
-        import { getAuth, signInAnonymously } from "[https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js](https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js)";
-        import { getFirestore, doc, onSnapshot, runTransaction, arrayUnion, arrayRemove } from "[https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js](https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js)";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, doc, onSnapshot, runTransaction, collection, query, orderBy, updateDoc, arrayUnion, arrayRemove, addDoc, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
           apiKey: "AIzaSyDdrnlSQZa-GD006G9fvgYDL0V_ib3_pcE",
@@ -111,19 +154,17 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
-
+        
         let currentUser = null;
         let adminList = [];
         const MASTER_CODE = "foodie_emergency_2024!";
-        let currentEventData = {};
+        let currentEventData = {}, teamsData = [], historyData = [], suggestionsData = [];
 
         async function main() {
             try {
                 await signInAnonymously(auth);
                 setupListeners();
-            } catch (error) {
-                showAlert('😥', '인증에 실패했습니다. 새로고침 해주세요.');
-            }
+            } catch (error) { showAlert('😥', '인증에 실패했습니다. 새로고침 해주세요.'); }
         }
         
         function setupListeners() {
@@ -135,32 +176,78 @@
                 currentEventData = docSnap.exists() ? docSnap.data() : { title: "" };
                 renderAll();
             });
+            onSnapshot(query(collection(db, "teams"), orderBy("score", "desc")), (snapshot) => {
+                teamsData = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
+                document.getElementById('loading-screen').classList.add('hidden');
+                renderAll();
+            });
+             onSnapshot(query(collection(db, "history"), orderBy("archivedAt", "desc")), (snapshot) => {
+                historyData = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
+                renderAll();
+            });
+             const isAdmin = currentUser && adminList.includes(currentUser.studentId);
+             if (isAdmin) {
+                onSnapshot(query(collection(db, "suggestions"), orderBy("timestamp", "desc")), (snapshot) => {
+                    suggestionsData = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
+                    renderAll();
+                });
+            }
         }
 
         function renderAll() {
-            document.getElementById('loading-screen').classList.add('hidden');
             currentUser = JSON.parse(localStorage.getItem('foodieUser'));
             const isAdmin = currentUser && adminList.includes(currentUser.studentId);
 
+            const preLoginInfo = document.getElementById('pre-login-info');
+            const mainContent = document.getElementById('main-content');
+            
             if(currentUser) {
-                document.getElementById('login-section').classList.add('hidden');
-                document.getElementById('main-content').classList.remove('hidden');
-                document.getElementById('userNameDisplay').textContent = currentUser.name;
-                document.getElementById('admin-management-tab-btn').classList.toggle('hidden', !isAdmin);
+                preLoginInfo.classList.add('hidden');
+                mainContent.innerHTML = `
+                    <div class="text-right mb-6">
+                        <p class="text-gray-700"><span id="userNameDisplay" class="font-bold">${currentUser.name}</span>님, 환영합니다!</p>
+                        <button onclick="logout()" class="text-sm text-gray-500 hover:text-red-500">로그아웃</button>
+                    </div>
+                    <div class="mb-8 bg-gray-200 rounded-lg p-2 flex flex-wrap justify-center space-x-2">
+                        <button onclick="showTab('reservation')" class="tab-btn flex-1 py-2 px-4 rounded-md font-semibold text-gray-600 active"><i class="fas fa-plane-departure mr-2"></i>탑승 게이트</button>
+                        <button id="admin-management-tab-btn" onclick="showTab('admin-management')" class="tab-btn flex-1 py-2 px-4 rounded-md font-semibold text-gray-600 ${isAdmin ? '' : 'hidden'}"><i class="fas fa-user-shield mr-2"></i>임원 관리</button>
+                    </div>
+                    <div id="tab-content-container">
+                        <div id="reservation-tab" class="tab-content active"></div>
+                        <div id="admin-management-tab" class="tab-content"></div>
+                    </div>`;
+                mainContent.classList.remove('hidden');
                 renderReservationTab(isAdmin);
                 if (isAdmin) renderAdminManagementTab();
             } else {
-                document.getElementById('login-section').classList.remove('hidden');
-                document.getElementById('main-content').classList.add('hidden');
+                preLoginInfo.classList.remove('hidden');
+                mainContent.classList.add('hidden');
+                renderTeamScores();
             }
+        }
+        
+        function renderTeamScores() {
+            const container = document.getElementById('team-scores-container');
+            if (teamsData.length === 0) {
+                 container.innerHTML = `<p class="text-gray-400 text-center">아직 조별 점수 데이터가 없습니다.</p>`;
+                 return;
+            }
+            container.innerHTML = teamsData.map((team, index) => {
+                const colors = ['text-yellow-400', 'text-gray-400', 'text-yellow-600'];
+                const icon = index < 3 ? `<i class="fas fa-trophy mr-2 ${colors[index]}"></i>` : `<span class="font-bold mr-2 text-gray-500">${index + 1}</span>`;
+                return `
+                <div class="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+                    <span class="font-semibold text-lg flex items-center">${icon}${team.name}</span>
+                    <span class="font-bold text-lg text-indigo-600">${team.score} 점</span>
+                </div>`;
+            }).join('');
         }
 
         function renderReservationTab(isAdmin) {
             const container = document.getElementById('reservation-tab');
             const { title, datetime, limit, restaurants = [] } = currentEventData;
-            
             let adminPanelHTML = '';
-             if(isAdmin){
+            if (isAdmin) {
                 adminPanelHTML = `
                 <div class="bg-indigo-50 border-l-4 border-indigo-500 p-6 rounded-lg mb-8">
                     <h3 class="text-xl font-bold text-indigo-800 mb-4"><i class="fas fa-crown mr-2"></i>회장님 관리자 패널</h3>
@@ -177,13 +264,12 @@
                         ${title ? `<button onclick="archiveCurrentEvent()" class="flex-1 bg-gray-700 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-800 disabled:opacity-50"><i class="fas fa-archive mr-2"></i>탐방 종료 (보관)</button>` : ''}
                     </div>
                 </div>`;
-             }
-
+            }
             let eventContainerHTML = '';
-            if(!title){
+            if (!title) {
                 eventContainerHTML = `<div class="text-center py-12"><i class="fas fa-plane text-5xl text-gray-300"></i><p class="mt-4 text-gray-500">현재 예정된 맛집 탐방이 없습니다.</p></div>`;
             } else {
-                 let userReservationRestaurantId = null;
+                let userReservationRestaurantId = null;
                 if (currentUser) {
                     restaurants.forEach(r => {
                         if ((r.reservations || []).some(p => p.studentId === currentUser.studentId) || (r.waiting || []).some(p => p.studentId === currentUser.studentId)) {
@@ -246,7 +332,6 @@
                     <button onclick="removeAdmin('${id}')" class="text-red-500 hover:text-red-700"><i class="fas fa-trash-alt"></i></button>
                 </div>
             `).join('');
-
             container.innerHTML = `
             <div class="bg-white p-8 rounded-2xl shadow-lg max-w-2xl mx-auto">
                 <h3 class="text-2xl font-bold mb-6 text-gray-700"><i class="fas fa-user-shield mr-2"></i>임원 관리</h3>
@@ -262,7 +347,7 @@
                 </div>
             </div>`;
         }
-        
+
         window.login = async () => {
             const studentId = document.getElementById('studentId').value.trim();
             const studentName = document.getElementById('studentName').value.trim();
@@ -274,7 +359,7 @@
             localStorage.setItem('foodieUser', JSON.stringify({ studentId, name: studentName }));
             renderAll();
         };
-        window.logout = () => { localStorage.removeItem('foodieUser'); renderAll(); };
+        window.logout = () => { localStorage.removeItem('foodieUser'); location.reload(); };
         window.showTab = (t) => { document.querySelectorAll('.tab-content, .tab-btn').forEach(e => e.classList.remove('active')); document.getElementById(`${t}-tab`).classList.add('active'); document.querySelector(`button[onclick="showTab('${t}')"]`).classList.add('active'); };
         window.addAdmin = async () => {
             const newAdminId = document.getElementById('new-admin-input').value.trim();
@@ -326,6 +411,7 @@
         window.updateCurrentEvent = async function() { const t=document.getElementById('event-title').value.trim(),d=document.getElementById('event-datetime').value,l=parseInt(document.getElementById('event-limit').value,10),rI=Array.from(document.querySelectorAll('.restaurant-entry')).map(e=>({name:e.querySelector('.restaurant-name').value.trim(),info:e.querySelector('.restaurant-info').value.trim()})).filter(r=>r.name);if(!t||!d||!l||rI.length===0)return showAlert('😥','모든 필드를 채워주세요.');try{await runTransaction(db,async e=>{const n=doc(db,"events","current"),o=await e.get(n),a=o.exists()?o.data().restaurants||[]:[],s=rI.map(t=>{const n=a.find(e=>e.name===t.name);return n?{...n,info:t.info}:{id:`res_${Date.now()}_${Math.random().toString(36).substr(2,9)}`,...t,reservations:[],waiting:[]}});e.set(n,{title:t,datetime:d,limit:l,restaurants:s})}),showAlert('🎉','미식회 정보가 업데이트되었습니다!')}catch(e){console.error("Update failed: ",e),showAlert('😥','업데이트에 실패했습니다.')}};
         window.makeReservation = async function(e){if(!currentUser)return showAlert('😥','참가자 정보를 먼저 입력해주세요.');try{await runTransaction(db,async t=>{const n=doc(db,"events","current"),o=await t.get(n);if(!o.exists())throw new Error("Event does not exist!");let a=o.data();if(a.restaurants||(a.restaurants=[]),a.restaurants.some(e=>(e.reservations||[]).some(e=>e.studentId===currentUser.studentId)||(e.waiting||[]).some(e=>e.studentId===currentUser.studentId)))return void showAlert('🤔','이미 다른 식당에 예약하셨습니다.');const s=a.restaurants.findIndex(t=>t.id===e);if(s===-1)throw new Error("Restaurant not found!");const i={...currentUser,timestamp:(new Date).toISOString()},r=a.restaurants[s];r.reservations||(r.reservations=[]),r.waiting||(r.waiting=[]),r.reservations.length<a.limit?(r.reservations.push(i),showAlert('✅',`${r.name}에 예약이 확정되었습니다!`)):(r.waiting.push(i),showAlert('✋',`${r.name} 예약이 마감되어 대기 명단에 등록되었습니다.`)),t.update(n,{restaurants:a.restaurants})})}catch(e){showAlert('😥',`예약 처리 중 오류: ${e.message}`)} };
         window.cancelReservation = async function(e){if(!currentUser)return;try{await runTransaction(db,async t=>{const n=doc(db,"events","current"),o=await t.get(n);if(!o.exists())throw new Error("Event does not exist!");let a=o.data();a.restaurants||(a.restaurants=[]);const s=a.restaurants.findIndex(t=>t.id===e);if(s===-1)throw new Error("Restaurant not found!");const i=a.restaurants[s];i.reservations||(i.reservations=[]),i.waiting||(i.waiting=[]);const r=i.reservations.length;i.reservations=i.reservations.filter(e=>e.studentId!==currentUser.studentId),i.reservations.length<r?i.waiting.length>0&&i.reservations.push(i.waiting.shift()):i.waiting=i.waiting.filter(e=>e.studentId!==currentUser.studentId),t.update(n,{restaurants:a.restaurants}),showAlert('🗑️',`${i.name} 예약이 취소되었습니다.`)})}catch(e){showAlert('😥','예약 취소 중 오류가 발생했습니다.')}};
+        window.toggleAccordion = (header) => header.parentElement.classList.toggle('active');
         window.closeEmergencyModal=()=>document.getElementById("emergency-modal").classList.add("hidden");
         window.showAlert=(e,t)=>{document.getElementById("modal-icon").innerHTML=e,document.getElementById("alert-message").textContent=t,document.getElementById("alert-modal").classList.remove("hidden")};
         window.closeModal=()=>document.getElementById("alert-modal").classList.add("hidden");
