@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>푸디 미식회 예약 시스템 (최종)</title>
+    <title>푸디 미식회 예약 시스템 (최종 수정)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
@@ -62,7 +62,8 @@
                         <input type="number" id="event-limit" placeholder="참여 인원 (예: 30)" class="w-full px-4 py-2 border rounded-lg">
                         <input type="text" id="event-restaurant-name" placeholder="식당 이름" class="w-full px-4 py-2 border rounded-lg">
                         <input type="text" id="event-restaurant-info" placeholder="식당 정보 (주소, 대표 메뉴 등)" class="w-full px-4 py-2 border rounded-lg md:col-span-2">
-                        <button onclick="createEvent()" class="w-full bg-yellow-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-yellow-600 col-span-1 md:col-span-2">
+                        <!-- [수정됨] 함수 이름을 createNewEvent로 변경 -->
+                        <button onclick="createNewEvent()" class="w-full bg-yellow-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-yellow-600 col-span-1 md:col-span-2">
                             <i class="fas fa-plus-circle mr-2"></i>새로운 미식회 생성
                         </button>
                     </div>
@@ -127,7 +128,6 @@
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, doc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // 회장님의 '진짜 열쇠'가 여기에 들어갔습니다.
         const firebaseConfig = {
           apiKey: "AIzaSyDdrnlSQZa-GD006G9fvgYDL0V_ib3_pcE",
           authDomain: "foodie-club-694ba.firebaseapp.com",
@@ -143,7 +143,7 @@
         const auth = getAuth(app);
 
         let currentUser = null;
-        const ADMIN_ID = "202327942"; // 나중에 이 부분을 다음 회장 학번으로 바꾸세요.
+        const ADMIN_ID = "20201234";
         let eventDocRef;
 
         const loadingScreen = document.getElementById('loading-screen');
@@ -250,7 +250,9 @@
             currentUser = null;
             location.reload();
         }
-        window.createEvent = async function() {
+        
+        // [수정됨] 함수 이름을 createNewEvent로 변경
+        window.createNewEvent = async function() {
             const title = document.getElementById('event-title').value;
             const datetime = document.getElementById('event-datetime').value;
             const limit = parseInt(document.getElementById('event-limit').value, 10);
@@ -270,6 +272,7 @@
                 showAlert('😥', '미식회 생성에 실패했습니다.');
             }
         }
+
         window.makeReservation = async function() {
             if (!currentUser) return showAlert('😥', '참가자 정보를 먼저 입력해주세요.');
             try {
