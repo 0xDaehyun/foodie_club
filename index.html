@@ -18,7 +18,7 @@
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       }
       .card-hover {
-        transition: transform 0.3s, box-shadow 0.3s;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
       }
       .card-hover:hover {
         transform: translateY(-5px);
@@ -42,7 +42,7 @@
         }
       }
       .tab-btn {
-        transition: all 0.3s;
+        transition: all 0.3s ease;
       }
       .tab-btn.active {
         color: #fff;
@@ -62,15 +62,15 @@
       .accordion-content {
         max-height: 0;
         overflow: hidden;
-        transition: max-height 0.5s, padding 0.5s;
+        transition: max-height 0.5s ease-out, padding 0.5s ease;
         padding: 0 1.5rem;
       }
       .accordion-item.active .accordion-content {
         max-height: 1000px;
-        padding: 1.5rem;
+        padding: 1.5rem 1.5rem;
       }
       .accordion-header .fa-chevron-down {
-        transition: transform 0.5s;
+        transition: transform 0.5s ease;
       }
       .accordion-item.active .accordion-header .fa-chevron-down {
         transform: rotate(180deg);
@@ -118,7 +118,7 @@
         background: #f59e0b;
       }
       .roadmap-item.upcoming {
-        opacity: 0.85;
+        opacity: 0.8;
       }
       .star-rating .fa-star {
         color: #d1d5db;
@@ -135,18 +135,15 @@
       .star-rating[data-rating].rated .fa-star {
         color: #facc15;
       }
-      /* 모바일 Q&A 잘림 방지 */
-      @media (max-width: 420px) {
-        .qna-title {
-          white-space: nowrap;
-          font-size: 1.125rem;
-          line-height: 1.25rem;
-        }
+
+      /* 모바일에서 Q&A 글자 짤림 방지 */
+      .qa-title {
+        word-break: keep-all;
+        overflow-wrap: anywhere;
       }
     </style>
   </head>
   <body class="bg-gray-100 flex flex-col min-h-screen">
-    <!-- Loading -->
     <div
       id="loading-screen"
       class="fixed inset-0 bg-white flex flex-col justify-center items-center z-50"
@@ -161,13 +158,13 @@
           Foodie Lounge
         </h1>
         <p class="text-gray-600 mt-3 text-lg">
-          ✈️ 맛집 탐방 전, 필수 체크인 ✈️
+           맛집 탐방 전, 필수 체크인 ✈️
         </p>
       </header>
 
       <main id="app" class="space-y-8">
         <div id="app-wrapper">
-          <!-- ===== 로그인 전 ===== -->
+          <!-- ====== 로그인 전 영역 ====== -->
           <div id="pre-login-info" class="space-y-8">
             <!-- 로그인 -->
             <div
@@ -175,7 +172,7 @@
               class="bg-white p-8 rounded-2xl shadow-lg max-w-lg mx-auto"
             >
               <h2 class="text-2xl font-bold mb-6 text-center text-gray-700">
-                Foodie 회원 인증
+                푸디 회원 인증
               </h2>
               <div class="space-y-4">
                 <input
@@ -191,8 +188,8 @@
                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
                 />
                 <p class="text-xs text-center text-red-500 px-2">
-                  학번과 이름을 정확하게 기입해주세요!<br />(정확하지 않으면
-                  신청이 무효화될 수 있습니다)
+                  학번과 이름을 정확하게 기입해주세요!<br />(정확하게 기입하지
+                  않을 경우 신청이 무효화 될 수 있습니다)
                 </p>
                 <button
                   id="login-button"
@@ -203,7 +200,7 @@
               </div>
             </div>
 
-            <!-- Foodie 활동 로드맵 (미리보기 4개 + 전체보기 토글) -->
+            <!-- Foodie 활동 로드맵 (표시 4개 + '전체 보기' 토글) -->
             <div class="bg-white p-6 rounded-2xl shadow-lg">
               <h3 class="text-2xl font-bold mb-6 text-gray-700">
                 <i class="fas fa-map-signs mr-2 text-indigo-500"></i>Foodie 활동
@@ -213,19 +210,19 @@
               <div class="text-center mt-4">
                 <button
                   id="roadmap-toggle-btn"
-                  class="px-4 py-2 text-indigo-700 font-semibold rounded hover:bg-indigo-50"
+                  class="text-sm text-indigo-600 hover:text-indigo-800 font-semibold underline hidden"
                 >
                   전체 일정 보기
                 </button>
               </div>
             </div>
 
-            <!-- 조별 점수 현황 -->
+            <!-- 조별 점수 현황 (아코디언) -->
             <div class="accordion-item bg-white rounded-2xl shadow-lg">
               <div
                 class="accordion-header cursor-pointer p-6 flex justify-between items-center"
               >
-                <h3 class="text-xl font-bold text-gray-700">
+                <h3 class="text-lg md:text-xl font-bold text-gray-700">
                   <i class="fas fa-chart-bar mr-2 text-indigo-500"></i>조별 점수
                   실시간 현황
                 </h3>
@@ -236,12 +233,12 @@
               </div>
             </div>
 
-            <!-- Foodie Q&A (모바일 잘림 방지) -->
+            <!-- Foodie Q&A (모바일 글자 짤림 보정) -->
             <div class="accordion-item bg-white rounded-2xl shadow-lg">
               <div
                 class="accordion-header cursor-pointer p-6 flex justify-between items-center"
               >
-                <h3 class="qna-title font-bold text-gray-700 sm:text-xl">
+                <h3 class="qa-title text-lg md:text-xl font-bold text-gray-700">
                   <i class="fas fa-question-circle mr-2 text-indigo-500"></i
                   >Foodie Q&A
                 </h3>
@@ -252,8 +249,9 @@
                   <div>
                     <p class="font-semibold">🤔 Foodie 미식회, 그게 뭔가요?</p>
                     <p class="mt-1 text-gray-600 pl-6">
-                      👨‍🏫 매주 전주의 숨은 맛집을 찾아 떠나는 미식 탐험! 새로운
-                      맛을 발견하고 즐거움을 나누는 경험이에요.
+                      👨‍🏫 매주 전주의 숨은 맛집을 찾아 떠나는 미식 탐험! 단순
+                      방문을 넘어, 새로운 맛을 발견하고 즐거움을 나누는
+                      경험이에요.
                     </p>
                   </div>
                   <div>
@@ -272,7 +270,8 @@
                   <div>
                     <p class="font-semibold">🍻 끝나면 바로 헤어지나요?</p>
                     <p class="mt-1 text-gray-600 pl-6">
-                      👨‍🏫 1차 후엔 모든 조가 함께 모여 친목 타임!
+                      👨‍🏫 1차 후엔 모든 조가 함께 모여 친목 타임! 감동을 나누고
+                      친구를 사귀어요.
                     </p>
                   </div>
                 </div>
@@ -284,9 +283,9 @@
               <div
                 class="accordion-header cursor-pointer p-6 flex justify-between items-center"
               >
-                <h3 class="text-xl font-bold text-gray-700">
+                <h3 class="text-lg md:text-xl font-bold text-gray-700">
                   <i class="fas fa-laptop-code mr-2 text-indigo-500"></i>Foodie
-                  Web Service는 ?
+                  Web Service는 뭔가요?
                 </h3>
                 <i class="fas fa-chevron-down text-gray-500"></i>
               </div>
@@ -305,15 +304,16 @@
                     <ol class="list-decimal pl-8 mt-1 space-y-1 text-gray-600">
                       <li><b>학번/이름</b>을 입력해 입장합니다.</li>
                       <li>
-                        <b>탑승 게이트</b>에서 식당을 선택해 예약(정원 초과 시
-                        자동 대기)합니다.
+                        <b>탑승 게이트</b>에서 식당을 선택하면 예약(정원 초과 시
+                        자동 대기)됩니다.
                       </li>
                       <li>
                         예약 취소는 카드의 <b>탑승 취소</b> 버튼으로 간단히.
                       </li>
                       <li><b>아이디어 건의</b> 탭에서 익명 제안 가능.</li>
                       <li>
-                        관리자는 <b>대시보드/임원 관리</b> 탭으로 운영합니다.
+                        관리자는 <b>관리자 대시보드/임원 관리</b> 탭으로
+                        운영합니다.
                       </li>
                     </ol>
                   </div>
@@ -322,7 +322,7 @@
             </div>
           </div>
 
-          <!-- ===== 로그인 후 메인 ===== -->
+          <!-- ====== 로그인 이후 메인 ====== -->
           <div id="main-content" class="hidden"></div>
         </div>
       </main>
@@ -431,10 +431,13 @@
       let currentEventData = {};
       let currentMTData = {};
       let teamsData = [];
-      let historyData = []; // past food events
-      let mtHistoryData = []; // past MTs
+      let historyData = []; // 미식회 보관
+      let mtHistoryData = []; // MT 보관
       let suggestionsData = [];
       let roadmapData = [];
+
+      // 상태: 프리로그인 로드맵 "전체 보기" 토글
+      let roadmapShowAll = false;
 
       // onSnapshot 구독 관리
       const unsub = {
@@ -442,18 +445,19 @@
         events: null,
         mt: null,
         teams: null,
-        history: null,
-        mtHistory: null,
+        history: null, // 미식회 보관
+        mt_history: null, // MT 보관
         roadmap: null,
         suggestions: null,
       };
-      const clearAllListeners = () =>
+      const clearAllListeners = () => {
         Object.keys(unsub).forEach((k) => {
           if (unsub[k]) {
             unsub[k]();
             unsub[k] = null;
           }
         });
+      };
 
       const elements = {
         loadingScreen: document.getElementById("loading-screen"),
@@ -490,6 +494,7 @@
         currentUser = { studentId, name: studentName };
         setupListeners();
       };
+
       const logout = async () => {
         try {
           clearAllListeners();
@@ -513,6 +518,7 @@
           btn.classList.add("active");
         }
       };
+
       const toggleAccordion = (header) =>
         header.parentElement.classList.toggle("active");
 
@@ -531,8 +537,8 @@
         if (isAdminNow && !unsub.suggestions) {
           unsub.suggestions = onSnapshot(
             query(collection(db, "suggestions"), orderBy("timestamp", "desc")),
-            (snap) => {
-              suggestionsData = snap.docs.map((d) => ({
+            (snapshot) => {
+              suggestionsData = snapshot.docs.map((d) => ({
                 id: d.id,
                 ...d.data(),
               }));
@@ -547,60 +553,90 @@
         }
       }
 
-      // 로드맵 미리보기/전체 토글 상태
-      let roadmapExpanded = false;
+      function ensureArchiveListenersForAdmin() {
+        const isAdminNow =
+          currentUser && adminList.includes(currentUser.studentId);
+        // 미식회 보관
+        if (isAdminNow && !unsub.history) {
+          unsub.history = onSnapshot(
+            query(collection(db, "history"), orderBy("archivedAt", "desc")),
+            (snapshot) => {
+              historyData = snapshot.docs.map((doc) => ({
+                id: doc.id,
+                ...doc.data(),
+              }));
+              renderAll();
+            }
+          );
+        } else if (!isAdminNow && unsub.history) {
+          unsub.history();
+          unsub.history = null;
+          historyData = [];
+          renderAll();
+        }
+        // MT 보관
+        if (isAdminNow && !unsub.mt_history) {
+          unsub.mt_history = onSnapshot(
+            query(collection(db, "mt_history"), orderBy("archivedAt", "desc")),
+            (snapshot) => {
+              mtHistoryData = snapshot.docs.map((doc) => ({
+                id: doc.id,
+                ...doc.data(),
+              }));
+              renderAll();
+            }
+          );
+        } else if (!isAdminNow && unsub.mt_history) {
+          unsub.mt_history();
+          unsub.mt_history = null;
+          mtHistoryData = [];
+          renderAll();
+        }
+      }
 
       function setupListeners() {
         currentUser = JSON.parse(localStorage.getItem("foodieUser"));
         clearAllListeners();
 
-        unsub.admins = onSnapshot(doc(db, "admins", "list"), (ds) => {
-          adminList = ds.exists() ? ds.data().studentIds : [];
+        unsub.admins = onSnapshot(doc(db, "admins", "list"), (docSnap) => {
+          adminList = docSnap.exists() ? docSnap.data().studentIds : [];
           ensureSuggestionsListener();
+          ensureArchiveListenersForAdmin();
           renderAll();
         });
-        unsub.events = onSnapshot(doc(db, "events", "current"), (ds) => {
-          currentEventData = ds.exists() ? ds.data() : { title: "" };
+
+        unsub.events = onSnapshot(doc(db, "events", "current"), (docSnap) => {
+          currentEventData = docSnap.exists() ? docSnap.data() : { title: "" };
           renderAll();
         });
-        unsub.mt = onSnapshot(doc(db, "mt", "current"), (ds) => {
-          currentMTData = ds.exists() ? ds.data() : { title: "" };
+
+        unsub.mt = onSnapshot(doc(db, "mt", "current"), (docSnap) => {
+          currentMTData = docSnap.exists() ? docSnap.data() : { title: "" };
           renderAll();
         });
 
         unsub.teams = onSnapshot(
           query(collection(db, "teams"), orderBy("score", "desc")),
-          (snap) => {
-            teamsData = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-            renderAll();
-          }
-        );
-
-        unsub.history = onSnapshot(
-          query(collection(db, "history"), orderBy("archivedAt", "desc")),
-          (snap) => {
-            historyData = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-            renderAll();
-          }
-        );
-        unsub.mtHistory = onSnapshot(
-          query(collection(db, "mt_history"), orderBy("archivedAt", "desc")),
-          (snap) => {
-            mtHistoryData = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+          (snapshot) => {
+            teamsData = snapshot.docs.map((doc) => ({
+              id: doc.id,
+              ...doc.data(),
+            }));
             renderAll();
           }
         );
 
         unsub.roadmap = onSnapshot(
           query(collection(db, "roadmap"), orderBy("activityDate", "asc")),
-          (snap) => {
-            roadmapData = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+          (snapshot) => {
+            roadmapData = snapshot.docs.map((doc) => ({
+              id: doc.id,
+              ...doc.data(),
+            }));
             elements.loadingScreen.classList.add("hidden");
             renderAll();
           }
         );
-
-        ensureSuggestionsListener();
       }
 
       function renderAll() {
@@ -612,14 +648,14 @@
           elements.preLoginInfo.classList.add("hidden");
           elements.mainContent.innerHTML = `
             <div class="text-right mb-6">
-              <p class="text-gray-700"><span class="font-bold">${
+              <p class="text-gray-700"><span id="userNameDisplay" class="font-bold">${
                 currentUser.name
               }</span>님, 환영합니다!</p>
               <button id="logout-button" class="text-sm text-gray-500 hover:text-red-500">로그아웃</button>
             </div>
+
             <div class="mb-8 bg-gray-200 rounded-lg p-2 flex flex-wrap justify-center space-x-2" id="tab-buttons">
               <button data-tab="reservation" class="tab-btn flex-1 py-2 px-4 rounded-md font-semibold text-gray-600 active"><i class="fas fa-plane-departure mr-2"></i>탑승 게이트</button>
-              <button data-tab="archive" class="tab-btn flex-1 py-2 px-4 rounded-md font-semibold text-gray-600"><i class="fas fa-box-archive mr-2"></i>보관</button>
               <button data-tab="history" class="tab-btn flex-1 py-2 px-4 rounded-md font-semibold text-gray-600"><i class="fas fa-trophy mr-2"></i>명예의 전당</button>
               <button data-tab="suggestions" class="tab-btn flex-1 py-2 px-4 rounded-md font-semibold text-gray-600"><i class="fas fa-lightbulb mr-2"></i>아이디어 건의</button>
               <button data-tab="dashboard" class="tab-btn flex-1 py-2 px-4 rounded-md font-semibold text-gray-600 ${
@@ -628,15 +664,20 @@
               <button data-tab="admin" class="tab-btn flex-1 py-2 px-4 rounded-md font-semibold text-gray-600 ${
                 isAdmin ? "" : "hidden"
               }"><i class="fas fa-user-shield mr-2"></i>임원 관리</button>
+              <button data-tab="archive" class="tab-btn flex-1 py-2 px-4 rounded-md font-semibold text-gray-600 ${
+                isAdmin ? "" : "hidden"
+              }"><i class="fas fa-box-archive mr-2"></i>보관</button>
             </div>
+
             <div id="tab-content-container">
               <div id="reservation-tab" class="tab-content active"></div>
-              <div id="archive-tab" class="tab-content"></div>
               <div id="history-tab" class="tab-content"></div>
               <div id="suggestions-tab" class="tab-content"></div>
               <div id="dashboard-tab" class="tab-content"></div>
               <div id="admin-tab" class="tab-content"></div>
+              <div id="archive-tab" class="tab-content"></div>
             </div>`;
+
           elements.mainContent.classList.remove("hidden");
 
           document
@@ -650,27 +691,19 @@
             });
 
           renderReservationTab(isAdmin);
-          renderArchiveTab(isAdmin);
           renderHistoryTab();
           renderSuggestionsTab(isAdmin);
           if (isAdmin) {
             renderDashboardTab();
             renderAdminManagementTab();
+            renderArchiveTab(true);
           }
         } else {
+          // 프리로그인 화면
           elements.preLoginInfo.classList.remove("hidden");
           elements.mainContent.classList.add("hidden");
           renderTeamScores();
-          renderRoadmap(); // 로그인 전
-          // 로드맵 토글 버튼
-          const btn = document.getElementById("roadmap-toggle-btn");
-          if (btn) {
-            btn.onclick = () => {
-              roadmapExpanded = !roadmapExpanded;
-              renderRoadmap();
-              btn.textContent = roadmapExpanded ? "접기" : "전체 일정 보기";
-            };
-          }
+          renderRoadmap();
         }
       }
 
@@ -679,33 +712,40 @@
         if (!container) return;
         container.innerHTML =
           teamsData.length === 0
-            ? `<p class="text-gray-400 text-center">곧 활동이 시작합니다!</p>`
+            ? `<p class="text-gray-400 text-center">아직 조별 점수 데이터가 없습니다.</p>`
             : teamsData
-                .map((team, idx) => {
+                .map((team, index) => {
                   const colors = [
                     "text-yellow-400",
                     "text-gray-400",
                     "text-yellow-600",
                   ];
                   const icon =
-                    idx < 3
-                      ? `<i class="fas fa-trophy mr-2 ${colors[idx]}"></i>`
+                    index < 3
+                      ? `<i class="fas fa-trophy mr-2 ${colors[index]}"></i>`
                       : `<span class="font-bold mr-2 text-gray-500">${
-                          idx + 1
+                          index + 1
                         }</span>`;
-                  return `<div class="flex items-center justify-between bg-gray-50 p-3 rounded-lg"><span class="font-semibold text-lg flex items-center">${icon}${team.name}</span><span class="font-bold text-lg text-indigo-600">${team.score} 점</span></div>`;
+                  return `<div class="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+                          <span class="font-semibold text-lg flex items-center">${icon}${team.name}</span>
+                          <span class="font-bold text-lg text-indigo-600">${team.score} 점</span>
+                        </div>`;
                 })
                 .join("");
       }
 
       function renderRoadmap() {
         const container = document.getElementById("roadmap-container");
+        const toggleBtn = document.getElementById("roadmap-toggle-btn");
         if (!container) return;
-        const list = roadmapExpanded ? roadmapData : roadmapData.slice(0, 4);
+
+        const total = roadmapData.length;
+        const items = roadmapShowAll ? roadmapData : roadmapData.slice(0, 4);
+
         container.innerHTML =
-          list.length === 0
+          total === 0
             ? `<p class="text-gray-400 text-center py-4">예정된 활동이 없습니다. 회장님이 곧 일정을 추가할 거예요!</p>`
-            : list
+            : items
                 .map((item) => {
                   const itemDate = new Date(item.activityDate);
                   const today = new Date();
@@ -724,43 +764,56 @@
                         </div>`;
                 })
                 .join("");
-        const toggle = document.getElementById("roadmap-toggle-btn");
-        if (toggle)
-          toggle.textContent = roadmapExpanded ? "접기" : "전체 일정 보기";
+
+        if (toggleBtn) {
+          if (total > 4) {
+            toggleBtn.classList.remove("hidden");
+            toggleBtn.textContent = roadmapShowAll
+              ? "간단히 보기"
+              : "전체 일정 보기";
+            toggleBtn.onclick = () => {
+              roadmapShowAll = !roadmapShowAll;
+              renderRoadmap();
+            };
+          } else {
+            toggleBtn.classList.add("hidden");
+          }
+        }
       }
 
-      /* ===== 관리자 대시보드 (기존 유지) ===== */
+      // ===== 관리자 대시보드
       function renderDashboardTab() {
         const container = document.getElementById("dashboard-tab");
         if (!container) return;
 
         let totalParticipants = 0,
           totalCapacity = 0;
-        historyData.forEach((ev) => {
-          totalParticipants += (ev.restaurants || []).reduce(
-            (s, r) => s + (r.reservations || []).length,
+        historyData.forEach((event) => {
+          totalParticipants += (event.restaurants || []).reduce(
+            (sum, r) => sum + (r.reservations || []).length,
             0
           );
-          totalCapacity += (ev.restaurants || []).length * (ev.limit || 0);
+          totalCapacity +=
+            (event.restaurants || []).length * (event.limit || 0);
         });
-        const rate =
+        const overallParticipationRate =
           totalCapacity > 0
             ? ((totalParticipants / totalCapacity) * 100).toFixed(1)
             : 0;
 
-        const teamsHTML = teamsData
+        const teamsScoreManagementHTML = teamsData
           .map(
             (team) => `
           <div class="flex items-center space-x-2 bg-gray-50 p-2 rounded-lg">
             <input type="text" id="name-input-${team.id}" value="${team.name}" class="flex-grow border rounded px-2 py-1">
-            <input type="number" id="score-input-${team.id}" value="${team.score}" class="w-24 border rounded px-2 py-1" placeholder="점수">
+            <input type="number" id="score-input-${team.id}" value="${team.score}" class="w-1/4 border rounded px-2 py-1" placeholder="점수">
             <button data-action="update-team" data-id="${team.id}" class="bg-indigo-500 text-white text-sm font-bold py-1 px-2 rounded hover:bg-indigo-600">저장</button>
             <button data-action="delete-team" data-id="${team.id}" class="bg-red-500 text-white text-sm font-bold py-1 px-2 rounded hover:bg-red-600"><i class="fas fa-trash"></i></button>
           </div>`
           )
           .join("");
 
-        const roadmapHTML = roadmapData
+        const roadmapManagementHTML = roadmapData
           .map(
             (item) => `
           <div class="flex justify-between items-center bg-gray-50 p-2 rounded-lg">
@@ -789,7 +842,7 @@
                 historyData.length
               }</p><p class="text-blue-600">총 미식회 횟수</p></div>
               <div class="bg-green-100 p-4 rounded-lg"><p class="text-3xl font-bold text-green-800">${totalParticipants}</p><p class="text-green-600">누적 참여 인원</p></div>
-              <div class="bg-amber-100 p-4 rounded-lg"><p class="text-3xl font-bold text-amber-800">${rate}%</p><p class="text-amber-600">전체 참여율</p></div>
+              <div class="bg-amber-100 p-4 rounded-lg"><p class="text-3xl font-bold text-amber-800">${overallParticipationRate}%</p><p class="text-amber-600">전체 참여율</p></div>
             </div>
           </div>
 
@@ -798,7 +851,7 @@
             <div class="space-y-3">
               <h4 class="font-semibold text-gray-600">조 정보 수정/삭제</h4>
               <div class="space-y-2">${
-                teamsHTML ||
+                teamsScoreManagementHTML ||
                 '<p class="text-gray-400">등록된 조가 없습니다.</p>'
               }</div>
               <hr class="my-4">
@@ -815,7 +868,7 @@
             <div class="space-y-3">
               <h4 class="font-semibold text-gray-600">현재 로드맵</h4>
               <div class="space-y-2">${
-                roadmapHTML ||
+                roadmapManagementHTML ||
                 '<p class="text-gray-400">등록된 활동이 없습니다.</p>'
               }</div>
               <hr class="my-4">
@@ -828,29 +881,30 @@
             </div>
           </div>`;
 
+        // TDZ 방지 위해 래퍼 사용
         document
           .getElementById("team-management")
-          .addEventListener("click", handleDashboardClick);
+          .addEventListener("click", (e) => handleDashboardClick(e));
         document
           .getElementById("roadmap-management")
-          .addEventListener("click", handleDashboardClick);
+          .addEventListener("click", (e) => handleDashboardClick(e));
         document
           .getElementById("add-team-button")
-          .addEventListener("click", addNewTeam);
+          .addEventListener("click", () => addNewTeam());
         document
           .getElementById("add-roadmap-button")
-          .addEventListener("click", addRoadmapItem);
+          .addEventListener("click", () => addRoadmapItem());
       }
 
-      /* ====== 탑승 게이트 (MT + 미식회) ====== */
+      // ====== 탑승 게이트 (MT + 미식회)
       function renderReservationTab(isAdmin) {
         const container = document.getElementById("reservation-tab");
         if (!container) return;
 
-        // (A) MT 섹션 (상단 고정)
+        // (A) MT 블록(상단 고정)
         const mtHTML = renderMTSection(isAdmin);
 
-        // (B) 미식회 섹션
+        // (B) 미식회(식당) 블록
         const { title, datetime, limit, restaurants = [] } = currentEventData;
 
         let adminPanelHTML = "";
@@ -873,7 +927,7 @@
                 <h4 class="font-bold text-indigo-700 mb-2">선택 가능한 맛집 (게이트)</h4>
                 <div id="restaurants-container" class="space-y-3 mb-4">
                   ${
-                    restaurants.length
+                    restaurants.length > 0
                       ? restaurants
                           .map((r) =>
                             restaurantFieldHTML(
@@ -920,11 +974,12 @@
               }
             });
           }
-          const cards = restaurants
+          const restaurantCardsHTML = restaurants
             .map((r) =>
               restaurantCardHTML(r, limit, userReservationRestaurantId, isAdmin)
             )
             .join("");
+
           eventContainerHTML = `
             <div class="bg-white p-8 rounded-2xl shadow-lg" id="restaurant-cards-container">
               <h2 class="text-3xl font-bold mb-2 text-center text-gray-800">${title}</h2>
@@ -933,29 +988,30 @@
                   ? new Date(datetime).toLocaleString("ko-KR")
                   : "날짜 미정"
               }</p>
-              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">${cards}</div>
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">${restaurantCardsHTML}</div>
             </div>`;
         }
 
         container.innerHTML = mtHTML + adminPanelHTML + eventContainerHTML;
 
-        // MT 이벤트 리스너
+        // MT 이벤트 리스너 (래퍼로 연결)
         const mtSection = document.getElementById("mt-section");
         if (mtSection) {
           const applyBtn = document.getElementById("apply-mt-btn");
           const cancelBtn = document.getElementById("cancel-mt-btn");
-          if (applyBtn) applyBtn.addEventListener("click", applyMT);
-          if (cancelBtn) cancelBtn.addEventListener("click", cancelMT);
+          if (applyBtn) applyBtn.addEventListener("click", () => applyMT());
+          if (cancelBtn) cancelBtn.addEventListener("click", () => cancelMT());
 
           const addFieldBtn = document.getElementById("add-mt-field-btn");
           const updateMTBtn = document.getElementById("update-mt-btn");
           const archiveMTBtn = document.getElementById("archive-mt-btn");
           const fieldsWrap = document.getElementById("mt-fields-container");
-          if (addFieldBtn) addFieldBtn.addEventListener("click", addMTField);
+          if (addFieldBtn)
+            addFieldBtn.addEventListener("click", () => addMTField());
           if (updateMTBtn)
-            updateMTBtn.addEventListener("click", updateCurrentMT);
+            updateMTBtn.addEventListener("click", () => updateCurrentMT());
           if (archiveMTBtn)
-            archiveMTBtn.addEventListener("click", archiveCurrentMT);
+            archiveMTBtn.addEventListener("click", () => archiveCurrentMT());
           if (fieldsWrap) {
             fieldsWrap.addEventListener("click", (e) => {
               const rm = e.target.closest(".remove-mt-field-btn");
@@ -964,14 +1020,15 @@
           }
         }
 
-        // 미식회 관리자 리스너
+        // 미식회 관리자 리스너 (래퍼)
         if (isAdmin) {
           const addBtn = document.getElementById("add-restaurant-btn");
           const updateBtn = document.getElementById("update-event-btn");
           const resWrap = document.getElementById("restaurants-container");
-          if (addBtn) addBtn.addEventListener("click", addRestaurantField);
+          if (addBtn)
+            addBtn.addEventListener("click", () => addRestaurantField());
           if (updateBtn)
-            updateBtn.addEventListener("click", updateCurrentEvent);
+            updateBtn.addEventListener("click", () => updateCurrentEvent());
           if (resWrap) {
             resWrap.addEventListener("click", (e) => {
               if (e.target.closest(".remove-restaurant-btn"))
@@ -980,13 +1037,13 @@
           }
           const archiveBtn = document.getElementById("archive-event-btn");
           if (archiveBtn)
-            archiveBtn.addEventListener("click", archiveCurrentEvent);
+            archiveBtn.addEventListener("click", () => archiveCurrentEvent());
         }
 
-        // 미식회 예약/취소
-        const cardsWrap = document.getElementById("restaurant-cards-container");
-        if (cardsWrap) {
-          cardsWrap.addEventListener("click", (e) => {
+        // 미식회 예약/취소 위임
+        const cards = document.getElementById("restaurant-cards-container");
+        if (cards) {
+          cards.addEventListener("click", (e) => {
             const button = e.target.closest("button[data-action]");
             if (!button) return;
             const { action, id } = button.dataset;
@@ -996,7 +1053,7 @@
         }
       }
 
-      /* ===== MT 섹션 ===== */
+      // ===== MT 섹션 =====
       function renderMTSection(isAdmin) {
         const mt = currentMTData || {};
         const {
@@ -1048,7 +1105,10 @@
         if (!title) {
           return `
             <section id="mt-section" class="bg-orange-50 border-l-4 border-orange-500 p-6 rounded-lg mb-8">
-              <div class="flex items-center gap-3 mb-2"><i class="fas fa-campground text-orange-500 text-2xl"></i><h3 class="text-xl font-bold text-orange-800">MT 모집</h3></div>
+              <div class="flex items-center gap-3 mb-2">
+                <i class="fas fa-campground text-orange-500 text-2xl"></i>
+                <h3 class="text-xl font-bold text-orange-800">MT 모집</h3>
+              </div>
               <p class="text-orange-700">현재 진행 중인 MT 모집이 없습니다.</p>
               ${adminPanel}
             </section>`;
@@ -1057,25 +1117,23 @@
         const appliedByUser = (arr) =>
           (arr || []).some((p) => p.studentId === currentUser?.studentId);
         const isApplied = appliedByUser(applicants) || appliedByUser(waiting);
-        const cnt = (applicants || []).length;
-        const cap = parseInt(limit || 0, 10) || 0;
+        const count = (applicants || []).length;
+        const effLimit = parseInt(limit || 0, 10) || 0;
         const percentage =
-          cap > 0 ? Math.min(100, Math.round((cnt / cap) * 100)) : 0;
-
-        const formFieldsHTML = (
-          fields && fields.length ? fields : defaultMTFields()
-        )
-          .map(userInputForField)
+          effLimit > 0
+            ? Math.min(100, Math.round((count / effLimit) * 100))
+            : 0;
+        const formFieldsHTML = (fields || defaultMTFields())
+          .map((f) => userInputForField(f))
           .join("");
 
-        let statusHTML = `<p class="text-sm text-orange-700">현재 신청자: <b>${cnt}</b> / ${cap} 명</p>`;
+        let statusHTML = `<p class="text-sm text-orange-700">현재 신청자: <b>${count}</b> / ${effLimit} 명</p>`;
         if (isApplied) {
           const inWaiting = appliedByUser(waiting);
           statusHTML += `<p class="text-sm ${
             inWaiting ? "text-orange-600" : "text-green-700"
           } mt-1">내 상태: ${inWaiting ? "대기 신청" : "신청 완료"}</p>`;
         }
-
         const userButtons = !isApplied
           ? `<button id="apply-mt-btn" class="w-full mt-3 bg-orange-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-orange-600"><i class="fas fa-file-signature mr-2"></i>MT 신청하기</button>`
           : `<button id="cancel-mt-btn" class="w-full mt-3 bg-gray-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-600"><i class="fas fa-times mr-2"></i>신청 취소</button>`;
@@ -1093,7 +1151,9 @@
                 }</p>
               </div>
             </div>
-            <div class="w-full bg-orange-200 rounded-full h-4 mb-2"><div class="bg-orange-500 h-4 rounded-full" style="width:${percentage}%"></div></div>
+            <div class="w-full bg-orange-200 rounded-full h-4 mb-2">
+              <div class="bg-orange-500 h-4 rounded-full" style="width:${percentage}%"></div>
+            </div>
             ${statusHTML}
             <div class="mt-4 bg-white rounded-lg p-4 border border-orange-100">
               <h4 class="font-semibold text-gray-800 mb-2"><i class="fas fa-list-ul mr-2 text-orange-500"></i>신청 정보 기입</h4>
@@ -1120,29 +1180,30 @@
       }
       function mtFieldHTML(f) {
         const id = f.id || `f_${Math.random().toString(36).slice(2, 9)}`;
-        return `<div class="mt-field-entry flex items-center gap-2 bg-white border border-orange-200 p-2 rounded">
-          <input type="hidden" class="mt-field-id" value="${id}">
-          <input type="text" value="${
-            f.label || ""
-          }" placeholder="항목 라벨 (예: 전화번호)" class="mt-field-label flex-1 px-3 py-2 border rounded">
-          <select class="mt-field-type px-2 py-2 border rounded">
-            <option value="text" ${
-              f.type === "text" ? "selected" : ""
-            }>텍스트</option>
-            <option value="tel" ${
-              f.type === "tel" ? "selected" : ""
-            }>전화번호</option>
-            <option value="textarea" ${
-              f.type === "textarea" ? "selected" : ""
-            }>긴문장</option>
-          </select>
-          <label class="text-sm text-gray-700 flex items-center gap-1">
-            <input type="checkbox" class="mt-field-required" ${
-              f.required ? "checked" : ""
-            }> 필수
-          </label>
-          <button type="button" class="remove-mt-field-btn text-red-500 hover:text-red-700 px-2"><i class="fas fa-trash"></i></button>
-        </div>`;
+        return `
+          <div class="mt-field-entry flex items-center gap-2 bg-white border border-orange-200 p-2 rounded">
+            <input type="hidden" class="mt-field-id" value="${id}">
+            <input type="text" value="${
+              f.label || ""
+            }" placeholder="항목 라벨 (예: 전화번호)" class="mt-field-label flex-1 px-3 py-2 border rounded">
+            <select class="mt-field-type px-2 py-2 border rounded">
+              <option value="text" ${
+                f.type === "text" ? "selected" : ""
+              }>텍스트</option>
+              <option value="tel" ${
+                f.type === "tel" ? "selected" : ""
+              }>전화번호</option>
+              <option value="textarea" ${
+                f.type === "textarea" ? "selected" : ""
+              }>긴문장</option>
+            </select>
+            <label class="text-sm text-gray-700 flex items-center gap-1">
+              <input type="checkbox" class="mt-field-required" ${
+                f.required ? "checked" : ""
+              }> 필수
+            </label>
+            <button type="button" class="remove-mt-field-btn text-red-500 hover:text-red-700 px-2"><i class="fas fa-trash"></i></button>
+          </div>`;
       }
       function userInputForField(f) {
         const id = f.id || `f_${Math.random().toString(36).slice(2, 9)}`;
@@ -1168,6 +1229,7 @@
           })
         );
       };
+
       const updateCurrentMT = async () => {
         const t = document.getElementById("mt-title")?.value.trim();
         const d = document.getElementById("mt-datetime")?.value;
@@ -1187,6 +1249,7 @@
           .filter((f) => f.label);
         if (!t || !d || !l || fields.length === 0)
           return showAlert("😥", "MT 제목/일시/정원/항목을 모두 입력해주세요.");
+
         try {
           await runTransaction(db, async (tx) => {
             const ref = doc(db, "mt", "current");
@@ -1207,6 +1270,7 @@
           showAlert("😥", "MT 업데이트에 실패했습니다.");
         }
       };
+
       const applyMT = async () => {
         if (!currentUser) return showAlert("😥", "로그인이 필요합니다.");
         try {
@@ -1265,6 +1329,7 @@
           showAlert("😥", `신청 중 오류: ${e.message}`);
         }
       };
+
       const cancelMT = async () => {
         if (!currentUser) return;
         try {
@@ -1298,6 +1363,7 @@
           showAlert("😥", "취소 중 오류가 발생했습니다.");
         }
       };
+
       const archiveCurrentMT = async () => {
         if (!confirm("현재 MT 모집을 종료하고 보관하시겠습니까?")) return;
         const payload = { ...currentMTData, archivedAt: serverTimestamp() };
@@ -1310,7 +1376,7 @@
         }
       };
 
-      /* === 미식회 카드 === */
+      // === 미식회(식당) 카드 ===
       function restaurantCardHTML(
         r,
         limit,
@@ -1334,6 +1400,7 @@
             return `<li class="text-sm text-gray-600">${displayId} ${p.name}</li>`;
           })
           .join("");
+
         const waitingListHTML = waiting
           .map((p, i) => {
             const displayId = isAdmin
@@ -1345,13 +1412,14 @@
           })
           .join("");
 
-        let buttonHTML = "";
-        if (isReservedByUser)
+        let buttonHTML;
+        if (isReservedByUser) {
           buttonHTML = `<button data-action="cancel" data-id="${r.id}" class="w-full mt-4 bg-gray-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-600"><i class="fas fa-times mr-2"></i>탑승 취소</button>`;
-        else if (reservedCount >= cap)
+        } else if (reservedCount >= cap) {
           buttonHTML = `<button data-action="reserve" data-id="${r.id}" class="w-full mt-4 bg-orange-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-orange-600"><i class="fas fa-hourglass-start mr-2"></i>대기 신청</button>`;
-        else
+        } else {
           buttonHTML = `<button data-action="reserve" data-id="${r.id}" class="w-full mt-4 bg-green-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600"><i class="fas fa-utensils mr-2"></i>탐방 탑승하기</button>`;
+        }
 
         return `
           <div class="bg-white p-6 rounded-xl shadow-md card-hover flex flex-col ${
@@ -1361,9 +1429,9 @@
               <h3 class="text-xl font-bold text-gray-800">${r.name}</h3>
               <p class="text-gray-500 mb-4">${r.info}</p>
               <div class="w-full bg-gray-200 rounded-full h-5 mb-2">
-                <div class="bg-green-500 h-5 text-xs font-medium text-white text-center p-0.5 leading-none rounded-full" style="width:${Math.round(
-                  percentage
-                )}%">${Math.round(percentage)}%</div>
+                <div class="bg-green-500 h-5 text-xs font-medium text-white text-center p-0.5 leading-none rounded-full" style="width:${percentage}%">${Math.round(
+          percentage
+        )}%</div>
               </div>
               <p class="text-right text-sm font-semibold text-gray-600">탑승 현황: ${reservedCount} / ${cap} 명</p>
               <div class="mt-4">
@@ -1383,7 +1451,151 @@
           </div>`;
       }
 
-      /* ===== 보관 탭 (종료된 미식회 + MT) ===== */
+      // ===== 히스토리(명예의 전당)
+      function renderHistoryTab() {
+        const container = document.getElementById("history-tab");
+        if (!container) return;
+
+        if (historyData.length === 0) {
+          container.innerHTML = `<div class="text-center py-12"><i class="fas fa-trophy text-5xl text-gray-300"></i><p class="mt-4 text-gray-500">아직 '명예의 전당'에 오른 맛집이 없습니다.</p></div>`;
+          return;
+        }
+
+        container.innerHTML = historyData
+          .map((event) => {
+            const restaurantsHTML = (event.restaurants || [])
+              .map((r) => historyRestaurantCardHTML(r, event.id))
+              .join("");
+            return `<div class="mb-8">
+            <h3 class="text-2xl font-bold text-gray-700 border-b pb-2 mb-4">
+              ${
+                event.title
+              } <span class="text-base font-normal text-gray-500">- ${new Date(
+              event.datetime
+            ).toLocaleDateString("ko-KR")}</span>
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">${restaurantsHTML}</div>
+          </div>`;
+          })
+          .join("");
+
+        document
+          .getElementById("history-tab")
+          .addEventListener("click", (e) => {
+            const button = e.target.closest("button");
+            const star = e.target.closest(".star-rating .fa-star");
+            if (button && button.dataset.action === "submit-review") {
+              submitReview(button.dataset.eventId, button.dataset.restaurantId);
+            } else if (star && star.dataset.value) {
+              rateRestaurant(
+                star.closest(".star-rating").dataset.eventId,
+                star.closest(".star-rating").dataset.restaurantId,
+                parseInt(star.dataset.value, 10)
+              );
+            }
+          });
+      }
+
+      function historyRestaurantCardHTML(r, eventId) {
+        const reviews = r.reviews || [];
+        const averageRating =
+          reviews.length > 0
+            ? reviews.reduce((acc, cur) => acc + cur.rating, 0) / reviews.length
+            : 0;
+        const starsHTML = Array.from(
+          { length: 5 },
+          (_, i) =>
+            `<i class="fa-solid fa-star ${
+              i < Math.round(averageRating) ? "text-amber-400" : "text-gray-300"
+            }"></i>`
+        ).join("");
+        const reviewsHTML = reviews
+          .map(
+            (review) =>
+              `<div class="bg-gray-100 p-2 rounded text-sm mt-1"><b>${review.name}:</b> ${review.comment}</div>`
+          )
+          .join("");
+
+        const hasUserReviewed =
+          currentUser &&
+          reviews.some((review) => review.studentId === currentUser.studentId);
+        const reviewFormHTML =
+          currentUser && !hasUserReviewed
+            ? `
+          <div class="mt-4">
+            <div class="star-rating flex justify-center text-2xl" data-event-id="${eventId}" data-restaurant-id="${
+                r.id
+              }" onmouseleave="resetStars(this)">
+              ${Array.from(
+                { length: 5 },
+                (_, i) =>
+                  `<i class="fa-solid fa-star" data-value="${
+                    i + 1
+                  }" onmouseover="highlightStars(this, ${
+                    i + 1
+                  })" onclick="rateRestaurant('${eventId}', '${r.id}', ${
+                    i + 1
+                  })"></i>`
+              ).join("")}
+            </div>
+            <div class="flex mt-2">
+              <input type="text" id="review-comment-${eventId}-${
+                r.id
+              }" class="flex-grow text-sm border rounded-l-md p-1" placeholder="한줄평 남기기...">
+              <button data-action="submit-review" data-event-id="${eventId}" data-restaurant-id="${
+                r.id
+              }" class="bg-gray-600 text-white px-3 rounded-r-md text-sm">등록</button>
+            </div>
+          </div>`
+            : hasUserReviewed
+            ? `<div class="mt-3 text-sm text-green-600 font-semibold"><i class="fas fa-check-circle"></i> 리뷰 등록 완료!</div>`
+            : "";
+
+        return `
+          <div class="bg-white p-4 rounded-lg">
+            <h4 class="text-lg font-bold">${r.name}</h4>
+            <p class="text-sm text-gray-500">${r.info}</p>
+            <div class="my-2">${starsHTML} <span class="text-sm text-gray-500">(${averageRating.toFixed(
+          1
+        )} / 5.0)</span></div>
+            <div class="text-xs text-gray-400">리뷰 ${reviews.length}개</div>
+            ${reviewsHTML}
+            ${reviewFormHTML}
+          </div>`;
+      }
+
+      // ===== 건의함
+      const submitSuggestion = async () => {
+        const input = document.getElementById("suggestion-input");
+        const text = input.value.trim();
+        if (!text) return;
+        if (!currentUser) return showAlert("😥", "로그인 후 이용해주세요.");
+        try {
+          await addDoc(collection(db, "suggestions"), {
+            text,
+            timestamp: serverTimestamp(),
+            author: {
+              name: currentUser.name,
+              studentId: currentUser.studentId,
+            },
+          });
+          input.value = "";
+          showAlert("💡", "소중한 의견 감사합니다!");
+        } catch {
+          showAlert("😥", "제출에 실패했습니다.");
+        }
+      };
+      const deleteSuggestion = async (id) => {
+        if (!confirm("이 건의사항을 삭제하시겠습니까?")) return;
+        try {
+          await deleteDoc(doc(db, "suggestions", id));
+          showAlert("🗑️", "건의사항이 삭제되었습니다.");
+        } catch {
+          showAlert("😥", "삭제에 실패했습니다.");
+        }
+      };
+
+      // ===== 보관 탭 (관리자 전용)
       function renderArchiveTab(isAdmin) {
         const container = document.getElementById("archive-tab");
         if (!container) return;
@@ -1407,7 +1619,14 @@
                       }</p>
                       <p class="text-sm text-gray-500">일정: ${when}</p>
                     </div>
-                    <span class="text-sm bg-orange-100 text-orange-700 px-2 py-1 rounded">신청 ${cnt}명</span>
+                    <div class="flex items-center gap-2">
+                      <span class="text-sm bg-orange-100 text-orange-700 px-2 py-1 rounded">신청 ${cnt}명</span>
+                      ${
+                        isAdmin
+                          ? `<button class="text-sm text-red-600 hover:text-red-800" data-action="delete-archived-mt" data-id="${mt.id}"><i class="fas fa-trash mr-1"></i>삭제</button>`
+                          : ""
+                      }
+                    </div>
                   </div>
                   <div class="text-sm text-gray-600 mt-2 ${
                     isAdmin ? "" : "italic"
@@ -1438,8 +1657,21 @@
                   .join("");
                 return `
                 <div class="bg-white p-4 rounded-xl shadow-sm">
-                  <p class="font-semibold text-indigo-700">[미식회] ${ev.title}</p>
-                  <p class="text-sm text-gray-500 mb-2">일시: ${date}</p>
+                  <div class="flex justify-between items-start">
+                    <div>
+                      <p class="font-semibold text-indigo-700">[미식회] ${
+                        ev.title
+                      }</p>
+                      <p class="text-sm text-gray-500 mb-2">일시: ${date}</p>
+                    </div>
+                    ${
+                      isAdmin
+                        ? `<button class="text-sm text-red-600 hover:text-red-800" data-action="delete-archived-event" data-id="${ev.id}">
+                      <i class="fas fa-trash mr-1"></i>삭제
+                    </button>`
+                        : ""
+                    }
+                  </div>
                   <ul class="space-y-1">${items}</ul>
                 </div>`;
               })
@@ -1457,142 +1689,75 @@
               ${eventListHTML}
             </section>
           </div>`;
+
+        container.onclick = (e) => {
+          const btn = e.target.closest("button[data-action]");
+          if (!btn) return;
+          const { action, id } = btn.dataset;
+          if (action === "delete-archived-event") deleteArchivedEvent(id);
+          if (action === "delete-archived-mt") deleteArchivedMT(id);
+        };
       }
 
-      /* ===== 명예의 전당 (리뷰) ===== */
-      function renderHistoryTab() {
-        const container = document.getElementById("history-tab");
-        if (!container) return;
-
-        if (historyData.length === 0) {
-          container.innerHTML = `<div class="text-center py-12"><i class="fas fa-trophy text-5xl text-gray-300"></i><p class="mt-4 text-gray-500">아직 '명예의 전당'에 오른 맛집이 없습니다.</p></div>`;
-          return;
-        }
-        container.innerHTML = historyData
-          .map((event) => {
-            const restaurantsHTML = (event.restaurants || [])
-              .map((r) => historyRestaurantCardHTML(r, event.id))
-              .join("");
-            return `<div class="mb-8">
-            <h3 class="text-2xl font-bold text-gray-700 border-b pb-2 mb-4">${
-              event.title
-            } <span class="text-base font-normal text-gray-500">- ${new Date(
-              event.datetime
-            ).toLocaleDateString("ko-KR")}</span></h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">${restaurantsHTML}</div>
-          </div>`;
-          })
-          .join("");
-
-        document
-          .getElementById("history-tab")
-          .addEventListener("click", (e) => {
-            const button = e.target.closest("button");
-            const star = e.target.closest(".star-rating .fa-star");
-            if (button && button.dataset.action === "submit-review") {
-              submitReview(button.dataset.eventId, button.dataset.restaurantId);
-            } else if (star && star.dataset.value) {
-              rateRestaurant(
-                star.closest(".star-rating").dataset.eventId,
-                star.closest(".star-rating").dataset.restaurantId,
-                parseInt(star.dataset.value, 10)
-              );
-            }
-          });
-      }
-      function historyRestaurantCardHTML(r, eventId) {
-        const reviews = r.reviews || [];
-        const avg = reviews.length
-          ? reviews.reduce((a, c) => a + c.rating, 0) / reviews.length
-          : 0;
-        const stars = Array.from(
-          { length: 5 },
-          (_, i) =>
-            `<i class="fa-solid fa-star ${
-              i < Math.round(avg) ? "text-amber-400" : "text-gray-300"
-            }"></i>`
-        ).join("");
-        const reviewList = reviews
-          .map(
-            (rv) =>
-              `<div class="bg-gray-100 p-2 rounded text-sm mt-1"><b>${rv.name}:</b> ${rv.comment}</div>`
+      async function deleteArchivedEvent(eventId) {
+        if (
+          !confirm(
+            "보관된 미식회를 완전히 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
           )
-          .join("");
-
-        const hasReviewed =
-          currentUser &&
-          reviews.some((rv) => rv.studentId === currentUser.studentId);
-        const form =
-          currentUser && !hasReviewed
-            ? `
-          <div class="mt-4">
-            <div class="star-rating flex justify-center text-2xl" data-event-id="${eventId}" data-restaurant-id="${
-                r.id
-              }" onmouseleave="resetStars(this)">
-              ${Array.from(
-                { length: 5 },
-                (_, i) =>
-                  `<i class="fa-solid fa-star" data-value="${
-                    i + 1
-                  }" onmouseover="highlightStars(this, ${
-                    i + 1
-                  })" onclick="rateRestaurant('${eventId}','${r.id}',${
-                    i + 1
-                  })"></i>`
-              ).join("")}
-            </div>
-            <div class="flex mt-2">
-              <input type="text" id="review-comment-${eventId}-${
-                r.id
-              }" class="flex-grow text-sm border rounded-l-md p-1" placeholder="한줄평 남기기...">
-              <button data-action="submit-review" data-event-id="${eventId}" data-restaurant-id="${
-                r.id
-              }" class="bg-gray-600 text-white px-3 rounded-r-md text-sm">등록</button>
-            </div>
-          </div>`
-            : hasReviewed
-            ? `<div class="mt-3 text-sm text-green-600 font-semibold"><i class="fas fa-check-circle"></i> 리뷰 등록 완료!</div>`
-            : "";
-
-        return `<div class="bg-white p-4 rounded-lg">
-          <h4 class="text-lg font-bold">${r.name}</h4>
-          <p class="text-sm text-gray-500">${r.info}</p>
-          <div class="my-2">${stars} <span class="text-sm text-gray-500">(${avg.toFixed(
-          1
-        )} / 5.0)</span></div>
-          <div class="text-xs text-gray-400">리뷰 ${reviews.length}개</div>
-          ${reviewList}
-          ${form}
-        </div>`;
+        )
+          return;
+        try {
+          await deleteDoc(doc(db, "history", eventId));
+          showAlert("🗑️", "보관된 미식회가 삭제되었습니다.");
+        } catch {
+          showAlert("😥", "미식회 삭제에 실패했습니다.");
+        }
+      }
+      async function deleteArchivedMT(mtId) {
+        if (
+          !confirm(
+            "보관된 MT를 완전히 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
+          )
+        )
+          return;
+        try {
+          await deleteDoc(doc(db, "mt_history", mtId));
+          showAlert("🗑️", "보관된 MT가 삭제되었습니다.");
+        } catch {
+          showAlert("😥", "MT 삭제에 실패했습니다.");
+        }
       }
 
-      /* ===== 건의함 ===== */
+      // ===== 건의 탭 렌더
       function renderSuggestionsTab(isAdmin) {
         const container = document.getElementById("suggestions-tab");
         if (!container) return;
 
-        let listHTML = "";
+        let suggestionsListHTML = "";
         if (isAdmin) {
-          listHTML = suggestionsData.length
-            ? suggestionsData
-                .map(
-                  (s) => `
-              <div class="bg-white p-4 rounded-lg shadow-sm flex justify-between items-center">
-                <div>
-                  <p class="text-gray-700">${s.text}</p>
-                  <p class="text-right text-xs text-gray-400 mt-2">${
-                    s.timestamp
-                      ? new Date(s.timestamp.toDate()).toLocaleString("ko-KR")
-                      : ""
-                  }</p>
-                </div>
-                <button data-action="delete-suggestion" data-id="${
-                  s.id
-                }" class="text-red-500 hover:text-red-700 ml-4 p-2"><i class="fas fa-trash-alt"></i></button>
-              </div>`
-                )
-                .join("")
-            : '<p class="text-center text-gray-400">아직 등록된 건의사항이 없습니다.</p>';
+          suggestionsListHTML =
+            suggestionsData.length > 0
+              ? suggestionsData
+                  .map(
+                    (s) => `
+                  <div class="bg-white p-4 rounded-lg shadow-sm flex justify-between items-center">
+                    <div>
+                      <p class="text-gray-700">${s.text}</p>
+                      <p class="text-right text-xs text-gray-400 mt-2">${
+                        s.timestamp
+                          ? new Date(s.timestamp.toDate()).toLocaleString(
+                              "ko-KR"
+                            )
+                          : ""
+                      }</p>
+                    </div>
+                    <button data-action="delete-suggestion" data-id="${
+                      s.id
+                    }" class="text-red-500 hover:text-red-700 ml-4 p-2"><i class="fas fa-trash-alt"></i></button>
+                  </div>`
+                  )
+                  .join("")
+              : '<p class="text-center text-gray-400">아직 등록된 건의사항이 없습니다.</p>';
         }
 
         container.innerHTML = `
@@ -1605,27 +1770,28 @@
             </div>
             ${
               isAdmin
-                ? `<div id="suggestions-list" class="mt-8 space-y-4">${listHTML}</div>`
+                ? `<div id="suggestions-list" class="mt-8 space-y-4">${suggestionsListHTML}</div>`
                 : ""
             }
           </div>`;
 
+        // TDZ 방지: 래퍼로 바인딩
         document
           .getElementById("submit-suggestion-button")
-          .addEventListener("click", submitSuggestion);
+          .addEventListener("click", () => submitSuggestion());
         if (isAdmin && document.getElementById("suggestions-list")) {
           document
             .getElementById("suggestions-list")
             .addEventListener("click", (e) => {
-              const btn = e.target.closest(
+              const button = e.target.closest(
                 'button[data-action="delete-suggestion"]'
               );
-              if (btn) deleteSuggestion(btn.dataset.id);
+              if (button) deleteSuggestion(button.dataset.id);
             });
         }
       }
 
-      /* ===== 임원 관리 ===== */
+      // ===== 임원 관리 탭
       function renderAdminManagementTab() {
         const container = document.getElementById("admin-tab");
         if (!container) return;
@@ -1657,18 +1823,58 @@
               </div>
             </div>
           </div>`;
+
+        // TDZ 방지: 래퍼
         document
           .getElementById("add-admin-button")
-          .addEventListener("click", addAdmin);
+          .addEventListener("click", () => addAdmin());
         document
           .getElementById("admin-management-container")
           .addEventListener("click", (e) => {
-            const btn = e.target.closest('button[data-action="remove-admin"]');
-            if (btn) removeAdmin(btn.dataset.id);
+            const button = e.target.closest(
+              'button[data-action="remove-admin"]'
+            );
+            if (button) removeAdmin(button.dataset.id);
           });
       }
 
-      /* ===== 공통 액션 ===== */
+      // ===== 공통 액션들
+      const addAdmin = async () => {
+        const newAdminId = document
+          .getElementById("new-admin-input")
+          .value.trim();
+        if (!newAdminId)
+          return showAlert("😥", "추가할 임원의 학번을 입력해주세요.");
+        try {
+          const adminDocRef = doc(db, "admins", "list");
+          await runTransaction(db, async (t) => {
+            const adminDoc = await t.get(adminDocRef);
+            if (!adminDoc.exists())
+              t.set(adminDocRef, { studentIds: [newAdminId] });
+            else t.update(adminDocRef, { studentIds: arrayUnion(newAdminId) });
+          });
+          showAlert("🎉", `${newAdminId} 님이 임원으로 추가되었습니다.`);
+          document.getElementById("new-admin-input").value = "";
+        } catch {
+          showAlert("😥", "임원 추가에 실패했습니다.");
+        }
+      };
+
+      const removeAdmin = async (adminId) => {
+        if (adminList.length <= 1)
+          return showAlert("🤔", "최소 한 명의 관리자는 남아있어야 합니다.");
+        if (!confirm(`${adminId} 님을 임원 목록에서 삭제하시겠습니까?`)) return;
+        try {
+          const adminDocRef = doc(db, "admins", "list");
+          await runTransaction(db, async (t) => {
+            t.update(adminDocRef, { studentIds: arrayRemove(adminId) });
+          });
+          showAlert("🗑️", `${adminId} 님이 임원에서 삭제되었습니다.`);
+        } catch {
+          showAlert("😥", "임원 삭제에 실패했습니다.");
+        }
+      };
+
       const restaurantFieldHTML = (n = "", i = "", c = "") => `
         <div class="flex items-center space-x-2 restaurant-entry">
           <input type="text" value="${n}" placeholder="식당 이름" class="flex-grow px-4 py-2 border rounded-lg restaurant-name">
@@ -1681,7 +1887,7 @@
           .getElementById("restaurants-container")
           .insertAdjacentHTML("beforeend", restaurantFieldHTML());
 
-      const updateCurrentEvent = async () => {
+      const updateCurrentEvent = async function () {
         const t = document.getElementById("event-title").value.trim();
         const d = document.getElementById("event-datetime").value;
         const l = parseInt(document.getElementById("event-limit").value, 10);
@@ -1695,6 +1901,7 @@
             ),
           }))
           .filter((r) => r.name && !isNaN(r.capacity) && r.capacity > 0);
+
         if (!t || !d || !l || rI.length === 0)
           return showAlert("😥", "모든 필드를 채워주세요.");
 
@@ -1730,7 +1937,7 @@
         }
       };
 
-      const makeReservation = async (id) => {
+      const makeReservation = async function (id) {
         if (!currentUser)
           return showAlert("😥", "참가자 정보를 먼저 입력해주세요.");
         try {
@@ -1754,6 +1961,7 @@
               showAlert("🤔", "이미 다른 식당에 예약하셨습니다.");
               return;
             }
+
             const idx = data.restaurants.findIndex((r) => r.id === id);
             if (idx === -1) throw new Error("Restaurant not found!");
             const entry = {
@@ -1764,6 +1972,7 @@
             r.reservations ||= [];
             r.waiting ||= [];
             const effCap = r.capacity ?? data.limit;
+
             if (r.reservations.length < effCap) {
               r.reservations.push(entry);
               showAlert("✅", `${r.name}에 예약이 확정되었습니다!`);
@@ -1774,6 +1983,7 @@
                 `${r.name} 예약이 마감되어 대기 명단에 등록되었습니다.`
               );
             }
+
             tx.update(ref, { restaurants: data.restaurants });
           });
         } catch (e) {
@@ -1781,7 +1991,7 @@
         }
       };
 
-      const cancelReservation = async (id) => {
+      const cancelReservation = async function (id) {
         if (!currentUser) return;
         try {
           await runTransaction(db, async (tx) => {
@@ -1796,6 +2006,7 @@
             r.reservations ||= [];
             r.waiting ||= [];
             const before = r.reservations.length;
+
             r.reservations = r.reservations.filter(
               (p) => p.studentId !== currentUser.studentId
             );
@@ -1806,6 +2017,7 @@
                 (p) => p.studentId !== currentUser.studentId
               );
             }
+
             tx.update(ref, { restaurants: data.restaurants });
             showAlert("🗑️", `${r.name} 예약이 취소되었습니다.`);
           });
@@ -1818,45 +2030,14 @@
         if (!confirm("현재 미식회를 종료하고 보관하시겠습니까?")) return;
         const payload = { ...currentEventData, archivedAt: serverTimestamp() };
         try {
-          await addDoc(collection(db, "history"), payload); // 보관
-          await setDoc(doc(db, "events", "current"), { title: "" }); // 초기화
+          await addDoc(collection(db, "history"), payload);
+          await setDoc(doc(db, "events", "current"), { title: "" });
           showAlert("📁", "활동이 보관되었습니다.");
         } catch (e) {
-          console.error(e);
+          console.error("Archive failed:", e);
           showAlert("😥", "활동 보관에 실패했습니다.");
         }
       };
-
-      /* ==== 건의함 액션 (함수 선언문으로 변경: 호이스팅 OK) ==== */
-      async function submitSuggestion() {
-        const input = document.getElementById("suggestion-input");
-        const text = input.value.trim();
-        if (!text) return;
-        if (!currentUser) return showAlert("😥", "로그인 후 이용해주세요.");
-        try {
-          await addDoc(collection(db, "suggestions"), {
-            text,
-            timestamp: serverTimestamp(),
-            author: {
-              name: currentUser.name,
-              studentId: currentUser.studentId,
-            },
-          });
-          input.value = "";
-          showAlert("💡", "소중한 의견 감사합니다!");
-        } catch {
-          showAlert("😥", "제출에 실패했습니다.");
-        }
-      }
-      async function deleteSuggestion(id) {
-        if (!confirm("이 건의사항을 삭제하시겠습니까?")) return;
-        try {
-          await deleteDoc(doc(db, "suggestions", id));
-          showAlert("🗑️", "건의사항이 삭제되었습니다.");
-        } catch {
-          showAlert("😥", "삭제에 실패했습니다.");
-        }
-      }
 
       // 리뷰 별점
       let selectedRating = 0;
@@ -1877,7 +2058,7 @@
         box.classList.add("rated");
         highlightStars(box.querySelector(".fa-star"), rating);
       };
-      async function submitReview(eventId, restaurantId) {
+      const submitReview = async function (eventId, restaurantId) {
         if (!currentUser)
           return showAlert("😥", "리뷰를 작성하려면 로그인이 필요합니다.");
         const comment = document
@@ -1916,82 +2097,10 @@
         } catch {
           showAlert("😥", "리뷰 등록에 실패했습니다.");
         }
-      }
+      };
 
-      // 대시보드 기타
-      async function addAdmin() {
-        const newAdminId = document
-          .getElementById("new-admin-input")
-          .value.trim();
-        if (!newAdminId)
-          return showAlert("😥", "추가할 임원의 학번을 입력해주세요.");
-        try {
-          const adminDocRef = doc(db, "admins", "list");
-          await runTransaction(db, async (t) => {
-            const adminDoc = await t.get(adminDocRef);
-            if (!adminDoc.exists())
-              t.set(adminDocRef, { studentIds: [newAdminId] });
-            else t.update(adminDocRef, { studentIds: arrayUnion(newAdminId) });
-          });
-          showAlert("🎉", `${newAdminId} 님이 임원으로 추가되었습니다.`);
-          document.getElementById("new-admin-input").value = "";
-        } catch {
-          showAlert("😥", "임원 추가에 실패했습니다.");
-        }
-      }
-      async function removeAdmin(adminId) {
-        if (adminList.length <= 1)
-          return showAlert("🤔", "최소 한 명의 관리자는 남아있어야 합니다.");
-        if (!confirm(`${adminId} 님을 임원 목록에서 삭제하시겠습니까?`)) return;
-        try {
-          const adminDocRef = doc(db, "admins", "list");
-          await runTransaction(db, async (t) => {
-            t.update(adminDocRef, { studentIds: arrayRemove(adminId) });
-          });
-          showAlert("🗑️", `${adminId} 님이 임원에서 삭제되었습니다.`);
-        } catch {
-          showAlert("😥", "임원 삭제에 실패했습니다.");
-        }
-      }
-      async function emergencyAddAdmin() {
-        const newAdminId = document.getElementById("new-admin-id").value.trim();
-        if (!newAdminId)
-          return showAlert("😥", "새 관리자의 학번을 입력해주세요.");
-        try {
-          const adminDocRef = doc(db, "admins", "list");
-          await runTransaction(db, async (t) => {
-            const ad = await t.get(adminDocRef);
-            if (!ad.exists()) t.set(adminDocRef, { studentIds: [newAdminId] });
-            else t.update(adminDocRef, { studentIds: arrayUnion(newAdminId) });
-          });
-          showAlert(
-            "🎉",
-            `비상 관리자(${newAdminId})가 성공적으로 임명되었습니다.`
-          );
-          closeEmergencyModal();
-        } catch {
-          showAlert("😥", "비상 관리자 임명에 실패했습니다.");
-        }
-      }
-
-      function handleDashboardClick(e) {
-        const button = e.target.closest("button[data-action]");
-        if (!button) return;
-        const { action, id } = button.dataset;
-        if (action === "update-team") updateTeam(id);
-        if (action === "delete-team") deleteTeam(id);
-        if (action === "delete-roadmap") deleteRoadmapItem(id);
-        if (action === "edit-roadmap") {
-          const curName = button.dataset.name || "";
-          const curDate = button.dataset.date || "";
-          const newName = prompt("활동 이름을 수정하세요", curName);
-          if (newName === null) return;
-          const newDate = prompt("활동 날짜(YYYY-MM-DD)를 수정하세요", curDate);
-          if (newDate === null) return;
-          updateRoadmapItem(id, newName.trim(), newDate.trim());
-        }
-      }
-      async function updateTeam(id) {
+      // 대시보드 핸들러
+      const updateTeam = async (id) => {
         const name = document.getElementById(`name-input-${id}`).value.trim();
         const score = parseInt(
           document.getElementById(`score-input-${id}`).value,
@@ -2005,8 +2114,8 @@
         } catch {
           showAlert("😥", "조 정보 업데이트에 실패했습니다.");
         }
-      }
-      async function addNewTeam() {
+      };
+      const addNewTeam = async () => {
         const el = document.getElementById("new-team-name");
         const name = el.value.trim();
         if (!name) return showAlert("😥", "조 이름을 입력해주세요.");
@@ -2017,8 +2126,8 @@
         } catch {
           showAlert("😥", "조 추가에 실패했습니다.");
         }
-      }
-      async function deleteTeam(id) {
+      };
+      const deleteTeam = async (id) => {
         if (
           !confirm(
             "정말로 이 조를 삭제하시겠습니까? 모든 점수 기록이 사라집니다."
@@ -2031,8 +2140,8 @@
         } catch {
           showAlert("😥", "조 삭제에 실패했습니다.");
         }
-      }
-      async function addRoadmapItem() {
+      };
+      const addRoadmapItem = async () => {
         const nEl = document.getElementById("new-roadmap-name");
         const dEl = document.getElementById("new-roadmap-date");
         const name = nEl.value.trim();
@@ -2050,8 +2159,8 @@
         } catch {
           showAlert("😥", "활동 추가에 실패했습니다.");
         }
-      }
-      async function updateRoadmapItem(id, name, date) {
+      };
+      const updateRoadmapItem = async (id, name, date) => {
         if (!name || !date)
           return showAlert("😥", "활동 이름과 날짜를 모두 입력해주세요.");
         try {
@@ -2063,8 +2172,8 @@
         } catch {
           showAlert("😥", "로드맵 수정에 실패했습니다.");
         }
-      }
-      async function deleteRoadmapItem(id) {
+      };
+      const deleteRoadmapItem = async (id) => {
         if (!confirm("이 활동을 로드맵에서 삭제하시겠습니까?")) return;
         try {
           await deleteDoc(doc(db, "roadmap", id));
@@ -2072,9 +2181,26 @@
         } catch {
           showAlert("😥", "활동 삭제에 실패했습니다.");
         }
-      }
+      };
+      const handleDashboardClick = (e) => {
+        const button = e.target.closest("button[data-action]");
+        if (!button) return;
+        const { action, id } = button.dataset;
+        if (action === "update-team") updateTeam(id);
+        if (action === "delete-team") deleteTeam(id);
+        if (action === "delete-roadmap") deleteRoadmapItem(id);
+        if (action === "edit-roadmap") {
+          const curName = button.dataset.name || "";
+          const curDate = button.dataset.date || "";
+          const newName = prompt("활동 이름을 수정하세요", curName);
+          if (newName === null) return;
+          const newDate = prompt("활동 날짜(YYYY-MM-DD)를 수정하세요", curDate);
+          if (newDate === null) return;
+          updateRoadmapItem(id, newName.trim(), newDate.trim());
+        }
+      };
 
-      // 전역 노출 (모든 함수 정의 뒤에 배치)
+      // 전역 노출(리뷰용 등)
       Object.assign(window, {
         login,
         logout,
@@ -2082,35 +2208,13 @@
         toggleAccordion,
         closeModal,
         closeEmergencyModal,
-        emergencyAddAdmin,
-        // MT
-        addMTField,
-        updateCurrentMT,
-        applyMT,
-        cancelMT,
-        archiveCurrentMT,
-        // 미식회
-        updateCurrentEvent,
-        addRestaurantField,
-        makeReservation,
-        cancelReservation,
-        archiveCurrentEvent,
-        // 건의/리뷰/점수/로드맵
-        submitSuggestion,
-        deleteSuggestion,
-        rateRestaurant,
-        submitReview,
+        // 리뷰/별점
         highlightStars,
         resetStars,
-        updateTeam,
-        addNewTeam,
-        deleteTeam,
-        addRoadmapItem,
-        updateRoadmapItem,
-        deleteRoadmapItem,
+        rateRestaurant,
       });
 
-      // 초기 바인딩
+      // 초기 이벤트 바인딩
       document.getElementById("login-button").addEventListener("click", login);
       document
         .querySelectorAll(".accordion-header")
@@ -2120,10 +2224,32 @@
         .addEventListener("click", closeModal);
       document
         .getElementById("emergency-add-button")
-        .addEventListener("click", emergencyAddAdmin);
+        .addEventListener("click", () => emergencyAddAdmin());
       document
         .getElementById("emergency-cancel-button")
         .addEventListener("click", closeEmergencyModal);
+
+      const emergencyAddAdmin = async () => {
+        const newAdminId = document.getElementById("new-admin-id").value.trim();
+        if (!newAdminId)
+          return showAlert("😥", "새 관리자의 학번을 입력해주세요.");
+        try {
+          const adminDocRef = doc(db, "admins", "list");
+          await runTransaction(db, async (t) => {
+            const adminDoc = await t.get(adminDocRef);
+            if (!adminDoc.exists())
+              t.set(adminDocRef, { studentIds: [newAdminId] });
+            else t.update(adminDocRef, { studentIds: arrayUnion(newAdminId) });
+          });
+          showAlert(
+            "🎉",
+            `비상 관리자(${newAdminId})가 성공적으로 임명되었습니다.`
+          );
+          closeEmergencyModal();
+        } catch {
+          showAlert("😥", "비상 관리자 임명에 실패했습니다.");
+        }
+      };
 
       main();
     </script>
