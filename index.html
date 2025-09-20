@@ -18,7 +18,7 @@
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       }
       .card-hover {
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        transition: transform 0.3s, box-shadow 0.3s;
       }
       .card-hover:hover {
         transform: translateY(-5px);
@@ -35,14 +35,14 @@
       }
       @keyframes spin {
         0% {
-          transform: rotate(0deg);
+          transform: rotate(0);
         }
         100% {
           transform: rotate(360deg);
         }
       }
       .tab-btn {
-        transition: all 0.3s ease;
+        transition: all 0.3s;
       }
       .tab-btn.active {
         color: #fff;
@@ -62,15 +62,15 @@
       .accordion-content {
         max-height: 0;
         overflow: hidden;
-        transition: max-height 0.5s ease-out, padding 0.5s ease;
+        transition: max-height 0.5s, padding 0.5s;
         padding: 0 1.5rem;
       }
       .accordion-item.active .accordion-content {
         max-height: 1000px;
-        padding: 1.5rem 1.5rem;
+        padding: 1.5rem;
       }
       .accordion-header .fa-chevron-down {
-        transition: transform 0.5s ease;
+        transition: transform 0.5s;
       }
       .accordion-item.active .accordion-header .fa-chevron-down {
         transform: rotate(180deg);
@@ -118,7 +118,7 @@
         background: #f59e0b;
       }
       .roadmap-item.upcoming {
-        opacity: 0.7;
+        opacity: 0.85;
       }
       .star-rating .fa-star {
         color: #d1d5db;
@@ -135,9 +135,18 @@
       .star-rating[data-rating].rated .fa-star {
         color: #facc15;
       }
+      /* 모바일 Q&A 잘림 방지 */
+      @media (max-width: 420px) {
+        .qna-title {
+          white-space: nowrap;
+          font-size: 1.125rem;
+          line-height: 1.25rem;
+        }
+      }
     </style>
   </head>
   <body class="bg-gray-100 flex flex-col min-h-screen">
+    <!-- Loading -->
     <div
       id="loading-screen"
       class="fixed inset-0 bg-white flex flex-col justify-center items-center z-50"
@@ -158,7 +167,7 @@
 
       <main id="app" class="space-y-8">
         <div id="app-wrapper">
-          <!-- ====== 로그인 전 영역 ====== -->
+          <!-- ===== 로그인 전 ===== -->
           <div id="pre-login-info" class="space-y-8">
             <!-- 로그인 -->
             <div
@@ -182,8 +191,8 @@
                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
                 />
                 <p class="text-xs text-center text-red-500 px-2">
-                  학번과 이름을 정확하게 기입해주세요!<br />(정확하게 기입하지
-                  않을 경우 신청이 무효화 될 수 있습니다)
+                  학번과 이름을 정확하게 기입해주세요!<br />(정확하지 않으면
+                  신청이 무효화될 수 있습니다)
                 </p>
                 <button
                   id="login-button"
@@ -194,13 +203,21 @@
               </div>
             </div>
 
-            <!-- 푸디 활동 로드맵 -->
+            <!-- Foodie 활동 로드맵 (미리보기 4개 + 전체보기 토글) -->
             <div class="bg-white p-6 rounded-2xl shadow-lg">
               <h3 class="text-2xl font-bold mb-6 text-gray-700">
-                <i class="fas fa-map-signs mr-2 text-indigo-500"></i>푸디 활동
+                <i class="fas fa-map-signs mr-2 text-indigo-500"></i>Foodie 활동
                 로드맵
               </h3>
               <div id="roadmap-container" class="roadmap-timeline"></div>
+              <div class="text-center mt-4">
+                <button
+                  id="roadmap-toggle-btn"
+                  class="px-4 py-2 text-indigo-700 font-semibold rounded hover:bg-indigo-50"
+                >
+                  전체 일정 보기
+                </button>
+              </div>
             </div>
 
             <!-- 조별 점수 현황 -->
@@ -219,14 +236,14 @@
               </div>
             </div>
 
-            <!-- Foodie Q & A -->
+            <!-- Foodie Q&A (모바일 잘림 방지) -->
             <div class="accordion-item bg-white rounded-2xl shadow-lg">
               <div
                 class="accordion-header cursor-pointer p-6 flex justify-between items-center"
               >
-                <h3 class="text-xl font-bold text-gray-700">
+                <h3 class="qna-title font-bold text-gray-700 sm:text-xl">
                   <i class="fas fa-question-circle mr-2 text-indigo-500"></i
-                  >Foodie Q & A
+                  >Foodie Q&A
                 </h3>
                 <i class="fas fa-chevron-down text-gray-500"></i>
               </div>
@@ -235,9 +252,8 @@
                   <div>
                     <p class="font-semibold">🤔 Foodie 미식회, 그게 뭔가요?</p>
                     <p class="mt-1 text-gray-600 pl-6">
-                      👨‍🏫 매주 전주의 숨은 맛집을 찾아 떠나는 미식 탐험! 단순
-                      방문을 넘어, 새로운 맛을 발견하고 즐거움을 나누는
-                      경험이에요.
+                      👨‍🏫 매주 전주의 숨은 맛집을 찾아 떠나는 미식 탐험! 새로운
+                      맛을 발견하고 즐거움을 나누는 경험이에요.
                     </p>
                   </div>
                   <div>
@@ -256,8 +272,7 @@
                   <div>
                     <p class="font-semibold">🍻 끝나면 바로 헤어지나요?</p>
                     <p class="mt-1 text-gray-600 pl-6">
-                      👨‍🏫 1차 후엔 모든 조가 함께 모여 친목 타임! 감동을 나누고
-                      친구를 사귀어요.
+                      👨‍🏫 1차 후엔 모든 조가 함께 모여 친목 타임!
                     </p>
                   </div>
                 </div>
@@ -290,16 +305,15 @@
                     <ol class="list-decimal pl-8 mt-1 space-y-1 text-gray-600">
                       <li><b>학번/이름</b>을 입력해 입장합니다.</li>
                       <li>
-                        <b>탑승 게이트</b>에서 식당을 선택하면 예약(정원 초과 시
-                        자동 대기)됩니다.
+                        <b>탑승 게이트</b>에서 식당을 선택해 예약(정원 초과 시
+                        자동 대기)합니다.
                       </li>
                       <li>
                         예약 취소는 카드의 <b>탑승 취소</b> 버튼으로 간단히.
                       </li>
                       <li><b>아이디어 건의</b> 탭에서 익명 제안 가능.</li>
                       <li>
-                        관리자는 <b>관리자 대시보드/임원 관리</b> 탭으로
-                        운영합니다.
+                        관리자는 <b>대시보드/임원 관리</b> 탭으로 운영합니다.
                       </li>
                     </ol>
                   </div>
@@ -308,7 +322,7 @@
             </div>
           </div>
 
-          <!-- ====== 로그인 이후 메인 ====== -->
+          <!-- ===== 로그인 후 메인 ===== -->
           <div id="main-content" class="hidden"></div>
         </div>
       </main>
@@ -413,12 +427,14 @@
       let currentUser = null;
       let adminList = [];
       const MASTER_CODE = "foodie_emergency_2024!";
-      let currentEventData = {},
-        currentMTData = {},
-        teamsData = [],
-        historyData = [],
-        suggestionsData = [],
-        roadmapData = [];
+
+      let currentEventData = {};
+      let currentMTData = {};
+      let teamsData = [];
+      let historyData = []; // past food events
+      let mtHistoryData = []; // past MTs
+      let suggestionsData = [];
+      let roadmapData = [];
 
       // onSnapshot 구독 관리
       const unsub = {
@@ -427,17 +443,17 @@
         mt: null,
         teams: null,
         history: null,
+        mtHistory: null,
         roadmap: null,
         suggestions: null,
       };
-      const clearAllListeners = () => {
+      const clearAllListeners = () =>
         Object.keys(unsub).forEach((k) => {
           if (unsub[k]) {
             unsub[k]();
             unsub[k] = null;
           }
         });
-      };
 
       const elements = {
         loadingScreen: document.getElementById("loading-screen"),
@@ -474,7 +490,6 @@
         currentUser = { studentId, name: studentName };
         setupListeners();
       };
-
       const logout = async () => {
         try {
           clearAllListeners();
@@ -498,7 +513,6 @@
           btn.classList.add("active");
         }
       };
-
       const toggleAccordion = (header) =>
         header.parentElement.classList.toggle("active");
 
@@ -517,8 +531,8 @@
         if (isAdminNow && !unsub.suggestions) {
           unsub.suggestions = onSnapshot(
             query(collection(db, "suggestions"), orderBy("timestamp", "desc")),
-            (snapshot) => {
-              suggestionsData = snapshot.docs.map((d) => ({
+            (snap) => {
+              suggestionsData = snap.docs.map((d) => ({
                 id: d.id,
                 ...d.data(),
               }));
@@ -533,56 +547,54 @@
         }
       }
 
+      // 로드맵 미리보기/전체 토글 상태
+      let roadmapExpanded = false;
+
       function setupListeners() {
         currentUser = JSON.parse(localStorage.getItem("foodieUser"));
         clearAllListeners();
 
-        unsub.admins = onSnapshot(doc(db, "admins", "list"), (docSnap) => {
-          adminList = docSnap.exists() ? docSnap.data().studentIds : [];
+        unsub.admins = onSnapshot(doc(db, "admins", "list"), (ds) => {
+          adminList = ds.exists() ? ds.data().studentIds : [];
           ensureSuggestionsListener();
           renderAll();
         });
-
-        unsub.events = onSnapshot(doc(db, "events", "current"), (docSnap) => {
-          currentEventData = docSnap.exists() ? docSnap.data() : { title: "" };
+        unsub.events = onSnapshot(doc(db, "events", "current"), (ds) => {
+          currentEventData = ds.exists() ? ds.data() : { title: "" };
           renderAll();
         });
-
-        // MT 현재 모집
-        unsub.mt = onSnapshot(doc(db, "mt", "current"), (docSnap) => {
-          currentMTData = docSnap.exists() ? docSnap.data() : { title: "" };
+        unsub.mt = onSnapshot(doc(db, "mt", "current"), (ds) => {
+          currentMTData = ds.exists() ? ds.data() : { title: "" };
           renderAll();
         });
 
         unsub.teams = onSnapshot(
           query(collection(db, "teams"), orderBy("score", "desc")),
-          (snapshot) => {
-            teamsData = snapshot.docs.map((doc) => ({
-              id: doc.id,
-              ...doc.data(),
-            }));
+          (snap) => {
+            teamsData = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
             renderAll();
           }
         );
 
         unsub.history = onSnapshot(
           query(collection(db, "history"), orderBy("archivedAt", "desc")),
-          (snapshot) => {
-            historyData = snapshot.docs.map((doc) => ({
-              id: doc.id,
-              ...doc.data(),
-            }));
+          (snap) => {
+            historyData = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+            renderAll();
+          }
+        );
+        unsub.mtHistory = onSnapshot(
+          query(collection(db, "mt_history"), orderBy("archivedAt", "desc")),
+          (snap) => {
+            mtHistoryData = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
             renderAll();
           }
         );
 
         unsub.roadmap = onSnapshot(
           query(collection(db, "roadmap"), orderBy("activityDate", "asc")),
-          (snapshot) => {
-            roadmapData = snapshot.docs.map((doc) => ({
-              id: doc.id,
-              ...doc.data(),
-            }));
+          (snap) => {
+            roadmapData = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
             elements.loadingScreen.classList.add("hidden");
             renderAll();
           }
@@ -600,13 +612,14 @@
           elements.preLoginInfo.classList.add("hidden");
           elements.mainContent.innerHTML = `
             <div class="text-right mb-6">
-              <p class="text-gray-700"><span id="userNameDisplay" class="font-bold">${
+              <p class="text-gray-700"><span class="font-bold">${
                 currentUser.name
               }</span>님, 환영합니다!</p>
               <button id="logout-button" class="text-sm text-gray-500 hover:text-red-500">로그아웃</button>
             </div>
             <div class="mb-8 bg-gray-200 rounded-lg p-2 flex flex-wrap justify-center space-x-2" id="tab-buttons">
               <button data-tab="reservation" class="tab-btn flex-1 py-2 px-4 rounded-md font-semibold text-gray-600 active"><i class="fas fa-plane-departure mr-2"></i>탑승 게이트</button>
+              <button data-tab="archive" class="tab-btn flex-1 py-2 px-4 rounded-md font-semibold text-gray-600"><i class="fas fa-box-archive mr-2"></i>보관</button>
               <button data-tab="history" class="tab-btn flex-1 py-2 px-4 rounded-md font-semibold text-gray-600"><i class="fas fa-trophy mr-2"></i>명예의 전당</button>
               <button data-tab="suggestions" class="tab-btn flex-1 py-2 px-4 rounded-md font-semibold text-gray-600"><i class="fas fa-lightbulb mr-2"></i>아이디어 건의</button>
               <button data-tab="dashboard" class="tab-btn flex-1 py-2 px-4 rounded-md font-semibold text-gray-600 ${
@@ -618,6 +631,7 @@
             </div>
             <div id="tab-content-container">
               <div id="reservation-tab" class="tab-content active"></div>
+              <div id="archive-tab" class="tab-content"></div>
               <div id="history-tab" class="tab-content"></div>
               <div id="suggestions-tab" class="tab-content"></div>
               <div id="dashboard-tab" class="tab-content"></div>
@@ -636,6 +650,7 @@
             });
 
           renderReservationTab(isAdmin);
+          renderArchiveTab(isAdmin);
           renderHistoryTab();
           renderSuggestionsTab(isAdmin);
           if (isAdmin) {
@@ -646,7 +661,16 @@
           elements.preLoginInfo.classList.remove("hidden");
           elements.mainContent.classList.add("hidden");
           renderTeamScores();
-          renderRoadmap();
+          renderRoadmap(); // 로그인 전
+          // 로드맵 토글 버튼
+          const btn = document.getElementById("roadmap-toggle-btn");
+          if (btn) {
+            btn.onclick = () => {
+              roadmapExpanded = !roadmapExpanded;
+              renderRoadmap();
+              btn.textContent = roadmapExpanded ? "접기" : "전체 일정 보기";
+            };
+          }
         }
       }
 
@@ -657,17 +681,17 @@
           teamsData.length === 0
             ? `<p class="text-gray-400 text-center">아직 조별 점수 데이터가 없습니다.</p>`
             : teamsData
-                .map((team, index) => {
+                .map((team, idx) => {
                   const colors = [
                     "text-yellow-400",
                     "text-gray-400",
                     "text-yellow-600",
                   ];
                   const icon =
-                    index < 3
-                      ? `<i class="fas fa-trophy mr-2 ${colors[index]}"></i>`
+                    idx < 3
+                      ? `<i class="fas fa-trophy mr-2 ${colors[idx]}"></i>`
                       : `<span class="font-bold mr-2 text-gray-500">${
-                          index + 1
+                          idx + 1
                         }</span>`;
                   return `<div class="flex items-center justify-between bg-gray-50 p-3 rounded-lg"><span class="font-semibold text-lg flex items-center">${icon}${team.name}</span><span class="font-bold text-lg text-indigo-600">${team.score} 점</span></div>`;
                 })
@@ -677,10 +701,11 @@
       function renderRoadmap() {
         const container = document.getElementById("roadmap-container");
         if (!container) return;
+        const list = roadmapExpanded ? roadmapData : roadmapData.slice(0, 4);
         container.innerHTML =
-          roadmapData.length === 0
+          list.length === 0
             ? `<p class="text-gray-400 text-center py-4">예정된 활동이 없습니다. 회장님이 곧 일정을 추가할 거예요!</p>`
-            : roadmapData
+            : list
                 .map((item) => {
                   const itemDate = new Date(item.activityDate);
                   const today = new Date();
@@ -689,48 +714,53 @@
                   if (itemDate < today) statusClass = "completed";
                   else if (itemDate.toDateString() === today.toDateString())
                     statusClass = "today";
-                  return `<div class="roadmap-item ${statusClass}"><div class="font-bold text-gray-800">${
-                    item.activityName
-                  }</div><div class="text-sm text-gray-500">${itemDate.toLocaleDateString(
-                    "ko-KR"
-                  )}</div></div>`;
+                  return `<div class="roadmap-item ${statusClass}">
+                          <div class="font-bold text-gray-800">${
+                            item.activityName
+                          }</div>
+                          <div class="text-sm text-gray-500">${itemDate.toLocaleDateString(
+                            "ko-KR"
+                          )}</div>
+                        </div>`;
                 })
                 .join("");
+        const toggle = document.getElementById("roadmap-toggle-btn");
+        if (toggle)
+          toggle.textContent = roadmapExpanded ? "접기" : "전체 일정 보기";
       }
 
-      // ===== 관리자 대시보드
+      /* ===== 관리자 대시보드 (기존 유지) ===== */
       function renderDashboardTab() {
         const container = document.getElementById("dashboard-tab");
         if (!container) return;
 
         let totalParticipants = 0,
           totalCapacity = 0;
-        historyData.forEach((event) => {
-          totalParticipants += (event.restaurants || []).reduce(
-            (sum, r) => sum + (r.reservations || []).length,
+        historyData.forEach((ev) => {
+          totalParticipants += (ev.restaurants || []).reduce(
+            (s, r) => s + (r.reservations || []).length,
             0
           );
-          totalCapacity +=
-            (event.restaurants || []).length * (event.limit || 0);
+          totalCapacity += (ev.restaurants || []).length * (ev.limit || 0);
         });
-        const overallParticipationRate =
+        const rate =
           totalCapacity > 0
             ? ((totalParticipants / totalCapacity) * 100).toFixed(1)
             : 0;
 
-        const teamsScoreManagementHTML = teamsData
+        const teamsHTML = teamsData
           .map(
             (team) => `
           <div class="flex items-center space-x-2 bg-gray-50 p-2 rounded-lg">
             <input type="text" id="name-input-${team.id}" value="${team.name}" class="flex-grow border rounded px-2 py-1">
-            <input type="number" id="score-input-${team.id}" value="${team.score}" class="w-1/4 border rounded px-2 py-1" placeholder="점수">
+            <input type="number" id="score-input-${team.id}" value="${team.score}" class="w-24 border rounded px-2 py-1" placeholder="점수">
             <button data-action="update-team" data-id="${team.id}" class="bg-indigo-500 text-white text-sm font-bold py-1 px-2 rounded hover:bg-indigo-600">저장</button>
             <button data-action="delete-team" data-id="${team.id}" class="bg-red-500 text-white text-sm font-bold py-1 px-2 rounded hover:bg-red-600"><i class="fas fa-trash"></i></button>
           </div>`
           )
           .join("");
 
-        const roadmapManagementHTML = roadmapData
+        const roadmapHTML = roadmapData
           .map(
             (item) => `
           <div class="flex justify-between items-center bg-gray-50 p-2 rounded-lg">
@@ -759,7 +789,7 @@
                 historyData.length
               }</p><p class="text-blue-600">총 미식회 횟수</p></div>
               <div class="bg-green-100 p-4 rounded-lg"><p class="text-3xl font-bold text-green-800">${totalParticipants}</p><p class="text-green-600">누적 참여 인원</p></div>
-              <div class="bg-amber-100 p-4 rounded-lg"><p class="text-3xl font-bold text-amber-800">${overallParticipationRate}%</p><p class="text-amber-600">전체 참여율</p></div>
+              <div class="bg-amber-100 p-4 rounded-lg"><p class="text-3xl font-bold text-amber-800">${rate}%</p><p class="text-amber-600">전체 참여율</p></div>
             </div>
           </div>
 
@@ -768,7 +798,7 @@
             <div class="space-y-3">
               <h4 class="font-semibold text-gray-600">조 정보 수정/삭제</h4>
               <div class="space-y-2">${
-                teamsScoreManagementHTML ||
+                teamsHTML ||
                 '<p class="text-gray-400">등록된 조가 없습니다.</p>'
               }</div>
               <hr class="my-4">
@@ -785,7 +815,7 @@
             <div class="space-y-3">
               <h4 class="font-semibold text-gray-600">현재 로드맵</h4>
               <div class="space-y-2">${
-                roadmapManagementHTML ||
+                roadmapHTML ||
                 '<p class="text-gray-400">등록된 활동이 없습니다.</p>'
               }</div>
               <hr class="my-4">
@@ -812,16 +842,17 @@
           .addEventListener("click", addRoadmapItem);
       }
 
-      // ====== 탑승 게이트 (MT + 미식회) ======
+      /* ====== 탑승 게이트 (MT + 미식회) ====== */
       function renderReservationTab(isAdmin) {
         const container = document.getElementById("reservation-tab");
         if (!container) return;
 
-        // --- (A) MT 블록: 항상 탑승 게이트의 가장 상단에 표시 ---
+        // (A) MT 섹션 (상단 고정)
         const mtHTML = renderMTSection(isAdmin);
 
-        // --- (B) 미식회(식당) 관리/예약 블록 ---
+        // (B) 미식회 섹션
         const { title, datetime, limit, restaurants = [] } = currentEventData;
+
         let adminPanelHTML = "";
         if (isAdmin) {
           adminPanelHTML = `
@@ -842,7 +873,7 @@
                 <h4 class="font-bold text-indigo-700 mb-2">선택 가능한 맛집 (게이트)</h4>
                 <div id="restaurants-container" class="space-y-3 mb-4">
                   ${
-                    restaurants.length > 0
+                    restaurants.length
                       ? restaurants
                           .map((r) =>
                             restaurantFieldHTML(
@@ -889,7 +920,7 @@
               }
             });
           }
-          const restaurantCardsHTML = restaurants
+          const cards = restaurants
             .map((r) =>
               restaurantCardHTML(r, limit, userReservationRestaurantId, isAdmin)
             )
@@ -902,27 +933,24 @@
                   ? new Date(datetime).toLocaleString("ko-KR")
                   : "날짜 미정"
               }</p>
-              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">${restaurantCardsHTML}</div>
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">${cards}</div>
             </div>`;
         }
 
         container.innerHTML = mtHTML + adminPanelHTML + eventContainerHTML;
 
-        // 이벤트 리스너: MT 영역
+        // MT 이벤트 리스너
         const mtSection = document.getElementById("mt-section");
         if (mtSection) {
-          // 사용자 신청/취소
           const applyBtn = document.getElementById("apply-mt-btn");
           const cancelBtn = document.getElementById("cancel-mt-btn");
           if (applyBtn) applyBtn.addEventListener("click", applyMT);
           if (cancelBtn) cancelBtn.addEventListener("click", cancelMT);
 
-          // 관리자 조작
           const addFieldBtn = document.getElementById("add-mt-field-btn");
           const updateMTBtn = document.getElementById("update-mt-btn");
           const archiveMTBtn = document.getElementById("archive-mt-btn");
           const fieldsWrap = document.getElementById("mt-fields-container");
-
           if (addFieldBtn) addFieldBtn.addEventListener("click", addMTField);
           if (updateMTBtn)
             updateMTBtn.addEventListener("click", updateCurrentMT);
@@ -936,7 +964,7 @@
           }
         }
 
-        // 이벤트 리스너: 미식회 관리자
+        // 미식회 관리자 리스너
         if (isAdmin) {
           const addBtn = document.getElementById("add-restaurant-btn");
           const updateBtn = document.getElementById("update-event-btn");
@@ -955,10 +983,10 @@
             archiveBtn.addEventListener("click", archiveCurrentEvent);
         }
 
-        // 이벤트 리스너: 미식회 예약/취소
-        const cards = document.getElementById("restaurant-cards-container");
-        if (cards) {
-          cards.addEventListener("click", (e) => {
+        // 미식회 예약/취소
+        const cardsWrap = document.getElementById("restaurant-cards-container");
+        if (cardsWrap) {
+          cardsWrap.addEventListener("click", (e) => {
             const button = e.target.closest("button[data-action]");
             if (!button) return;
             const { action, id } = button.dataset;
@@ -968,7 +996,7 @@
         }
       }
 
-      // ===== MT 섹션 렌더링 =====
+      /* ===== MT 섹션 ===== */
       function renderMTSection(isAdmin) {
         const mt = currentMTData || {};
         const {
@@ -980,7 +1008,6 @@
           fields = [],
         } = mt;
 
-        // 관리자용 필드 에디터
         const adminPanel = isAdmin
           ? `
           <div class="bg-orange-100 border border-orange-300 rounded-xl p-4 mb-4">
@@ -1015,37 +1042,33 @@
                   : ""
               }
             </div>
-          </div>
-        `
+          </div>`
           : "";
 
-        // 사용자용 신청 폼
         if (!title) {
-          // 활성 MT 없음
           return `
             <section id="mt-section" class="bg-orange-50 border-l-4 border-orange-500 p-6 rounded-lg mb-8">
               <div class="flex items-center gap-3 mb-2"><i class="fas fa-campground text-orange-500 text-2xl"></i><h3 class="text-xl font-bold text-orange-800">MT 모집</h3></div>
               <p class="text-orange-700">현재 진행 중인 MT 모집이 없습니다.</p>
               ${adminPanel}
-            </section>
-          `;
+            </section>`;
         }
 
         const appliedByUser = (arr) =>
           (arr || []).some((p) => p.studentId === currentUser?.studentId);
         const isApplied = appliedByUser(applicants) || appliedByUser(waiting);
-        const count = (applicants || []).length;
-        const effLimit = parseInt(limit || 0, 10) || 0;
+        const cnt = (applicants || []).length;
+        const cap = parseInt(limit || 0, 10) || 0;
         const percentage =
-          effLimit > 0
-            ? Math.min(100, Math.round((count / effLimit) * 100))
-            : 0;
+          cap > 0 ? Math.min(100, Math.round((cnt / cap) * 100)) : 0;
 
-        const formFieldsHTML = (fields || defaultMTFields())
-          .map((f) => userInputForField(f))
+        const formFieldsHTML = (
+          fields && fields.length ? fields : defaultMTFields()
+        )
+          .map(userInputForField)
           .join("");
 
-        let statusHTML = `<p class="text-sm text-orange-700">현재 신청자: <b>${count}</b> / ${effLimit} 명</p>`;
+        let statusHTML = `<p class="text-sm text-orange-700">현재 신청자: <b>${cnt}</b> / ${cap} 명</p>`;
         if (isApplied) {
           const inWaiting = appliedByUser(waiting);
           statusHTML += `<p class="text-sm ${
@@ -1070,9 +1093,7 @@
                 }</p>
               </div>
             </div>
-            <div class="w-full bg-orange-200 rounded-full h-4 mb-2">
-              <div class="bg-orange-500 h-4 rounded-full" style="width:${percentage}%"></div>
-            </div>
+            <div class="w-full bg-orange-200 rounded-full h-4 mb-2"><div class="bg-orange-500 h-4 rounded-full" style="width:${percentage}%"></div></div>
             ${statusHTML}
             <div class="mt-4 bg-white rounded-lg p-4 border border-orange-100">
               <h4 class="font-semibold text-gray-800 mb-2"><i class="fas fa-list-ul mr-2 text-orange-500"></i>신청 정보 기입</h4>
@@ -1083,11 +1104,9 @@
               <p class="text-xs text-gray-500 mt-2">※ 학번/이름은 로그인 정보로 자동 포함됩니다.</p>
             </div>
             ${adminPanel}
-          </section>
-        `;
+          </section>`;
       }
 
-      // 기본 MT 필드(관리자가 한번도 설정 안했을 때 디폴트)
       function defaultMTFields() {
         return [
           { id: "phone", label: "전화번호", type: "tel", required: true },
@@ -1099,38 +1118,32 @@
           },
         ];
       }
-
-      // 관리자: MT 필드 한 줄 HTML
       function mtFieldHTML(f) {
         const id = f.id || `f_${Math.random().toString(36).slice(2, 9)}`;
-        return `
-          <div class="mt-field-entry flex items-center gap-2 bg-white border border-orange-200 p-2 rounded">
-            <input type="hidden" class="mt-field-id" value="${id}">
-            <input type="text" value="${
-              f.label || ""
-            }" placeholder="항목 라벨 (예: 전화번호)" class="mt-field-label flex-1 px-3 py-2 border rounded">
-            <select class="mt-field-type px-2 py-2 border rounded">
-              <option value="text" ${
-                f.type === "text" ? "selected" : ""
-              }>텍스트</option>
-              <option value="tel" ${
-                f.type === "tel" ? "selected" : ""
-              }>전화번호</option>
-              <option value="textarea" ${
-                f.type === "textarea" ? "selected" : ""
-              }>긴문장</option>
-            </select>
-            <label class="text-sm text-gray-700 flex items-center gap-1">
-              <input type="checkbox" class="mt-field-required" ${
-                f.required ? "checked" : ""
-              }> 필수
-            </label>
-            <button type="button" class="remove-mt-field-btn text-red-500 hover:text-red-700 px-2"><i class="fas fa-trash"></i></button>
-          </div>
-        `;
+        return `<div class="mt-field-entry flex items-center gap-2 bg-white border border-orange-200 p-2 rounded">
+          <input type="hidden" class="mt-field-id" value="${id}">
+          <input type="text" value="${
+            f.label || ""
+          }" placeholder="항목 라벨 (예: 전화번호)" class="mt-field-label flex-1 px-3 py-2 border rounded">
+          <select class="mt-field-type px-2 py-2 border rounded">
+            <option value="text" ${
+              f.type === "text" ? "selected" : ""
+            }>텍스트</option>
+            <option value="tel" ${
+              f.type === "tel" ? "selected" : ""
+            }>전화번호</option>
+            <option value="textarea" ${
+              f.type === "textarea" ? "selected" : ""
+            }>긴문장</option>
+          </select>
+          <label class="text-sm text-gray-700 flex items-center gap-1">
+            <input type="checkbox" class="mt-field-required" ${
+              f.required ? "checked" : ""
+            }> 필수
+          </label>
+          <button type="button" class="remove-mt-field-btn text-red-500 hover:text-red-700 px-2"><i class="fas fa-trash"></i></button>
+        </div>`;
       }
-
-      // 사용자 입력 필드
       function userInputForField(f) {
         const id = f.id || `f_${Math.random().toString(36).slice(2, 9)}`;
         const base = `id="mt-field-input-${id}" data-field-id="${id}" data-required="${
@@ -1142,8 +1155,6 @@
         const typeAttr = f.type === "tel" ? "tel" : "text";
         return `<input type="${typeAttr}" ${base}>`;
       }
-
-      // 관리자: MT 필드 추가 버튼
       const addMTField = () => {
         const wrap = document.getElementById("mt-fields-container");
         if (!wrap) return;
@@ -1157,13 +1168,10 @@
           })
         );
       };
-
-      // 관리자: MT 생성/업데이트
       const updateCurrentMT = async () => {
         const t = document.getElementById("mt-title")?.value.trim();
         const d = document.getElementById("mt-datetime")?.value;
         const l = parseInt(document.getElementById("mt-limit")?.value, 10);
-
         const fields = Array.from(
           document.querySelectorAll("#mt-fields-container .mt-field-entry")
         )
@@ -1177,16 +1185,13 @@
             return { id, label, type, required };
           })
           .filter((f) => f.label);
-
         if (!t || !d || !l || fields.length === 0)
           return showAlert("😥", "MT 제목/일시/정원/항목을 모두 입력해주세요.");
-
         try {
           await runTransaction(db, async (tx) => {
             const ref = doc(db, "mt", "current");
             const snap = await tx.get(ref);
             const old = snap.exists() ? snap.data() : {};
-            // 기존 지원자 데이터 유지
             const merged = {
               title: t,
               datetime: d,
@@ -1198,12 +1203,10 @@
             tx.set(ref, merged);
           });
           showAlert("🎉", "MT 정보가 업데이트되었습니다!");
-        } catch (e) {
+        } catch {
           showAlert("😥", "MT 업데이트에 실패했습니다.");
         }
       };
-
-      // 사용자: MT 신청
       const applyMT = async () => {
         if (!currentUser) return showAlert("😥", "로그인이 필요합니다.");
         try {
@@ -1215,7 +1218,6 @@
             const data = snap.data();
             data.applicants ||= [];
             data.waiting ||= [];
-            // 중복 체크
             if (
               [...data.applicants, ...data.waiting].some(
                 (p) => p.studentId === currentUser.studentId
@@ -1224,7 +1226,6 @@
               showAlert("🤔", "이미 신청(또는 대기) 상태입니다.");
               return;
             }
-            // 폼 값 검증
             const fields =
               data.fields && data.fields.length
                 ? data.fields
@@ -1239,14 +1240,12 @@
               }
               answers[f.id] = val;
             }
-
             const entry = {
               ...currentUser,
               answers,
               timestamp: new Date().toISOString(),
             };
             const cap = parseInt(data.limit || 0, 10) || 0;
-
             if (cap === 0 || data.applicants.length < cap) {
               data.applicants.push(entry);
               showAlert("✅", "MT 신청이 완료되었습니다!");
@@ -1266,8 +1265,6 @@
           showAlert("😥", `신청 중 오류: ${e.message}`);
         }
       };
-
-      // 사용자: MT 취소
       const cancelMT = async () => {
         if (!currentUser) return;
         try {
@@ -1280,7 +1277,6 @@
             data.applicants ||= [];
             data.waiting ||= [];
             const before = data.applicants.length;
-
             data.applicants = data.applicants.filter(
               (p) => p.studentId !== currentUser.studentId
             );
@@ -1298,25 +1294,23 @@
             });
             showAlert("🗑️", "MT 신청이 취소되었습니다.");
           });
-        } catch (e) {
+        } catch {
           showAlert("😥", "취소 중 오류가 발생했습니다.");
         }
       };
-
-      // MT 보관(종료)
       const archiveCurrentMT = async () => {
         if (!confirm("현재 MT 모집을 종료하고 보관하시겠습니까?")) return;
         const payload = { ...currentMTData, archivedAt: serverTimestamp() };
         try {
           await addDoc(collection(db, "mt_history"), payload);
-          await setDoc(doc(db, "mt", "current"), { title: "" }); // 초기화
+          await setDoc(doc(db, "mt", "current"), { title: "" });
           showAlert("📁", "MT 모집이 보관되었습니다.");
-        } catch (e) {
+        } catch {
           showAlert("😥", "MT 보관에 실패했습니다.");
         }
       };
 
-      // === 미식회(식당) 카드 ===
+      /* === 미식회 카드 === */
       function restaurantCardHTML(
         r,
         limit,
@@ -1340,7 +1334,6 @@
             return `<li class="text-sm text-gray-600">${displayId} ${p.name}</li>`;
           })
           .join("");
-
         const waitingListHTML = waiting
           .map((p, i) => {
             const displayId = isAdmin
@@ -1352,14 +1345,13 @@
           })
           .join("");
 
-        let buttonHTML;
-        if (isReservedByUser) {
+        let buttonHTML = "";
+        if (isReservedByUser)
           buttonHTML = `<button data-action="cancel" data-id="${r.id}" class="w-full mt-4 bg-gray-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-600"><i class="fas fa-times mr-2"></i>탑승 취소</button>`;
-        } else if (reservedCount >= cap) {
+        else if (reservedCount >= cap)
           buttonHTML = `<button data-action="reserve" data-id="${r.id}" class="w-full mt-4 bg-orange-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-orange-600"><i class="fas fa-hourglass-start mr-2"></i>대기 신청</button>`;
-        } else {
+        else
           buttonHTML = `<button data-action="reserve" data-id="${r.id}" class="w-full mt-4 bg-green-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600"><i class="fas fa-utensils mr-2"></i>탐방 탑승하기</button>`;
-        }
 
         return `
           <div class="bg-white p-6 rounded-xl shadow-md card-hover flex flex-col ${
@@ -1369,9 +1361,9 @@
               <h3 class="text-xl font-bold text-gray-800">${r.name}</h3>
               <p class="text-gray-500 mb-4">${r.info}</p>
               <div class="w-full bg-gray-200 rounded-full h-5 mb-2">
-                <div class="bg-green-500 h-5 text-xs font-medium text-white text-center p-0.5 leading-none rounded-full" style="width:${percentage}%">${Math.round(
-          percentage
-        )}%</div>
+                <div class="bg-green-500 h-5 text-xs font-medium text-white text-center p-0.5 leading-none rounded-full" style="width:${Math.round(
+                  percentage
+                )}%">${Math.round(percentage)}%</div>
               </div>
               <p class="text-right text-sm font-semibold text-gray-600">탑승 현황: ${reservedCount} / ${cap} 명</p>
               <div class="mt-4">
@@ -1391,10 +1383,87 @@
           </div>`;
       }
 
-      // ===== 히스토리 / 건의 / 임원 관리 (기존 유지) =====
+      /* ===== 보관 탭 (종료된 미식회 + MT) ===== */
+      function renderArchiveTab(isAdmin) {
+        const container = document.getElementById("archive-tab");
+        if (!container) return;
+
+        const mtListHTML = mtHistoryData.length
+          ? mtHistoryData
+              .map((mt) => {
+                const cnt = (mt.applicants || []).length;
+                const when = mt.datetime
+                  ? new Date(mt.datetime).toLocaleString("ko-KR")
+                  : "-";
+                const names = (mt.applicants || [])
+                  .map((a) => a.name)
+                  .join(", ");
+                return `
+                <div class="bg-white p-4 rounded-xl shadow-sm">
+                  <div class="flex justify-between items-center">
+                    <div>
+                      <p class="font-semibold text-orange-700">[MT] ${
+                        mt.title || "(제목 없음)"
+                      }</p>
+                      <p class="text-sm text-gray-500">일정: ${when}</p>
+                    </div>
+                    <span class="text-sm bg-orange-100 text-orange-700 px-2 py-1 rounded">신청 ${cnt}명</span>
+                  </div>
+                  <div class="text-sm text-gray-600 mt-2 ${
+                    isAdmin ? "" : "italic"
+                  }">
+                    ${
+                      isAdmin
+                        ? `신청자: ${names || "없음"}`
+                        : "신청자 명단은 관리자에게만 보입니다."
+                    }
+                  </div>
+                </div>`;
+              })
+              .join("")
+          : `<p class="text-gray-400">보관된 MT가 없습니다.</p>`;
+
+        const eventListHTML = historyData.length
+          ? historyData
+              .map((ev) => {
+                const date = ev.datetime
+                  ? new Date(ev.datetime).toLocaleDateString("ko-KR")
+                  : "-";
+                const items = (ev.restaurants || [])
+                  .map((r) => {
+                    const count = (r.reservations || []).length;
+                    const cap = r.capacity ?? ev.limit ?? 0;
+                    return `<li class="flex justify-between"><span>${r.name}</span><span class="text-sm text-gray-600">${count}/${cap}명</span></li>`;
+                  })
+                  .join("");
+                return `
+                <div class="bg-white p-4 rounded-xl shadow-sm">
+                  <p class="font-semibold text-indigo-700">[미식회] ${ev.title}</p>
+                  <p class="text-sm text-gray-500 mb-2">일시: ${date}</p>
+                  <ul class="space-y-1">${items}</ul>
+                </div>`;
+              })
+              .join("")
+          : `<p class="text-gray-400">보관된 미식회가 없습니다.</p>`;
+
+        container.innerHTML = `
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <section class="space-y-3">
+              <h3 class="text-xl font-bold text-gray-700"><i class="fas fa-campground text-orange-500 mr-2"></i>보관된 MT</h3>
+              ${mtListHTML}
+            </section>
+            <section class="space-y-3">
+              <h3 class="text-xl font-bold text-gray-700"><i class="fas fa-utensils text-indigo-500 mr-2"></i>보관된 미식회</h3>
+              ${eventListHTML}
+            </section>
+          </div>`;
+      }
+
+      /* ===== 명예의 전당 (리뷰) ===== */
       function renderHistoryTab() {
         const container = document.getElementById("history-tab");
         if (!container) return;
+
         if (historyData.length === 0) {
           container.innerHTML = `<div class="text-center py-12"><i class="fas fa-trophy text-5xl text-gray-300"></i><p class="mt-4 text-gray-500">아직 '명예의 전당'에 오른 맛집이 없습니다.</p></div>`;
           return;
@@ -1431,32 +1500,30 @@
             }
           });
       }
-
       function historyRestaurantCardHTML(r, eventId) {
         const reviews = r.reviews || [];
-        const averageRating =
-          reviews.length > 0
-            ? reviews.reduce((acc, cur) => acc + cur.rating, 0) / reviews.length
-            : 0;
-        const starsHTML = Array.from(
+        const avg = reviews.length
+          ? reviews.reduce((a, c) => a + c.rating, 0) / reviews.length
+          : 0;
+        const stars = Array.from(
           { length: 5 },
           (_, i) =>
             `<i class="fa-solid fa-star ${
-              i < Math.round(averageRating) ? "text-amber-400" : "text-gray-300"
+              i < Math.round(avg) ? "text-amber-400" : "text-gray-300"
             }"></i>`
         ).join("");
-        const reviewsHTML = reviews
+        const reviewList = reviews
           .map(
-            (review) =>
-              `<div class="bg-gray-100 p-2 rounded text-sm mt-1"><b>${review.name}:</b> ${review.comment}</div>`
+            (rv) =>
+              `<div class="bg-gray-100 p-2 rounded text-sm mt-1"><b>${rv.name}:</b> ${rv.comment}</div>`
           )
           .join("");
 
-        const hasUserReviewed =
+        const hasReviewed =
           currentUser &&
-          reviews.some((review) => review.studentId === currentUser.studentId);
-        const reviewFormHTML =
-          currentUser && !hasUserReviewed
+          reviews.some((rv) => rv.studentId === currentUser.studentId);
+        const form =
+          currentUser && !hasReviewed
             ? `
           <div class="mt-4">
             <div class="star-rating flex justify-center text-2xl" data-event-id="${eventId}" data-restaurant-id="${
@@ -1469,7 +1536,7 @@
                     i + 1
                   }" onmouseover="highlightStars(this, ${
                     i + 1
-                  })" onclick="rateRestaurant('${eventId}', '${r.id}', ${
+                  })" onclick="rateRestaurant('${eventId}','${r.id}',${
                     i + 1
                   })"></i>`
               ).join("")}
@@ -1483,49 +1550,49 @@
               }" class="bg-gray-600 text-white px-3 rounded-r-md text-sm">등록</button>
             </div>
           </div>`
-            : hasUserReviewed
+            : hasReviewed
             ? `<div class="mt-3 text-sm text-green-600 font-semibold"><i class="fas fa-check-circle"></i> 리뷰 등록 완료!</div>`
             : "";
 
-        return `
-          <div class="bg-white p-4 rounded-lg">
-            <h4 class="text-lg font-bold">${r.name}</h4>
-            <p class="text-sm text-gray-500">${r.info}</p>
-            <div class="my-2">${starsHTML} <span class="text-sm text-gray-500">(${averageRating.toFixed(
+        return `<div class="bg-white p-4 rounded-lg">
+          <h4 class="text-lg font-bold">${r.name}</h4>
+          <p class="text-sm text-gray-500">${r.info}</p>
+          <div class="my-2">${stars} <span class="text-sm text-gray-500">(${avg.toFixed(
           1
         )} / 5.0)</span></div>
-            <div class="text-xs text-gray-400">리뷰 ${reviews.length}개</div>
-            ${reviewsHTML}
-            ${reviewFormHTML}
-          </div>`;
+          <div class="text-xs text-gray-400">리뷰 ${reviews.length}개</div>
+          ${reviewList}
+          ${form}
+        </div>`;
       }
 
+      /* ===== 건의함 ===== */
       function renderSuggestionsTab(isAdmin) {
         const container = document.getElementById("suggestions-tab");
         if (!container) return;
-        let suggestionsListHTML = "";
+
+        let listHTML = "";
         if (isAdmin) {
-          suggestionsListHTML =
-            suggestionsData.length > 0
-              ? suggestionsData
-                  .map(
-                    (s) => `
-                <div class="bg-white p-4 rounded-lg shadow-sm flex justify-between items-center">
-                  <div>
-                    <p class="text-gray-700">${s.text}</p>
-                    <p class="text-right text-xs text-gray-400 mt-2">${
-                      s.timestamp
-                        ? new Date(s.timestamp.toDate()).toLocaleString("ko-KR")
-                        : ""
-                    }</p>
-                  </div>
-                  <button data-action="delete-suggestion" data-id="${
-                    s.id
-                  }" class="text-red-500 hover:text-red-700 ml-4 p-2"><i class="fas fa-trash-alt"></i></button>
-                </div>`
-                  )
-                  .join("")
-              : '<p class="text-center text-gray-400">아직 등록된 건의사항이 없습니다.</p>';
+          listHTML = suggestionsData.length
+            ? suggestionsData
+                .map(
+                  (s) => `
+              <div class="bg-white p-4 rounded-lg shadow-sm flex justify-between items-center">
+                <div>
+                  <p class="text-gray-700">${s.text}</p>
+                  <p class="text-right text-xs text-gray-400 mt-2">${
+                    s.timestamp
+                      ? new Date(s.timestamp.toDate()).toLocaleString("ko-KR")
+                      : ""
+                  }</p>
+                </div>
+                <button data-action="delete-suggestion" data-id="${
+                  s.id
+                }" class="text-red-500 hover:text-red-700 ml-4 p-2"><i class="fas fa-trash-alt"></i></button>
+              </div>`
+                )
+                .join("")
+            : '<p class="text-center text-gray-400">아직 등록된 건의사항이 없습니다.</p>';
         }
 
         container.innerHTML = `
@@ -1538,7 +1605,7 @@
             </div>
             ${
               isAdmin
-                ? `<div id="suggestions-list" class="mt-8 space-y-4">${suggestionsListHTML}</div>`
+                ? `<div id="suggestions-list" class="mt-8 space-y-4">${listHTML}</div>`
                 : ""
             }
           </div>`;
@@ -1550,17 +1617,19 @@
           document
             .getElementById("suggestions-list")
             .addEventListener("click", (e) => {
-              const button = e.target.closest(
+              const btn = e.target.closest(
                 'button[data-action="delete-suggestion"]'
               );
-              if (button) deleteSuggestion(button.dataset.id);
+              if (btn) deleteSuggestion(btn.dataset.id);
             });
         }
       }
 
+      /* ===== 임원 관리 ===== */
       function renderAdminManagementTab() {
         const container = document.getElementById("admin-tab");
         if (!container) return;
+
         const adminListHTML = adminList
           .map(
             (id) => `
@@ -1588,80 +1657,18 @@
               </div>
             </div>
           </div>`;
-
         document
           .getElementById("add-admin-button")
           .addEventListener("click", addAdmin);
         document
           .getElementById("admin-management-container")
           .addEventListener("click", (e) => {
-            const button = e.target.closest(
-              'button[data-action="remove-admin"]'
-            );
-            if (button) removeAdmin(button.dataset.id);
+            const btn = e.target.closest('button[data-action="remove-admin"]');
+            if (btn) removeAdmin(btn.dataset.id);
           });
       }
 
-      // 공통 액션들
-      const addAdmin = async () => {
-        const newAdminId = document
-          .getElementById("new-admin-input")
-          .value.trim();
-        if (!newAdminId)
-          return showAlert("😥", "추가할 임원의 학번을 입력해주세요.");
-        try {
-          const adminDocRef = doc(db, "admins", "list");
-          await runTransaction(db, async (t) => {
-            const adminDoc = await t.get(adminDocRef);
-            if (!adminDoc.exists())
-              t.set(adminDocRef, { studentIds: [newAdminId] });
-            else t.update(adminDocRef, { studentIds: arrayUnion(newAdminId) });
-          });
-          showAlert("🎉", `${newAdminId} 님이 임원으로 추가되었습니다.`);
-          document.getElementById("new-admin-input").value = "";
-        } catch {
-          showAlert("😥", "임원 추가에 실패했습니다.");
-        }
-      };
-
-      const removeAdmin = async (adminId) => {
-        if (adminList.length <= 1)
-          return showAlert("🤔", "최소 한 명의 관리자는 남아있어야 합니다.");
-        if (!confirm(`${adminId} 님을 임원 목록에서 삭제하시겠습니까?`)) return;
-        try {
-          const adminDocRef = doc(db, "admins", "list");
-          await runTransaction(db, async (t) => {
-            t.update(adminDocRef, { studentIds: arrayRemove(adminId) });
-          });
-          showAlert("🗑️", `${adminId} 님이 임원에서 삭제되었습니다.`);
-        } catch {
-          showAlert("😥", "임원 삭제에 실패했습니다.");
-        }
-      };
-
-      const emergencyAddAdmin = async () => {
-        const newAdminId = document.getElementById("new-admin-id").value.trim();
-        if (!newAdminId)
-          return showAlert("😥", "새 관리자의 학번을 입력해주세요.");
-        try {
-          const adminDocRef = doc(db, "admins", "list");
-          await runTransaction(db, async (t) => {
-            const adminDoc = await t.get(adminDocRef);
-            if (!adminDoc.exists())
-              t.set(adminDocRef, { studentIds: [newAdminId] });
-            else t.update(adminDocRef, { studentIds: arrayUnion(newAdminId) });
-          });
-          showAlert(
-            "🎉",
-            `비상 관리자(${newAdminId})가 성공적으로 임명되었습니다.`
-          );
-          closeEmergencyModal();
-        } catch {
-          showAlert("😥", "비상 관리자 임명에 실패했습니다.");
-        }
-      };
-
-      // 미식회 관리자 입력 필드
+      /* ===== 공통 액션 ===== */
       const restaurantFieldHTML = (n = "", i = "", c = "") => `
         <div class="flex items-center space-x-2 restaurant-entry">
           <input type="text" value="${n}" placeholder="식당 이름" class="flex-grow px-4 py-2 border rounded-lg restaurant-name">
@@ -1674,8 +1681,7 @@
           .getElementById("restaurants-container")
           .insertAdjacentHTML("beforeend", restaurantFieldHTML());
 
-      // 미식회 이벤트 업데이트
-      const updateCurrentEvent = async function () {
+      const updateCurrentEvent = async () => {
         const t = document.getElementById("event-title").value.trim();
         const d = document.getElementById("event-datetime").value;
         const l = parseInt(document.getElementById("event-limit").value, 10);
@@ -1689,7 +1695,6 @@
             ),
           }))
           .filter((r) => r.name && !isNaN(r.capacity) && r.capacity > 0);
-
         if (!t || !d || !l || rI.length === 0)
           return showAlert("😥", "모든 필드를 채워주세요.");
 
@@ -1720,13 +1725,12 @@
             tx.set(ref, { title: t, datetime: d, limit: l, restaurants });
           });
           showAlert("🎉", "미식회 정보가 업데이트되었습니다!");
-        } catch (e) {
+        } catch {
           showAlert("😥", "업데이트에 실패했습니다.");
         }
       };
 
-      // 미식회 예약/취소
-      const makeReservation = async function (id) {
+      const makeReservation = async (id) => {
         if (!currentUser)
           return showAlert("😥", "참가자 정보를 먼저 입력해주세요.");
         try {
@@ -1736,7 +1740,6 @@
             if (!snap.exists()) throw new Error("Event does not exist!");
             let data = snap.data();
             data.restaurants ||= [];
-            // 중복 예약/대기 방지
             if (
               data.restaurants.some(
                 (r) =>
@@ -1778,7 +1781,7 @@
         }
       };
 
-      const cancelReservation = async function (id) {
+      const cancelReservation = async (id) => {
         if (!currentUser) return;
         try {
           await runTransaction(db, async (tx) => {
@@ -1815,19 +1818,17 @@
         if (!confirm("현재 미식회를 종료하고 보관하시겠습니까?")) return;
         const payload = { ...currentEventData, archivedAt: serverTimestamp() };
         try {
-          // 보관 컬렉션에 현재 이벤트 추가
-          await addDoc(collection(db, "history"), payload);
-          // 현재 진행 중 이벤트 초기화
-          await setDoc(doc(db, "events", "current"), { title: "" });
+          await addDoc(collection(db, "history"), payload); // 보관
+          await setDoc(doc(db, "events", "current"), { title: "" }); // 초기화
           showAlert("📁", "활동이 보관되었습니다.");
         } catch (e) {
-          console.error("Archive failed:", e);
+          console.error(e);
           showAlert("😥", "활동 보관에 실패했습니다.");
         }
       };
 
-      // 건의함
-      const submitSuggestion = async () => {
+      /* ==== 건의함 액션 (함수 선언문으로 변경: 호이스팅 OK) ==== */
+      async function submitSuggestion() {
         const input = document.getElementById("suggestion-input");
         const text = input.value.trim();
         if (!text) return;
@@ -1846,8 +1847,8 @@
         } catch {
           showAlert("😥", "제출에 실패했습니다.");
         }
-      };
-      const deleteSuggestion = async (id) => {
+      }
+      async function deleteSuggestion(id) {
         if (!confirm("이 건의사항을 삭제하시겠습니까?")) return;
         try {
           await deleteDoc(doc(db, "suggestions", id));
@@ -1855,7 +1856,7 @@
         } catch {
           showAlert("😥", "삭제에 실패했습니다.");
         }
-      };
+      }
 
       // 리뷰 별점
       let selectedRating = 0;
@@ -1876,7 +1877,7 @@
         box.classList.add("rated");
         highlightStars(box.querySelector(".fa-star"), rating);
       };
-      const submitReview = async function (eventId, restaurantId) {
+      async function submitReview(eventId, restaurantId) {
         if (!currentUser)
           return showAlert("😥", "리뷰를 작성하려면 로그인이 필요합니다.");
         const comment = document
@@ -1915,10 +1916,82 @@
         } catch {
           showAlert("😥", "리뷰 등록에 실패했습니다.");
         }
-      };
+      }
 
-      // 대시보드 핸들러
-      const updateTeam = async (id) => {
+      // 대시보드 기타
+      async function addAdmin() {
+        const newAdminId = document
+          .getElementById("new-admin-input")
+          .value.trim();
+        if (!newAdminId)
+          return showAlert("😥", "추가할 임원의 학번을 입력해주세요.");
+        try {
+          const adminDocRef = doc(db, "admins", "list");
+          await runTransaction(db, async (t) => {
+            const adminDoc = await t.get(adminDocRef);
+            if (!adminDoc.exists())
+              t.set(adminDocRef, { studentIds: [newAdminId] });
+            else t.update(adminDocRef, { studentIds: arrayUnion(newAdminId) });
+          });
+          showAlert("🎉", `${newAdminId} 님이 임원으로 추가되었습니다.`);
+          document.getElementById("new-admin-input").value = "";
+        } catch {
+          showAlert("😥", "임원 추가에 실패했습니다.");
+        }
+      }
+      async function removeAdmin(adminId) {
+        if (adminList.length <= 1)
+          return showAlert("🤔", "최소 한 명의 관리자는 남아있어야 합니다.");
+        if (!confirm(`${adminId} 님을 임원 목록에서 삭제하시겠습니까?`)) return;
+        try {
+          const adminDocRef = doc(db, "admins", "list");
+          await runTransaction(db, async (t) => {
+            t.update(adminDocRef, { studentIds: arrayRemove(adminId) });
+          });
+          showAlert("🗑️", `${adminId} 님이 임원에서 삭제되었습니다.`);
+        } catch {
+          showAlert("😥", "임원 삭제에 실패했습니다.");
+        }
+      }
+      async function emergencyAddAdmin() {
+        const newAdminId = document.getElementById("new-admin-id").value.trim();
+        if (!newAdminId)
+          return showAlert("😥", "새 관리자의 학번을 입력해주세요.");
+        try {
+          const adminDocRef = doc(db, "admins", "list");
+          await runTransaction(db, async (t) => {
+            const ad = await t.get(adminDocRef);
+            if (!ad.exists()) t.set(adminDocRef, { studentIds: [newAdminId] });
+            else t.update(adminDocRef, { studentIds: arrayUnion(newAdminId) });
+          });
+          showAlert(
+            "🎉",
+            `비상 관리자(${newAdminId})가 성공적으로 임명되었습니다.`
+          );
+          closeEmergencyModal();
+        } catch {
+          showAlert("😥", "비상 관리자 임명에 실패했습니다.");
+        }
+      }
+
+      function handleDashboardClick(e) {
+        const button = e.target.closest("button[data-action]");
+        if (!button) return;
+        const { action, id } = button.dataset;
+        if (action === "update-team") updateTeam(id);
+        if (action === "delete-team") deleteTeam(id);
+        if (action === "delete-roadmap") deleteRoadmapItem(id);
+        if (action === "edit-roadmap") {
+          const curName = button.dataset.name || "";
+          const curDate = button.dataset.date || "";
+          const newName = prompt("활동 이름을 수정하세요", curName);
+          if (newName === null) return;
+          const newDate = prompt("활동 날짜(YYYY-MM-DD)를 수정하세요", curDate);
+          if (newDate === null) return;
+          updateRoadmapItem(id, newName.trim(), newDate.trim());
+        }
+      }
+      async function updateTeam(id) {
         const name = document.getElementById(`name-input-${id}`).value.trim();
         const score = parseInt(
           document.getElementById(`score-input-${id}`).value,
@@ -1932,8 +2005,8 @@
         } catch {
           showAlert("😥", "조 정보 업데이트에 실패했습니다.");
         }
-      };
-      const addNewTeam = async () => {
+      }
+      async function addNewTeam() {
         const el = document.getElementById("new-team-name");
         const name = el.value.trim();
         if (!name) return showAlert("😥", "조 이름을 입력해주세요.");
@@ -1944,8 +2017,8 @@
         } catch {
           showAlert("😥", "조 추가에 실패했습니다.");
         }
-      };
-      const deleteTeam = async (id) => {
+      }
+      async function deleteTeam(id) {
         if (
           !confirm(
             "정말로 이 조를 삭제하시겠습니까? 모든 점수 기록이 사라집니다."
@@ -1958,8 +2031,8 @@
         } catch {
           showAlert("😥", "조 삭제에 실패했습니다.");
         }
-      };
-      const addRoadmapItem = async () => {
+      }
+      async function addRoadmapItem() {
         const nEl = document.getElementById("new-roadmap-name");
         const dEl = document.getElementById("new-roadmap-date");
         const name = nEl.value.trim();
@@ -1977,8 +2050,8 @@
         } catch {
           showAlert("😥", "활동 추가에 실패했습니다.");
         }
-      };
-      const updateRoadmapItem = async (id, name, date) => {
+      }
+      async function updateRoadmapItem(id, name, date) {
         if (!name || !date)
           return showAlert("😥", "활동 이름과 날짜를 모두 입력해주세요.");
         try {
@@ -1990,8 +2063,8 @@
         } catch {
           showAlert("😥", "로드맵 수정에 실패했습니다.");
         }
-      };
-      const deleteRoadmapItem = async (id) => {
+      }
+      async function deleteRoadmapItem(id) {
         if (!confirm("이 활동을 로드맵에서 삭제하시겠습니까?")) return;
         try {
           await deleteDoc(doc(db, "roadmap", id));
@@ -1999,26 +2072,9 @@
         } catch {
           showAlert("😥", "활동 삭제에 실패했습니다.");
         }
-      };
-      const handleDashboardClick = (e) => {
-        const button = e.target.closest("button[data-action]");
-        if (!button) return;
-        const { action, id } = button.dataset;
-        if (action === "update-team") updateTeam(id);
-        if (action === "delete-team") deleteTeam(id);
-        if (action === "delete-roadmap") deleteRoadmapItem(id);
-        if (action === "edit-roadmap") {
-          const curName = button.dataset.name || "";
-          const curDate = button.dataset.date || "";
-          const newName = prompt("활동 이름을 수정하세요", curName);
-          if (newName === null) return;
-          const newDate = prompt("활동 날짜(YYYY-MM-DD)를 수정하세요", curDate);
-          if (newDate === null) return;
-          updateRoadmapItem(id, newName.trim(), newDate.trim());
-        }
-      };
+      }
 
-      // 전역 노출
+      // 전역 노출 (모든 함수 정의 뒤에 배치)
       Object.assign(window, {
         login,
         logout,
@@ -2027,8 +2083,6 @@
         closeModal,
         closeEmergencyModal,
         emergencyAddAdmin,
-        addAdmin,
-        removeAdmin,
         // MT
         addMTField,
         updateCurrentMT,
@@ -2056,7 +2110,7 @@
         deleteRoadmapItem,
       });
 
-      // 초기 이벤트 바인딩
+      // 초기 바인딩
       document.getElementById("login-button").addEventListener("click", login);
       document
         .querySelectorAll(".accordion-header")
