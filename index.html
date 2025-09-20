@@ -11,46 +11,149 @@
     />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
     <style>
-      body { font-family: "Noto Sans KR", sans-serif; }
-      .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-      .card-hover { transition: transform 0.3s ease, box-shadow 0.3s ease; }
-      .card-hover:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgba(0,0,0,.1), 0 4px 6px -2px rgba(0,0,0,.05); }
-      .loader { border: 5px solid #f3f3f3; border-top: 5px solid #667eea; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
-      @keyframes spin { 0% { transform: rotate(0deg) } 100% { transform: rotate(360deg) } }
-      .tab-btn { transition: all .3s ease; }
-      .tab-btn.active { color:#fff; background:#4a5568; box-shadow: 0 4px 6px rgba(0,0,0,.1); }
-      .tab-content { display:none; }
-      .tab-content.active { display:block; }
-      .disabled-card { opacity:.6; pointer-events:none; }
-      .accordion-content { max-height:0; overflow:hidden; transition:max-height .5s ease-out, padding .5s ease; padding:0 1.5rem; }
-      .accordion-item.active .accordion-content { max-height:1000px; padding:1.5rem 1.5rem; }
-      .accordion-header .fa-chevron-down { transition: transform .5s ease; }
-      .accordion-item.active .accordion-header .fa-chevron-down { transform: rotate(180deg); }
-      .roadmap-timeline { position:relative; }
-      .roadmap-item { position:relative; padding-left:30px; padding-bottom:2rem; }
-      .roadmap-item:last-child { padding-bottom:0; }
-      .roadmap-item:not(:last-child)::before { content:""; position:absolute; left:7px; top:16px; width:2px; height:100%; background:#e2e8f0; }
-      .roadmap-item.completed:not(:last-child)::before { background:#6366f1; }
-      .roadmap-item::after { content:""; position:absolute; left:0; top:4px; width:16px; height:16px; border-radius:50%; background:#fff; border:3px solid #e2e8f0; }
-      .roadmap-item.completed::after { border-color:#6366f1; background:#6366f1; }
-      .roadmap-item.today::after { border-color:#f59e0b; background:#f59e0b; }
-      .roadmap-item.upcoming { opacity:.7; }
-      .star-rating .fa-star { color:#d1d5db; cursor:pointer; transition: color .2s; }
-      .star-rating:hover .fa-star, .star-rating .fa-star.selected { color:#facc15; }
-      .star-rating .fa-star:hover ~ .fa-star { color:#d1d5db; }
-      .star-rating[data-rating].rated .fa-star { color:#facc15; }
+      body {
+        font-family: "Noto Sans KR", sans-serif;
+      }
+      .gradient-bg {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      }
+      .card-hover {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+      .card-hover:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+          0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      }
+      .loader {
+        border: 5px solid #f3f3f3;
+        border-top: 5px solid #667eea;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+      .tab-btn {
+        transition: all 0.3s ease;
+      }
+      .tab-btn.active {
+        color: #fff;
+        background: #4a5568;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+      .tab-content {
+        display: none;
+      }
+      .tab-content.active {
+        display: block;
+      }
+      .disabled-card {
+        opacity: 0.6;
+        pointer-events: none;
+      }
+      .accordion-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.5s ease-out, padding 0.5s ease;
+        padding: 0 1.5rem;
+      }
+      .accordion-item.active .accordion-content {
+        max-height: 1000px;
+        padding: 1.5rem 1.5rem;
+      }
+      .accordion-header .fa-chevron-down {
+        transition: transform 0.5s ease;
+      }
+      .accordion-item.active .accordion-header .fa-chevron-down {
+        transform: rotate(180deg);
+      }
+      .roadmap-timeline {
+        position: relative;
+      }
+      .roadmap-item {
+        position: relative;
+        padding-left: 30px;
+        padding-bottom: 2rem;
+      }
+      .roadmap-item:last-child {
+        padding-bottom: 0;
+      }
+      .roadmap-item:not(:last-child)::before {
+        content: "";
+        position: absolute;
+        left: 7px;
+        top: 16px;
+        width: 2px;
+        height: 100%;
+        background: #e2e8f0;
+      }
+      .roadmap-item.completed:not(:last-child)::before {
+        background: #6366f1;
+      }
+      .roadmap-item::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 4px;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #fff;
+        border: 3px solid #e2e8f0;
+      }
+      .roadmap-item.completed::after {
+        border-color: #6366f1;
+        background: #6366f1;
+      }
+      .roadmap-item.today::after {
+        border-color: #f59e0b;
+        background: #f59e0b;
+      }
+      .roadmap-item.upcoming {
+        opacity: 0.7;
+      }
+      .star-rating .fa-star {
+        color: #d1d5db;
+        cursor: pointer;
+        transition: color 0.2s;
+      }
+      .star-rating:hover .fa-star,
+      .star-rating .fa-star.selected {
+        color: #facc15;
+      }
+      .star-rating .fa-star:hover ~ .fa-star {
+        color: #d1d5db;
+      }
+      .star-rating[data-rating].rated .fa-star {
+        color: #facc15;
+      }
     </style>
   </head>
   <body class="bg-gray-100 flex flex-col min-h-screen">
-    <div id="loading-screen" class="fixed inset-0 bg-white flex flex-col justify-center items-center z-50">
+    <div
+      id="loading-screen"
+      class="fixed inset-0 bg-white flex flex-col justify-center items-center z-50"
+    >
       <div class="loader"></div>
       <p class="mt-4 text-gray-600">Foodie Lounge에 오신 것을 환영합니다...</p>
     </div>
 
     <div class="container mx-auto p-4 md:p-8 flex-grow">
       <header class="text-center mb-10">
-        <h1 class="text-4xl md:text-5xl font-bold text-gray-800 tracking-tight">Foodie Lounge</h1>
-        <p class="text-gray-600 mt-3 text-lg">✈️ 맛집 탐방 전, 필수 체크인 ✈️</p>
+        <h1 class="text-4xl md:text-5xl font-bold text-gray-800 tracking-tight">
+          Foodie Lounge
+        </h1>
+        <p class="text-gray-600 mt-3 text-lg">
+          ✈️ 맛집 탐방 전, 필수 체크인 ✈️
+        </p>
       </header>
 
       <main id="app" class="space-y-8">
@@ -58,13 +161,34 @@
           <!-- ====== 로그인 전 정보(순서 재배치) ====== -->
           <div id="pre-login-info" class="space-y-8">
             <!-- 1) 로그인 카드 -->
-            <div id="login-section" class="bg-white p-8 rounded-2xl shadow-lg max-w-lg mx-auto">
-              <h2 class="text-2xl font-bold mb-6 text-center text-gray-700">푸디 회원 인증</h2>
+            <div
+              id="login-section"
+              class="bg-white p-8 rounded-2xl shadow-lg max-w-lg mx-auto"
+            >
+              <h2 class="text-2xl font-bold mb-6 text-center text-gray-700">
+                푸디 회원 인증
+              </h2>
               <div class="space-y-4">
-                <input type="text" id="studentId" placeholder="학번" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400">
-                <input type="text" id="studentName" placeholder="이름" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400">
-                <p class="text-xs text-center text-red-500 px-2">학번과 이름을 정확하게 기입해주세요!<br>(정확하게 기입하지 않을 경우 신청이 무효화 될 수 있습니다)</p>
-                <button id="login-button" class="w-full gradient-bg text-white font-bold py-3 px-4 rounded-lg hover:opacity-90 transition-opacity">
+                <input
+                  type="text"
+                  id="studentId"
+                  placeholder="학번"
+                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                />
+                <input
+                  type="text"
+                  id="studentName"
+                  placeholder="이름"
+                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                />
+                <p class="text-xs text-center text-red-500 px-2">
+                  학번과 이름을 정확하게 기입해주세요!<br />(정확하게 기입하지
+                  않을 경우 신청이 무효화 될 수 있습니다)
+                </p>
+                <button
+                  id="login-button"
+                  class="w-full gradient-bg text-white font-bold py-3 px-4 rounded-lg hover:opacity-90 transition-opacity"
+                >
                   <i class="fas fa-ticket-alt mr-2"></i>라운지 입장하기
                 </button>
               </div>
@@ -73,27 +197,36 @@
             <!-- 2) 푸디 활동 로드맵 -->
             <div class="bg-white p-6 rounded-2xl shadow-lg">
               <h3 class="text-2xl font-bold mb-6 text-gray-700">
-                <i class="fas fa-map-signs mr-2 text-indigo-500"></i>푸디 활동 로드맵
+                <i class="fas fa-map-signs mr-2 text-indigo-500"></i>푸디 활동
+                로드맵
               </h3>
               <div id="roadmap-container" class="roadmap-timeline"></div>
             </div>
 
             <!-- 3) 조별 점수 실시간 현황 (아코디언) -->
             <div class="accordion-item bg-white rounded-2xl shadow-lg">
-              <div class="accordion-header cursor-pointer p-6 flex justify-between items-center">
+              <div
+                class="accordion-header cursor-pointer p-6 flex justify-between items-center"
+              >
                 <h3 class="text-xl font-bold text-gray-700">
-                  <i class="fas fa-chart-bar mr-2 text-indigo-500"></i>조별 점수 실시간 현황
+                  <i class="fas fa-chart-bar mr-2 text-indigo-500"></i>조별 점수
+                  실시간 현황
                 </h3>
                 <i class="fas fa-chevron-down text-gray-500"></i>
               </div>
-              <div class="accordion-content"><div id="team-scores-container" class="space-y-3"></div></div>
+              <div class="accordion-content">
+                <div id="team-scores-container" class="space-y-3"></div>
+              </div>
             </div>
 
             <!-- 4) Foodie Q & A -->
             <div class="accordion-item bg-white rounded-2xl shadow-lg">
-              <div class="accordion-header cursor-pointer p-6 flex justify-between items-center">
+              <div
+                class="accordion-header cursor-pointer p-6 flex justify-between items-center"
+              >
                 <h3 class="text-xl font-bold text-gray-700">
-                  <i class="fas fa-question-circle mr-2 text-indigo-500"></i>Foodie Q & A
+                  <i class="fas fa-question-circle mr-2 text-indigo-500"></i
+                  >Foodie Q & A
                 </h3>
                 <i class="fas fa-chevron-down text-gray-500"></i>
               </div>
@@ -101,19 +234,31 @@
                 <div class="space-y-4">
                   <div>
                     <p class="font-semibold">🤔 Foodie 미식회, 그게 뭔가요?</p>
-                    <p class="mt-1 text-gray-600 pl-6">👨‍🏫 매주 전주의 숨은 맛집을 찾아 떠나는 미식 탐험! 단순 방문을 넘어, 새로운 맛을 발견하고 즐거움을 나누는 경험이에요.</p>
+                    <p class="mt-1 text-gray-600 pl-6">
+                      👨‍🏫 매주 전주의 숨은 맛집을 찾아 떠나는 미식 탐험! 단순
+                      방문을 넘어, 새로운 맛을 발견하고 즐거움을 나누는
+                      경험이에요.
+                    </p>
                   </div>
                   <div>
                     <p class="font-semibold">🚕 교통비는 지원되나요?</p>
-                    <p class="mt-1 text-gray-600 pl-6">👨‍🏫 네! 미식회 장소까지 이동 택시비를 전액 지원합니다.</p>
+                    <p class="mt-1 text-gray-600 pl-6">
+                      👨‍🏫 네! 미식회 장소까지 이동 택시비를 전액 지원합니다.
+                    </p>
                   </div>
                   <div>
                     <p class="font-semibold">🙋 인원 제한이 있다던데요?</p>
-                    <p class="mt-1 text-gray-600 pl-6">👨‍🏫 쾌적한 식사와 깊이 있는 대화를 위해 식당별 제한 인원을 운영합니다.</p>
+                    <p class="mt-1 text-gray-600 pl-6">
+                      👨‍🏫 쾌적한 식사와 깊이 있는 대화를 위해 식당별 제한 인원을
+                      운영합니다.
+                    </p>
                   </div>
                   <div>
                     <p class="font-semibold">🍻 끝나면 바로 헤어지나요?</p>
-                    <p class="mt-1 text-gray-600 pl-6">👨‍🏫 1차 후엔 모든 조가 함께 모여 친목 타임! 감동을 나누고 친구를 사귀어요.</p>
+                    <p class="mt-1 text-gray-600 pl-6">
+                      👨‍🏫 1차 후엔 모든 조가 함께 모여 친목 타임! 감동을 나누고
+                      친구를 사귀어요.
+                    </p>
                   </div>
                 </div>
               </div>
@@ -121,9 +266,12 @@
 
             <!-- 5) Foodie Lounge Web 은 뭔가요? -->
             <div class="accordion-item bg-white rounded-2xl shadow-lg">
-              <div class="accordion-header cursor-pointer p-6 flex justify-between items-center">
+              <div
+                class="accordion-header cursor-pointer p-6 flex justify-between items-center"
+              >
                 <h3 class="text-xl font-bold text-gray-700">
-                  <i class="fas fa-laptop-code mr-2 text-indigo-500"></i>Foodie Lounge Web Service는 뭔가요?
+                  <i class="fas fa-laptop-code mr-2 text-indigo-500"></i>Foodie
+                  Web Service는 뭔가요?
                 </h3>
                 <i class="fas fa-chevron-down text-gray-500"></i>
               </div>
@@ -141,10 +289,18 @@
                     <p class="font-semibold">🛠 어떻게 쓰나요?</p>
                     <ol class="list-decimal pl-8 mt-1 space-y-1 text-gray-600">
                       <li><b>학번/이름</b>을 입력해 입장합니다.</li>
-                      <li><b>탑승 게이트</b>에서 식당을 선택하면 예약(정원 초과 시 자동 대기)됩니다.</li>
-                      <li>예약 취소는 카드의 <b>탑승 취소</b> 버튼으로 간단히.</li>
+                      <li>
+                        <b>탑승 게이트</b>에서 식당을 선택하면 예약(정원 초과 시
+                        자동 대기)됩니다.
+                      </li>
+                      <li>
+                        예약 취소는 카드의 <b>탑승 취소</b> 버튼으로 간단히.
+                      </li>
                       <li><b>아이디어 건의</b> 탭에서 익명 제안 가능.</li>
-                      <li>관리자는 <b>관리자 대시보드/임원 관리</b> 탭으로 운영합니다.</li>
+                      <li>
+                        관리자는 <b>관리자 대시보드/임원 관리</b> 탭으로
+                        운영합니다.
+                      </li>
                     </ol>
                   </div>
                 </div>
@@ -159,38 +315,85 @@
     </div>
 
     <footer class="text-center py-4 text-gray-500 text-sm">
-      <p>개발자:2025 푸디 회장 이대현</p>
-      <p>연락처:leedaehyun11@naver.com</p>
+      <p>개발자: 푸디 2025 회장 이대현</p>
+      <p>연락처: leedaehyun11@naver.com</p>
     </footer>
 
     <!-- Alert Modal -->
-    <div id="alert-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center px-4 z-50">
-      <div class="bg-white p-8 rounded-2xl shadow-xl text-center max-w-sm w-full">
+    <div
+      id="alert-modal"
+      class="hidden fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center px-4 z-50"
+    >
+      <div
+        class="bg-white p-8 rounded-2xl shadow-xl text-center max-w-sm w-full"
+      >
         <div id="modal-icon" class="text-5xl mb-4"></div>
         <p id="alert-message" class="text-lg font-medium text-gray-700"></p>
-        <button id="modal-close-button" class="mt-6 bg-gray-800 text-white font-bold py-2 px-6 rounded-lg hover:bg-gray-700">확인</button>
+        <button
+          id="modal-close-button"
+          class="mt-6 bg-gray-800 text-white font-bold py-2 px-6 rounded-lg hover:bg-gray-700"
+        >
+          확인
+        </button>
       </div>
     </div>
 
     <!-- Emergency Modal -->
-    <div id="emergency-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center px-4 z-50">
+    <div
+      id="emergency-modal"
+      class="hidden fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center px-4 z-50"
+    >
       <div class="bg-white p-8 rounded-2xl shadow-xl max-w-sm w-full">
-        <h3 class="text-2xl font-bold text-red-600 mb-4 text-center"><i class="fas fa-exclamation-triangle mr-2"></i>비상 복구 모드</h3>
-        <p class="text-center text-gray-600 mb-6">새로운 관리자를 임명하여 시스템 접근 권한을 복구합니다.</p>
-        <input type="text" id="new-admin-id" placeholder="새 관리자의 학번을 입력" class="w-full px-4 py-3 border border-gray-300 rounded-lg">
+        <h3 class="text-2xl font-bold text-red-600 mb-4 text-center">
+          <i class="fas fa-exclamation-triangle mr-2"></i>비상 복구 모드
+        </h3>
+        <p class="text-center text-gray-600 mb-6">
+          새로운 관리자를 임명하여 시스템 접근 권한을 복구합니다.
+        </p>
+        <input
+          type="text"
+          id="new-admin-id"
+          placeholder="새 관리자의 학번을 입력"
+          class="w-full px-4 py-3 border border-gray-300 rounded-lg"
+        />
         <div class="flex space-x-2 mt-4">
-          <button id="emergency-add-button" class="flex-1 bg-red-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-600">관리자 임명</button>
-          <button id="emergency-cancel-button" class="flex-1 bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg hover:bg-gray-400">취소</button>
+          <button
+            id="emergency-add-button"
+            class="flex-1 bg-red-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-600"
+          >
+            관리자 임명
+          </button>
+          <button
+            id="emergency-cancel-button"
+            class="flex-1 bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg hover:bg-gray-400"
+          >
+            취소
+          </button>
         </div>
       </div>
     </div>
 
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-      import { getAuth, signInAnonymously, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
       import {
-        getFirestore, doc, onSnapshot, runTransaction, collection, query, orderBy,
-        updateDoc, arrayUnion, arrayRemove, addDoc, serverTimestamp, deleteDoc
+        getAuth,
+        signInAnonymously,
+        signOut,
+      } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+      import {
+        getFirestore,
+        doc,
+        onSnapshot,
+        runTransaction,
+        collection,
+        query,
+        orderBy,
+        updateDoc,
+        arrayUnion,
+        arrayRemove,
+        addDoc,
+        serverTimestamp,
+        deleteDoc,
       } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
       const firebaseConfig = {
@@ -209,11 +412,29 @@
       let currentUser = null;
       let adminList = [];
       const MASTER_CODE = "foodie_emergency_2024!";
-      let currentEventData = {}, teamsData = [], historyData = [], suggestionsData = [], roadmapData = [];
+      let currentEventData = {},
+        teamsData = [],
+        historyData = [],
+        suggestionsData = [],
+        roadmapData = [];
 
       // onSnapshot 구독 관리
-      const unsub = { admins:null, events:null, teams:null, history:null, roadmap:null, suggestions:null };
-      const clearAllListeners = () => { Object.keys(unsub).forEach(k => { if (unsub[k]) { unsub[k](); unsub[k]=null; } }); };
+      const unsub = {
+        admins: null,
+        events: null,
+        teams: null,
+        history: null,
+        roadmap: null,
+        suggestions: null,
+      };
+      const clearAllListeners = () => {
+        Object.keys(unsub).forEach((k) => {
+          if (unsub[k]) {
+            unsub[k]();
+            unsub[k] = null;
+          }
+        });
+      };
 
       const elements = {
         loadingScreen: document.getElementById("loading-screen"),
@@ -233,14 +454,20 @@
         elements.alertModal.classList.remove("hidden");
       };
       const closeModal = () => elements.alertModal.classList.add("hidden");
-      const closeEmergencyModal = () => elements.emergencyModal.classList.add("hidden");
+      const closeEmergencyModal = () =>
+        elements.emergencyModal.classList.add("hidden");
 
       const login = () => {
         const studentId = elements.studentId.value.trim();
         const studentName = elements.studentName.value.trim();
-        if (studentId === MASTER_CODE && studentName === "") return elements.emergencyModal.classList.remove("hidden");
-        if (!studentId || !studentName) return showAlert("😥", "학번과 이름을 모두 입력해주세요.");
-        localStorage.setItem("foodieUser", JSON.stringify({ studentId, name: studentName }));
+        if (studentId === MASTER_CODE && studentName === "")
+          return elements.emergencyModal.classList.remove("hidden");
+        if (!studentId || !studentName)
+          return showAlert("😥", "학번과 이름을 모두 입력해주세요.");
+        localStorage.setItem(
+          "foodieUser",
+          JSON.stringify({ studentId, name: studentName })
+        );
         currentUser = { studentId, name: studentName };
         setupListeners();
       };
@@ -250,19 +477,29 @@
           clearAllListeners();
           localStorage.removeItem("foodieUser");
           await signOut(auth);
-        } catch(e) { /* ignore */ }
+        } catch (e) {
+          /* ignore */
+        }
         location.reload();
       };
 
       const showTab = (tabName) => {
-        document.querySelectorAll(".tab-content").forEach(el => el.classList.remove("active"));
-        document.querySelectorAll(".tab-btn").forEach(el => el.classList.remove("active"));
+        document
+          .querySelectorAll(".tab-content")
+          .forEach((el) => el.classList.remove("active"));
+        document
+          .querySelectorAll(".tab-btn")
+          .forEach((el) => el.classList.remove("active"));
         const tab = document.getElementById(`${tabName}-tab`);
         const btn = document.querySelector(`button[data-tab='${tabName}']`);
-        if (tab && btn) { tab.classList.add("active"); btn.classList.add("active"); }
+        if (tab && btn) {
+          tab.classList.add("active");
+          btn.classList.add("active");
+        }
       };
 
-      const toggleAccordion = (header) => header.parentElement.classList.toggle("active");
+      const toggleAccordion = (header) =>
+        header.parentElement.classList.toggle("active");
 
       async function main() {
         try {
@@ -274,14 +511,24 @@
       }
 
       function ensureSuggestionsListener() {
-        const isAdminNow = currentUser && adminList.includes(currentUser.studentId);
+        const isAdminNow =
+          currentUser && adminList.includes(currentUser.studentId);
         if (isAdminNow && !unsub.suggestions) {
           unsub.suggestions = onSnapshot(
             query(collection(db, "suggestions"), orderBy("timestamp", "desc")),
-            (snapshot) => { suggestionsData = snapshot.docs.map(d => ({ id:d.id, ...d.data() })); renderAll(); }
+            (snapshot) => {
+              suggestionsData = snapshot.docs.map((d) => ({
+                id: d.id,
+                ...d.data(),
+              }));
+              renderAll();
+            }
           );
         } else if (!isAdminNow && unsub.suggestions) {
-          unsub.suggestions(); unsub.suggestions=null; suggestionsData=[]; renderAll();
+          unsub.suggestions();
+          unsub.suggestions = null;
+          suggestionsData = [];
+          renderAll();
         }
       }
 
@@ -300,42 +547,67 @@
           renderAll();
         });
 
-        unsub.teams = onSnapshot(query(collection(db, "teams"), orderBy("score", "desc")), (snapshot) => {
-          teamsData = snapshot.docs.map(doc => ({ id:doc.id, ...doc.data() }));
-          renderAll();
-        });
+        unsub.teams = onSnapshot(
+          query(collection(db, "teams"), orderBy("score", "desc")),
+          (snapshot) => {
+            teamsData = snapshot.docs.map((doc) => ({
+              id: doc.id,
+              ...doc.data(),
+            }));
+            renderAll();
+          }
+        );
 
-        unsub.history = onSnapshot(query(collection(db, "history"), orderBy("archivedAt", "desc")), (snapshot) => {
-          historyData = snapshot.docs.map(doc => ({ id:doc.id, ...doc.data() }));
-          renderAll();
-        });
+        unsub.history = onSnapshot(
+          query(collection(db, "history"), orderBy("archivedAt", "desc")),
+          (snapshot) => {
+            historyData = snapshot.docs.map((doc) => ({
+              id: doc.id,
+              ...doc.data(),
+            }));
+            renderAll();
+          }
+        );
 
-        unsub.roadmap = onSnapshot(query(collection(db, "roadmap"), orderBy("activityDate", "asc")), (snapshot) => {
-          roadmapData = snapshot.docs.map(doc => ({ id:doc.id, ...doc.data() }));
-          elements.loadingScreen.classList.add("hidden");
-          renderAll();
-        });
+        unsub.roadmap = onSnapshot(
+          query(collection(db, "roadmap"), orderBy("activityDate", "asc")),
+          (snapshot) => {
+            roadmapData = snapshot.docs.map((doc) => ({
+              id: doc.id,
+              ...doc.data(),
+            }));
+            elements.loadingScreen.classList.add("hidden");
+            renderAll();
+          }
+        );
 
         ensureSuggestionsListener();
       }
 
       function renderAll() {
         currentUser = JSON.parse(localStorage.getItem("foodieUser"));
-        const isAdmin = currentUser && adminList.includes(currentUser.studentId);
+        const isAdmin =
+          currentUser && adminList.includes(currentUser.studentId);
 
         if (currentUser) {
           elements.preLoginInfo.classList.add("hidden");
           elements.mainContent.innerHTML = `
             <div class="text-right mb-6">
-              <p class="text-gray-700"><span id="userNameDisplay" class="font-bold">${currentUser.name}</span>님, 환영합니다!</p>
+              <p class="text-gray-700"><span id="userNameDisplay" class="font-bold">${
+                currentUser.name
+              }</span>님, 환영합니다!</p>
               <button id="logout-button" class="text-sm text-gray-500 hover:text-red-500">로그아웃</button>
             </div>
             <div class="mb-8 bg-gray-200 rounded-lg p-2 flex flex-wrap justify-center space-x-2" id="tab-buttons">
               <button data-tab="reservation" class="tab-btn flex-1 py-2 px-4 rounded-md font-semibold text-gray-600 active"><i class="fas fa-plane-departure mr-2"></i>탑승 게이트</button>
               <button data-tab="history" class="tab-btn flex-1 py-2 px-4 rounded-md font-semibold text-gray-600"><i class="fas fa-trophy mr-2"></i>명예의 전당</button>
               <button data-tab="suggestions" class="tab-btn flex-1 py-2 px-4 rounded-md font-semibold text-gray-600"><i class="fas fa-lightbulb mr-2"></i>아이디어 건의</button>
-              <button data-tab="dashboard" class="tab-btn flex-1 py-2 px-4 rounded-md font-semibold text-gray-600 ${isAdmin ? "" : "hidden"}"><i class="fas fa-chart-line mr-2"></i>관리자 대시보드</button>
-              <button data-tab="admin" class="tab-btn flex-1 py-2 px-4 rounded-md font-semibold text-gray-600 ${isAdmin ? "" : "hidden"}"><i class="fas fa-user-shield mr-2"></i>임원 관리</button>
+              <button data-tab="dashboard" class="tab-btn flex-1 py-2 px-4 rounded-md font-semibold text-gray-600 ${
+                isAdmin ? "" : "hidden"
+              }"><i class="fas fa-chart-line mr-2"></i>관리자 대시보드</button>
+              <button data-tab="admin" class="tab-btn flex-1 py-2 px-4 rounded-md font-semibold text-gray-600 ${
+                isAdmin ? "" : "hidden"
+              }"><i class="fas fa-user-shield mr-2"></i>임원 관리</button>
             </div>
             <div id="tab-content-container">
               <div id="reservation-tab" class="tab-content active"></div>
@@ -346,15 +618,23 @@
             </div>`;
           elements.mainContent.classList.remove("hidden");
 
-          document.getElementById("logout-button").addEventListener("click", logout);
-          document.getElementById("tab-buttons").addEventListener("click", (e) => {
-            const btn = e.target.closest(".tab-btn"); if (btn) showTab(btn.dataset.tab);
-          });
+          document
+            .getElementById("logout-button")
+            .addEventListener("click", logout);
+          document
+            .getElementById("tab-buttons")
+            .addEventListener("click", (e) => {
+              const btn = e.target.closest(".tab-btn");
+              if (btn) showTab(btn.dataset.tab);
+            });
 
           renderReservationTab(isAdmin);
           renderHistoryTab(isAdmin);
           renderSuggestionsTab(isAdmin);
-          if (isAdmin) { renderDashboardTab(); renderAdminManagementTab(); }
+          if (isAdmin) {
+            renderDashboardTab();
+            renderAdminManagementTab();
+          }
         } else {
           elements.preLoginInfo.classList.remove("hidden");
           elements.mainContent.classList.add("hidden");
@@ -366,28 +646,49 @@
       function renderTeamScores() {
         const container = document.getElementById("team-scores-container");
         if (!container) return;
-        container.innerHTML = teamsData.length === 0
-          ? `<p class="text-gray-400 text-center">아직 조별 점수 데이터가 없습니다.</p>`
-          : teamsData.map((team, index) => {
-              const colors = ["text-yellow-400","text-gray-400","text-yellow-600"];
-              const icon = index < 3 ? `<i class="fas fa-trophy mr-2 ${colors[index]}"></i>` : `<span class="font-bold mr-2 text-gray-500">${index + 1}</span>`;
-              return `<div class="flex items-center justify-between bg-gray-50 p-3 rounded-lg"><span class="font-semibold text-lg flex items-center">${icon}${team.name}</span><span class="font-bold text-lg text-indigo-600">${team.score} 점</span></div>`;
-            }).join("");
+        container.innerHTML =
+          teamsData.length === 0
+            ? `<p class="text-gray-400 text-center">아직 조별 점수 데이터가 없습니다.</p>`
+            : teamsData
+                .map((team, index) => {
+                  const colors = [
+                    "text-yellow-400",
+                    "text-gray-400",
+                    "text-yellow-600",
+                  ];
+                  const icon =
+                    index < 3
+                      ? `<i class="fas fa-trophy mr-2 ${colors[index]}"></i>`
+                      : `<span class="font-bold mr-2 text-gray-500">${
+                          index + 1
+                        }</span>`;
+                  return `<div class="flex items-center justify-between bg-gray-50 p-3 rounded-lg"><span class="font-semibold text-lg flex items-center">${icon}${team.name}</span><span class="font-bold text-lg text-indigo-600">${team.score} 점</span></div>`;
+                })
+                .join("");
       }
 
       function renderRoadmap() {
         const container = document.getElementById("roadmap-container");
         if (!container) return;
-        container.innerHTML = roadmapData.length === 0
-          ? `<p class="text-gray-400 text-center py-4">예정된 활동이 없습니다. 회장님이 곧 일정을 추가할 거예요!</p>`
-          : roadmapData.map((item) => {
-              const itemDate = new Date(item.activityDate);
-              const today = new Date(); today.setHours(0,0,0,0);
-              let statusClass = "upcoming";
-              if (itemDate < today) statusClass = "completed";
-              else if (itemDate.toDateString() === today.toDateString()) statusClass = "today";
-              return `<div class="roadmap-item ${statusClass}"><div class="font-bold text-gray-800">${item.activityName}</div><div class="text-sm text-gray-500">${itemDate.toLocaleDateString("ko-KR")}</div></div>`;
-            }).join("");
+        container.innerHTML =
+          roadmapData.length === 0
+            ? `<p class="text-gray-400 text-center py-4">예정된 활동이 없습니다. 회장님이 곧 일정을 추가할 거예요!</p>`
+            : roadmapData
+                .map((item) => {
+                  const itemDate = new Date(item.activityDate);
+                  const today = new Date();
+                  today.setHours(0, 0, 0, 0);
+                  let statusClass = "upcoming";
+                  if (itemDate < today) statusClass = "completed";
+                  else if (itemDate.toDateString() === today.toDateString())
+                    statusClass = "today";
+                  return `<div class="roadmap-item ${statusClass}"><div class="font-bold text-gray-800">${
+                    item.activityName
+                  }</div><div class="text-sm text-gray-500">${itemDate.toLocaleDateString(
+                    "ko-KR"
+                  )}</div></div>`;
+                })
+                .join("");
       }
 
       // ===== 관리자 대시보드
@@ -395,35 +696,61 @@
         const container = document.getElementById("dashboard-tab");
         if (!container) return;
 
-        let totalParticipants = 0, totalCapacity = 0;
+        let totalParticipants = 0,
+          totalCapacity = 0;
         historyData.forEach((event) => {
-          totalParticipants += (event.restaurants || []).reduce((sum, r) => sum + (r.reservations || []).length, 0);
-          totalCapacity += (event.restaurants || []).length * (event.limit || 0);
+          totalParticipants += (event.restaurants || []).reduce(
+            (sum, r) => sum + (r.reservations || []).length,
+            0
+          );
+          totalCapacity +=
+            (event.restaurants || []).length * (event.limit || 0);
         });
-        const overallParticipationRate = totalCapacity > 0 ? ((totalParticipants / totalCapacity) * 100).toFixed(1) : 0;
+        const overallParticipationRate =
+          totalCapacity > 0
+            ? ((totalParticipants / totalCapacity) * 100).toFixed(1)
+            : 0;
 
-        const teamsScoreManagementHTML = teamsData.map(team => `
+        const teamsScoreManagementHTML = teamsData
+          .map(
+            (team) => `
           <div class="flex items-center space-x-2 bg-gray-50 p-2 rounded-lg">
             <input type="text" id="name-input-${team.id}" value="${team.name}" class="flex-grow border rounded px-2 py-1">
             <input type="number" id="score-input-${team.id}" value="${team.score}" class="w-1/4 border rounded px-2 py-1" placeholder="점수">
             <button data-action="update-team" data-id="${team.id}" class="bg-indigo-500 text-white text-sm font-bold py-1 px-2 rounded hover:bg-indigo-600">저장</button>
             <button data-action="delete-team" data-id="${team.id}" class="bg-red-500 text-white text-sm font-bold py-1 px-2 rounded hover:bg-red-600"><i class="fas fa-trash"></i></button>
-          </div>`).join("");
+          </div>`
+          )
+          .join("");
 
-        const roadmapManagementHTML = roadmapData.map(item => `
+        const roadmapManagementHTML = roadmapData
+          .map(
+            (item) => `
           <div class="flex justify-between items-center bg-gray-50 p-2 rounded-lg">
-            <span>${new Date(item.activityDate).toLocaleDateString("ko-KR")} - <strong>${item.activityName}</strong></span>
+            <span>${new Date(item.activityDate).toLocaleDateString(
+              "ko-KR"
+            )} - <strong>${item.activityName}</strong></span>
             <div class="flex items-center">
-              <button data-action="edit-roadmap" data-id="${item.id}" data-name="${item.activityName}" data-date="${item.activityDate}" class="text-blue-600 hover:text-blue-800 px-2"><i class="fas fa-pen"></i></button>
-              <button data-action="delete-roadmap" data-id="${item.id}" class="text-red-500 hover:text-red-700 px-2"><i class="fas fa-trash"></i></button>
+              <button data-action="edit-roadmap" data-id="${
+                item.id
+              }" data-name="${item.activityName}" data-date="${
+              item.activityDate
+            }" class="text-blue-600 hover:text-blue-800 px-2"><i class="fas fa-pen"></i></button>
+              <button data-action="delete-roadmap" data-id="${
+                item.id
+              }" class="text-red-500 hover:text-red-700 px-2"><i class="fas fa-trash"></i></button>
             </div>
-          </div>`).join("");
+          </div>`
+          )
+          .join("");
 
         container.innerHTML = `
           <div class="bg-white p-6 rounded-xl shadow-lg mb-8">
             <h3 class="text-2xl font-bold mb-6 text-gray-700">푸디 활동 현황</h3>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-              <div class="bg-blue-100 p-4 rounded-lg"><p class="text-3xl font-bold text-blue-800">${historyData.length}</p><p class="text-blue-600">총 미식회 횟수</p></div>
+              <div class="bg-blue-100 p-4 rounded-lg"><p class="text-3xl font-bold text-blue-800">${
+                historyData.length
+              }</p><p class="text-blue-600">총 미식회 횟수</p></div>
               <div class="bg-green-100 p-4 rounded-lg"><p class="text-3xl font-bold text-green-800">${totalParticipants}</p><p class="text-green-600">누적 참여 인원</p></div>
               <div class="bg-amber-100 p-4 rounded-lg"><p class="text-3xl font-bold text-amber-800">${overallParticipationRate}%</p><p class="text-amber-600">전체 참여율</p></div>
             </div>
@@ -433,7 +760,10 @@
             <h3 class="text-2xl font-bold mb-6 text-gray-700">조별 점수 관리</h3>
             <div class="space-y-3">
               <h4 class="font-semibold text-gray-600">조 정보 수정/삭제</h4>
-              <div class="space-y-2">${teamsScoreManagementHTML || '<p class="text-gray-400">등록된 조가 없습니다.</p>'}</div>
+              <div class="space-y-2">${
+                teamsScoreManagementHTML ||
+                '<p class="text-gray-400">등록된 조가 없습니다.</p>'
+              }</div>
               <hr class="my-4">
               <h4 class="font-semibold text-gray-600">새로운 조 추가</h4>
               <div class="flex space-x-2">
@@ -447,7 +777,10 @@
             <h3 class="text-2xl font-bold mb-6 text-gray-700">활동 로드맵 관리</h3>
             <div class="space-y-3">
               <h4 class="font-semibold text-gray-600">현재 로드맵</h4>
-              <div class="space-y-2">${roadmapManagementHTML || '<p class="text-gray-400">등록된 활동이 없습니다.</p>'}</div>
+              <div class="space-y-2">${
+                roadmapManagementHTML ||
+                '<p class="text-gray-400">등록된 활동이 없습니다.</p>'
+              }</div>
               <hr class="my-4">
               <h4 class="font-semibold text-gray-600">새로운 활동 추가</h4>
               <div class="flex space-x-2">
@@ -458,10 +791,18 @@
             </div>
           </div>`;
 
-        document.getElementById("team-management").addEventListener("click", handleDashboardClick);
-        document.getElementById("roadmap-management").addEventListener("click", handleDashboardClick);
-        document.getElementById("add-team-button").addEventListener("click", addNewTeam);
-        document.getElementById("add-roadmap-button").addEventListener("click", addRoadmapItem);
+        document
+          .getElementById("team-management")
+          .addEventListener("click", handleDashboardClick);
+        document
+          .getElementById("roadmap-management")
+          .addEventListener("click", handleDashboardClick);
+        document
+          .getElementById("add-team-button")
+          .addEventListener("click", addNewTeam);
+        document
+          .getElementById("add-roadmap-button")
+          .addEventListener("click", addRoadmapItem);
       }
 
       // ===== 탭: 탑승 게이트
@@ -477,15 +818,29 @@
               <h3 class="text-xl font-bold text-indigo-800 mb-4"><i class="fas fa-crown mr-2"></i>회장님 관리자 패널</h3>
               <div id="admin-actions">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <input type="text" id="event-title" value="${title || ""}" placeholder="미식 탐방 이름" class="w-full px-4 py-2 border rounded-lg">
-                  <input type="datetime-local" id="event-datetime" value="${datetime || ""}" class="w-full px-4 py-2 border rounded-lg">
-                  <input type="number" id="event-limit" value="${limit || ""}" placeholder="(기본) 식당별 탑승 인원" class="w-full px-4 py-2 border rounded-lg md:col-span-2">
+                  <input type="text" id="event-title" value="${
+                    title || ""
+                  }" placeholder="미식 탐방 이름" class="w-full px-4 py-2 border rounded-lg">
+                  <input type="datetime-local" id="event-datetime" value="${
+                    datetime || ""
+                  }" class="w-full px-4 py-2 border rounded-lg">
+                  <input type="number" id="event-limit" value="${
+                    limit || ""
+                  }" placeholder="(기본) 식당별 탑승 인원" class="w-full px-4 py-2 border rounded-lg md:col-span-2">
                 </div>
                 <h4 class="font-bold text-indigo-700 mb-2">선택 가능한 맛집 (게이트)</h4>
                 <div id="restaurants-container" class="space-y-3 mb-4">
                   ${
                     restaurants.length > 0
-                      ? restaurants.map((r) => restaurantFieldHTML(r.name, r.info, (r.capacity ?? limit) || "")).join("")
+                      ? restaurants
+                          .map((r) =>
+                            restaurantFieldHTML(
+                              r.name,
+                              r.info,
+                              (r.capacity ?? limit) || ""
+                            )
+                          )
+                          .join("")
                       : restaurantFieldHTML()
                   }
                 </div>
@@ -494,7 +849,11 @@
                 </button>
                 <div class="flex space-x-2">
                   <button id="update-event-btn" class="flex-1 bg-indigo-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-600"><i class="fas fa-check-circle mr-2"></i>탐방 생성/업데이트</button>
-                  ${title ? `<button id="archive-event-btn" class="flex-1 bg-gray-700 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-800"><i class="fas fa-archive mr-2"></i>탐방 종료 (보관)</button>` : ""}
+                  ${
+                    title
+                      ? `<button id="archive-event-btn" class="flex-1 bg-gray-700 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-800"><i class="fas fa-archive mr-2"></i>탐방 종료 (보관)</button>`
+                      : ""
+                  }
                 </div>
               </div>
             </div>`;
@@ -507,17 +866,31 @@
           let userReservationRestaurantId = null;
           if (currentUser) {
             restaurants.forEach((r) => {
-              if ((r.reservations || []).some(p => p.studentId === currentUser.studentId) ||
-                  (r.waiting || []).some(p => p.studentId === currentUser.studentId)) {
+              if (
+                (r.reservations || []).some(
+                  (p) => p.studentId === currentUser.studentId
+                ) ||
+                (r.waiting || []).some(
+                  (p) => p.studentId === currentUser.studentId
+                )
+              ) {
                 userReservationRestaurantId = r.id;
               }
             });
           }
-          const restaurantCardsHTML = restaurants.map(r => restaurantCardHTML(r, limit, userReservationRestaurantId, isAdmin)).join("");
+          const restaurantCardsHTML = restaurants
+            .map((r) =>
+              restaurantCardHTML(r, limit, userReservationRestaurantId, isAdmin)
+            )
+            .join("");
           eventContainerHTML = `
             <div class="bg-white p-8 rounded-2xl shadow-lg" id="restaurant-cards-container">
               <h2 class="text-3xl font-bold mb-2 text-center text-gray-800">${title}</h2>
-              <p class="text-center text-gray-500 mb-6">🗓️ 출발 시각: ${datetime ? new Date(datetime).toLocaleString("ko-KR") : "날짜 미정"}</p>
+              <p class="text-center text-gray-500 mb-6">🗓️ 출발 시각: ${
+                datetime
+                  ? new Date(datetime).toLocaleString("ko-KR")
+                  : "날짜 미정"
+              }</p>
               <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">${restaurantCardsHTML}</div>
             </div>`;
         }
@@ -525,46 +898,74 @@
         container.innerHTML = adminPanelHTML + eventContainerHTML;
 
         if (isAdmin) {
-          document.getElementById("add-restaurant-btn").addEventListener("click", addRestaurantField);
-          document.getElementById("update-event-btn").addEventListener("click", updateCurrentEvent);
-          document.getElementById("restaurants-container").addEventListener("click", (e) => {
-            if (e.target.closest(".remove-restaurant-btn")) { e.target.closest(".restaurant-entry").remove(); }
-          });
+          document
+            .getElementById("add-restaurant-btn")
+            .addEventListener("click", addRestaurantField);
+          document
+            .getElementById("update-event-btn")
+            .addEventListener("click", updateCurrentEvent);
+          document
+            .getElementById("restaurants-container")
+            .addEventListener("click", (e) => {
+              if (e.target.closest(".remove-restaurant-btn")) {
+                e.target.closest(".restaurant-entry").remove();
+              }
+            });
           if (document.getElementById("archive-event-btn")) {
-            document.getElementById("archive-event-btn").addEventListener("click", archiveCurrentEvent);
+            document
+              .getElementById("archive-event-btn")
+              .addEventListener("click", archiveCurrentEvent);
           }
         }
 
         if (document.getElementById("restaurant-cards-container")) {
-          document.getElementById("restaurant-cards-container").addEventListener("click", (e) => {
-            const button = e.target.closest("button[data-action]");
-            if (!button) return;
-            const { action, id } = button.dataset;
-            if (action === "reserve") makeReservation(id);
-            if (action === "cancel") cancelReservation(id);
-          });
+          document
+            .getElementById("restaurant-cards-container")
+            .addEventListener("click", (e) => {
+              const button = e.target.closest("button[data-action]");
+              if (!button) return;
+              const { action, id } = button.dataset;
+              if (action === "reserve") makeReservation(id);
+              if (action === "cancel") cancelReservation(id);
+            });
         }
       }
 
       // === 식당 카드 (정원=식당별 capacity 우선, 없으면 기본 limit)
-      function restaurantCardHTML(r, limit, userReservationRestaurantId, isAdmin) {
+      function restaurantCardHTML(
+        r,
+        limit,
+        userReservationRestaurantId,
+        isAdmin
+      ) {
         const isReservedByUser = r.id === userReservationRestaurantId;
-        const isDisabled = userReservationRestaurantId !== null && !isReservedByUser;
+        const isDisabled =
+          userReservationRestaurantId !== null && !isReservedByUser;
         const reservations = r.reservations || [];
         const waiting = r.waiting || [];
         const reservedCount = reservations.length;
-        const cap = (r.capacity ?? limit);
+        const cap = r.capacity ?? limit;
         const percentage = cap > 0 ? (reservedCount / cap) * 100 : 0;
 
-        const participantListHTML = reservations.map(p => {
-          const displayId = isAdmin ? p.studentId : `${p.studentId.substring(0, 4)}****`;
-          return `<li class="text-sm text-gray-600">${displayId} ${p.name}</li>`;
-        }).join("");
+        const participantListHTML = reservations
+          .map((p) => {
+            const displayId = isAdmin
+              ? p.studentId
+              : `${p.studentId.substring(0, 4)}****`;
+            return `<li class="text-sm text-gray-600">${displayId} ${p.name}</li>`;
+          })
+          .join("");
 
-        const waitingListHTML = waiting.map((p, i) => {
-          const displayId = isAdmin ? p.studentId : `${p.studentId.substring(0, 4)}****`;
-          return `<li class="text-sm text-gray-600">${displayId} ${p.name} (대기 ${i + 1})</li>`;
-        }).join("");
+        const waitingListHTML = waiting
+          .map((p, i) => {
+            const displayId = isAdmin
+              ? p.studentId
+              : `${p.studentId.substring(0, 4)}****`;
+            return `<li class="text-sm text-gray-600">${displayId} ${
+              p.name
+            } (대기 ${i + 1})</li>`;
+          })
+          .join("");
 
         let buttonHTML;
         if (isReservedByUser) {
@@ -576,18 +977,29 @@
         }
 
         return `
-          <div class="bg-white p-6 rounded-xl shadow-md card-hover flex flex-col ${isDisabled ? "disabled-card" : ""}">
+          <div class="bg-white p-6 rounded-xl shadow-md card-hover flex flex-col ${
+            isDisabled ? "disabled-card" : ""
+          }">
             <div class="flex-grow">
               <h3 class="text-xl font-bold text-gray-800">${r.name}</h3>
               <p class="text-gray-500 mb-4">${r.info}</p>
               <div class="w-full bg-gray-200 rounded-full h-5 mb-2">
-                <div class="bg-green-500 h-5 text-xs font-medium text-white text-center p-0.5 leading-none rounded-full" style="width:${percentage}%">${Math.round(percentage)}%</div>
+                <div class="bg-green-500 h-5 text-xs font-medium text-white text-center p-0.5 leading-none rounded-full" style="width:${percentage}%">${Math.round(
+          percentage
+        )}%</div>
               </div>
               <p class="text-right text-sm font-semibold text-gray-600">탑승 현황: ${reservedCount} / ${cap} 명</p>
               <div class="mt-4">
                 <h4 class="font-semibold text-indigo-800">탑승객 명단</h4>
-                <ul class="mt-1">${participantListHTML || '<li class="text-sm text-gray-400">탑승객 없음</li>'}</ul>
-                ${waitingListHTML ? `<h5 class="font-semibold mt-2 text-orange-600">대기 명단</h5><ul>${waitingListHTML}</ul>` : ""}
+                <ul class="mt-1">${
+                  participantListHTML ||
+                  '<li class="text-sm text-gray-400">탑승객 없음</li>'
+                }</ul>
+                ${
+                  waitingListHTML
+                    ? `<h5 class="font-semibold mt-2 text-orange-600">대기 명단</h5><ul>${waitingListHTML}</ul>`
+                    : ""
+                }
               </div>
             </div>
             <div class="mt-auto">${buttonHTML}</div>
@@ -604,53 +1016,101 @@
           return;
         }
 
-        container.innerHTML = historyData.map(event => {
-          const restaurantsHTML = (event.restaurants || []).map(r => historyRestaurantCardHTML(r, event.id)).join("");
-          return `<div class="mb-8">
-            <h3 class="text-2xl font-bold text-gray-700 border-b pb-2 mb-4">${event.title} <span class="text-base font-normal text-gray-500">- ${new Date(event.datetime).toLocaleDateString("ko-KR")}</span></h3>
+        container.innerHTML = historyData
+          .map((event) => {
+            const restaurantsHTML = (event.restaurants || [])
+              .map((r) => historyRestaurantCardHTML(r, event.id))
+              .join("");
+            return `<div class="mb-8">
+            <h3 class="text-2xl font-bold text-gray-700 border-b pb-2 mb-4">${
+              event.title
+            } <span class="text-base font-normal text-gray-500">- ${new Date(
+              event.datetime
+            ).toLocaleDateString("ko-KR")}</span></h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">${restaurantsHTML}</div>
           </div>`;
-        }).join("");
+          })
+          .join("");
 
-        document.getElementById("history-tab").addEventListener("click", (e) => {
-          const button = e.target.closest("button");
-          const star = e.target.closest(".star-rating .fa-star");
-          if (button && button.dataset.action === "submit-review") {
-            submitReview(button.dataset.eventId, button.dataset.restaurantId);
-          } else if (star && star.dataset.value) {
-            rateRestaurant(
-              star.closest(".star-rating").dataset.eventId,
-              star.closest(".star-rating").dataset.restaurantId,
-              parseInt(star.dataset.value, 10)
-            );
-          }
-        });
+        document
+          .getElementById("history-tab")
+          .addEventListener("click", (e) => {
+            const button = e.target.closest("button");
+            const star = e.target.closest(".star-rating .fa-star");
+            if (button && button.dataset.action === "submit-review") {
+              submitReview(button.dataset.eventId, button.dataset.restaurantId);
+            } else if (star && star.dataset.value) {
+              rateRestaurant(
+                star.closest(".star-rating").dataset.eventId,
+                star.closest(".star-rating").dataset.restaurantId,
+                parseInt(star.dataset.value, 10)
+              );
+            }
+          });
       }
 
       function historyRestaurantCardHTML(r, eventId) {
         const reviews = r.reviews || [];
-        const averageRating = reviews.length > 0 ? reviews.reduce((acc, cur) => acc + cur.rating, 0) / reviews.length : 0;
-        const starsHTML = Array.from({ length: 5 }, (_, i) => `<i class="fa-solid fa-star ${i < Math.round(averageRating) ? "text-amber-400" : "text-gray-300"}"></i>`).join("");
-        const reviewsHTML = reviews.map(review => `<div class="bg-gray-100 p-2 rounded text-sm mt-1"><b>${review.name}:</b> ${review.comment}</div>`).join("");
+        const averageRating =
+          reviews.length > 0
+            ? reviews.reduce((acc, cur) => acc + cur.rating, 0) / reviews.length
+            : 0;
+        const starsHTML = Array.from(
+          { length: 5 },
+          (_, i) =>
+            `<i class="fa-solid fa-star ${
+              i < Math.round(averageRating) ? "text-amber-400" : "text-gray-300"
+            }"></i>`
+        ).join("");
+        const reviewsHTML = reviews
+          .map(
+            (review) =>
+              `<div class="bg-gray-100 p-2 rounded text-sm mt-1"><b>${review.name}:</b> ${review.comment}</div>`
+          )
+          .join("");
 
-        const hasUserReviewed = currentUser && reviews.some(review => review.studentId === currentUser.studentId);
-        const reviewFormHTML = currentUser && !hasUserReviewed ? `
+        const hasUserReviewed =
+          currentUser &&
+          reviews.some((review) => review.studentId === currentUser.studentId);
+        const reviewFormHTML =
+          currentUser && !hasUserReviewed
+            ? `
           <div class="mt-4">
-            <div class="star-rating flex justify-center text-2xl" data-event-id="${eventId}" data-restaurant-id="${r.id}" onmouseleave="resetStars(this)">
-              ${Array.from({ length: 5 }, (_, i) => `<i class="fa-solid fa-star" data-value="${i + 1}" onmouseover="highlightStars(this, ${i + 1})" onclick="rateRestaurant('${eventId}', '${r.id}', ${i + 1})"></i>`).join("")}
+            <div class="star-rating flex justify-center text-2xl" data-event-id="${eventId}" data-restaurant-id="${
+                r.id
+              }" onmouseleave="resetStars(this)">
+              ${Array.from(
+                { length: 5 },
+                (_, i) =>
+                  `<i class="fa-solid fa-star" data-value="${
+                    i + 1
+                  }" onmouseover="highlightStars(this, ${
+                    i + 1
+                  })" onclick="rateRestaurant('${eventId}', '${r.id}', ${
+                    i + 1
+                  })"></i>`
+              ).join("")}
             </div>
             <div class="flex mt-2">
-              <input type="text" id="review-comment-${eventId}-${r.id}" class="flex-grow text-sm border rounded-l-md p-1" placeholder="한줄평 남기기...">
-              <button data-action="submit-review" data-event-id="${eventId}" data-restaurant-id="${r.id}" class="bg-gray-600 text-white px-3 rounded-r-md text-sm">등록</button>
+              <input type="text" id="review-comment-${eventId}-${
+                r.id
+              }" class="flex-grow text-sm border rounded-l-md p-1" placeholder="한줄평 남기기...">
+              <button data-action="submit-review" data-event-id="${eventId}" data-restaurant-id="${
+                r.id
+              }" class="bg-gray-600 text-white px-3 rounded-r-md text-sm">등록</button>
             </div>
           </div>`
-          : hasUserReviewed ? `<div class="mt-3 text-sm text-green-600 font-semibold"><i class="fas fa-check-circle"></i> 리뷰 등록 완료!</div>` : "";
+            : hasUserReviewed
+            ? `<div class="mt-3 text-sm text-green-600 font-semibold"><i class="fas fa-check-circle"></i> 리뷰 등록 완료!</div>`
+            : "";
 
         return `
           <div class="bg-white p-4 rounded-lg">
             <h4 class="text-lg font-bold">${r.name}</h4>
             <p class="text-sm text-gray-500">${r.info}</p>
-            <div class="my-2">${starsHTML} <span class="text-sm text-gray-500">(${averageRating.toFixed(1)} / 5.0)</span></div>
+            <div class="my-2">${starsHTML} <span class="text-sm text-gray-500">(${averageRating.toFixed(
+          1
+        )} / 5.0)</span></div>
             <div class="text-xs text-gray-400">리뷰 ${reviews.length}개</div>
             ${reviewsHTML}
             ${reviewFormHTML}
@@ -664,16 +1124,27 @@
 
         let suggestionsListHTML = "";
         if (isAdmin) {
-          suggestionsListHTML = suggestionsData.length > 0
-            ? suggestionsData.map(s => `
+          suggestionsListHTML =
+            suggestionsData.length > 0
+              ? suggestionsData
+                  .map(
+                    (s) => `
               <div class="bg-white p-4 rounded-lg shadow-sm flex justify-between items-center">
                 <div>
                   <p class="text-gray-700">${s.text}</p>
-                  <p class="text-right text-xs text-gray-400 mt-2">${s.timestamp ? new Date(s.timestamp.toDate()).toLocaleString("ko-KR") : ""}</p>
+                  <p class="text-right text-xs text-gray-400 mt-2">${
+                    s.timestamp
+                      ? new Date(s.timestamp.toDate()).toLocaleString("ko-KR")
+                      : ""
+                  }</p>
                 </div>
-                <button data-action="delete-suggestion" data-id="${s.id}" class="text-red-500 hover:text-red-700 ml-4 p-2"><i class="fas fa-trash-alt"></i></button>
-              </div>`).join("")
-            : '<p class="text-center text-gray-400">아직 등록된 건의사항이 없습니다.</p>';
+                <button data-action="delete-suggestion" data-id="${
+                  s.id
+                }" class="text-red-500 hover:text-red-700 ml-4 p-2"><i class="fas fa-trash-alt"></i></button>
+              </div>`
+                  )
+                  .join("")
+              : '<p class="text-center text-gray-400">아직 등록된 건의사항이 없습니다.</p>';
         }
 
         container.innerHTML = `
@@ -684,15 +1155,25 @@
               <input type="text" id="suggestion-input" class="w-full px-4 py-2 border rounded-l-lg" placeholder="여기에 건의사항을 입력하세요...">
               <button id="submit-suggestion-button" class="bg-gray-800 text-white font-semibold px-6 rounded-r-lg hover:bg-gray-700">제출</button>
             </div>
-            ${isAdmin ? `<div id="suggestions-list" class="mt-8 space-y-4">${suggestionsListHTML}</div>` : ""}
+            ${
+              isAdmin
+                ? `<div id="suggestions-list" class="mt-8 space-y-4">${suggestionsListHTML}</div>`
+                : ""
+            }
           </div>`;
 
-        document.getElementById("submit-suggestion-button").addEventListener("click", submitSuggestion);
+        document
+          .getElementById("submit-suggestion-button")
+          .addEventListener("click", submitSuggestion);
         if (isAdmin && document.getElementById("suggestions-list")) {
-          document.getElementById("suggestions-list").addEventListener("click", (e) => {
-            const button = e.target.closest('button[data-action="delete-suggestion"]');
-            if (button) deleteSuggestion(button.dataset.id);
-          });
+          document
+            .getElementById("suggestions-list")
+            .addEventListener("click", (e) => {
+              const button = e.target.closest(
+                'button[data-action="delete-suggestion"]'
+              );
+              if (button) deleteSuggestion(button.dataset.id);
+            });
         }
       }
 
@@ -701,18 +1182,25 @@
         const container = document.getElementById("admin-tab");
         if (!container) return;
 
-        const adminListHTML = adminList.map(id => `
+        const adminListHTML = adminList
+          .map(
+            (id) => `
           <div class="flex justify-between items-center bg-gray-50 p-3 rounded-lg">
             <span class="font-semibold text-gray-700">${id}</span>
             <button data-action="remove-admin" data-id="${id}" class="text-red-500 hover:text-red-700"><i class="fas fa-trash-alt"></i></button>
-          </div>`).join("");
+          </div>`
+          )
+          .join("");
 
         container.innerHTML = `
           <div class="bg-white p-8 rounded-2xl shadow-lg max-w-2xl mx-auto" id="admin-management-container">
             <h3 class="text-2xl font-bold mb-6 text-gray-700"><i class="fas fa-user-shield mr-2"></i>임원 관리</h3>
             <div class="space-y-4">
               <h4 class="font-semibold text-gray-600">현재 임원 목록</h4>
-              <div class="space-y-2">${adminListHTML || '<p class="text-gray-400">등록된 임원이 없습니다.</p>'}</div>
+              <div class="space-y-2">${
+                adminListHTML ||
+                '<p class="text-gray-400">등록된 임원이 없습니다.</p>'
+              }</div>
               <hr class="my-6">
               <h4 class="font-semibold text-gray-600">새로운 임원 추가</h4>
               <div class="flex space-x-2">
@@ -722,52 +1210,76 @@
             </div>
           </div>`;
 
-        document.getElementById("add-admin-button").addEventListener("click", addAdmin);
-        document.getElementById("admin-management-container").addEventListener("click", (e) => {
-          const button = e.target.closest('button[data-action="remove-admin"]');
-          if (button) removeAdmin(button.dataset.id);
-        });
+        document
+          .getElementById("add-admin-button")
+          .addEventListener("click", addAdmin);
+        document
+          .getElementById("admin-management-container")
+          .addEventListener("click", (e) => {
+            const button = e.target.closest(
+              'button[data-action="remove-admin"]'
+            );
+            if (button) removeAdmin(button.dataset.id);
+          });
       }
 
       // ===== 공통 액션들
       const addAdmin = async () => {
-        const newAdminId = document.getElementById("new-admin-input").value.trim();
-        if (!newAdminId) return showAlert("😥", "추가할 임원의 학번을 입력해주세요.");
+        const newAdminId = document
+          .getElementById("new-admin-input")
+          .value.trim();
+        if (!newAdminId)
+          return showAlert("😥", "추가할 임원의 학번을 입력해주세요.");
         try {
           const adminDocRef = doc(db, "admins", "list");
           await runTransaction(db, async (t) => {
             const adminDoc = await t.get(adminDocRef);
-            if (!adminDoc.exists()) t.set(adminDocRef, { studentIds: [newAdminId] });
+            if (!adminDoc.exists())
+              t.set(adminDocRef, { studentIds: [newAdminId] });
             else t.update(adminDocRef, { studentIds: arrayUnion(newAdminId) });
           });
           showAlert("🎉", `${newAdminId} 님이 임원으로 추가되었습니다.`);
           document.getElementById("new-admin-input").value = "";
-        } catch (e) { showAlert("😥", "임원 추가에 실패했습니다."); }
+        } catch (e) {
+          showAlert("😥", "임원 추가에 실패했습니다.");
+        }
       };
 
       const removeAdmin = async (adminId) => {
-        if (adminList.length <= 1) return showAlert("🤔", "최소 한 명의 관리자는 남아있어야 합니다.");
+        if (adminList.length <= 1)
+          return showAlert("🤔", "최소 한 명의 관리자는 남아있어야 합니다.");
         if (!confirm(`${adminId} 님을 임원 목록에서 삭제하시겠습니까?`)) return;
         try {
           const adminDocRef = doc(db, "admins", "list");
-          await runTransaction(db, async (t) => { t.update(adminDocRef, { studentIds: arrayRemove(adminId) }); });
+          await runTransaction(db, async (t) => {
+            t.update(adminDocRef, { studentIds: arrayRemove(adminId) });
+          });
           showAlert("🗑️", `${adminId} 님이 임원에서 삭제되었습니다.`);
-        } catch (e) { showAlert("😥", "임원 삭제에 실패했습니다."); }
+        } catch (e) {
+          showAlert("😥", "임원 삭제에 실패했습니다.");
+        }
       };
 
       const emergencyAddAdmin = async () => {
         const newAdminId = document.getElementById("new-admin-id").value.trim();
-        if (!newAdminId) return showAlert("😥", "새 관리자의 학번을 입력해주세요.");
+        if (!newAdminId)
+          return showAlert("😥", "새 관리자의 학번을 입력해주세요.");
         try {
           const adminDocRef = doc(db, "admins", "list");
           await runTransaction(db, async (t) => {
             const adminDoc = await t.get(adminDocRef);
-            if (!adminDoc.exists()) t.set(adminDocRef, { studentIds: [newAdminId] });
+            if (!adminDoc.exists())
+              t.set(adminDocRef, { studentIds: [newAdminId] });
             else t.update(adminDocRef, { studentIds: arrayUnion(newAdminId) });
           });
-          showAlert("🎉", `비상 관리자(${newAdminId})가 성공적으로 임명되었습니다.`);
+          showAlert(
+            "🎉",
+            `비상 관리자(${newAdminId})가 성공적으로 임명되었습니다.`
+          );
           closeEmergencyModal();
-        } catch (e) { showAlert("😥", "비상 관리자 임명에 실패했습니다."); }
+        } catch (e) {
+          showAlert("😥", "비상 관리자 임명에 실패했습니다.");
+        }
       };
 
       // 관리자: 식당 입력 필드 (정원 포함)
@@ -779,7 +1291,10 @@
            <button type="button" class="bg-red-500 text-white p-2 rounded-full hover:bg-red-600 w-10 h-10 flex-shrink-0 remove-restaurant-btn"><i class="fas fa-trash"></i></button>
          </div>`;
 
-      const addRestaurantField = () => document.getElementById("restaurants-container").insertAdjacentHTML("beforeend", restaurantFieldHTML());
+      const addRestaurantField = () =>
+        document
+          .getElementById("restaurants-container")
+          .insertAdjacentHTML("beforeend", restaurantFieldHTML());
 
       // 이벤트(탐방) 업데이트: 식당별 capacity 저장/병합
       const updateCurrentEvent = async function () {
@@ -788,14 +1303,18 @@
         const l = parseInt(document.getElementById("event-limit").value, 10);
 
         const rI = Array.from(document.querySelectorAll(".restaurant-entry"))
-          .map(e => ({
+          .map((e) => ({
             name: e.querySelector(".restaurant-name").value.trim(),
             info: e.querySelector(".restaurant-info").value.trim(),
-            capacity: parseInt(e.querySelector(".restaurant-capacity")?.value, 10)
+            capacity: parseInt(
+              e.querySelector(".restaurant-capacity")?.value,
+              10
+            ),
           }))
-          .filter(r => r.name && !isNaN(r.capacity) && r.capacity > 0);
+          .filter((r) => r.name && !isNaN(r.capacity) && r.capacity > 0);
 
-        if (!t || !d || !l || rI.length === 0) return showAlert("😥", "모든 필드를 채워주세요.");
+        if (!t || !d || !l || rI.length === 0)
+          return showAlert("😥", "모든 필드를 채워주세요.");
 
         try {
           await runTransaction(db, async (tx) => {
@@ -803,12 +1322,18 @@
             const snap = await tx.get(ref);
             const old = snap.exists() ? snap.data().restaurants || [] : [];
 
-            const restaurants = rI.map(item => {
-              const found = old.find(e => e.name === item.name);
+            const restaurants = rI.map((item) => {
+              const found = old.find((e) => e.name === item.name);
               return found
-                ? { ...found, info: item.info, capacity: item.capacity ?? found.capacity }
+                ? {
+                    ...found,
+                    info: item.info,
+                    capacity: item.capacity ?? found.capacity,
+                  }
                 : {
-                    id: `res_${Date.now()}_${Math.random().toString(36).substr(2,9)}`,
+                    id: `res_${Date.now()}_${Math.random()
+                      .toString(36)
+                      .substr(2, 9)}`,
                     name: item.name,
                     info: item.info,
                     capacity: item.capacity,
@@ -828,7 +1353,8 @@
 
       // 예약/취소 (정원은 r.capacity 우선)
       const makeReservation = async function (id) {
-        if (!currentUser) return showAlert("😥", "참가자 정보를 먼저 입력해주세요.");
+        if (!currentUser)
+          return showAlert("😥", "참가자 정보를 먼저 입력해주세요.");
         try {
           await runTransaction(db, async (tx) => {
             const ref = doc(db, "events", "current");
@@ -838,28 +1364,47 @@
             data.restaurants ||= [];
 
             // 이미 다른 식당에 예약/대기 중인지 확인
-            if (data.restaurants.some(r =>
-              (r.reservations || []).some(p => p.studentId === currentUser.studentId) ||
-              (r.waiting || []).some(p => p.studentId === currentUser.studentId)
-            )) { showAlert("🤔", "이미 다른 식당에 예약하셨습니다."); return; }
+            if (
+              data.restaurants.some(
+                (r) =>
+                  (r.reservations || []).some(
+                    (p) => p.studentId === currentUser.studentId
+                  ) ||
+                  (r.waiting || []).some(
+                    (p) => p.studentId === currentUser.studentId
+                  )
+              )
+            ) {
+              showAlert("🤔", "이미 다른 식당에 예약하셨습니다.");
+              return;
+            }
 
-            const idx = data.restaurants.findIndex(r => r.id === id);
+            const idx = data.restaurants.findIndex((r) => r.id === id);
             if (idx === -1) throw new Error("Restaurant not found!");
-            const entry = { ...currentUser, timestamp: new Date().toISOString() };
+            const entry = {
+              ...currentUser,
+              timestamp: new Date().toISOString(),
+            };
             const r = data.restaurants[idx];
-            r.reservations ||= []; r.waiting ||= [];
-            const effCap = (r.capacity ?? data.limit);
+            r.reservations ||= [];
+            r.waiting ||= [];
+            const effCap = r.capacity ?? data.limit;
 
             if (r.reservations.length < effCap) {
               r.reservations.push(entry);
               showAlert("✅", `${r.name}에 예약이 확정되었습니다!`);
             } else {
               r.waiting.push(entry);
-              showAlert("✋", `${r.name} 예약이 마감되어 대기 명단에 등록되었습니다.`);
+              showAlert(
+                "✋",
+                `${r.name} 예약이 마감되어 대기 명단에 등록되었습니다.`
+              );
             }
             tx.update(ref, { restaurants: data.restaurants });
           });
-        } catch (e) { showAlert("😥", `예약 처리 중 오류: ${e.message}`); }
+        } catch (e) {
+          showAlert("😥", `예약 처리 중 오류: ${e.message}`);
+        }
       };
 
       const cancelReservation = async function (id) {
@@ -871,22 +1416,29 @@
             if (!snap.exists()) throw new Error("Event does not exist!");
             let data = snap.data();
             data.restaurants ||= [];
-            const idx = data.restaurants.findIndex(r => r.id === id);
+            const idx = data.restaurants.findIndex((r) => r.id === id);
             if (idx === -1) throw new Error("Restaurant not found!");
             const r = data.restaurants[idx];
-            r.reservations ||= []; r.waiting ||= [];
+            r.reservations ||= [];
+            r.waiting ||= [];
             const before = r.reservations.length;
 
-            r.reservations = r.reservations.filter(p => p.studentId !== currentUser.studentId);
+            r.reservations = r.reservations.filter(
+              (p) => p.studentId !== currentUser.studentId
+            );
             if (r.reservations.length < before) {
               if (r.waiting.length > 0) r.reservations.push(r.waiting.shift());
             } else {
-              r.waiting = r.waiting.filter(p => p.studentId !== currentUser.studentId);
+              r.waiting = r.waiting.filter(
+                (p) => p.studentId !== currentUser.studentId
+              );
             }
             tx.update(ref, { restaurants: data.restaurants });
             showAlert("🗑️", `${r.name} 예약이 취소되었습니다.`);
           });
-        } catch (e) { showAlert("😥", "예약 취소 중 오류가 발생했습니다."); }
+        } catch (e) {
+          showAlert("😥", "예약 취소 중 오류가 발생했습니다.");
+        }
       };
 
       const archiveCurrentEvent = async () => {
@@ -894,9 +1446,14 @@
         const payload = { ...currentEventData, archivedAt: serverTimestamp() };
         try {
           await addDoc(collection(db, "history"), payload);
-          await runTransaction(db, async (tx) => tx.set(doc(db, "events", "current"), { title: "" }));
+          await runTransaction(db, async (tx) =>
+            tx.set(doc(db, "events", "current"), { title: "" })
+          );
           showAlert("📁", "활동이 보관되었습니다.");
-        } catch (e) { console.error("Archive failed:", e); showAlert("😥", "활동 보관에 실패했습니다."); }
+        } catch (e) {
+          console.error("Archive failed:", e);
+          showAlert("😥", "활동 보관에 실패했습니다.");
+        }
       };
 
       const submitSuggestion = async () => {
@@ -906,34 +1463,58 @@
         if (!currentUser) return showAlert("😥", "로그인 후 이용해주세요.");
         try {
           await addDoc(collection(db, "suggestions"), {
-            text, timestamp: serverTimestamp(),
-            author: { name: currentUser.name, studentId: currentUser.studentId },
+            text,
+            timestamp: serverTimestamp(),
+            author: {
+              name: currentUser.name,
+              studentId: currentUser.studentId,
+            },
           });
           input.value = "";
           showAlert("💡", "소중한 의견 감사합니다!");
-        } catch (e) { console.error("Suggestion submission failed:", e); showAlert("😥", "제출에 실패했습니다."); }
+        } catch (e) {
+          console.error("Suggestion submission failed:", e);
+          showAlert("😥", "제출에 실패했습니다.");
+        }
       };
 
       const deleteSuggestion = async (id) => {
         if (!confirm("이 건의사항을 삭제하시겠습니까?")) return;
-        try { await deleteDoc(doc(db, "suggestions", id)); showAlert("🗑️", "건의사항이 삭제되었습니다."); }
-        catch (e) { showAlert("😥", "삭제에 실패했습니다."); }
+        try {
+          await deleteDoc(doc(db, "suggestions", id));
+          showAlert("🗑️", "건의사항이 삭제되었습니다.");
+        } catch (e) {
+          showAlert("😥", "삭제에 실패했습니다.");
+        }
       };
 
       let selectedRating = 0;
-      const highlightStars = (el, v) => el.parentElement.querySelectorAll(".fa-star").forEach(s => s.classList.toggle("selected", s.dataset.value <= v));
-      const resetStars = (el) => el.querySelectorAll(".fa-star").forEach(s => s.classList.remove("selected"));
+      const highlightStars = (el, v) =>
+        el.parentElement
+          .querySelectorAll(".fa-star")
+          .forEach((s) => s.classList.toggle("selected", s.dataset.value <= v));
+      const resetStars = (el) =>
+        el
+          .querySelectorAll(".fa-star")
+          .forEach((s) => s.classList.remove("selected"));
       const rateRestaurant = (eventId, restaurantId, rating) => {
         selectedRating = rating;
-        const box = document.querySelector(`#review-comment-${eventId}-${restaurantId}`).parentElement.previousElementSibling;
-        box.dataset.rating = rating; box.classList.add("rated");
+        const box = document.querySelector(
+          `#review-comment-${eventId}-${restaurantId}`
+        ).parentElement.previousElementSibling;
+        box.dataset.rating = rating;
+        box.classList.add("rated");
         highlightStars(box.querySelector(".fa-star"), rating);
       };
 
       const submitReview = async function (eventId, restaurantId) {
-        if (!currentUser) return showAlert("😥", "리뷰를 작성하려면 로그인이 필요합니다.");
-        const comment = document.getElementById(`review-comment-${eventId}-${restaurantId}`).value.trim();
-        if (selectedRating === 0) return showAlert("🤔", "별점을 먼저 선택해주세요!");
+        if (!currentUser)
+          return showAlert("😥", "리뷰를 작성하려면 로그인이 필요합니다.");
+        const comment = document
+          .getElementById(`review-comment-${eventId}-${restaurantId}`)
+          .value.trim();
+        if (selectedRating === 0)
+          return showAlert("🤔", "별점을 먼저 선택해주세요!");
         if (!comment) return showAlert("🤔", "한줄평을 입력해주세요!");
         try {
           const ref = doc(db, "history", eventId);
@@ -941,20 +1522,31 @@
             const snap = await tx.get(ref);
             if (!snap.exists()) throw new Error("Past event not found");
             const data = snap.data();
-            const idx = data.restaurants.findIndex(r => r.id === restaurantId);
+            const idx = data.restaurants.findIndex(
+              (r) => r.id === restaurantId
+            );
             if (idx === -1) throw new Error("Restaurant not found");
             const r = data.restaurants[idx];
             r.reviews ||= [];
-            if (r.reviews.some(rv => rv.studentId === currentUser.studentId)) {
+            if (
+              r.reviews.some((rv) => rv.studentId === currentUser.studentId)
+            ) {
               showAlert("🤔", "이미 리뷰를 작성하셨습니다.");
             } else {
-              r.reviews.push({ ...currentUser, rating: selectedRating, comment });
+              r.reviews.push({
+                ...currentUser,
+                rating: selectedRating,
+                comment,
+              });
               tx.update(ref, { restaurants: data.restaurants });
             }
           });
           selectedRating = 0;
           showAlert("⭐", "리뷰가 등록되었습니다!");
-        } catch (e) { console.error("Review failed:", e); showAlert("😥", "리뷰 등록에 실패했습니다."); }
+        } catch (e) {
+          console.error("Review failed:", e);
+          showAlert("😥", "리뷰 등록에 실패했습니다.");
+        }
       };
 
       const updateTeam = async (id) => {
@@ -964,22 +1556,40 @@
         const score = parseInt(scoreEl.value, 10);
         if (!name) return showAlert("😥", "조 이름은 비워둘 수 없습니다.");
         if (isNaN(score)) return showAlert("😥", "유효한 숫자를 입력해주세요.");
-        try { await updateDoc(doc(db, "teams", id), { name, score }); showAlert("🎉", "조 정보가 업데이트되었습니다."); }
-        catch (e) { showAlert("😥", "조 정보 업데이트에 실패했습니다."); }
+        try {
+          await updateDoc(doc(db, "teams", id), { name, score });
+          showAlert("🎉", "조 정보가 업데이트되었습니다.");
+        } catch (e) {
+          showAlert("😥", "조 정보 업데이트에 실패했습니다.");
+        }
       };
 
       const addNewTeam = async () => {
         const el = document.getElementById("new-team-name");
         const name = el.value.trim();
         if (!name) return showAlert("😥", "조 이름을 입력해주세요.");
-        try { await addDoc(collection(db, "teams"), { name, score: 0 }); showAlert("🎉", `"${name}" 조가 추가되었습니다.`); el.value = ""; }
-        catch (e) { showAlert("😥", "조 추가에 실패했습니다."); }
+        try {
+          await addDoc(collection(db, "teams"), { name, score: 0 });
+          showAlert("🎉", `"${name}" 조가 추가되었습니다.`);
+          el.value = "";
+        } catch (e) {
+          showAlert("😥", "조 추가에 실패했습니다.");
+        }
       };
 
       const deleteTeam = async (id) => {
-        if (!confirm("정말로 이 조를 삭제하시겠습니까? 모든 점수 기록이 사라집니다.")) return;
-        try { await deleteDoc(doc(db, "teams", id)); showAlert("🗑️", "조가 성공적으로 삭제되었습니다."); }
-        catch (e) { showAlert("😥", "조 삭제에 실패했습니다."); }
+        if (
+          !confirm(
+            "정말로 이 조를 삭제하시겠습니까? 모든 점수 기록이 사라집니다."
+          )
+        )
+          return;
+        try {
+          await deleteDoc(doc(db, "teams", id));
+          showAlert("🗑️", "조가 성공적으로 삭제되었습니다.");
+        } catch (e) {
+          showAlert("😥", "조 삭제에 실패했습니다.");
+        }
       };
 
       const addRoadmapItem = async () => {
@@ -987,21 +1597,43 @@
         const dEl = document.getElementById("new-roadmap-date");
         const name = nEl.value.trim();
         const date = dEl.value;
-        if (!name || !date) return showAlert("😥", "활동 이름과 날짜를 모두 입력해주세요.");
-        try { await addDoc(collection(db, "roadmap"), { activityName: name, activityDate: date }); showAlert("🎉", "새로운 활동이 로드맵에 추가되었습니다."); nEl.value = ""; dEl.value = ""; }
-        catch (e) { showAlert("😥", "활동 추가에 실패했습니다."); }
+        if (!name || !date)
+          return showAlert("😥", "활동 이름과 날짜를 모두 입력해주세요.");
+        try {
+          await addDoc(collection(db, "roadmap"), {
+            activityName: name,
+            activityDate: date,
+          });
+          showAlert("🎉", "새로운 활동이 로드맵에 추가되었습니다.");
+          nEl.value = "";
+          dEl.value = "";
+        } catch (e) {
+          showAlert("😥", "활동 추가에 실패했습니다.");
+        }
       };
 
       const updateRoadmapItem = async (id, name, date) => {
-        if (!name || !date) return showAlert('😥', '활동 이름과 날짜를 모두 입력해주세요.');
-        try { await updateDoc(doc(db, 'roadmap', id), { activityName: name, activityDate: date }); showAlert('✅', '활동 로드맵이 수정되었습니다.'); }
-        catch (e) { showAlert('😥', '로드맵 수정에 실패했습니다.'); }
+        if (!name || !date)
+          return showAlert("😥", "활동 이름과 날짜를 모두 입력해주세요.");
+        try {
+          await updateDoc(doc(db, "roadmap", id), {
+            activityName: name,
+            activityDate: date,
+          });
+          showAlert("✅", "활동 로드맵이 수정되었습니다.");
+        } catch (e) {
+          showAlert("😥", "로드맵 수정에 실패했습니다.");
+        }
       };
 
       const deleteRoadmapItem = async (id) => {
         if (!confirm("이 활동을 로드맵에서 삭제하시겠습니까?")) return;
-        try { await deleteDoc(doc(db, "roadmap", id)); showAlert("🗑️", "활동이 로드맵에서 삭제되었습니다."); }
-        catch (e) { showAlert("😥", "활동 삭제에 실패했습니다."); }
+        try {
+          await deleteDoc(doc(db, "roadmap", id));
+          showAlert("🗑️", "활동이 로드맵에서 삭제되었습니다.");
+        } catch (e) {
+          showAlert("😥", "활동 삭제에 실패했습니다.");
+        }
       };
 
       const handleDashboardClick = (e) => {
@@ -1024,22 +1656,49 @@
 
       // 전역 노출
       Object.assign(window, {
-        login, logout, showTab, toggleAccordion, closeModal, closeEmergencyModal,
-        emergencyAddAdmin, addAdmin, removeAdmin,
-        updateCurrentEvent, addRestaurantField, makeReservation, cancelReservation,
-        restaurantFieldHTML, archiveCurrentEvent,
-        submitSuggestion, deleteSuggestion,
-        rateRestaurant, submitReview, highlightStars, resetStars,
-        updateTeam, addNewTeam, deleteTeam,
-        addRoadmapItem, updateRoadmapItem, deleteRoadmapItem,
+        login,
+        logout,
+        showTab,
+        toggleAccordion,
+        closeModal,
+        closeEmergencyModal,
+        emergencyAddAdmin,
+        addAdmin,
+        removeAdmin,
+        updateCurrentEvent,
+        addRestaurantField,
+        makeReservation,
+        cancelReservation,
+        restaurantFieldHTML,
+        archiveCurrentEvent,
+        submitSuggestion,
+        deleteSuggestion,
+        rateRestaurant,
+        submitReview,
+        highlightStars,
+        resetStars,
+        updateTeam,
+        addNewTeam,
+        deleteTeam,
+        addRoadmapItem,
+        updateRoadmapItem,
+        deleteRoadmapItem,
       });
 
       // 초기 이벤트 바인딩
       document.getElementById("login-button").addEventListener("click", login);
-      document.querySelectorAll(".accordion-header").forEach(h => h.addEventListener("click", () => toggleAccordion(h)));
-      document.getElementById("modal-close-button").addEventListener("click", closeModal);
-      document.getElementById("emergency-add-button").addEventListener("click", emergencyAddAdmin);
-      document.getElementById("emergency-cancel-button").addEventListener("click", closeEmergencyModal);
+      document
+        .querySelectorAll(".accordion-header")
+        .forEach((h) => h.addEventListener("click", () => toggleAccordion(h)));
+      document
+        .getElementById("modal-close-button")
+        .addEventListener("click", closeModal);
+      document
+        .getElementById("emergency-add-button")
+        .addEventListener("click", emergencyAddAdmin);
+      document
+        .getElementById("emergency-cancel-button")
+        .addEventListener("click", closeEmergencyModal);
 
       main();
     </script>
