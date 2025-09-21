@@ -157,9 +157,7 @@
         <h1 class="text-4xl md:text-5xl font-bold text-gray-800 tracking-tight">
           Foodie Lounge
         </h1>
-        <p class="text-gray-600 mt-3 text-lg">
-           맛집 탐방 전, 필수 체크인 ✈️
-        </p>
+        <p class="text-gray-600 mt-3 text-lg">맛집 탐방 전, 필수 체크인 ✈️</p>
       </header>
 
       <main id="app" class="space-y-8">
@@ -304,11 +302,11 @@
                     <ol class="list-decimal pl-8 mt-1 space-y-1 text-gray-600">
                       <li><b>학번/이름</b>을 입력해 입장합니다.</li>
                       <li>
-                        <b>탑승 게이트</b>에서 식당을 선택하면 예약(정원 초과 시
+                        <b>신청하기</b>에서 식당을 선택하면 예약(정원 초과 시
                         자동 대기)됩니다.
                       </li>
                       <li>
-                        예약 취소는 카드의 <b>탑승 취소</b> 버튼으로 간단히.
+                        예약 취소는 카드의 <b>신청 취소</b> 버튼으로 간단히.
                       </li>
                       <li><b>아이디어 건의</b> 탭에서 익명 제안 가능.</li>
                       <li>
@@ -655,7 +653,7 @@
             </div>
 
             <div class="mb-8 bg-gray-200 rounded-lg p-2 flex flex-wrap justify-center space-x-2" id="tab-buttons">
-              <button data-tab="reservation" class="tab-btn flex-1 py-2 px-4 rounded-md font-semibold text-gray-600 active"><i class="fas fa-plane-departure mr-2"></i>탑승 게이트</button>
+              <button data-tab="reservation" class="tab-btn flex-1 py-2 px-4 rounded-md font-semibold text-gray-600 active"><i class="fas fa-plane-departure mr-2"></i>신청하기</button>
               <button data-tab="history" class="tab-btn flex-1 py-2 px-4 rounded-md font-semibold text-gray-600"><i class="fas fa-trophy mr-2"></i>명예의 전당</button>
               <button data-tab="suggestions" class="tab-btn flex-1 py-2 px-4 rounded-md font-semibold text-gray-600"><i class="fas fa-lightbulb mr-2"></i>아이디어 건의</button>
               <button data-tab="dashboard" class="tab-btn flex-1 py-2 px-4 rounded-md font-semibold text-gray-600 ${
@@ -896,7 +894,7 @@
           .addEventListener("click", () => addRoadmapItem());
       }
 
-      // ====== 탑승 게이트 (MT + 미식회)
+      // ====== 신청하기 (MT + 미식회)
       function renderReservationTab(isAdmin) {
         const container = document.getElementById("reservation-tab");
         if (!container) return;
@@ -922,7 +920,7 @@
                   }" class="w-full px-4 py-2 border rounded-lg">
                   <input type="number" id="event-limit" value="${
                     limit || ""
-                  }" placeholder="(기본) 식당별 탑승 인원" class="w-full px-4 py-2 border rounded-lg md:col-span-2">
+                  }" placeholder="(기본) 식당별 신청 인원" class="w-full px-4 py-2 border rounded-lg md:col-span-2">
                 </div>
                 <h4 class="font-bold text-indigo-700 mb-2">선택 가능한 맛집 (게이트)</h4>
                 <div id="restaurants-container" class="space-y-3 mb-4">
@@ -1414,11 +1412,11 @@
 
         let buttonHTML;
         if (isReservedByUser) {
-          buttonHTML = `<button data-action="cancel" data-id="${r.id}" class="w-full mt-4 bg-gray-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-600"><i class="fas fa-times mr-2"></i>탑승 취소</button>`;
+          buttonHTML = `<button data-action="cancel" data-id="${r.id}" class="w-full mt-4 bg-gray-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-600"><i class="fas fa-times mr-2"></i>신청 취소</button>`;
         } else if (reservedCount >= cap) {
           buttonHTML = `<button data-action="reserve" data-id="${r.id}" class="w-full mt-4 bg-orange-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-orange-600"><i class="fas fa-hourglass-start mr-2"></i>대기 신청</button>`;
         } else {
-          buttonHTML = `<button data-action="reserve" data-id="${r.id}" class="w-full mt-4 bg-green-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600"><i class="fas fa-utensils mr-2"></i>탐방 탑승하기</button>`;
+          buttonHTML = `<button data-action="reserve" data-id="${r.id}" class="w-full mt-4 bg-green-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600"><i class="fas fa-utensils mr-2"></i>탐방 신청하기</button>`;
         }
 
         return `
@@ -1433,12 +1431,12 @@
           percentage
         )}%</div>
               </div>
-              <p class="text-right text-sm font-semibold text-gray-600">탑승 현황: ${reservedCount} / ${cap} 명</p>
+              <p class="text-right text-sm font-semibold text-gray-600">신청 현황: ${reservedCount} / ${cap} 명</p>
               <div class="mt-4">
-                <h4 class="font-semibold text-indigo-800">탑승객 명단</h4>
+                <h4 class="font-semibold text-indigo-800">신청 명단</h4>
                 <ul class="mt-1">${
                   participantListHTML ||
-                  '<li class="text-sm text-gray-400">탑승객 없음</li>'
+                  '<li class="text-sm text-gray-400">신청 없음</li>'
                 }</ul>
                 ${
                   waitingListHTML
