@@ -1198,7 +1198,7 @@
                   <div>
                     <h3 class="qa-title text-lg md:text-xl font-bold text-gray-700">
                       <i class="fas fa-chart-bar mr-2 text-indigo-500"></i>${
-                        b.title || "조별 점수 실시간 현황"
+                        b.title || "조모임 점수 실시간 현황"
                       }
                     </h3>
                     ${subtitle}
@@ -1616,28 +1616,51 @@
           .getElementById("event-restaurants-wrap")
           .insertAdjacentHTML("beforeend", restaurantFieldHTML());
 
+      // 기존 함수를 이걸로 교체하세요
       async function uploadRestaurantImage(file, rowEl) {
+        const dz = rowEl.querySelector(".dropzone");
+        const resetDZ = () => {
+          dz.textContent = "이미지 끌어다 놓기 또는 클릭하여 선택";
+          dz.classList.remove("dragover");
+        };
+
         try {
-          const dz = rowEl.querySelector(".dropzone");
           dz.textContent = "업로드 중...";
           dz.classList.add("dragover");
+
+          // (선택) 간단한 유효성 검사
+          if (!file.type.startsWith("image/")) {
+            showAlert("ℹ️", "이미지 파일만 업로드할 수 있어요.");
+            return;
+          }
+          if (file.size > 5 * 1024 * 1024) {
+            showAlert("ℹ️", "5MB 이하 이미지만 업로드해 주세요.");
+            return;
+          }
+
+          // 업로드
           const path = `uploads/restaurants/${Date.now()}_${Math.random()
             .toString(36)
             .slice(2, 8)}_${file.name}`;
           const ref = sRef(storage, path);
           await uploadBytes(ref, file);
           const url = await getDownloadURL(ref);
+
+          // UI 반영
           const urlInput = rowEl.querySelector(".img-url-input");
           urlInput.value = url;
           const img = rowEl.querySelector(".img-preview");
           img.src = url;
           img.classList.remove("hidden");
-          dz.textContent = "이미지 끌어다 놓기 또는 클릭하여 선택";
-          dz.classList.remove("dragover");
+
           showAlert("🖼️", "이미지 업로드 완료");
         } catch (e) {
           console.warn(e);
-          showAlert("😥", "이미지 업로드 실패");
+          // 실패 이유를 같이 표시 (권한/도메인/규칙 오류 등 파악용)
+          showAlert("😥", `이미지 업로드 실패: ${e?.code || e?.message || e}`);
+        } finally {
+          // 성공/실패 모두에서 드롭존 문구 복구
+          resetDZ();
         }
       }
 
