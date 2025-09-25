@@ -10,7 +10,7 @@
       rel="stylesheet"
     />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/js/all.min.js"></script>
-    <!-- XLSX: 엑셀 업로드/다운로드용 -->
+    <!-- XLSX -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
       body {
@@ -77,16 +77,11 @@
       .accordion-item.active .accordion-header .fa-chevron-down {
         transform: rotate(180deg);
       }
-      .accordion-header h3 {
-        flex: 1;
-        min-width: 0;
-      }
       .qa-title {
         white-space: normal;
         word-break: keep-all;
         overflow-wrap: break-word;
       }
-      /* 로드맵 타임라인 */
       .roadmap-item {
         position: relative;
         padding-left: 30px;
@@ -126,12 +121,41 @@
         border-color: #f59e0b;
         background: #f59e0b;
       }
-      /* 회원 명부 테이블 */
       .table-sticky th {
         position: sticky;
         top: 0;
         background: #f8fafc;
         z-index: 1;
+      }
+      .thumb {
+        width: 64px;
+        height: 48px;
+        object-fit: cover;
+        border-radius: 8px;
+      }
+      .file-pill {
+        font-size: 11px;
+      }
+      /* 이미지 업로더 */
+      .dropzone {
+        border: 2px dashed #cbd5e1;
+        border-radius: 0.5rem;
+        padding: 0.5rem 0.75rem;
+        font-size: 12px;
+        color: #64748b;
+        cursor: pointer;
+        user-select: none;
+      }
+      .dropzone.dragover {
+        border-color: #6366f1;
+        background: #eef2ff;
+        color: #4338ca;
+      }
+      .hidden-el {
+        display: none !important;
+      }
+      .modal-mask {
+        background: rgba(0, 0, 0, 0.6);
       }
     </style>
   </head>
@@ -188,7 +212,6 @@
                 >
                   <i class="fas fa-right-to-bracket mr-2"></i>로그인
                 </button>
-
                 <!-- 회원가입 버튼(기간에만 활성화) -->
                 <button
                   id="signup-button"
@@ -197,7 +220,6 @@
                 >
                   <i class="fas fa-user-plus mr-2"></i>회원가입
                 </button>
-
                 <div
                   id="signup-banner"
                   class="hidden text-center text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg p-2 mt-2"
@@ -226,87 +248,8 @@
               </div>
             </div>
 
-            <!-- 조별 점수 -->
-            <div class="accordion-item bg-white rounded-2xl shadow-lg">
-              <div class="accordion-header cursor-pointer p-6">
-                <h3 class="qa-title text-lg md:text-xl font-bold text-gray-700">
-                  <i class="fas fa-chart-bar mr-2 text-indigo-500"></i>조별 점수
-                  실시간 현황
-                </h3>
-                <i class="fas fa-chevron-down text-gray-500"></i>
-              </div>
-              <!-- 교체 -->
-              <div class="accordion-content">
-                <div id="team-scores-container" class="space-y-2"></div>
-              </div>
-            </div>
-
-            <!-- Foodie Q&A -->
-            <div class="accordion-item bg-white rounded-2xl shadow-lg">
-              <div class="accordion-header cursor-pointer p-6">
-                <h3 class="qa-title text-lg md:text-xl font-bold text-gray-700">
-                  <i class="fas fa-question-circle mr-2 text-indigo-500"></i
-                  >Foodie Q&A
-                </h3>
-                <i class="fas fa-chevron-down text-gray-500"></i>
-              </div>
-              <div class="accordion-content">
-                <div id="webservice-container" class="space-y-4 text-gray-700">
-                  <div>
-                    <p class="font-semibold">🧭 왜 만들었나요?</p>
-                    <ul
-                      id="web-why-list"
-                      class="list-disc pl-8 mt-1 space-y-1 text-gray-600"
-                    ></ul>
-                  </div>
-                  <div>
-                    <p class="font-semibold">🛠 어떻게 쓰나요?</p>
-                    <ol
-                      id="web-how-list"
-                      class="list-decimal pl-8 mt-1 space-y-1 text-gray-600"
-                    ></ol>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Foodie Web Service -->
-            <div class="accordion-item bg-white rounded-2xl shadow-lg">
-              <div class="accordion-header cursor-pointer p-6">
-                <h3 class="text-lg md:text-xl font-bold text-gray-700">
-                  <i class="fas fa-laptop-code mr-2 text-indigo-500"></i>Foodie
-                  Web Service는 뭔가요?
-                </h3>
-                <i class="fas fa-chevron-down text-gray-500"></i>
-              </div>
-              <div class="accordion-content">
-                <div class="space-y-4 text-gray-700">
-                  <div>
-                    <p class="font-semibold">🧭 왜 만들었나요?</p>
-                    <ul class="list-disc pl-8 mt-1 space-y-1 text-gray-600">
-                      <li>예약/대기 자동화로 공정성 확보</li>
-                      <li>실시간 진행, 보관 기록, 리뷰 관리까지 한 곳에서</li>
-                      <li>조별 점수·활동 로드맵을 모두가 쉽게 확인</li>
-                    </ul>
-                  </div>
-                  <div>
-                    <p class="font-semibold">🛠 어떻게 쓰나요?</p>
-                    <ol class="list-decimal pl-8 mt-1 space-y-1 text-gray-600">
-                      <li><b>학번/이름</b> 입력 후 로그인</li>
-                      <li>
-                        미회원은 <b>회원가입</b> 버튼으로 가입(기간 중에만 가능)
-                      </li>
-                      <li>
-                        <b>신청하기</b>에서 이벤트/미식회 예약(정원 초과 시 자동
-                        대기)
-                      </li>
-                      <li>취소는 카드의 <b>신청 취소</b> 버튼으로</li>
-                      <li>관리자는 <b>관리자 대시보드</b>에서 운영</li>
-                    </ol>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <!-- 홈 화면 동적 블록들 (관리자 구성 가능) -->
+            <div id="dynamic-blocks" class="space-y-6"></div>
           </div>
 
           <!-- ===== 로그인 후 메인 ===== -->
@@ -320,7 +263,7 @@
       <p>연락처: leedaehyun11@naver.com</p>
     </footer>
 
-    <!-- Alert Modal -->
+    <!-- Alert Modal (단일 확인) -->
     <div
       id="alert-modal"
       class="hidden fixed inset-0 bg-black/50 flex justify-center items-center px-4 z-50"
@@ -377,7 +320,7 @@
       </div>
     </div>
 
-    <!-- 회원가입 모달 (확장) -->
+    <!-- 회원가입 모달 -->
     <div
       id="signup-modal"
       class="hidden fixed inset-0 bg-black/60 flex justify-center items-center px-4 z-50"
@@ -389,6 +332,16 @@
         <p class="text-sm text-gray-600 text-center">
           회원가입은 운영진이 설정한 기간에만 가능합니다.
         </p>
+
+        <!-- 회비/계좌 안내 박스 -->
+        <div
+          id="dues-box"
+          class="hidden mt-4 bg-amber-50 border border-amber-200 rounded-lg p-3 text-amber-800"
+        >
+          <div class="font-bold mb-1">💸 회비/계좌 안내</div>
+          <div id="dues-box-content" class="text-sm"></div>
+        </div>
+
         <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
           <input
             id="signupName"
@@ -457,6 +410,149 @@
       </div>
     </div>
 
+    <!-- 회비 확인 모달 -->
+    <div
+      id="dues-modal"
+      class="hidden fixed inset-0 bg-black/60 flex justify-center items-center px-4 z-50"
+    >
+      <div class="bg-white p-6 rounded-2xl shadow-xl max-w-md w-full">
+        <h3 class="text-xl font-bold text-amber-700 text-center mb-3">
+          잠깐! 회비는 납부하셨나요?
+        </h3>
+        <div id="dues-modal-body" class="text-sm text-gray-700 space-y-1"></div>
+        <div class="flex gap-2 mt-5">
+          <button
+            id="dues-copy-button"
+            type="button"
+            class="flex-1 bg-gray-200 text-gray-800 font-semibold py-2 rounded hover:bg-gray-300"
+          >
+            계좌 복사
+          </button>
+          <button
+            id="dues-proceed-button"
+            type="button"
+            class="flex-1 bg-indigo-600 text-white font-bold py-2 rounded hover:bg-indigo-700"
+          >
+            납부 완료, 가입
+          </button>
+        </div>
+        <button
+          id="dues-cancel-button"
+          type="button"
+          class="mt-3 w-full bg-gray-100 text-gray-600 py-2 rounded hover:bg-gray-200"
+        >
+          취소
+        </button>
+      </div>
+    </div>
+
+    <!-- 블록 관리 모달 (콘텐츠 유형별 맞춤 양식) -->
+    <div
+      id="block-modal"
+      class="hidden fixed inset-0 modal-mask flex justify-center items-center px-4 z-50"
+    >
+      <div class="bg-white w-full max-w-2xl rounded-2xl shadow-xl p-6">
+        <h3 id="bm-title-text" class="text-xl font-bold text-gray-800 mb-4">
+          블록 편집
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <label class="text-sm"
+            >유형
+            <select id="bm-type" class="w-full border rounded px-3 py-2">
+              <option value="scores">scores(조별 점수)</option>
+              <option value="qa">qa(Q&A)</option>
+              <option value="notice">notice(공지/자유)</option>
+            </select>
+          </label>
+          <label class="text-sm"
+            >정렬(order)
+            <input
+              id="bm-order"
+              type="number"
+              class="w-full border rounded px-3 py-2"
+            />
+          </label>
+          <label class="text-sm md:col-span-2"
+            >제목
+            <input id="bm-title" class="w-full border rounded px-3 py-2" />
+          </label>
+          <label class="text-sm flex items-center gap-2 md:col-span-2"
+            ><input id="bm-visible" type="checkbox" /> 표시</label
+          >
+        </div>
+
+        <!-- 유형별 폼 -->
+        <div id="bm-notice" class="mt-4">
+          <label class="text-sm block mb-1">내용(HTML 가능)</label>
+          <textarea
+            id="bm-notice-html"
+            rows="6"
+            class="w-full border rounded px-3 py-2"
+          ></textarea>
+        </div>
+
+        <div id="bm-qa" class="mt-4 hidden-el">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <label class="text-sm block mb-1"
+                >🧭 왜 만들었나요? (줄바꿈으로 구분)</label
+              >
+              <textarea
+                id="bm-qa-why"
+                rows="6"
+                class="w-full border rounded px-3 py-2"
+              ></textarea>
+            </div>
+            <div>
+              <label class="text-sm block mb-1"
+                >🛠 어떻게 쓰나요? (줄바꿈으로 구분)</label
+              >
+              <textarea
+                id="bm-qa-how"
+                rows="6"
+                class="w-full border rounded px-3 py-2"
+              ></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div id="bm-scores" class="mt-4 hidden-el">
+          <label class="text-sm block mb-1">이벤트 이름(선택)</label>
+          <input
+            id="bm-scores-event"
+            class="w-full border rounded px-3 py-2 mb-3"
+            placeholder="예: 1차 미식회 점수판"
+          />
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-sm font-semibold">조/점수</span>
+            <button
+              id="bm-add-team"
+              class="text-xs bg-white border px-2 py-1 rounded"
+            >
+              <i class="fas fa-plus mr-1"></i>조 추가
+            </button>
+          </div>
+          <div id="bm-teams-wrap" class="space-y-2"></div>
+        </div>
+
+        <div class="mt-6 flex gap-2">
+          <button
+            id="bm-save"
+            class="flex-1 bg-indigo-600 text-white rounded-lg py-2 font-bold"
+          >
+            저장
+          </button>
+          <button
+            id="bm-cancel"
+            class="flex-1 bg-gray-200 text-gray-800 rounded-lg py-2 font-bold"
+          >
+            취소
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- App Script -->
     <script type="module">
       /* ========== Firebase ========== */
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -483,18 +579,25 @@
         getDocs,
         arrayUnion,
       } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+      import {
+        getStorage,
+        ref as sRef,
+        uploadBytes,
+        getDownloadURL,
+      } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
       const firebaseConfig = {
         apiKey: "AIzaSyDdrnlSQZa-GD006G9fvgYDL0V_ib3_pcE",
         authDomain: "foodie-club-694ba.firebaseapp.com",
         projectId: "foodie-club-694ba",
-        storageBucket: "foodie-club-694ba.firebasestorage.app",
+        storageBucket: "foodie-club-694ba.appspot.com",
         messagingSenderId: "563737208880",
         appId: "1:563737208880:web:d82b4ea6dd06754eb7e5f5",
       };
       const app = initializeApp(firebaseConfig);
       const db = getFirestore(app);
       const auth = getAuth(app);
+      const storage = getStorage(app);
 
       const IS_FILE = location.protocol === "file:";
       const USE_DEMO_OFFLINE = IS_FILE;
@@ -504,20 +607,31 @@
       let adminList = [];
       const MASTER_CODE = "foodie_emergency_2024!";
 
-      // settings.signup: { open: boolean, start: "YYYY-MM-DD", end: "YYYY-MM-DD" }
+      // settings
       let signupSettings = { open: false, start: "", end: "" };
+      let duesSettings = {
+        enabled: false,
+        bank: "",
+        number: "",
+        holder: "",
+        amount: "",
+        note: "",
+      };
 
+      // data
       let teamsData = [],
         roadmapData = [],
         suggestionsData = [];
       let historyData = [],
-        mtHistoryData = [];
-      let eventsData = [];
-      let editingEventId = null;
-      let membersData = []; // 🔹 전체 회원 명부 실시간 캐시
+        eventsData = [];
+      let membersData = [];
+      let blocksData = []; // 홈 화면 동적 블록
       let memberSearchTerm = "";
-
+      let editingEventId = null;
       let roadmapShowAll = false;
+
+      // Block modal state
+      let bmEditingId = null;
 
       const el = {
         loading: document.getElementById("loading-screen"),
@@ -532,10 +646,33 @@
         signupBanner: document.getElementById("signup-banner"),
         signupBtn: document.getElementById("signup-button"),
         signupModal: document.getElementById("signup-modal"),
+        duesBox: document.getElementById("dues-box"),
+        duesBoxContent: document.getElementById("dues-box-content"),
+        duesModal: document.getElementById("dues-modal"),
+        duesModalBody: document.getElementById("dues-modal-body"),
+
+        // Block modal
+        bmModal: document.getElementById("block-modal"),
+        bmTitleText: document.getElementById("bm-title-text"),
+        bmType: document.getElementById("bm-type"),
+        bmOrder: document.getElementById("bm-order"),
+        bmTitle: document.getElementById("bm-title"),
+        bmVisible: document.getElementById("bm-visible"),
+        bmNotice: document.getElementById("bm-notice"),
+        bmNoticeHtml: document.getElementById("bm-notice-html"),
+        bmQA: document.getElementById("bm-qa"),
+        bmQAWhy: document.getElementById("bm-qa-why"),
+        bmQAHow: document.getElementById("bm-qa-how"),
+        bmScores: document.getElementById("bm-scores"),
+        bmScoresEvent: document.getElementById("bm-scores-event"),
+        bmTeamsWrap: document.getElementById("bm-teams-wrap"),
+        bmAddTeam: document.getElementById("bm-add-team"),
+        bmSave: document.getElementById("bm-save"),
+        bmCancel: document.getElementById("bm-cancel"),
       };
       const showAlert = (icon, msg) => {
         el.alertIcon.innerHTML = icon || "ℹ️";
-        el.alertMsg.innerHTML = msg || ""; // HTML 허용(굵게 표기 등)
+        el.alertMsg.innerHTML = msg || "";
         el.alert.classList.remove("hidden");
       };
       const closeModal = () => el.alert.classList.add("hidden");
@@ -544,9 +681,9 @@
         if (!isSignupOpen())
           return showAlert("⛔", "현재는 회원가입 기간이 아닙니다.");
         el.signupModal.classList.remove("hidden");
-        // 로그인 입력값 있으면 편의상 채워주기
         document.getElementById("signupId").value = el.id.value.trim();
         document.getElementById("signupName").value = el.name.value.trim();
+        renderDuesInfoBox();
       };
       const closeSignupModal = () => el.signupModal.classList.add("hidden");
 
@@ -556,11 +693,13 @@
         roadmap: null,
         suggestions: null,
         history: null,
-        mt_history: null,
         events: null,
         signup: null,
-        members: null, // 🔹 추가: 회원명부
+        members: null,
+        dues: null,
+        blocks: null,
       };
+
       const clearAll = () =>
         Object.keys(unsub).forEach((k) => {
           if (unsub[k]) {
@@ -605,29 +744,24 @@
         ],
       };
 
-      /* ========== 시작/로그인 & 회원가입 ========== */
+      /* ========== 유틸 ========== */
       const mask = (sid) => (sid ? `${sid.slice(0, 4)}****` : "");
       const isWithin = (d, s, e) => {
         const x = new Date(d);
         x.setHours(0, 0, 0, 0);
-        const S = s ? new Date(s) : null;
-        const E = e ? new Date(e) : null;
+        const S = s ? new Date(s) : null,
+          E = e ? new Date(e) : null;
         if (S) S.setHours(0, 0, 0, 0);
         if (E) E.setHours(23, 59, 59, 999);
         return (!S || x >= S) && (!E || x <= E);
       };
-      // 🔁 교체
       const isSignupOpen = () => {
-        if (signupSettings.open) return true; // 상시 오픈이면 항상 true
-
+        if (signupSettings.open) return true;
         const hasStart = !!(
           signupSettings.start && signupSettings.start.trim()
         );
         const hasEnd = !!(signupSettings.end && signupSettings.end.trim());
-
-        // 둘 다 비어있으면 닫힘
         if (!hasStart && !hasEnd) return false;
-
         const today = new Date().toISOString().slice(0, 10);
         return isWithin(
           today,
@@ -635,7 +769,15 @@
           hasEnd ? signupSettings.end : null
         );
       };
+      const isUserIn = (arr = []) =>
+        arr?.some((p) => p.studentId === currentUser?.studentId);
+      const formatKRW = (n) => {
+        const v = Number(n || 0);
+        return isNaN(v) ? "" : v.toLocaleString("ko-KR") + "원";
+      };
+      const byOrder = (a, b) => (a.order ?? 0) - (b.order ?? 0);
 
+      /* ========== 인증 ========== */
       async function login() {
         const sid = el.id.value.trim();
         const nm = el.name.value.trim();
@@ -647,8 +789,6 @@
         try {
           const mref = doc(db, "members", sid);
           const ms = await getDoc(mref);
-
-          // ✅ 회원만 로그인
           if (!ms.exists()) {
             showAlert(
               "⛔",
@@ -656,20 +796,17 @@
             );
             return;
           }
-
           const data = ms.data() || {};
-          if (data.status === "blocked") {
-            showAlert("⛔", "접근이 제한된 회원입니다. 운영진에 문의해주세요.");
-            return;
-          }
-          // 이름 일치 여부 확인
-          if ((data.name || "").trim() !== nm) {
-            showAlert(
+          if (data.status === "blocked")
+            return showAlert(
+              "⛔",
+              "접근이 제한된 회원입니다. 운영진에 문의해주세요."
+            );
+          if ((data.name || "").trim() !== nm)
+            return showAlert(
               "🙅‍♂️",
               "입력한 이름이 회원 정보와 일치하지 않습니다. 운영진에게 수정 요청해주세요."
             );
-            return;
-          }
 
           localStorage.setItem(
             "foodieUser",
@@ -708,7 +845,6 @@
         const isAdmin =
           currentUser && adminList.includes(currentUser.studentId);
 
-        // suggestions
         if (isAdmin && !unsub.suggestions) {
           unsub.suggestions = onSnapshot(
             query(collection(db, "suggestions"), orderBy("timestamp", "desc")),
@@ -727,7 +863,6 @@
           suggestionsData = [];
         }
 
-        // history
         if (isAdmin && !unsub.history) {
           unsub.history = onSnapshot(
             query(collection(db, "history"), orderBy("archivedAt", "desc")),
@@ -743,23 +878,6 @@
           historyData = [];
         }
 
-        // mt_history
-        if (isAdmin && !unsub.mt_history) {
-          unsub.mt_history = onSnapshot(
-            query(collection(db, "mt_history"), orderBy("archivedAt", "desc")),
-            (snap) => {
-              mtHistoryData = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-              renderAll();
-            },
-            (err) => console.warn("mt_history:", err?.message)
-          );
-        } else if (!isAdmin && unsub.mt_history) {
-          unsub.mt_history();
-          unsub.mt_history = null;
-          mtHistoryData = [];
-        }
-
-        // 🔹 members (회원 명부)
         if (isAdmin && !unsub.members) {
           unsub.members = onSnapshot(
             query(collection(db, "members"), orderBy("name", "asc")),
@@ -781,26 +899,45 @@
         clearAll();
 
         // Admins
-        unsub.admins = onSnapshot(
-          doc(db, "admins", "list"),
-          (snap) => {
-            adminList = snap.exists() ? snap.data().studentIds || [] : [];
-            ensureAdminOptionals();
-            renderAll();
-          },
-          (err) => console.warn("admins:", err?.message)
-        );
+        unsub.admins = onSnapshot(doc(db, "admins", "list"), (snap) => {
+          adminList = snap.exists() ? snap.data().studentIds || [] : [];
+          ensureAdminOptionals();
+          renderAll();
+        });
 
         // Signup settings
-        unsub.signup = onSnapshot(
-          doc(db, "settings", "signup"),
+        unsub.signup = onSnapshot(doc(db, "settings", "signup"), (snap) => {
+          signupSettings = snap.exists()
+            ? snap.data()
+            : { open: false, start: "", end: "" };
+          updateSignupUI();
+          renderAll();
+        });
+
+        // Dues settings
+        unsub.dues = onSnapshot(doc(db, "settings", "dues"), (snap) => {
+          duesSettings = snap.exists()
+            ? snap.data()
+            : {
+                enabled: false,
+                bank: "",
+                number: "",
+                holder: "",
+                amount: "",
+                note: "",
+              };
+          updateSignupUI();
+          renderAll();
+        });
+
+        // Blocks (home dynamic sections)
+        unsub.blocks = onSnapshot(
+          query(collection(db, "homepageBlocks"), orderBy("order", "asc")),
           (snap) => {
-            if (snap.exists()) signupSettings = snap.data();
-            else signupSettings = { open: false, start: "", end: "" };
-            updateSignupUI();
+            blocksData = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
             renderAll();
           },
-          (err) => console.warn("settings.signup:", err?.message)
+          (err) => console.warn("blocks:", err?.message)
         );
 
         // Teams
@@ -856,10 +993,53 @@
             ? "회원가입 가능"
             : "현재는 회원가입 기간이 아닙니다.";
         }
+        renderDuesInfoBox();
       }
 
-      /* ========== 회원가입 처리(모달 확장) ========== */
-      async function confirmSignup() {
+      /* ========== 회원가입 처리 + 회비 확인 ========== */
+      function renderDuesInfoBox() {
+        if (!el.duesBox || !el.duesBoxContent) return;
+        const d = duesSettings || {};
+        const enabled = !!d.enabled;
+        el.duesBox.classList.toggle("hidden", !enabled);
+        if (!enabled) {
+          el.duesBoxContent.innerHTML = "";
+          return;
+        }
+        const lines = [];
+        if (d.bank || d.number)
+          lines.push(
+            `<b>${d.bank || ""} ${d.number || ""}</b>${
+              d.holder ? ` (예금주 ${d.holder})` : ""
+            }`
+          );
+        if (d.amount) lines.push(`회비: <b>${formatKRW(d.amount)}</b>`);
+        if (d.note)
+          lines.push(`<span class="text-amber-700">${d.note || ""}</span>`);
+        el.duesBoxContent.innerHTML = lines.join("<br/>");
+      }
+
+      function openDuesModal() {
+        const d = duesSettings || {};
+        const body = [];
+        if (d.amount)
+          body.push(`<div>회비 금액: <b>${formatKRW(d.amount)}</b></div>`);
+        if (d.bank || d.number)
+          body.push(
+            `<div>입금 계좌: <b>${d.bank || ""} ${d.number || ""}</b>${
+              d.holder ? ` (예금주 ${d.holder})` : ""
+            }</div>`
+          );
+        if (d.note) body.push(`<div class="text-gray-600">${d.note}</div>`);
+        if (body.length === 0)
+          body.push(
+            `<div class="text-red-600">관리자가 회비 정보를 아직 설정하지 않았습니다.</div>`
+          );
+        el.duesModalBody.innerHTML = body.join("");
+        el.duesModal.classList.remove("hidden");
+      }
+
+      async function confirmSignup(skipConfirm) {
         const sid = document.getElementById("signupId").value.trim();
         const nm = document.getElementById("signupName").value.trim();
         const gender = document.getElementById("signupGender").value.trim();
@@ -867,8 +1047,16 @@
         const college = document.getElementById("signupCollege").value.trim();
         const dept = document.getElementById("signupDept").value.trim();
         const phone = document.getElementById("signupPhone").value.trim();
+
         if (!sid || !nm || !gender || !year || !college || !dept || !phone)
           return showAlert("😥", "모든 필드를 입력하세요.");
+
+        // 회비 확인 모달
+        if (!skipConfirm && duesSettings?.enabled) {
+          openDuesModal();
+          return;
+        }
+
         if (!isSignupOpen())
           return showAlert("⛔", "현재는 회원가입 기간이 아닙니다.");
 
@@ -895,7 +1083,6 @@
           });
           closeSignupModal();
           showAlert("🎉", "회원가입 완료! 이제 로그인할 수 있어요.");
-          // 편의: 방금 가입 정보로 로그인 입력값 채워주기
           el.id.value = sid;
           el.name.value = nm;
         } catch (e) {
@@ -904,36 +1091,33 @@
         }
       }
 
-      /* ========== 렌더 ========== */
+      /* ========== 렌더 공통 ========== */
       function renderAll() {
         const isAdmin =
           currentUser && adminList.includes(currentUser.studentId);
         if (currentUser) {
           el.pre.classList.add("hidden");
           el.main.innerHTML = `
-          <div class="text-right mb-6">
-            <p class="text-gray-700"><b id="userNameDisplay">${
-              currentUser.name
-            }</b>님, 환영합니다!</p>
-            <button id="logout-button" type="button" class="text-sm text-gray-500 hover:text-red-500">로그아웃</button>
-          </div>
-
-          <div class="mb-8 bg-gray-200 rounded-lg p-2 flex flex-wrap justify-center space-x-2" id="tab-buttons">
-            <button type="button" data-tab="reservation" class="tab-btn flex-1 py-2 px-4 rounded-md font-semibold text-gray-600 active"><i class="fas fa-plane-departure mr-2"></i>신청하기</button>
-            <button type="button" data-tab="history" class="tab-btn flex-1 py-2 px-4 rounded-md font-semibold text-gray-600"><i class="fas fa-box-archive mr-2"></i>보관(명예의 전당)</button>
-            <button type="button" data-tab="suggestions" class="tab-btn flex-1 py-2 px-4 rounded-md font-semibold text-gray-600"><i class="fas fa-lightbulb mr-2"></i>아이디어 건의</button>
-            <button type="button" data-tab="dashboard" class="tab-btn flex-1 py-2 px-4 rounded-md font-semibold text-gray-600 ${
-              isAdmin ? "" : "hidden"
-            }"><i class="fas fa-crown mr-2"></i>관리자 대시보드</button>
-          </div>
-
-          <div id="tab-content-container">
-            <div id="reservation-tab" class="tab-content active"></div>
-            <div id="history-tab" class="tab-content"></div>
-            <div id="suggestions-tab" class="tab-content"></div>
-            <div id="dashboard-tab" class="tab-content"></div>
-          </div>
-        `;
+            <div class="text-right mb-6">
+              <p class="text-gray-700"><b id="userNameDisplay">${
+                currentUser.name
+              }</b>님, 환영합니다!</p>
+              <button id="logout-button" type="button" class="text-sm text-gray-500 hover:text-red-500">로그아웃</button>
+            </div>
+            <div class="mb-8 bg-gray-200 rounded-lg p-2 flex flex-wrap justify-center space-x-2" id="tab-buttons">
+              <button type="button" data-tab="reservation" class="tab-btn flex-1 py-2 px-4 rounded-md font-semibold text-gray-600 active"><i class="fas fa-plane-departure mr-2"></i>신청하기</button>
+              <button type="button" data-tab="history" class="tab-btn flex-1 py-2 px-4 rounded-md font-semibold text-gray-600"><i class="fas fa-box-archive mr-2"></i>보관(명예의 전당)</button>
+              <button type="button" data-tab="suggestions" class="tab-btn flex-1 py-2 px-4 rounded-md font-semibold text-gray-600"><i class="fas fa-lightbulb mr-2"></i>아이디어 건의</button>
+              <button type="button" data-tab="dashboard" class="tab-btn flex-1 py-2 px-4 rounded-md font-semibold text-gray-600 ${
+                isAdmin ? "" : "hidden"
+              }"><i class="fas fa-crown mr-2"></i>관리자 대시보드</button>
+            </div>
+            <div id="tab-content-container">
+              <div id="reservation-tab" class="tab-content active"></div>
+              <div id="history-tab" class="tab-content"></div>
+              <div id="suggestions-tab" class="tab-content"></div>
+              <div id="dashboard-tab" class="tab-content"></div>
+            </div>`;
           el.main.classList.remove("hidden");
           document
             .getElementById("logout-button")
@@ -946,15 +1130,15 @@
             });
 
           renderReservationTab(isAdmin);
-          renderHistoryTab();
+          renderHistoryTab(isAdmin);
           renderSuggestionsTab(isAdmin);
           if (isAdmin) renderDashboardTab();
         } else {
           el.pre.classList.remove("hidden");
           el.main.classList.add("hidden");
-          renderTeamScores();
           renderRoadmap();
-          updateSignupUI(); // 로그인 화면에서도 버튼 상태 반영
+          renderBlocks(); // 동적 블록(점수/QA/공지 등)
+          updateSignupUI();
         }
       }
 
@@ -971,13 +1155,143 @@
           ?.classList.add("active");
       };
 
-      function renderTeamScores() {
-        const c = document.getElementById("team-scores-container");
-        if (!c) return;
-        c.innerHTML =
-          teamsData.length === 0
+      /* ========== 홈 블록 렌더 (점수/QA/공지 등) ========== */
+      function renderBlocks() {
+        const wrap = document.getElementById("dynamic-blocks");
+        if (!wrap) return;
+        const visible = (blocksData || [])
+          .filter((b) => b.visible !== false)
+          .sort(byOrder);
+
+        if (visible.length === 0) {
+          wrap.innerHTML = `
+            <div class="accordion-item bg-white rounded-2xl shadow-lg">
+              <div class="accordion-header cursor-pointer p-6">
+                <h3 class="qa-title text-lg md:text-xl font-bold text-gray-700">
+                  <i class="fas fa-chart-bar mr-2 text-indigo-500"></i>조별 점수 실시간 현황
+                </h3>
+                <i class="fas fa-chevron-down text-gray-500"></i>
+              </div>
+              <div class="accordion-content">
+                <div id="team-scores-container-default" class="space-y-2"></div>
+              </div>
+            </div>`;
+          renderTeamScores(
+            document.getElementById("team-scores-container-default"),
+            null
+          );
+          attachAccordionHandlers(wrap);
+          return;
+        }
+        wrap.innerHTML = visible
+          .map((b) => {
+            if (b.type === "scores") {
+              const boxId = `team-scores-container-${b.id}`;
+              const subtitle = b.payload?.eventTitle
+                ? `<div class="text-sm text-gray-500">${b.payload.eventTitle}</div>`
+                : "";
+              return `
+              <div class="accordion-item bg-white rounded-2xl shadow-lg" data-block="${
+                b.id
+              }">
+                <div class="accordion-header cursor-pointer p-6">
+                  <div>
+                    <h3 class="qa-title text-lg md:text-xl font-bold text-gray-700">
+                      <i class="fas fa-chart-bar mr-2 text-indigo-500"></i>${
+                        b.title || "조별 점수 실시간 현황"
+                      }
+                    </h3>
+                    ${subtitle}
+                  </div>
+                  <i class="fas fa-chevron-down text-gray-500"></i>
+                </div>
+                <div class="accordion-content">
+                  <div id="${boxId}" class="space-y-2"></div>
+                </div>
+              </div>`;
+            } else if (b.type === "qa") {
+              const why = (b.payload?.why || [])
+                .map((s) => `<li>${s}</li>`)
+                .join("");
+              const how = (b.payload?.how || [])
+                .map((s) => `<li>${s}</li>`)
+                .join("");
+              return `
+              <div class="accordion-item bg-white rounded-2xl shadow-lg" data-block="${
+                b.id
+              }">
+                <div class="accordion-header cursor-pointer p-6">
+                  <h3 class="qa-title text-lg md:text-xl font-bold text-gray-700">
+                    <i class="fas fa-question-circle mr-2 text-indigo-500"></i>${
+                      b.title || "Foodie Q&A"
+                    }
+                  </h3>
+                  <i class="fas fa-chevron-down text-gray-500"></i>
+                </div>
+                <div class="accordion-content">
+                  <div class="space-y-4 text-gray-700">
+                    <div>
+                      <p class="font-semibold">🧭 왜 만들었나요?</p>
+                      <ul class="list-disc pl-8 mt-1 space-y-1 text-gray-600">${
+                        why || "<li>운영진이 곧 업데이트합니다.</li>"
+                      }</ul>
+                    </div>
+                    <div>
+                      <p class="font-semibold">🛠 어떻게 쓰나요?</p>
+                      <ol class="list-decimal pl-8 mt-1 space-y-1 text-gray-600">${
+                        how || "<li>운영진이 곧 업데이트합니다.</li>"
+                      }</ol>
+                    </div>
+                  </div>
+                </div>
+              </div>`;
+            } else {
+              // notice/custom: html
+              return `
+              <div class="bg-white p-6 rounded-2xl shadow-lg" data-block="${
+                b.id
+              }">
+                <h3 class="text-lg md:text-xl font-bold text-gray-700 mb-2"><i class="fas fa-bullhorn mr-2 text-indigo-500"></i>${
+                  b.title || "공지"
+                }</h3>
+                <div class="prose prose-sm max-w-none text-gray-700">${
+                  b.payload?.html || "<p>내용이 없습니다.</p>"
+                }</div>
+              </div>`;
+            }
+          })
+          .join("");
+
+        // 렌더 후 점수 박스들 채우기 (커스텀/글로벌 모두 지원)
+        visible
+          .filter((b) => b.type === "scores")
+          .forEach((b) => {
+            const target = document.getElementById(
+              `team-scores-container-${b.id}`
+            );
+            const overrideTeams = b.payload?.teams || null;
+            renderTeamScores(target, overrideTeams);
+          });
+
+        attachAccordionHandlers(wap);
+        function wap() {} // noop to avoid lint
+      }
+
+      function attachAccordionHandlers(root) {
+        root.querySelectorAll(".accordion-header").forEach((h) => {
+          h.addEventListener("click", () => toggleAccordion(h));
+        });
+      }
+
+      function renderTeamScores(targetEl, teamsOverride = null) {
+        if (!targetEl) return;
+        const source = teamsOverride || teamsData;
+        targetEl.innerHTML =
+          (source || []).length === 0
             ? `<p class="text-gray-400 text-center">아직 조별 점수 데이터가 없습니다.</p>`
-            : teamsData
+            : source
+                .slice()
+                .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
                 .map((t, i) => {
                   const colors = [
                     "text-yellow-400",
@@ -991,39 +1305,65 @@
                           i + 1
                         }</span>`;
                   return `<div class="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
-            <span class="font-semibold text-lg flex items-center">${icon}${t.name}</span>
-            <span class="font-bold text-lg text-indigo-600">${t.score} 점</span>
-          </div>`;
+                          <span class="font-semibold text-lg flex items-center">${icon}${t.name}</span>
+                          <span class="font-bold text-lg text-indigo-600">${t.score} 점</span>
+                        </div>`;
                 })
                 .join("");
       }
 
+      /* ========== 로드맵 (자동 롤링) ========== */
       function renderRoadmap() {
         const c = document.getElementById("roadmap-container");
         const btn = document.getElementById("roadmap-toggle-btn");
         if (!c) return;
         const total = roadmapData.length;
-        const items = roadmapShowAll ? roadmapData : roadmapData.slice(0, 4);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // 상태 계산
+        const sorted = [...roadmapData].sort((a, b) =>
+          (a.activityDate || "").localeCompare(b.activityDate || "")
+        );
+        const enriched = sorted.map((item) => {
+          const d = new Date(item.activityDate);
+          let status = "upcoming";
+          if (d < today) status = "completed";
+          else if (d.toDateString() === today.toDateString()) status = "today";
+          return { ...item, _date: d, _status: status };
+        });
+
+        let itemsToShow = enriched;
+        if (!roadmapShowAll) {
+          const completed = enriched.filter((x) => x._status === "completed");
+          const upcoming = enriched.filter((x) => x._status !== "completed"); // today 포함
+          // 3개 이상 완료되면 최근 2개만 유지
+          let keptCompleted = completed;
+          if (completed.length >= 3) {
+            keptCompleted = completed.slice(-2);
+          }
+          const LIMIT = 4;
+          itemsToShow = [...keptCompleted, ...upcoming].slice(0, LIMIT);
+        }
+
         c.innerHTML =
           total === 0
             ? `<p class="text-gray-400 text-center py-4">예정된 활동이 없습니다. 회장님이 곧 일정을 추가할 거예요!</p>`
-            : items
+            : itemsToShow
                 .map((item) => {
-                  const d = new Date(item.activityDate);
-                  const today = new Date();
-                  today.setHours(0, 0, 0, 0);
-                  let status = "upcoming";
-                  if (d < today) status = "completed";
-                  else if (d.toDateString() === today.toDateString())
-                    status = "today";
+                  const d = item._date;
+                  const status = item._status;
                   return `<div class="roadmap-item ${status}">
-            <div class="font-bold text-gray-800">${item.activityName}</div>
-            <div class="text-sm text-gray-500">${d.toLocaleDateString(
-              "ko-KR"
-            )}</div>
-          </div>`;
+                          <div class="font-bold text-gray-800">${
+                            item.activityName
+                          }</div>
+                          <div class="text-sm text-gray-500">${d.toLocaleDateString(
+                            "ko-KR"
+                          )}</div>
+                        </div>`;
                 })
                 .join("");
+
         if (btn) {
           if (total > 4) {
             btn.classList.remove("hidden");
@@ -1036,7 +1376,7 @@
         }
       }
 
-      /* ========== 예약 탭 (다중 이벤트/미식회) ========== */
+      /* ===================== 예약 탭 ===================== */
       function renderReservationTab(isAdmin) {
         const c = document.getElementById("reservation-tab");
         if (!c) return;
@@ -1045,41 +1385,74 @@
         const listHTML =
           eventsData.filter((e) => e.status !== "archived").length === 0
             ? `<div class="text-center py-12"><i class="fas fa-calendar-xmark text-4xl text-gray-300"></i><p class="mt-3 text-gray-500">진행 중인 이벤트/미식회가 없습니다.</p></div>`
-            : `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">${eventsData
-                .filter((e) => e.status !== "archived")
-                .map(eventCardHTML)
-                .join("")}</div>`;
+            : `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                 ${eventsData
+                   .filter((e) => e.status !== "archived")
+                   .map(eventCardHTML)
+                   .join("")}
+               </div>`;
 
         c.innerHTML =
           adminPanel +
           `
-        <div class="bg-white p-8 rounded-2xl shadow-lg">
-          <h2 class="text-2xl font-bold mb-4 text-gray-800">진행 중 목록</h2>
-          ${listHTML}
-        </div>`;
+          <div class="bg-white p-8 rounded-2xl shadow-lg">
+            <h2 class="text-2xl font-bold mb-4 text-gray-800">진행 중 목록</h2>
+            ${listHTML}
+          </div>`;
 
         if (isAdmin) {
           const wrap = document.getElementById("event-restaurants-wrap");
           document
             .getElementById("event-type")
-            .addEventListener("change", (e) => {
-              document
-                .getElementById("tasting-fields")
-                .classList.toggle("hidden", e.target.value !== "tasting");
-            });
+            .addEventListener("change", (e) => onTypeChange(e.target.value));
           document
             .getElementById("add-restaurant-btn")
             .addEventListener("click", () => addRestaurantField());
+          // 이미지 업로더 위임
           wrap.addEventListener("click", (e) => {
             if (e.target.closest(".remove-restaurant"))
               e.target.closest(".restaurant-row").remove();
+            const dz = e.target.closest(".dropzone");
+            if (dz) {
+              const row = dz.closest(".restaurant-row");
+              row.querySelector(".img-file-input")?.click();
+            }
           });
+          wrap.addEventListener("dragover", (e) => {
+            const dz = e.target.closest(".dropzone");
+            if (!dz) return;
+            e.preventDefault();
+            dz.classList.add("dragover");
+          });
+          wrap.addEventListener("dragleave", (e) => {
+            const dz = e.target.closest(".dropzone");
+            if (!dz) return;
+            dz.classList.remove("dragover");
+          });
+          wrap.addEventListener("drop", (e) => {
+            const dz = e.target.closest(".dropzone");
+            if (!dz) return;
+            e.preventDefault();
+            dz.classList.remove("dragover");
+            const file = e.dataTransfer.files?.[0];
+            if (file)
+              uploadRestaurantImage(file, dz.closest(".restaurant-row"));
+          });
+          wrap.addEventListener("change", (e) => {
+            if (e.target.matches(".img-file-input")) {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              uploadRestaurantImage(file, e.target.closest(".restaurant-row"));
+            }
+          });
+
           document
             .getElementById("save-event-btn")
             .addEventListener("click", () => createOrSaveEvent());
           document
             .getElementById("reset-event-btn")
             .addEventListener("click", () => resetEventForm());
+          onTypeChange(document.getElementById("event-type").value);
         }
 
         // 카드 버튼 위임
@@ -1096,47 +1469,72 @@
           if (act === "admin-edit") return loadEventToForm(id);
           if (act === "admin-archive") return archiveEvent(id);
           if (act === "admin-delete") return deleteEvent(id);
+          if (act === "export-csv") return exportApplicantsCSV(id);
         });
+      }
+
+      function onTypeChange(type) {
+        document
+          .getElementById("tasting-fields")
+          .classList.toggle("hidden", type !== "tasting");
+        document
+          .getElementById("payment-fields")
+          .classList.toggle("hidden", !(type === "mt" || type === "assembly"));
       }
 
       function eventAdminPanelHTML() {
         return `
-      <div class="bg-indigo-50 border-l-4 border-indigo-500 p-6 rounded-lg mb-8">
-        <h3 class="text-xl font-bold text-indigo-800 mb-4"><i class="fas fa-crown mr-2"></i>관리자 패널 (이벤트/미식회)</h3>
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-3">
-          <select id="event-type" class="px-3 py-2 border rounded-lg">
-            <option value="tasting">미식회(tasting)</option>
-            <option value="general">일반 이벤트(general)</option>
-          </select>
-          <input id="event-title" type="text" placeholder="제목" class="px-3 py-2 border rounded-lg md:col-span-2">
-          <input id="event-datetime" type="datetime-local" class="px-3 py-2 border rounded-lg">
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
-          <input id="event-limit" type="number" min="1" placeholder="(기본) 정원" class="px-3 py-2 border rounded-lg">
-          <select id="event-status" class="px-3 py-2 border rounded-lg">
-            <option value="open">공개</option>
-            <option value="archived">숨기기</option>
-          </select>
-          <div class="text-sm text-gray-500 flex items-center">* "숨기기"로 저장하면 리스트에 안 보입니다.</div>
-        </div>
+        <div class="bg-indigo-50 border-l-4 border-indigo-500 p-6 rounded-lg mb-8">
+          <h3 class="text-xl font-bold text-indigo-800 mb-4"><i class="fas fa-crown mr-2"></i>관리자 패널 (이벤트/미식회)</h3>
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-3">
+            <select id="event-type" class="px-3 py-2 border rounded-lg">
+              <option value="tasting">미식회(tasting)</option>
+              <option value="general">일반 이벤트(general)</option>
+              <option value="mt">MT(mt)</option>
+              <option value="assembly">총회(assembly)</option>
+            </select>
+            <input id="event-title" type="text" placeholder="제목" class="px-3 py-2 border rounded-lg md:col-span-2">
+            <input id="event-datetime" type="datetime-local" class="px-3 py-2 border rounded-lg">
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+            <input id="event-limit" type="number" min="1" placeholder="(기본) 정원" class="px-3 py-2 border rounded-lg">
+            <select id="event-status" class="px-3 py-2 border rounded-lg">
+              <option value="open">공개</option>
+              <option value="archived">숨기기</option>
+            </select>
+            <div class="text-sm text-gray-500 flex items-center">* "숨기기"로 저장하면 리스트에 안 보입니다.</div>
+          </div>
 
-        <div id="tasting-fields">
-          <h4 class="font-semibold text-indigo-700 mb-2">식당(게이트)</h4>
-          <div id="event-restaurants-wrap" class="space-y-2">${restaurantFieldHTML()}</div>
-          <button id="add-restaurant-btn" type="button" class="mt-2 text-xs bg-white border border-indigo-300 text-indigo-700 px-3 py-1 rounded hover:bg-indigo-50">
-            <i class="fas fa-plus mr-1"></i>식당 추가
-          </button>
-        </div>
+          <!-- 결제정보 (MT/총회) -->
+          <div id="payment-fields" class="hidden">
+            <h4 class="font-semibold text-indigo-700 mb-2">회비 입금 정보 (MT/총회)</h4>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-2">
+              <input id="pay-bank"   type="text" class="px-3 py-2 border rounded" placeholder="은행명 (예: 국민)">
+              <input id="pay-number" type="text" class="px-3 py-2 border rounded" placeholder="계좌번호">
+              <input id="pay-holder" type="text" class="px-3 py-2 border rounded" placeholder="예금주">
+              <input id="pay-note"   type="text" class="px-3 py-2 border rounded" placeholder="안내 문구(선택: 회비 금액 등)">
+            </div>
+            <p class="text-xs text-gray-500 mt-1">* 입력하지 않으면 '설정 &gt; 회비/계좌'의 기본 정보가 자동 표시됩니다.</p>
+          </div>
 
-        <div class="flex gap-2 mt-4">
-          <button id="save-event-btn" type="button" class="flex-1 bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700">생성/저장</button>
-          <button id="reset-event-btn" type="button" class="flex-1 bg-gray-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-700">폼 초기화</button>
-        </div>
+          <!-- 미식회 필드 -->
+          <div id="tasting-fields" class="mt-3">
+            <h4 class="font-semibold text-indigo-700 mb-2">식당(게이트) <span class="text-xs text-gray-500">(이미지 파일/URL 가능 • 미리보기 지원)</span></h4>
+            <div id="event-restaurants-wrap" class="space-y-2">${restaurantFieldHTML()}</div>
+            <button id="add-restaurant-btn" type="button" class="mt-2 text-xs bg-white border border-indigo-300 text-indigo-700 px-3 py-1 rounded hover:bg-indigo-50">
+              <i class="fas fa-plus mr-1"></i>식당 추가
+            </button>
+          </div>
 
-        <hr class="my-4">
-        <h4 class="font-semibold text-gray-700 mb-2">현재 이벤트</h4>
-        <div class="space-y-2">${adminEventsListHTML()}</div>
-      </div>`;
+          <div class="flex gap-2 mt-4">
+            <button id="save-event-btn"  type="button" class="flex-1 bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700">생성/저장</button>
+            <button id="reset-event-btn" type="button" class="flex-1 bg-gray-600  text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-700">폼 초기화</button>
+          </div>
+
+          <hr class="my-4">
+          <h4 class="font-semibold text-gray-700 mb-2">현재 이벤트</h4>
+          <div class="space-y-2">${adminEventsListHTML()}</div>
+        </div>`;
       }
 
       function adminEventsListHTML() {
@@ -1149,156 +1547,97 @@
             const badge =
               ev.type === "tasting"
                 ? "bg-purple-100 text-purple-700"
+                : ev.type === "mt" || ev.type === "assembly"
+                ? "bg-sky-100 text-sky-700"
                 : "bg-emerald-100 text-emerald-700";
             return `<div class="flex items-center justify-between bg-white p-3 rounded border">
-          <div class="min-w-0">
-            <span class="text-sm px-2 py-0.5 rounded ${badge}">${ev.type}</span>
-            <span class="font-semibold ml-2">${ev.title || "(제목 없음)"}</span>
-            <span class="text-sm text-gray-500 ml-2">(${when})</span>
-            <span class="text-xs ml-2 px-2 py-0.5 rounded ${
-              ev.status === "open"
-                ? "bg-green-100 text-green-700"
-                : "bg-gray-200 text-gray-700"
-            }">${ev.status || "open"}</span>
-          </div>
-          <div class="flex gap-2">
-            <button type="button" class="text-blue-600 hover:text-blue-800" data-act="admin-edit" data-id="${
-              ev.id
-            }"><i class="fas fa-pen"></i></button>
-            <button type="button" class="text-amber-600 hover:text-amber-800" data-act="admin-archive" data-id="${
-              ev.id
-            }"><i class="fas fa-box-archive"></i></button>
-            <button type="button" class="text-red-600 hover:text-red-800" data-act="admin-delete" data-id="${
-              ev.id
-            }"><i class="fas fa-trash"></i></button>
-          </div>
-        </div>`;
+                    <div class="min-w-0">
+                      <span class="text-sm px-2 py-0.5 rounded ${badge}">${
+              ev.type
+            }</span>
+                      <span class="font-semibold ml-2">${
+                        ev.title || "(제목 없음)"
+                      }</span>
+                      <span class="text-sm text-gray-500 ml-2">(${when})</span>
+                      <span class="text-xs ml-2 px-2 py-0.5 rounded ${
+                        ev.status === "open"
+                          ? "bg-green-100 text-green-700"
+                          : "bg-gray-200 text-gray-700"
+                      }">${ev.status || "open"}</span>
+                    </div>
+                    <div class="flex gap-2">
+                      <button type="button" class="text-blue-600 hover:text-blue-800"  data-act="admin-edit"    data-id="${
+                        ev.id
+                      }"><i class="fas fa-pen"></i></button>
+                      <button type="button" class="text-amber-600 hover:text-amber-800" data-act="admin-archive" data-id="${
+                        ev.id
+                      }"><i class="fas fa-box-archive"></i></button>
+                      <button type="button" class="text-red-600 hover:text-red-800"    data-act="admin-delete"  data-id="${
+                        ev.id
+                      }"><i class="fas fa-trash"></i></button>
+                    </div>
+                  </div>`;
           })
           .join("");
       }
 
-      const restaurantFieldHTML = (n = "", i = "", c = "") => `
-      <div class="restaurant-row flex items-center gap-2">
-        <input type="text" value="${n}" placeholder="식당 이름" class="flex-1 px-3 py-2 border rounded">
-        <input type="text" value="${i}" placeholder="식당 정보" class="flex-1 px-3 py-2 border rounded">
-        <input type="number" min="1" value="${c}" placeholder="정원" class="w-24 px-3 py-2 border rounded">
-        <button type="button" class="remove-restaurant text-red-600 hover:text-red-800"><i class="fas fa-trash"></i></button>
-      </div>`;
+      const restaurantFieldHTML = (
+        n = "",
+        i = "",
+        c = "",
+        url = "",
+        id = ""
+      ) => `
+        <div class="restaurant-row flex flex-col gap-2 p-2 bg-white rounded border" data-id="${id}">
+          <div class="grid grid-cols-12 gap-2">
+            <input type="text"  value="${n}"   placeholder="식당 이름"        class="col-span-3 px-3 py-2 border rounded">
+            <input type="text"  value="${i}"   placeholder="식당 정보"        class="col-span-5 px-3 py-2 border rounded">
+            <input type="number" min="1" value="${c}" placeholder="정원"      class="col-span-2 px-3 py-2 border rounded">
+            <button type="button" class="col-span-2 remove-restaurant text-red-600 hover:text-red-800"><i class="fas fa-trash mr-1"></i>삭제</button>
+          </div>
+          <div class="grid grid-cols-12 gap-2 items-center">
+            <div class="col-span-6">
+              <div class="dropzone text-center">이미지 끌어다 놓기 또는 클릭하여 선택</div>
+              <input type="file" accept="image/*" class="img-file-input hidden">
+              <input type="text" value="${url}" placeholder="이미지 URL 직접 입력(선택)" class="img-url-input w-full mt-2 px-3 py-2 border rounded" />
+              <div class="text-xs text-gray-500 mt-1">• 파일 업로드 시 자동으로 URL이 채워집니다.</div>
+            </div>
+            <div class="col-span-6 flex items-center gap-3">
+              <img class="img-preview thumb ${url ? "" : "hidden"}" src="${
+        url || ""
+      }" alt="preview">
+              <span class="text-xs text-gray-500">미리보기</span>
+            </div>
+          </div>
+        </div>`;
+
       const addRestaurantField = () =>
         document
           .getElementById("event-restaurants-wrap")
           .insertAdjacentHTML("beforeend", restaurantFieldHTML());
 
-      async function createOrSaveEvent() {
-        const type = document.getElementById("event-type").value;
-        const title = document.getElementById("event-title").value.trim();
-        const datetime = document.getElementById("event-datetime").value;
-        const limit =
-          parseInt(document.getElementById("event-limit").value, 10) || 0;
-        const status = document.getElementById("event-status").value;
-        if (!type || !title || !datetime || !limit)
-          return showAlert("😥", "타입/제목/일시/정원을 모두 입력해주세요.");
-
-        let payload = { type, title, datetime, limit, status };
-        if (type === "tasting") {
-          const rows = [
-            ...document.querySelectorAll(
-              "#event-restaurants-wrap .restaurant-row"
-            ),
-          ];
-          const restaurants = rows
-            .map((r) => {
-              const [n, i, cEl] = r.querySelectorAll("input");
-              return {
-                id: `res_${Math.random().toString(36).slice(2, 9)}`,
-                name: n.value.trim(),
-                info: i.value.trim(),
-                capacity: parseInt(cEl.value, 10) || limit,
-                reservations: [],
-                waiting: [],
-              };
-            })
-            .filter((r) => r.name && r.capacity > 0);
-          if (restaurants.length === 0)
-            return showAlert("😥", "식당을 최소 1개 이상 추가해주세요.");
-          payload = { ...payload, restaurants };
-        } else {
-          payload = { ...payload, applicants: [], waiting: [] };
-        }
-
+      async function uploadRestaurantImage(file, rowEl) {
         try {
-          if (editingEventId) {
-            await updateDoc(doc(db, "events", editingEventId), payload);
-            showAlert("✅", "이벤트가 수정되었습니다.");
-          } else {
-            await addDoc(collection(db, "events"), payload);
-            showAlert("🎉", "이벤트가 생성되었습니다.");
-          }
-          resetEventForm();
-        } catch {
-          showAlert("😥", "저장 중 오류가 발생했습니다.");
-        }
-      }
-      function resetEventForm() {
-        editingEventId = null;
-        document.getElementById("event-type").value = "tasting";
-        document.getElementById("event-title").value = "";
-        document.getElementById("event-datetime").value = "";
-        document.getElementById("event-limit").value = "";
-        document.getElementById("event-status").value = "open";
-        document.getElementById("tasting-fields").classList.remove("hidden");
-        document.getElementById("event-restaurants-wrap").innerHTML =
-          restaurantFieldHTML();
-      }
-      function loadEventToForm(id) {
-        const ev = eventsData.find((e) => e.id === id);
-        if (!ev) return;
-        editingEventId = id;
-        document.getElementById("event-type").value = ev.type;
-        document.getElementById("event-title").value = ev.title || "";
-        document.getElementById("event-datetime").value = ev.datetime || "";
-        document.getElementById("event-limit").value = ev.limit || "";
-        document.getElementById("event-status").value = ev.status || "open";
-        const tf = document.getElementById("tasting-fields");
-        tf.classList.toggle("hidden", ev.type !== "tasting");
-        if (ev.type === "tasting") {
-          const wrap = document.getElementById("event-restaurants-wrap");
-          wrap.innerHTML = "";
-          (ev.restaurants || []).forEach((r) => {
-            wrap.insertAdjacentHTML(
-              "beforeend",
-              restaurantFieldHTML(r.name, r.info, r.capacity)
-            );
-          });
-        }
-        showAlert("✏️", "폼에 불러왔습니다. 수정 후 [생성/저장]을 누르세요.");
-      }
-      async function archiveEvent(id) {
-        if (!confirm("이 이벤트를 보관(archived) 하시겠습니까?")) return;
-        try {
-          const ref = doc(db, "events", id);
-          const snap = await getDoc(ref);
-          if (snap.exists()) {
-            const data = snap.data();
-            await setDoc(doc(db, "history", id), {
-              ...data,
-              archivedAt: serverTimestamp(),
-              status: "archived",
-            });
-          }
-          await updateDoc(ref, { status: "archived" });
-          showAlert("📦", "보관 완료");
-        } catch {
-          showAlert("😥", "보관 실패");
-        }
-      }
-      async function deleteEvent(id) {
-        if (!confirm("정말 삭제하시겠습니까? (되돌릴 수 없음)")) return;
-        try {
-          await deleteDoc(doc(db, "events", id));
-          showAlert("🗑️", "삭제 완료");
-        } catch {
-          showAlert("😥", "삭제 실패");
+          const dz = rowEl.querySelector(".dropzone");
+          dz.textContent = "업로드 중...";
+          dz.classList.add("dragover");
+          const path = `uploads/restaurants/${Date.now()}_${Math.random()
+            .toString(36)
+            .slice(2, 8)}_${file.name}`;
+          const ref = sRef(storage, path);
+          await uploadBytes(ref, file);
+          const url = await getDownloadURL(ref);
+          const urlInput = rowEl.querySelector(".img-url-input");
+          urlInput.value = url;
+          const img = rowEl.querySelector(".img-preview");
+          img.src = url;
+          img.classList.remove("hidden");
+          dz.textContent = "이미지 끌어다 놓기 또는 클릭하여 선택";
+          dz.classList.remove("dragover");
+          showAlert("🖼️", "이미지 업로드 완료");
+        } catch (e) {
+          console.warn(e);
+          showAlert("😥", "이미지 업로드 실패");
         }
       }
 
@@ -1307,17 +1646,108 @@
           ? tastingCardHTML(ev)
           : generalCardHTML(ev);
       }
-      // 🔁 기존 generalCardHTML 전체를 아래로 교체
-      function generalCardHTML(ev) {
-        const count = (ev.applicants || []).length;
-        const lim = ev.limit || 0;
 
+      function paymentInfoHTML(ev) {
+        if (!(ev.type === "mt" || ev.type === "assembly")) return "";
+        // 이벤트 개별 설정이 있으면 우선, 없으면 글로벌 회비/계좌 설정으로 자동 표시
+        const p = ev.payment || {};
+        const merged = {
+          bank: p.bank || duesSettings.bank,
+          number: p.number || duesSettings.number,
+          holder: p.holder || duesSettings.holder,
+          note: p.note || duesSettings.note,
+        };
+        if (
+          !merged.bank &&
+          !merged.number &&
+          !merged.holder &&
+          !merged.note &&
+          !duesSettings.amount
+        )
+          return "";
+        const line = [merged.bank, merged.number].filter(Boolean).join(" ");
+        const amountLine = duesSettings.amount
+          ? `<div>예상 회비: <b>${formatKRW(duesSettings.amount)}</b></div>`
+          : "";
+        return `
+          <div class="mt-2 text-sm bg-amber-50 border border-amber-200 rounded p-2">
+            <div class="font-semibold text-amber-800">💸 회비/계좌 정보</div>
+            ${
+              line
+                ? `<div class="text-amber-700">${line}${
+                    merged.holder ? ` (예금주 ${merged.holder})` : ""
+                  }</div>`
+                : ""
+            }
+            ${
+              merged.note
+                ? `<div class="text-amber-700">${merged.note}</div>`
+                : ""
+            }
+            ${amountLine}
+          </div>`;
+      }
+
+      function adminFullTableHTML(ev) {
+        const isAdmin =
+          currentUser && adminList.includes(currentUser.studentId);
+        if (!isAdmin || !(ev.type === "mt" || ev.type === "assembly"))
+          return "";
+        const header = `
+          <thead class="text-gray-700">
+            <tr>
+              <th class="px-2 py-1 text-left">이름</th>
+              <th class="px-2 py-1 text-left">학번</th>
+              <th class="px-2 py-1 text-left">성별</th>
+              <th class="px-2 py-1 text-left">학년</th>
+              <th class="px-2 py-1 text-left">단과대</th>
+              <th class="px-2 py-1 text-left">학과</th>
+              <th class="px-2 py-1 text-left">전화번호</th>
+            </tr>
+          </thead>`;
+        const rows = (ev.applicants || [])
+          .map((p) => {
+            const m =
+              (membersData || []).find(
+                (x) => (x.studentId || x.id) === p.studentId
+              ) || {};
+            const nm = m.name || p.name || "",
+              sid = m.studentId || p.studentId || "",
+              g = m.gender || p.gender || "",
+              yr = m.year || p.year || "",
+              col = m.college || p.college || "",
+              dep = m.department || p.department || "",
+              ph = m.phone || p.phone || "";
+            return `<tr class="border-t"><td class="px-2 py-1">${nm}</td><td class="px-2 py-1 font-mono">${sid}</td><td class="px-2 py-1">${g}</td><td class="px-2 py-1">${yr}</td><td class="px-2 py-1">${col}</td><td class="px-2 py-1">${dep}</td><td class="px-2 py-1">${ph}</td></tr>`;
+          })
+          .join("");
+        const body =
+          rows ||
+          `<tr><td class="px-2 py-6 text-center text-gray-400" colspan="7">신청자 없음</td></tr>`;
+        const toolbar = `
+          <div class="flex items-center justify-between mb-2">
+            <div class="text-xs font-semibold text-gray-700">관리자 전용 • 참가자 상세</div>
+            <button type="button" class="text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded" data-act="export-csv" data-id="${ev.id}">
+              <i class="fas fa-file-csv mr-1"></i>CSV 다운로드
+            </button>
+          </div>`;
+        return `
+          <div class="mt-4 border-t pt-3">
+            ${toolbar}
+            <div class="overflow-auto max-h-60 border rounded">
+              <table class="min-w-full text-xs">${header}<tbody>${body}</tbody></table>
+            </div>
+          </div>`;
+      }
+
+      function generalCardHTML(ev) {
+        const count = (ev.applicants || []).length,
+          lim = ev.limit || 0;
         const my = isUserIn(ev.applicants)
           ? "apply"
           : isUserIn(ev.waiting)
           ? "wait"
           : "none";
-
         const btn =
           my === "apply"
             ? `<button type="button" class="w-full mt-3 bg-gray-600 text-white font-bold py-2 rounded" data-act="cancel-general" data-id="${ev.id}">신청 취소</button>`
@@ -1329,50 +1759,76 @@
 
         const namesList = (ev.applicants || [])
           .map(
-            (a) => `<div class="flex items-center gap-2">
-                 <span class="font-mono text-[11px] text-gray-500">${mask(
-                   a.studentId
-                 )}</span>
-                 <span class="text-xs truncate">${a.name}</span>
-               </div>`
+            (a) => `
+            <div class="flex items-center gap-2">
+              <span class="font-mono text-[11px] text-gray-500">${mask(
+                a.studentId
+              )}</span>
+              <span class="text-xs truncate">${a.name}</span>
+            </div>`
+          )
+          .join("");
+        const waitingList = (ev.waiting || [])
+          .map(
+            (a) => `
+            <div class="flex items-center gap-2">
+              <span class="font-mono text-[11px] text-gray-500">${mask(
+                a.studentId
+              )}</span>
+              <span class="text-xs truncate">${a.name}</span>
+            </div>`
           )
           .join("");
 
         return `
-    <div class="bg-white p-6 rounded-xl shadow-md card-hover">
-      <h3 class="text-xl font-bold text-gray-800">${ev.title}</h3>
-      <p class="text-gray-500">🗓️ ${
-        ev.datetime ? new Date(ev.datetime).toLocaleString("ko-KR") : "-"
-      }</p>
-
-      <div class="mt-3">
-        <div class="w-full bg-gray-200 rounded-full h-4">
-          <div class="bg-green-500 h-4 rounded-full" style="width:${
-            lim ? Math.min(100, Math.round((count / lim) * 100)) : 0
-          }%"></div>
-        </div>
-        <p class="text-right text-sm mt-1 text-gray-600">신청: ${count} / ${lim} 명</p>
-      </div>
-
-      ${btn}
-
-      <!-- 👇 참가자 세로 리스트 -->
-      <div class="mt-3">
-        <div class="text-xs font-semibold text-gray-600 mb-1">참가자</div>
-        <div class="max-h-28 overflow-y-auto border rounded bg-gray-50 p-2">
-          ${namesList || '<div class="text-xs text-gray-400">아직 없음</div>'}
-        </div>
-      </div>
-
-      <div class="text-[11px] text-gray-400 mt-2">상태: ${
-        ev.status || "open"
-      }</div>
-      <div class="flex gap-2 mt-2 text-sm text-gray-600">
-        <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-700">event</span>
-      </div>
-      ${adminInline(ev)}
-    </div>`;
+          <div class="bg-white p-6 rounded-xl shadow-md card-hover">
+            <h3 class="text-xl font-bold text-gray-800">${ev.title}</h3>
+            <p class="text-gray-500">🗓️ ${
+              ev.datetime ? new Date(ev.datetime).toLocaleString("ko-KR") : "-"
+            }</p>
+            ${paymentInfoHTML(ev)}
+            <div class="mt-3">
+              <div class="w-full bg-gray-200 rounded-full h-4">
+                <div class="bg-green-500 h-4 rounded-full" style="width:${
+                  lim ? Math.min(100, Math.round((count / lim) * 100)) : 0
+                }%"></div>
+              </div>
+              <p class="text-right text-sm mt-1 text-gray-600">신청: ${count} / ${lim} 명</p>
+            </div>
+            ${btn}
+            <div class="mt-3">
+              <div class="text-xs font-semibold text-gray-600 mb-1">참가자</div>
+              <div class="max-h-28 overflow-y-auto border rounded bg-gray-50 p-2">
+                ${
+                  namesList ||
+                  '<div class="text-xs text-gray-400">아직 없음</div>'
+                }
+              </div>
+            </div>
+            <div class="mt-2">
+              <div class="text-xs font-semibold text-gray-600 mb-1">대기자</div>
+              <div class="max-h-24 overflow-y-auto border rounded bg-amber-50 p-2">
+                ${
+                  waitingList ||
+                  '<div class="text-xs text-amber-400">대기자 없음</div>'
+                }
+              </div>
+            </div>
+            <div class="text-[11px] text-gray-400 mt-2">상태: ${
+              ev.status || "open"
+            }</div>
+            <div class="flex gap-2 mt-2 text-sm text-gray-600">
+              <span class="px-2 py-0.5 rounded ${
+                ev.type === "mt" || ev.type === "assembly"
+                  ? "bg-sky-100 text-sky-700"
+                  : "bg-emerald-100 text-emerald-700"
+              }">${ev.type}</span>
+            </div>
+            ${adminFullTableHTML(ev)}
+            ${adminInline(ev)}
+          </div>`;
       }
+
       function tastingCardHTML(ev) {
         const list = (ev.restaurants || [])
           .map((r) => {
@@ -1386,55 +1842,100 @@
                 (p) => p.studentId === currentUser?.studentId
               );
             const btn = mine
-              ? `<button type=\"button\" class=\"w-full mt-2 bg-gray-600 text-white font-bold py-1.5 rounded\" data-act=\"cancel-tasting\" data-id=\"${ev.id}\" data-rid=\"${r.id}\">신청 취소</button>`
-              : `<button type=\"button\" class=\"w-full mt-2 ${
+              ? `<button type="button" class="w-full mt-2 bg-gray-600 text-white font-bold py-1.5 rounded" data-act="cancel-tasting" data-id="${ev.id}" data-rid="${r.id}">신청 취소</button>`
+              : `<button type="button" class="w-full mt-2 ${
                   cnt < cap ? "bg-green-600" : "bg-amber-500"
-                } text-white font-bold py-1.5 rounded\" data-act=\"reserve-tasting\" data-id=\"${
+                } text-white font-bold py-1.5 rounded" data-act="reserve-tasting" data-id="${
                   ev.id
-                }\" data-rid=\"${r.id}\">${
-                  cnt < cap ? "신청" : "대기"
-                }</button>`;
+                }" data-rid="${r.id}">${cnt < cap ? "신청" : "대기"}</button>`;
+
+            const namesList = (r.reservations || [])
+              .map(
+                (a) => `
+              <div class="flex items-center gap-2">
+                <span class="font-mono text-[11px] text-gray-500">${mask(
+                  a.studentId
+                )}</span>
+                <span class="text-xs truncate">${a.name}</span>
+              </div>`
+              )
+              .join("");
+            const waitingList = (r.waiting || [])
+              .map(
+                (a) => `
+              <div class="flex items-center gap-2">
+                <span class="font-mono text-[11px] text-gray-500">${mask(
+                  a.studentId
+                )}</span>
+                <span class="text-xs truncate">${a.name}</span>
+              </div>`
+              )
+              .join("");
+
             return `<div class="border rounded p-3">
-          <div class="flex justify-between"><div><b>${
-            r.name
-          }</b><div class="text-sm text-gray-500">${
-              r.info || ""
-            }</div></div><div class="text-sm text-gray-600">${cnt}/${cap}</div></div>
-          <div class="w-full bg-gray-200 rounded-full h-3 mt-2"><div class="bg-green-500 h-3 rounded-full" style="width:${
-            cap ? Math.min(100, Math.round((cnt / cap) * 100)) : 0
-          }%"></div></div>
-          ${btn}
-        </div>`;
+            ${
+              r.imageUrl
+                ? `<img src="${r.imageUrl}" alt="${r.name}" class="w-full h-32 object-cover rounded mb-2" onerror="this.style.display='none'">`
+                : ""
+            }
+            <div class="flex justify-between">
+              <div>
+                <b>${r.name}</b>
+                <div class="text-sm text-gray-500">${r.info || ""}</div>
+              </div>
+              <div class="text-sm text-gray-600">${cnt}/${cap}</div>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-3 mt-2">
+              <div class="bg-green-500 h-3 rounded-full" style="width:${
+                cap ? Math.min(100, Math.round((cnt / cap) * 100)) : 0
+              }%"></div>
+            </div>
+            <div class="mt-2">
+              <div class="text-xs font-semibold text-gray-600 mb-1">참가자</div>
+              <div class="max-h-20 overflow-y-auto border rounded bg-gray-50 p-2">${
+                namesList ||
+                '<div class="text-xs text-gray-400">아직 없음</div>'
+              }</div>
+            </div>
+            <div class="mt-2">
+              <div class="text-xs font-semibold text-gray-600 mb-1">대기자</div>
+              <div class="max-h-16 overflow-y-auto border rounded bg-amber-50 p-2">${
+                waitingList ||
+                '<div class="text-xs text-amber-400">대기자 없음</div>'
+              }</div>
+            </div>
+            ${btn}
+          </div>`;
           })
           .join("");
+
         return `
-        <div class="bg-white p-6 rounded-xl shadow-md card-hover">
-          <h3 class="text-xl font-bold text-gray-800">${ev.title}</h3>
-          <p class="text-gray-500">🗓️ ${
-            ev.datetime ? new Date(ev.datetime).toLocaleString("ko-KR") : "-"
-          }</p>
-          <div class="grid grid-cols-1 gap-3 mt-3">${list}</div>
-          <div class="text-xs text-gray-400 mt-3">상태: ${
-            ev.status || "open"
-          }</div>
-          <div class="flex gap-2 mt-2 text-sm text-gray-600"><span class="px-2 py-0.5 rounded bg-purple-100 text-purple-700">tasting</span></div>
-          ${adminInline(ev)}
-        </div>`;
+          <div class="bg-white p-6 rounded-xl shadow-md card-hover">
+            <h3 class="text-xl font-bold text-gray-800">${ev.title}</h3>
+            <p class="text-gray-500">🗓️ ${
+              ev.datetime ? new Date(ev.datetime).toLocaleString("ko-KR") : "-"
+            }</p>
+            <div class="grid grid-cols-1 gap-3 mt-3">${list}</div>
+            <div class="text-xs text-gray-400 mt-3">상태: ${
+              ev.status || "open"
+            }</div>
+            <div class="flex gap-2 mt-2 text-sm text-gray-600"><span class="px-2 py-0.5 rounded bg-purple-100 text-purple-700">tasting</span></div>
+            ${adminInline(ev)}
+          </div>`;
       }
+
       const adminInline = (ev) => {
         const isAdmin =
           currentUser && adminList.includes(currentUser.studentId);
         if (!isAdmin) return "";
         return `<div class="mt-3 flex gap-2">
-        <button type="button" class="text-blue-600 hover:text-blue-800 text-sm" data-act="admin-edit" data-id="${ev.id}"><i class="fas fa-pen"></i> 수정</button>
-        <button type="button" class="text-amber-600 hover:text-amber-800 text-sm" data-act="admin-archive" data-id="${ev.id}"><i class="fas fa-box-archive"></i> 보관</button>
-        <button type="button" class="text-red-600 hover:text-red-800 text-sm" data-act="admin-delete" data-id="${ev.id}"><i class="fas fa-trash"></i> 삭제</button>
-      </div>`;
+          <button type="button" class="text-blue-600 hover:text-blue-800 text-sm"  data-act="admin-edit"    data-id="${ev.id}"><i class="fas fa-pen"></i> 수정</button>
+          <button type="button" class="text-amber-600 hover:text-amber-800 text-sm" data-act="admin-archive" data-id="${ev.id}"><i class="fas fa-box-archive"></i> 보관</button>
+          <button type="button" class="text-red-600 hover:text-red-800 text-sm"    data-act="admin-delete"  data-id="${ev.id}"><i class="fas fa-trash"></i> 삭제</button>
+        </div>`;
       };
 
-      const isUserIn = (arr = []) =>
-        arr.some((p) => p.studentId === currentUser?.studentId);
-
+      /* ===================== 신청 로직 ===================== */
       async function reserveGeneral(id) {
         if (!currentUser) return showAlert("😥", "로그인이 필요합니다.");
         try {
@@ -1476,10 +1977,11 @@
             );
             if (ev.applicants.length < before) {
               if (ev.waiting.length > 0) ev.applicants.push(ev.waiting.shift());
-            } else
+            } else {
               ev.waiting = ev.waiting.filter(
                 (p) => p.studentId !== currentUser.studentId
               );
+            }
             tx.update(ref, { applicants: ev.applicants, waiting: ev.waiting });
           });
           showAlert("🗑️", "신청 취소됨");
@@ -1495,7 +1997,6 @@
             const snap = await tx.get(ref);
             const ev = snap.data();
             ev.restaurants ??= [];
-            // 다른 식당 중복 방지
             const already = ev.restaurants.some((r) =>
               (r.reservations || [])
                 .concat(r.waiting || [])
@@ -1541,10 +2042,11 @@
             );
             if (r.reservations.length < before) {
               if (r.waiting.length > 0) r.reservations.push(r.waiting.shift());
-            } else
+            } else {
               r.waiting = r.waiting.filter(
                 (p) => p.studentId !== currentUser.studentId
               );
+            }
             ev.restaurants[idx] = r;
             tx.update(ref, { restaurants: ev.restaurants });
           });
@@ -1554,76 +2056,578 @@
         }
       }
 
-      /* ========== 보관(명예의 전당) ========== */
-      function renderHistoryTab() {
-        const c = document.getElementById("history-tab");
-        if (!c) return;
-        if (historyData.length === 0) {
-          c.innerHTML = `<div class="text-center py-12"><i class="fas fa-trophy text-5xl text-gray-300"></i><p class="mt-4 text-gray-500">아직 보관된 기록이 없습니다.</p></div>`;
-          return;
+      /* ===================== 이벤트 CRUD ===================== */
+      async function createOrSaveEvent() {
+        const type = document.getElementById("event-type").value;
+        const title = document.getElementById("event-title").value.trim();
+        const datetime = document.getElementById("event-datetime").value;
+        const limit =
+          parseInt(document.getElementById("event-limit").value, 10) || 0;
+        const status = document.getElementById("event-status").value;
+        if (!type || !title || !datetime || !limit)
+          return showAlert("😥", "타입/제목/일시/정원을 모두 입력해주세요.");
+
+        const payment =
+          type === "mt" || type === "assembly"
+            ? {
+                bank: document.getElementById("pay-bank").value.trim(),
+                number: document.getElementById("pay-number").value.trim(),
+                holder: document.getElementById("pay-holder").value.trim(),
+                note: document.getElementById("pay-note").value.trim(),
+              }
+            : null;
+
+        try {
+          if (!editingEventId) {
+            if (type === "tasting") {
+              const rows = [
+                ...document.querySelectorAll(
+                  "#event-restaurants-wrap .restaurant-row"
+                ),
+              ];
+              const restaurants = rows
+                .map((r) => {
+                  const [n, i, cEl] = r.querySelectorAll(
+                    "input[type='text'],input[type='text'],input[type='number']"
+                  );
+                  const urlEl = r.querySelector(".img-url-input");
+                  return {
+                    id: `res_${Math.random().toString(36).slice(2, 9)}`,
+                    name: n.value.trim(),
+                    info: i.value.trim(),
+                    imageUrl: (urlEl.value || "").trim(),
+                    capacity: parseInt(cEl.value, 10) || limit,
+                    reservations: [],
+                    waiting: [],
+                  };
+                })
+                .filter((r) => r.name && r.capacity > 0);
+              if (restaurants.length === 0)
+                return showAlert("😥", "식당을 최소 1개 이상 추가해주세요.");
+              await addDoc(collection(db, "events"), {
+                type,
+                title,
+                datetime,
+                limit,
+                status,
+                restaurants,
+              });
+            } else {
+              const base = {
+                type,
+                title,
+                datetime,
+                limit,
+                status,
+                applicants: [],
+                waiting: [],
+              };
+              if (
+                payment &&
+                (payment.bank ||
+                  payment.number ||
+                  payment.holder ||
+                  payment.note)
+              )
+                base.payment = payment;
+              await addDoc(collection(db, "events"), base);
+            }
+            showAlert("🎉", "이벤트가 생성되었습니다.");
+          } else {
+            const ref = doc(db, "events", editingEventId);
+            const snap = await getDoc(ref);
+            if (!snap.exists()) throw new Error("not found");
+            const prev = snap.data();
+
+            if (type === "tasting") {
+              const map = new Map(
+                (prev.restaurants || []).map((r) => [r.id, r])
+              );
+              const rows = [
+                ...document.querySelectorAll(
+                  "#event-restaurants-wrap .restaurant-row"
+                ),
+              ];
+              const restaurants = rows
+                .map((row) => {
+                  const idAttr =
+                    row.getAttribute("data-id") ||
+                    `res_${Math.random().toString(36).slice(2, 9)}`;
+                  const [n, i, cEl] = row.querySelectorAll(
+                    "input[type='text'],input[type='text'],input[type='number']"
+                  );
+                  const urlEl = row.querySelector(".img-url-input");
+                  const old = map.get(idAttr);
+                  return {
+                    id: idAttr,
+                    name: n.value.trim(),
+                    info: i.value.trim(),
+                    imageUrl: (urlEl.value || "").trim(),
+                    capacity: parseInt(cEl.value, 10) || limit,
+                    reservations: old?.reservations || [],
+                    waiting: old?.waiting || [],
+                  };
+                })
+                .filter((r) => r.name && r.capacity > 0);
+              await updateDoc(ref, {
+                type,
+                title,
+                datetime,
+                limit,
+                status,
+                restaurants,
+              });
+            } else {
+              const payload = { type, title, datetime, limit, status };
+              if (
+                payment &&
+                (payment.bank ||
+                  payment.number ||
+                  payment.holder ||
+                  payment.note)
+              )
+                payload.payment = payment;
+              await updateDoc(ref, payload);
+            }
+            showAlert("✅", "이벤트가 수정되었습니다.");
+          }
+          resetEventForm();
+        } catch {
+          showAlert("😥", "저장 중 오류가 발생했습니다.");
         }
-        c.innerHTML = historyData
-          .map((ev) => {
-            const when = ev.datetime
-              ? new Date(ev.datetime).toLocaleDateString("ko-KR")
-              : "-";
-            const inner = (ev.restaurants || [])
-              .map((r) => {
-                const cnt = (r.reservations || []).length,
-                  cap = r.capacity ?? ev.limit ?? 0;
-                return `<li class="flex justify-between"><span>${r.name}</span><span class="text-sm text-gray-600">${cnt}/${cap}명</span></li>`;
-              })
-              .join("");
-            return `<div class="bg-white p-6 rounded-2xl shadow mb-6">
-          <h3 class="text-xl font-bold text-gray-700">${
-            ev.title
-          } <span class="text-sm text-gray-500">- ${when}</span></h3>
-          <ul class="mt-2 space-y-1">${
-            inner || '<li class="text-gray-500 text-sm">요약 없음</li>'
-          }</ul>
-        </div>`;
-          })
-          .join("");
       }
 
-      /* ========== 건의 탭 ========== */
+      function resetEventForm() {
+        editingEventId = null;
+        document.getElementById("event-type").value = "tasting";
+        document.getElementById("event-title").value = "";
+        document.getElementById("event-datetime").value = "";
+        document.getElementById("event-limit").value = "";
+        document.getElementById("event-status").value = "open";
+        document.getElementById("pay-bank").value = "";
+        document.getElementById("pay-number").value = "";
+        document.getElementById("pay-holder").value = "";
+        document.getElementById("pay-note").value = "";
+        document.getElementById("tasting-fields").classList.remove("hidden");
+        document.getElementById("payment-fields").classList.add("hidden");
+        document.getElementById("event-restaurants-wrap").innerHTML =
+          restaurantFieldHTML();
+      }
+
+      function loadEventToForm(id) {
+        const ev = eventsData.find((e) => e.id === id);
+        if (!ev) return;
+        editingEventId = id;
+        document.getElementById("event-type").value = ev.type;
+        document.getElementById("event-title").value = ev.title || "";
+        document.getElementById("event-datetime").value = ev.datetime || "";
+        document.getElementById("event-limit").value = ev.limit || "";
+        document.getElementById("event-status").value = ev.status || "open";
+        onTypeChange(ev.type);
+
+        const p = ev.payment || {};
+        document.getElementById("pay-bank").value = p.bank || "";
+        document.getElementById("pay-number").value = p.number || "";
+        document.getElementById("pay-holder").value = p.holder || "";
+        document.getElementById("pay-note").value = p.note || "";
+
+        if (ev.type === "tasting") {
+          const wrap = document.getElementById("event-restaurants-wrap");
+          wrap.innerHTML = "";
+          (ev.restaurants || []).forEach((r) => {
+            wrap.insertAdjacentHTML(
+              "beforeend",
+              restaurantFieldHTML(
+                r.name,
+                r.info,
+                r.capacity,
+                r.imageUrl || "",
+                r.id
+              )
+            );
+          });
+        }
+        showAlert("✏️", "폼에 불러왔습니다. 수정 후 [생성/저장]을 누르세요.");
+      }
+
+      async function archiveEvent(id) {
+        if (!confirm("이 이벤트를 보관(archived) 하시겠습니까?")) return;
+        try {
+          const ref = doc(db, "events", id);
+          const snap = await getDoc(ref);
+          if (snap.exists()) {
+            const data = snap.data();
+            await setDoc(doc(db, "history", id), {
+              ...data,
+              archivedAt: serverTimestamp(),
+              status: "archived",
+            });
+          }
+          await updateDoc(ref, { status: "archived" });
+          showAlert("📦", "보관 완료");
+        } catch {
+          showAlert("😥", "보관 실패");
+        }
+      }
+      async function deleteEvent(id) {
+        if (!confirm("정말 삭제하시겠습니까? (되돌릴 수 없음)")) return;
+        try {
+          await deleteDoc(doc(db, "events", id));
+          showAlert("🗑️", "삭제 완료");
+        } catch {
+          showAlert("😥", "삭제 실패");
+        }
+      }
+
+      /* ===================== 보관 탭 (관리자 CRUD + 평가) ===================== */
+      function renderHistoryTab(isAdmin) {
+        const c = document.getElementById("history-tab");
+        if (!c) return;
+
+        const adminPanel = isAdmin
+          ? `
+          <div class="bg-white p-6 rounded-2xl shadow mb-6">
+            <h3 class="text-xl font-bold mb-3 text-gray-800"><i class="fas fa-tools mr-2"></i>보관 관리 (관리자)</h3>
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-2">
+              <input id="h-new-title" class="md:col-span-2 border rounded px-3 py-2" placeholder="제목">
+              <input id="h-new-date" type="date" class="border rounded px-3 py-2">
+              <select id="h-new-type" class="border rounded px-3 py-2">
+                <option value="general">general</option>
+                <option value="tasting">tasting</option>
+                <option value="mt">mt</option>
+                <option value="assembly">assembly</option>
+              </select>
+              <input id="h-new-cover" type="file" accept="image/*" class="border rounded px-3 py-2 bg-white">
+            </div>
+            <textarea id="h-new-summary" class="border rounded px-3 py-2 w-full mt-2" rows="3" placeholder="요약/내용(선택)"></textarea>
+            <button id="h-new-create" class="mt-2 bg-emerald-600 text-white px-4 py-2 rounded">보관 항목 생성</button>
+          </div>`
+          : "";
+
+        const listCards =
+          historyData.length === 0
+            ? `<div class="text-center py-12"><i class="fas fa-trophy text-5xl text-gray-300"></i><p class="mt-4 text-gray-500">아직 보관된 기록이 없습니다.</p></div>`
+            : historyData
+                .map((ev) => {
+                  const when = ev.datetime
+                    ? new Date(ev.datetime).toLocaleDateString("ko-KR")
+                    : ev.archivedAt?.toDate
+                    ? new Date(ev.archivedAt.toDate()).toLocaleDateString(
+                        "ko-KR"
+                      )
+                    : "-";
+                  const inner =
+                    (ev.restaurants || []).length > 0
+                      ? (ev.restaurants || [])
+                          .map((r) => {
+                            const cnt = (r.reservations || []).length,
+                              cap = r.capacity ?? ev.limit ?? 0;
+                            return `<li class="flex justify-between"><span>${r.name}</span><span class="text-sm text-gray-600">${cnt}/${cap}명</span></li>`;
+                          })
+                          .join("")
+                      : (ev.applicants || []).length > 0
+                      ? `<li class="text-sm text-gray-600">신청자 ${
+                          (ev.applicants || []).length
+                        }명</li>`
+                      : `<li class="text-gray-500 text-sm">요약 없음</li>`;
+
+                  const cover = ev.coverUrl
+                    ? `<img src="${ev.coverUrl}" alt="cover" class="w-full h-40 object-cover rounded mb-3">`
+                    : "";
+
+                  const reviews = (ev.reviews || [])
+                    .slice()
+                    .sort((a, b) =>
+                      (b.timestamp || "").localeCompare(a.timestamp || "")
+                    );
+                  const reviewsHTML =
+                    reviews.length === 0
+                      ? `<div class="text-sm text-gray-400">아직 후기가 없습니다.</div>`
+                      : reviews
+                          .map(
+                            (r) => `
+                        <div class="border rounded p-2">
+                          <div class="text-xs text-gray-500 mb-1">평점: ${"⭐".repeat(
+                            Math.max(1, Math.min(5, parseInt(r.rating || 0)))
+                          )} • ${r.name} (${mask(r.studentId)})</div>
+                          <div class="text-sm text-gray-700 whitespace-pre-wrap">${
+                            r.text || ""
+                          }</div>
+                        </div>`
+                          )
+                          .join("");
+
+                  const eligible = isEligibleToReview(ev);
+
+                  const reviewForm = eligible
+                    ? `
+                    <div class="mt-2 border-t pt-2">
+                      <div class="text-sm font-semibold text-gray-700">후기 남기기</div>
+                      <div class="grid grid-cols-1 md:grid-cols-5 gap-2 mt-1">
+                        <select class="h-rating border rounded px-2 py-1">
+                          <option value="5">5</option>
+                          <option value="4">4</option>
+                          <option value="3">3</option>
+                          <option value="2">2</option>
+                          <option value="1">1</option>
+                        </select>
+                        <input class="h-review-title border rounded px-2 py-1 md:col-span-2" placeholder="한줄 제목(선택)">
+                        <input class="h-review-text border rounded px-2 py-1 md:col-span-2" placeholder="후기 내용(최대 300자)">
+                      </div>
+                      <button class="mt-2 text-xs bg-gray-800 text-white px-3 py-1 rounded" data-hact="submit-review" data-id="${ev.id}">등록</button>
+                    </div>`
+                    : "";
+
+                  const adminBtns = isAdmin
+                    ? `<div class="mt-2 flex gap-2">
+                        <button class="text-blue-600 text-sm" data-hact="edit" data-id="${ev.id}"><i class="fas fa-pen"></i> 수정</button>
+                        <button class="text-red-600 text-sm" data-hact="delete" data-id="${ev.id}"><i class="fas fa-trash"></i> 삭제</button>
+                      </div>`
+                    : "";
+
+                  return `<div class="bg-white p-6 rounded-2xl shadow mb-6" data-hid="${
+                    ev.id
+                  }">
+                    ${cover}
+                    <h3 class="text-xl font-bold text-gray-700">${
+                      ev.title || ev.name || "보관 항목"
+                    } <span class="text-sm text-gray-500">- ${when}</span></h3>
+                    ${
+                      ev.summary
+                        ? `<div class="text-sm text-gray-700 mt-2 whitespace-pre-wrap">${ev.summary}</div>`
+                        : ""
+                    }
+                    <ul class="mt-3 space-y-1">${inner}</ul>
+                    <div class="mt-4">
+                      <div class="text-sm font-semibold text-gray-700 mb-1">활동 후기</div>
+                      <div class="space-y-2">${reviewsHTML}</div>
+                      ${reviewForm}
+                    </div>
+                    ${adminBtns}
+                  </div>`;
+                })
+                .join("");
+
+        c.innerHTML = adminPanel + listCards;
+
+        // Admin create
+        if (isAdmin) {
+          c.querySelector("#h-new-create")?.addEventListener(
+            "click",
+            async () => {
+              const title = c.querySelector("#h-new-title").value.trim();
+              const date = c.querySelector("#h-new-date").value;
+              const type = c.querySelector("#h-new-type").value;
+              const summary = c.querySelector("#h-new-summary").value.trim();
+              const file = c.querySelector("#h-new-cover").files?.[0];
+              if (!title) return showAlert("😥", "제목을 입력하세요.");
+              let coverUrl = "";
+              try {
+                if (file) {
+                  const ref = sRef(
+                    storage,
+                    `uploads/history/${Date.now()}_${file.name}`
+                  );
+                  await uploadBytes(ref, file);
+                  coverUrl = await getDownloadURL(ref);
+                }
+                await addDoc(collection(db, "history"), {
+                  title,
+                  datetime: date || new Date().toISOString().slice(0, 16),
+                  type,
+                  summary,
+                  coverUrl,
+                  archivedAt: serverTimestamp(),
+                  status: "archived",
+                });
+                showAlert("🎉", "보관 항목이 생성되었습니다.");
+              } catch (e) {
+                console.warn(e);
+                showAlert("😥", "생성 실패");
+              }
+            }
+          );
+
+          // Admin edit/delete & review submit
+          c.addEventListener("click", async (e) => {
+            const btn = e.target.closest("[data-hact]");
+            if (!btn) return;
+            const hid = btn.dataset.id;
+            const act = btn.dataset.hact;
+            if (act === "delete") {
+              if (!confirm("삭제할까요?")) return;
+              try {
+                await deleteDoc(doc(db, "history", hid));
+                showAlert("🗑️", "삭제되었습니다.");
+              } catch {
+                showAlert("😥", "삭제 실패");
+              }
+            }
+            if (act === "edit") {
+              try {
+                const ref = doc(db, "history", hid);
+                const s = await getDoc(ref);
+                if (!s.exists()) return;
+                const d = s.data();
+                const newTitle = prompt("제목", d.title || "");
+                if (newTitle === null) return;
+                const newDate = prompt(
+                  "날짜(YYYY-MM-DD)",
+                  (d.datetime || "").slice(0, 10)
+                );
+                if (newDate === null) return;
+                const newSummary = prompt("요약/내용", d.summary || "");
+                if (newSummary === null) return;
+                await updateDoc(ref, {
+                  title: newTitle,
+                  datetime: newDate,
+                  summary: newSummary,
+                });
+                showAlert("✅", "수정되었습니다.");
+              } catch {
+                showAlert("😥", "수정 실패");
+              }
+            }
+            if (act === "submit-review") {
+              const card = btn.closest("[data-hid]");
+              const rating = card.querySelector(".h-rating")?.value || "5";
+              const title =
+                card.querySelector(".h-review-title")?.value.trim() || "";
+              const text =
+                card.querySelector(".h-review-text")?.value.trim() || "";
+              if (!text) return showAlert("ℹ️", "후기 내용을 입력해주세요.");
+              try {
+                await runTransaction(db, async (t) => {
+                  const ref = doc(db, "history", hid);
+                  const snap = await t.get(ref);
+                  if (!snap.exists()) throw new Error("notfound");
+                  const cur = snap.data();
+                  const reviews = cur.reviews || [];
+                  if (
+                    reviews.some((r) => r.studentId === currentUser.studentId)
+                  ) {
+                    throw new Error("dup");
+                  }
+                  reviews.push({
+                    studentId: currentUser.studentId,
+                    name: currentUser.name,
+                    rating: parseInt(rating, 10) || 5,
+                    title,
+                    text: text.slice(0, 300),
+                    timestamp: new Date().toISOString(),
+                  });
+                  t.update(ref, { reviews });
+                });
+                showAlert("💬", "후기가 등록되었습니다.");
+              } catch (e) {
+                if (String(e?.message || "").includes("dup"))
+                  showAlert("ℹ️", "이미 후기를 등록하셨습니다.");
+                else showAlert("😥", "후기 등록 실패");
+              }
+            }
+          });
+        } else {
+          // 일반 사용자: 리뷰 등록 버튼만 위임
+          c.addEventListener("click", async (e) => {
+            const btn = e.target.closest("[data-hact='submit-review']");
+            if (!btn) return;
+            const hid = btn.dataset.id;
+            const card = btn.closest("[data-hid]");
+            const rating = card.querySelector(".h-rating")?.value || "5";
+            const title =
+              card.querySelector(".h-review-title")?.value.trim() || "";
+            const text =
+              card.querySelector(".h-review-text")?.value.trim() || "";
+            if (!text) return showAlert("ℹ️", "후기 내용을 입력해주세요.");
+            try {
+              await runTransaction(db, async (t) => {
+                const ref = doc(db, "history", hid);
+                const snap = await t.get(ref);
+                if (!snap.exists()) throw new Error("notfound");
+                const cur = snap.data();
+                // 권한 체크 (신청자만)
+                if (!isEligibleToReview(cur)) throw new Error("noauth");
+                const reviews = cur.reviews || [];
+                if (reviews.some((r) => r.studentId === currentUser.studentId))
+                  throw new Error("dup");
+                reviews.push({
+                  studentId: currentUser.studentId,
+                  name: currentUser.name,
+                  rating: parseInt(rating, 10) || 5,
+                  title,
+                  text: text.slice(0, 300),
+                  timestamp: new Date().toISOString(),
+                });
+                t.update(ref, { reviews });
+              });
+              showAlert("💬", "후기가 등록되었습니다.");
+            } catch (e) {
+              const msg = String(e?.message || "");
+              if (msg.includes("dup"))
+                showAlert("ℹ️", "이미 후기를 등록하셨습니다.");
+              else if (msg.includes("noauth"))
+                showAlert("⛔", "신청자만 후기를 등록할 수 있습니다.");
+              else showAlert("😥", "후기 등록 실패");
+            }
+          });
+        }
+      }
+
+      function isEligibleToReview(ev) {
+        if (!currentUser) return false;
+        const sid = currentUser.studentId;
+        const arr = [];
+        if (Array.isArray(ev.applicants)) arr.push(...ev.applicants);
+        if (Array.isArray(ev.waiting)) arr.push(...ev.waiting);
+        if (Array.isArray(ev.restaurants)) {
+          ev.restaurants.forEach((r) => {
+            if (Array.isArray(r.reservations)) arr.push(...r.reservations);
+            if (Array.isArray(r.waiting)) arr.push(...r.waiting);
+          });
+        }
+        return arr.some((p) => p?.studentId === sid);
+      }
+
+      /* ===================== 건의 탭 ===================== */
       function renderSuggestionsTab(isAdmin) {
         const c = document.getElementById("suggestions-tab");
         if (!c) return;
         c.innerHTML = `
-        <div class="bg-white p-6 rounded-xl shadow">
-          <h3 class="text-2xl font-bold mb-4 text-gray-700">익명 건의함</h3>
-          <div class="flex">
-            <input type="text" id="suggestion-input" class="w-full px-4 py-2 border rounded-l-lg" placeholder="여기에 건의사항을 입력하세요...">
-            <button id="submit-suggestion-button" type="button" class="bg-gray-800 text-white font-semibold px-6 rounded-r-lg hover:bg-gray-700">제출</button>
-          </div>
-          ${
-            isAdmin
-              ? `<div id="suggestions-list" class="mt-6 space-y-3">${
-                  suggestionsData.length
-                    ? suggestionsData
-                        .map(
-                          (s) => `
-                <div class="bg-gray-50 p-3 rounded-lg flex justify-between items-center">
-                  <div class="min-w-0">
-                    <p class="text-gray-700 truncate">${s.text}</p>
-                    <p class="text-right text-xs text-gray-400 mt-1">${
-                      s.timestamp
-                        ? new Date(s.timestamp.toDate()).toLocaleString("ko-KR")
-                        : ""
-                    }</p>
-                  </div>
-                  <button data-id="${
-                    s.id
-                  }" type="button" class="del-suggestion text-red-600 hover:text-red-800 ml-3"><i class="fas fa-trash"></i></button>
-                </div>`
-                        )
-                        .join("")
-                    : `<p class="text-gray-400">등록된 건의사항이 없습니다.</p>`
-                }</div>`
-              : ""
-          }
-        </div>`;
+          <div class="bg-white p-6 rounded-xl shadow">
+            <h3 class="text-2xl font-bold mb-4 text-gray-700">익명 건의함</h3>
+            <div class="flex">
+              <input type="text" id="suggestion-input" class="w-full px-4 py-2 border rounded-l-lg" placeholder="여기에 건의사항을 입력하세요...">
+              <button id="submit-suggestion-button" type="button" class="bg-gray-800 text-white font-semibold px-6 rounded-r-lg hover:bg-gray-700">제출</button>
+            </div>
+            ${
+              isAdmin
+                ? `<div id="suggestions-list" class="mt-6 space-y-3">${
+                    suggestionsData.length
+                      ? suggestionsData
+                          .map(
+                            (s) => `
+                    <div class="bg-gray-50 p-3 rounded-lg flex justify-between items-center">
+                      <div class="min-w-0">
+                        <p class="text-gray-700 truncate">${s.text}</p>
+                        <p class="text-right text-xs text-gray-400 mt-1">${
+                          s.timestamp
+                            ? new Date(s.timestamp.toDate()).toLocaleString(
+                                "ko-KR"
+                              )
+                            : ""
+                        }</p>
+                      </div>
+                      <button data-id="${
+                        s.id
+                      }" type="button" class="del-suggestion text-red-600 hover:text-red-800 ml-3"><i class="fas fa-trash"></i></button>
+                    </div>`
+                          )
+                          .join("")
+                      : `<p class="text-gray-400">등록된 건의사항이 없습니다.</p>`
+                  }</div>`
+                : ""
+            }
+          </div>`;
         document
           .getElementById("submit-suggestion-button")
           .addEventListener("click", submitSuggestion);
@@ -1666,7 +2670,7 @@
         }
       }
 
-      /* ========== 관리자 대시보드 ========== */
+      /* ===================== 관리자 대시보드 ===================== */
       function renderDashboardTab() {
         const c = document.getElementById("dashboard-tab");
         if (!c) return;
@@ -1675,12 +2679,12 @@
         const teamsHTML = teamsData
           .map(
             (t) => `
-        <div class="flex items-center gap-2 bg-gray-50 p-2 rounded-lg">
-          <input id="name-${t.id}" class="flex-1 border rounded px-2 py-1" value="${t.name}">
-          <input id="score-${t.id}" type="number" class="w-24 border rounded px-2 py-1" value="${t.score}">
-          <button type="button" class="px-2 py-1 rounded bg-indigo-600 text-white text-sm" data-act="save-team" data-id="${t.id}">저장</button>
-          <button type="button" class="px-2 py-1 rounded bg-red-600 text-white text-sm" data-act="del-team" data-id="${t.id}"><i class="fas fa-trash"></i></button>
-        </div>`
+          <div class="flex items-center gap-2 bg-gray-50 p-2 rounded-lg">
+            <input id="name-${t.id}"  class="flex-1 border rounded px-2 py-1" value="${t.name}">
+            <input id="score-${t.id}" type="number" class="w-24 border rounded px-2 py-1" value="${t.score}">
+            <button type="button" class="px-2 py-1 rounded bg-indigo-600 text-white text-sm" data-act="save-team" data-id="${t.id}">저장</button>
+            <button type="button" class="px-2 py-1 rounded bg-red-600 text-white text-sm"    data-act="del-team"  data-id="${t.id}"><i class="fas fa-trash"></i></button>
+          </div>`
           )
           .join("");
 
@@ -1688,149 +2692,220 @@
         const roadmapHTML = roadmapData
           .map(
             (r) => `
-        <div class="flex items-center justify-between bg-gray-50 p-2 rounded-lg">
-          <span>${new Date(r.activityDate).toLocaleDateString("ko-KR")} - <b>${
-              r.activityName
-            }</b></span>
-          <div class="flex gap-2">
-            <button type="button" class="text-blue-600" data-act="edit-roadmap" data-id="${
-              r.id
-            }" data-name="${r.activityName}" data-date="${
+          <div class="flex items-center justify-between bg-gray-50 p-2 rounded-lg">
+            <span>${new Date(r.activityDate).toLocaleDateString(
+              "ko-KR"
+            )} - <b>${r.activityName}</b></span>
+            <div class="flex gap-2">
+              <button type="button" class="text-blue-600" data-act="edit-roadmap" data-id="${
+                r.id
+              }" data-name="${r.activityName}" data-date="${
               r.activityDate
             }"><i class="fas fa-pen"></i></button>
-            <button type="button" class="text-red-600" data-act="del-roadmap" data-id="${
-              r.id
-            }"><i class="fas fa-trash"></i></button>
-          </div>
-        </div>`
+              <button type="button" class="text-red-600"  data-act="del-roadmap"  data-id="${
+                r.id
+              }"><i class="fas fa-trash"></i></button>
+            </div>
+          </div>`
           )
           .join("");
 
-        // 임원(관리자) 관리
+        // 관리자 리스트
         const adminsHTML = adminList.length
           ? adminList
               .map(
                 (sid) => `
-          <div class="flex items-center justify-between bg-gray-50 p-2 rounded">
-            <span class="font-mono">${sid}</span>
-            <button type="button" class="text-red-600" data-act="remove-admin" data-id="${sid}"><i class="fas fa-user-minus"></i></button>
-          </div>`
+              <div class="flex items-center justify-between bg-gray-50 p-2 rounded">
+                <span class="font-mono">${sid}</span>
+                <button type="button" class="text-red-600" data-act="remove-admin" data-id="${sid}"><i class="fas fa-user-minus"></i></button>
+              </div>`
               )
               .join("")
           : `<p class="text-gray-400">등록된 관리자가 없습니다.</p>`;
 
+        // 홈 화면 블록
+        const blocksHTML = (blocksData || [])
+          .sort(byOrder)
+          .map(
+            (b, idx) => `
+          <div class="flex items-start justify-between bg-gray-50 p-3 rounded">
+            <div class="min-w-0">
+              <div class="font-semibold">${idx + 1}. [${b.type}] ${
+              b.title || "(제목 없음)"
+            }</div>
+              <div class="text-xs text-gray-500">order: ${
+                b.order ?? (idx + 1) * 10
+              } &middot; id: ${b.id}</div>
+            </div>
+            <div class="flex gap-2 items-center">
+              <label class="text-sm flex items-center gap-1">
+                <input type="checkbox" ${
+                  b.visible !== false ? "checked" : ""
+                } data-block-act="toggle" data-id="${b.id}"> 표시
+              </label>
+              <button class="text-xs bg-white border px-2 py-1 rounded" data-block-act="edit-block" data-id="${
+                b.id
+              }">편집</button>
+              <button class="text-xs bg-white border px-2 py-1 rounded" data-block-act="up" data-id="${
+                b.id
+              }">▲</button>
+              <button class="text-xs bg-white border px-2 py-1 rounded" data-block-act="down" data-id="${
+                b.id
+              }">▼</button>
+              <button class="text-xs bg-red-600 text-white px-2 py-1 rounded" data-block-act="delete" data-id="${
+                b.id
+              }">삭제</button>
+            </div>
+          </div>`
+          )
+          .join("");
+
         c.innerHTML = `
-        <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
-          <div class="bg-white p-6 rounded-xl shadow">
-            <h3 class="text-2xl font-bold mb-4 text-gray-700">조별 점수 관리</h3>
-            <div class="space-y-2">${
-              teamsHTML || '<p class="text-gray-400">등록된 조가 없습니다.</p>'
-            }</div>
-            <hr class="my-4">
-            <div class="flex gap-2">
-              <input id="new-team-name" class="flex-1 border rounded px-3 py-2" placeholder="새 조 이름">
-              <button id="add-team" type="button" class="bg-green-600 text-white px-4 rounded">추가</button>
+          <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            <div class="bg-white p-6 rounded-xl shadow">
+              <h3 class="text-2xl font-bold mb-4 text-gray-700">조별 점수 관리</h3>
+              <div class="space-y-2">${
+                teamsHTML ||
+                '<p class="text-gray-400">등록된 조가 없습니다.</p>'
+              }</div>
+              <hr class="my-4">
+              <div class="flex gap-2">
+                <input id="new-team-name" class="flex-1 border rounded px-3 py-2" placeholder="새 조 이름">
+                <button id="add-team" type="button" class="bg-green-600 text-white px-4 rounded">추가</button>
+              </div>
             </div>
-          </div>
 
-          <div class="bg-white p-6 rounded-xl shadow">
-            <h3 class="text-2xl font-bold mb-4 text-gray-700">활동 로드맵 관리</h3>
-            <div class="space-y-2">${
-              roadmapHTML ||
-              '<p class="text-gray-400">등록된 활동이 없습니다.</p>'
-            }</div>
-            <hr class="my-4">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
-              <input id="new-roadmap-name" class="md:col-span-2 border rounded px-3 py-2" placeholder="활동 이름">
-              <input id="new-roadmap-date" type="date" class="border rounded px-3 py-2">
+            <div class="bg-white p-6 rounded-xl shadow">
+              <h3 class="text-2xl font-bold mb-4 text-gray-700">활동 로드맵 관리</h3>
+              <div class="space-y-2">${
+                roadmapHTML ||
+                '<p class="text-gray-400">등록된 활동이 없습니다.</p>'
+              }</div>
+              <hr class="my-4">
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                <input id="new-roadmap-name" class="md:col-span-2 border rounded px-3 py-2" placeholder="활동 이름">
+                <input id="new-roadmap-date" type="date" class="border rounded px-3 py-2">
+              </div>
+              <button id="add-roadmap" type="button" class="mt-2 bg-green-600 text-white px-4 py-2 rounded">추가</button>
             </div>
-            <button id="add-roadmap" type="button" class="mt-2 bg-green-600 text-white px-4 py-2 rounded">추가</button>
-          </div>
 
-          <div class="bg-white p-6 rounded-xl shadow">
-            <h3 class="text-2xl font-bold mb-4 text-gray-700">임원(관리자) 관리</h3>
-            <div class="space-y-2" id="admins-list">${adminsHTML}</div>
-            <hr class="my-4">
-            <div class="flex gap-2">
-              <input id="new-admin-input" class="flex-1 border rounded px-3 py-2" placeholder="학번 입력">
-              <button id="add-admin-btn" type="button" class="bg-indigo-600 text-white px-4 rounded"><i class="fas fa-user-plus mr-1"></i>추가</button>
+            <div class="bg-white p-6 rounded-xl shadow">
+              <h3 class="text-2xl font-bold mb-4 text-gray-700">임원(관리자) 관리</h3>
+              <div class="space-y-2" id="admins-list">${adminsHTML}</div>
+              <hr class="my-4">
+              <div class="flex gap-2">
+                <input id="new-admin-input" class="flex-1 border rounded px-3 py-2" placeholder="학번 입력">
+                <button id="add-admin-btn" type="button" class="bg-indigo-600 text-white px-4 rounded"><i class="fas fa-user-plus mr-1"></i>추가</button>
+              </div>
             </div>
-          </div>
 
-          <div class="bg-white p-6 rounded-xl shadow">
-            <h3 class="text-2xl font-bold mb-2 text-gray-700">회원 관리</h3>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <div class="md:col-span-2">
-                <h4 class="font-semibold text-gray-700">회원가입 기간 설정</h4>
-                <div class="grid grid-cols-1 sm:grid-cols-5 gap-2 mt-2">
-                  <label class="flex items-center gap-2 sm:col-span-5"><input type="checkbox" id="signup-open" class="w-4 h-4"><span>상시 오픈</span></label>
-                  <input id="signup-start" type="date" class="border rounded px-3 py-2 sm:col-span-2" placeholder="시작일">
-                  <input id="signup-end" type="date" class="border rounded px-3 py-2 sm:col-span-2" placeholder="종료일">
-                  <button id="save-signup" type="button" class="bg-indigo-600 text-white px-4 rounded sm:col-span-1">저장</button>
+            <!-- 회비/계좌 설정 -->
+            <div class="bg-white p-6 rounded-xl shadow">
+              <h3 class="text-2xl font-bold mb-4 text-gray-700">회비/계좌 설정 (회원가입 노출)</h3>
+              <label class="flex items-center gap-2 mb-2"><input type="checkbox" id="dues-enabled"><span>회원가입 창에 회비/계좌 안내 표시</span></label>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                <input id="dues-bank"   class="border rounded px-3 py-2" placeholder="은행명 (예: 국민)">
+                <input id="dues-number" class="border rounded px-3 py-2" placeholder="계좌번호">
+                <input id="dues-holder" class="border rounded px-3 py-2" placeholder="예금주">
+                <input id="dues-amount" class="border rounded px-3 py-2" placeholder="회비 금액 (숫자)">
+              </div>
+              <textarea id="dues-note" class="border rounded px-3 py-2 w-full mt-2" rows="2" placeholder="안내 문구(선택)"></textarea>
+              <button id="save-dues" type="button" class="mt-2 bg-indigo-600 text-white px-4 py-2 rounded">저장</button>
+            </div>
+
+            <!-- 홈 화면 블록 관리 -->
+            <div class="bg-white p-6 rounded-xl shadow xl:col-span-2">
+              <div class="flex items-center justify-between">
+                <h3 class="text-2xl font-bold text-gray-700">홈 화면 블록 관리 (점수/QA/공지 등)</h3>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-4 gap-2 mt-3">
+                <select id="block-type" class="border rounded px-3 py-2">
+                  <option value="scores">scores(조별 점수)</option>
+                  <option value="qa">qa(Q&A)</option>
+                  <option value="notice">notice(공지/자유)</option>
+                </select>
+                <input id="block-title" class="border rounded px-3 py-2 md:col-span-2" placeholder="블록 제목">
+                <input id="block-order" type="number" class="border rounded px-3 py-2" placeholder="order (예: 10)">
+                <button id="add-block" class="bg-green-600 text-white px-4 py-2 rounded md:col-span-4">블록 추가</button>
+              </div>
+              <hr class="my-4">
+              <div id="blocks-list" class="space-y-2">${
+                blocksHTML ||
+                '<p class="text-gray-400">등록된 블록이 없습니다.</p>'
+              }</div>
+            </div>
+
+            <!-- 회원관리 + 엑셀 -->
+            <div class="bg-white p-6 rounded-xl shadow xl:col-span-2">
+              <h3 class="text-2xl font-bold mb-2 text-gray-700">회원 관리</h3>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div class="md:col-span-2">
+                  <h4 class="font-semibold text-gray-700">회원가입 기간 설정</h4>
+                  <div class="grid grid-cols-1 sm:grid-cols-5 gap-2 mt-2">
+                    <label class="flex items-center gap-2 sm:col-span-5"><input type="checkbox" id="signup-open" class="w-4 h-4"><span>상시 오픈</span></label>
+                    <input id="signup-start" type="date" class="border rounded px-3 py-2 sm:col-span-2" placeholder="시작일">
+                    <input id="signup-end" type="date" class="border rounded px-3 py-2 sm:col-span-2" placeholder="종료일">
+                    <button id="save-signup" type="button" class="bg-indigo-600 text-white px-4 rounded sm:col-span-1">저장</button>
+                  </div>
+                  <p class="text-xs text-gray-500 mt-1">* 상시 오픈 체크 시 기간과 무관하게 언제든 가입 가능</p>
                 </div>
-                <p class="text-xs text-gray-500 mt-1">* 상시 오픈 체크 시 기간과 무관하게 언제든 가입 가능</p>
-              </div>
-              <div>
-                <h4 class="font-semibold text-gray-700">수동 회원 추가</h4>
-                <div class="grid grid-cols-2 gap-2 mt-2">
-                  <input id="m-name" class="border rounded px-2 py-1" placeholder="이름">
-                  <select id="m-gender" class="border rounded px-2 py-1">
-                    <option value="">성별</option>
-                    <option value="남">남</option>
-                    <option value="여">여</option>
-                    <option value="기타">기타</option>
-                  </select>
-                  <input id="m-year" type="number" min="1" max="10" class="border rounded px-2 py-1" placeholder="학년">
-                  <input id="m-college" class="border rounded px-2 py-1" placeholder="단과대">
-                  <input id="m-dept" class="border rounded px-2 py-1" placeholder="학과">
-                  <input id="m-sid" class="border rounded px-2 py-1" placeholder="학번">
-                  <input id="m-phone" class="border rounded px-2 py-1 col-span-2" placeholder="전화번호">
+                <div>
+                  <h4 class="font-semibold text-gray-700">수동 회원 추가</h4>
+                  <div class="grid grid-cols-2 gap-2 mt-2">
+                    <input id="m-name" class="border rounded px-2 py-1" placeholder="이름">
+                    <select id="m-gender" class="border rounded px-2 py-1">
+                      <option value="">성별</option><option value="남">남</option><option value="여">여</option><option value="기타">기타</option>
+                    </select>
+                    <input id="m-year" type="number" min="1" max="10" class="border rounded px-2 py-1" placeholder="학년">
+                    <input id="m-college" class="border rounded px-2 py-1" placeholder="단과대">
+                    <input id="m-dept" class="border rounded px-2 py-1" placeholder="학과">
+                    <input id="m-sid" class="border rounded px-2 py-1" placeholder="학번">
+                    <input id="m-phone" class="border rounded px-2 py-1 col-span-2" placeholder="전화번호">
+                  </div>
+                  <button id="add-member-btn" type="button" class="mt-2 bg-green-600 text-white px-3 py-1 rounded w-full">추가</button>
                 </div>
-                <button id="add-member-btn" type="button" class="mt-2 bg-green-600 text-white px-3 py-1 rounded w-full">추가</button>
+              </div>
+
+              <hr class="my-4">
+              <h4 class="font-semibold text-gray-700">엑셀/CSV 일괄 업로드</h4>
+              <p class="text-sm text-gray-500">열 이름(한국어/영어 어느 쪽도 가능): <b>이름/name</b>, <b>성별/gender</b>, <b>학년/year</b>, <b>단과대/college</b>, <b>학과/department/major</b>, <b>학번/studentId</b>, <b>전화번호/phone</b></p>
+              <div class="flex flex-col sm:flex-row gap-2 mt-2">
+                <input id="excel-file" type="file" accept=".xlsx,.csv" class="border rounded px-3 py-2 bg-white">
+                <button id="preview-excel" type="button" class="bg-gray-700 text-white px-4 rounded">미리보기</button>
+                <button id="import-excel"  type="button" class="bg-emerald-600 text-white px-4 rounded" disabled>업로드</button>
+              </div>
+              <div id="excel-preview" class="text-sm text-gray-600 mt-2"></div>
+
+              <hr class="my-4">
+              <div class="flex items-center justify-between mb-3">
+                <h3 class="text-2xl font-bold text-gray-700">회원 명부</h3>
+                <div class="flex gap-2 items-center">
+                  <input id="member-search" class="border rounded px-3 py-2" placeholder="검색: 이름/학과/학번/전화">
+                  <button id="export-xlsx"   type="button" class="bg-blue-600 text-white px-4 rounded">전체 명부 엑셀 다운로드</button>
+                  <span class="text-sm text-gray-500" id="member-count"></span>
+                </div>
+              </div>
+              <div class="overflow-auto max-h-[540px] border rounded-lg">
+                <table class="min-w-full table-auto text-sm">
+                  <thead class="table-sticky text-gray-700">
+                    <tr>
+                      <th class="px-2 py-2 text-left">이름</th>
+                      <th class="px-2 py-2 text-left">성별</th>
+                      <th class="px-2 py-2 text-left">학년</th>
+                      <th class="px-2 py-2 text-left">단과대</th>
+                      <th class="px-2 py-2 text-left">학과</th>
+                      <th class="px-2 py-2 text-left">학번</th>
+                      <th class="px-2 py-2 text-left">전화번호</th>
+                      <th class="px-2 py-2 text-center w-32">관리</th>
+                    </tr>
+                  </thead>
+                  <tbody id="members-tbody" class="divide-y"></tbody>
+                </table>
               </div>
             </div>
+          </div>`;
 
-            <hr class="my-4">
-            <h4 class="font-semibold text-gray-700">엑셀/CSV 일괄 업로드</h4>
-            <p class="text-sm text-gray-500">열 이름(한국어/영어 어느 쪽도 가능): <b>이름/name</b>, <b>성별/gender</b>, <b>학년/year</b>, <b>단과대/college</b>, <b>학과/department/major</b>, <b>학번/studentId</b>, <b>전화번호/phone</b></p>
-            <div class="flex flex-col sm:flex-row gap-2 mt-2">
-              <input id="excel-file" type="file" accept=".xlsx,.csv" class="border rounded px-3 py-2 bg-white">
-              <button id="preview-excel" type="button" class="bg-gray-700 text-white px-4 rounded">미리보기</button>
-              <button id="import-excel" type="button" class="bg-emerald-600 text-white px-4 rounded" disabled>업로드</button>
-              <button id="export-xlsx" type="button" class="bg-blue-600 text-white px-4 rounded">전체 명부 엑셀 다운로드</button>
-            </div>
-            <div id="excel-preview" class="text-sm text-gray-600 mt-2"></div>
-          </div>
-
-          <div class="bg-white p-6 rounded-xl shadow xl:col-span-2">
-            <div class="flex items-center justify-between mb-3">
-              <h3 class="text-2xl font-bold text-gray-700">회원 명부</h3>
-              <div class="flex gap-2 items-center">
-                <input id="member-search" class="border rounded px-3 py-2" placeholder="검색: 이름/학과/학번/전화">
-                <span class="text-sm text-gray-500" id="member-count"></span>
-              </div>
-            </div>
-            <div class="overflow-auto max-h-[540px] border rounded-lg">
-              <table class="min-w-full table-auto text-sm">
-                <thead class="table-sticky text-gray-700">
-                  <tr>
-                    <th class="px-2 py-2 text-left">이름</th>
-                    <th class="px-2 py-2 text-left">성별</th>
-                    <th class="px-2 py-2 text-left">학년</th>
-                    <th class="px-2 py-2 text-left">단과대</th>
-                    <th class="px-2 py-2 text-left">학과</th>
-                    <th class="px-2 py-2 text-left">학번</th>
-                    <th class="px-2 py-2 text-left">전화번호</th>
-                    <th class="px-2 py-2 text-center w-32">관리</th>
-                  </tr>
-                </thead>
-                <tbody id="members-tbody" class="divide-y"></tbody>
-              </table>
-            </div>
-          </div>
-        </div>`;
-
-        // 바인딩
+        // 버튼 바인딩
         c.addEventListener("click", (e) => {
           const b = e.target.closest("button[data-act]");
           if (!b) return;
@@ -1854,13 +2929,10 @@
         document
           .getElementById("add-roadmap")
           .addEventListener("click", addRoadmap);
-
-        // Admins
         document
           .getElementById("add-admin-btn")
           .addEventListener("click", addAdmin);
 
-        // Signup settings 초기값
         document.getElementById("signup-open").checked = !!signupSettings.open;
         document.getElementById("signup-start").value =
           signupSettings.start || "";
@@ -1869,12 +2941,51 @@
           .getElementById("save-signup")
           .addEventListener("click", saveSignupSettings);
 
-        // Members manual
+        // 회비/계좌 설정 초기값
+        document.getElementById("dues-enabled").checked =
+          !!duesSettings.enabled;
+        document.getElementById("dues-bank").value = duesSettings.bank || "";
+        document.getElementById("dues-number").value =
+          duesSettings.number || "";
+        document.getElementById("dues-holder").value =
+          duesSettings.holder || "";
+        document.getElementById("dues-amount").value =
+          duesSettings.amount || "";
+        document.getElementById("dues-note").value = duesSettings.note || "";
+        document
+          .getElementById("save-dues")
+          .addEventListener("click", saveDuesSettings);
+
+        // 블록 관리
+        document
+          .getElementById("add-block")
+          .addEventListener("click", () => openBlockModal());
+        document
+          .getElementById("blocks-list")
+          .addEventListener("click", (e) => {
+            const id =
+              e.target.dataset.id || e.target.closest("[data-id]")?.dataset.id;
+            if (!id) return;
+            const act = e.target.dataset.blockAct;
+            if (act === "toggle") {
+              const chk = e.target;
+              updateDoc(doc(db, "homepageBlocks", id), {
+                visible: chk.checked,
+              });
+            }
+            if (act === "edit-block") openBlockModal(id);
+            if (act === "delete") {
+              if (confirm("블록을 삭제할까요?"))
+                deleteDoc(doc(db, "homepageBlocks", id));
+            }
+            if (act === "up") moveBlock(id, -1);
+            if (act === "down") moveBlock(id, 1);
+          });
+
+        // Members manual & excel
         document
           .getElementById("add-member-btn")
           .addEventListener("click", addMemberManual);
-
-        // Excel import/export
         document
           .getElementById("preview-excel")
           .addEventListener("click", previewExcel);
@@ -1885,28 +2996,166 @@
           .getElementById("export-xlsx")
           .addEventListener("click", exportMembersXLSX);
 
-        // Members list behaviors
         document
           .getElementById("member-search")
           .addEventListener("input", (e) => {
             memberSearchTerm = e.target.value.toLowerCase();
             renderMembersTable();
           });
-        const listBox = document.getElementById("members-tbody");
-        listBox.addEventListener("click", (e) => {
-          const btn = e.target.closest("button[data-mem-act]");
-          if (!btn) return;
-          const act = btn.dataset.memAct;
-          const sid = btn.dataset.id;
-          if (act === "edit") editMemberPrompt(sid);
-          if (act === "delete") deleteMember(sid);
-        });
 
         // 첫 렌더
         renderMembersTable();
+
+        // ====== 회원 명부 버그 수정: 수정/삭제 버튼 작동 ======
+        document
+          .getElementById("members-tbody")
+          .addEventListener("click", (e) => {
+            const btn = e.target.closest("button[data-mem-act]");
+            if (!btn) return;
+            const act = btn.dataset.memAct;
+            const sid = btn.dataset.id;
+            if (act === "edit") editMemberPrompt(sid);
+            if (act === "delete") deleteMember(sid);
+          });
       }
 
-      /* 조별 점수 CRUD */
+      /* ===== 블록 관리 모달 로직 ===== */
+      function openBlockModal(editId = null) {
+        bmEditingId = editId;
+        el.bmTitleText.textContent = editId ? "블록 수정" : "블록 추가";
+        const preset =
+          editId && blocksData.find((b) => b.id === editId)
+            ? blocksData.find((b) => b.id === editId)
+            : {
+                type: document.getElementById("block-type")?.value || "scores",
+              };
+        el.bmType.value = preset.type || "scores";
+        el.bmOrder.value = preset.order ?? (blocksData.length + 1) * 10;
+        el.bmTitle.value = preset.title || "";
+        el.bmVisible.checked = preset.visible !== false;
+
+        // reset type sections
+        el.bmNotice.classList.add("hidden-el");
+        el.bmQA.classList.add("hidden-el");
+        el.bmScores.classList.add("hidden-el");
+        el.bmNoticeHtml.value = "";
+        el.bmQAWhy.value = "";
+        el.bmQAHow.value = "";
+        el.bmScoresEvent.value = "";
+        el.bmTeamsWrap.innerHTML = "";
+
+        const t = el.bmType.value;
+        if (t === "notice") {
+          el.bmNotice.classList.remove("hidden-el");
+          el.bmNoticeHtml.value = preset.payload?.html || "";
+        } else if (t === "qa") {
+          el.bmQA.classList.remove("hidden-el");
+          el.bmQAWhy.value = (preset.payload?.why || []).join("\n");
+          el.bmQAHow.value = (preset.payload?.how || []).join("\n");
+        } else if (t === "scores") {
+          el.bmScores.classList.remove("hidden-el");
+          el.bmScoresEvent.value = preset.payload?.eventTitle || "";
+          const teams = preset.payload?.teams || [];
+          if (teams.length === 0) addBMScoresRow();
+          else teams.forEach((x) => addBMScoresRow(x.name, x.score));
+        }
+
+        // type switch
+        el.bmType.onchange = () => openBlockModal(bmEditingId);
+
+        // add team row
+        el.bmAddTeam.onclick = () => addBMScoresRow();
+
+        // Save/Cancel
+        el.bmSave.onclick = saveBlockFromModal;
+        el.bmCancel.onclick = () => el.bmModal.classList.add("hidden");
+
+        el.bmModal.classList.remove("hidden");
+      }
+      function addBMScoresRow(name = "", score = 0) {
+        const row = document.createElement("div");
+        row.className = "flex items-center gap-2";
+        row.innerHTML = `
+          <input class="bm-team-name flex-1 border rounded px-2 py-1" value="${name}" placeholder="조 이름">
+          <input class="bm-team-score w-24 border rounded px-2 py-1" type="number" value="${score}">
+          <button class="bm-team-del text-red-600"><i class="fas fa-trash"></i></button>`;
+        row.querySelector(".bm-team-del").onclick = () => row.remove();
+        el.bmTeamsWrap.appendChild(row);
+      }
+      async function saveBlockFromModal() {
+        const type = el.bmType.value;
+        const title =
+          el.bmTitle.value.trim() ||
+          (type === "scores"
+            ? "조별 점수 실시간 현황"
+            : type === "qa"
+            ? "Foodie Q&A"
+            : "공지");
+        const order =
+          parseInt(el.bmOrder.value, 10) || (blocksData.length + 1) * 10;
+        const visible = el.bmVisible.checked;
+        const base = { type, title, order, visible };
+
+        if (type === "notice") {
+          base.payload = { html: el.bmNoticeHtml.value || "<p>내용</p>" };
+        } else if (type === "qa") {
+          const why = el.bmQAWhy.value
+            .split(/\n/)
+            .map((s) => s.trim())
+            .filter(Boolean);
+          const how = el.bmQAHow.value
+            .split(/\n/)
+            .map((s) => s.trim())
+            .filter(Boolean);
+          base.payload = { why, how };
+        } else if (type === "scores") {
+          const rows = [
+            ...el.bmTeamsWrap.querySelectorAll(".bm-team-name"),
+          ].map((_, i) => i);
+          const teams = rows
+            .map((i) => {
+              const name = el.bmTeamsWrap
+                .querySelectorAll(".bm-team-name")
+                [i].value.trim();
+              const score =
+                parseInt(
+                  el.bmTeamsWrap.querySelectorAll(".bm-team-score")[i].value,
+                  10
+                ) || 0;
+              return { name, score };
+            })
+            .filter((x) => x.name);
+          base.payload = { eventTitle: el.bmScoresEvent.value.trim(), teams };
+        }
+
+        try {
+          if (bmEditingId) {
+            await updateDoc(doc(db, "homepageBlocks", bmEditingId), base);
+          } else {
+            await addDoc(collection(db, "homepageBlocks"), base);
+          }
+          el.bmModal.classList.add("hidden");
+          showAlert("✅", "블록이 저장되었습니다.");
+        } catch {
+          showAlert("😥", "저장 실패");
+        }
+      }
+
+      async function moveBlock(id, delta) {
+        const ordered = [...blocksData].sort(byOrder);
+        const idx = ordered.findIndex((b) => b.id === id);
+        if (idx < 0) return;
+        const j = Math.max(0, Math.min(ordered.length - 1, idx + delta));
+        [ordered[idx], ordered[j]] = [ordered[j], ordered[idx]];
+        for (let k = 0; k < ordered.length; k++) {
+          const b = ordered[k];
+          await updateDoc(doc(db, "homepageBlocks", b.id), {
+            order: (k + 1) * 10,
+          });
+        }
+      }
+
+      /* ===== 조별 점수 CRUD ===== */
       async function saveTeam(id) {
         const name = document.getElementById(`name-${id}`).value.trim();
         const score = parseInt(
@@ -1942,6 +3191,7 @@
           showAlert("😥", "실패");
         }
       }
+
       async function addRoadmap() {
         const n = document.getElementById("new-roadmap-name").value.trim();
         const d = document.getElementById("new-roadmap-date").value;
@@ -2035,7 +3285,28 @@
         }
       }
 
-      /* 수동 회원 추가(확장) */
+      /* 회비/계좌 설정 저장 */
+      async function saveDuesSettings() {
+        const enabled = document.getElementById("dues-enabled").checked;
+        const bank = document.getElementById("dues-bank").value.trim();
+        const number = document.getElementById("dues-number").value.trim();
+        const holder = document.getElementById("dues-holder").value.trim();
+        const amount = document.getElementById("dues-amount").value.trim();
+        const note = document.getElementById("dues-note").value.trim();
+        try {
+          await setDoc(
+            doc(db, "settings", "dues"),
+            { enabled, bank, number, holder, amount, note },
+            { merge: true }
+          );
+          showAlert("✅", "회비/계좌 정보 저장됨");
+          renderDuesInfoBox();
+        } catch {
+          showAlert("😥", "저장 실패");
+        }
+      }
+
+      /* 수동 회원 추가 */
       async function addMemberManual() {
         const sid = document.getElementById("m-sid").value.trim();
         const name = document.getElementById("m-name").value.trim();
@@ -2044,7 +3315,6 @@
         const college = document.getElementById("m-college").value.trim();
         const department = document.getElementById("m-dept").value.trim();
         const phone = document.getElementById("m-phone").value.trim();
-
         if (
           !sid ||
           !name ||
@@ -2109,7 +3379,6 @@
             const wb = XLSX.read(data, { type: "array" });
             const ws = wb.Sheets[wb.SheetNames[0]];
             const json = XLSX.utils.sheet_to_json(ws, { defval: "" });
-            // 필수 컬럼 정규화(한국어/영어 혼용 대응)
             excelRows = json
               .map((r) => ({
                 name: valFromKeys(r, ["이름", "name", "성명", "NM"]),
@@ -2183,16 +3452,13 @@
           showAlert("😥", "업로드 실패");
         }
       }
-
       async function exportMembersXLSX() {
         try {
-          // 최신 스냅샷 사용(없으면 한번 조회)
           let arr = membersData;
           if (!arr || arr.length === 0) {
             const snap = await getDocs(collection(db, "members"));
             arr = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
           }
-          // 컬럼 순서 고정: 이름, 성별, 학년, 단과대, 학과, 학번, 전화번호
           const headers = [
             "이름",
             "성별",
@@ -2230,7 +3496,7 @@
       function renderMembersTable() {
         const tbody = document.getElementById("members-tbody");
         const countEl = document.getElementById("member-count");
-        if (!tbody) return; // 아직 대시보드가 안 열렸을 때
+        if (!tbody) return;
         const list = (membersData || []).filter((m) => {
           if (!memberSearchTerm) return true;
           const hay = `${m.name || ""} ${m.department || ""} ${
@@ -2245,27 +3511,28 @@
             : list
                 .map(
                   (m) => `
-          <tr class="hover:bg-gray-50">
-            <td class="px-2 py-2">${m.name || ""}</td>
-            <td class="px-2 py-2">${m.gender || ""}</td>
-            <td class="px-2 py-2">${m.year || ""}</td>
-            <td class="px-2 py-2">${m.college || ""}</td>
-            <td class="px-2 py-2">${m.department || ""}</td>
-            <td class="px-2 py-2 font-mono">${m.studentId || m.id || ""}</td>
-            <td class="px-2 py-2">${m.phone || ""}</td>
-            <td class="px-2 py-2 text-center">
-              <button class="text-blue-600 hover:text-blue-800 text-xs" data-mem-act="edit" data-id="${
-                m.studentId || m.id
-              }"><i class="fas fa-pen mr-1"></i>수정</button>
-              <button class="text-red-600 hover:text-red-800 text-xs ml-2" data-mem-act="delete" data-id="${
-                m.studentId || m.id
-              }"><i class="fas fa-trash mr-1"></i>삭제</button>
-            </td>
-          </tr>`
+              <tr class="hover:bg-gray-50">
+                <td class="px-2 py-2">${m.name || ""}</td>
+                <td class="px-2 py-2">${m.gender || ""}</td>
+                <td class="px-2 py-2">${m.year || ""}</td>
+                <td class="px-2 py-2">${m.college || ""}</td>
+                <td class="px-2 py-2">${m.department || ""}</td>
+                <td class="px-2 py-2 font-mono">${
+                  m.studentId || m.id || ""
+                }</td>
+                <td class="px-2 py-2">${m.phone || ""}</td>
+                <td class="px-2 py-2 text-center">
+                  <button class="text-blue-600 hover:text-blue-800 text-xs" data-mem-act="edit" data-id="${
+                    m.studentId || m.id
+                  }"><i class="fas fa-pen mr-1"></i>수정</button>
+                  <button class="text-red-600 hover:text-red-800 text-xs ml-2" data-mem-act="delete" data-id="${
+                    m.studentId || m.id
+                  }"><i class="fas fa-trash mr-1"></i>삭제</button>
+                </td>
+              </tr>`
                 )
                 .join("");
       }
-
       async function editMemberPrompt(sid) {
         try {
           const ref = doc(db, "members", sid);
@@ -2323,23 +3590,46 @@
         .addEventListener("click", openSignupModal);
       document
         .getElementById("signup-confirm-button")
-        .addEventListener("click", confirmSignup);
+        .addEventListener("click", () => confirmSignup(false));
       document
         .getElementById("signup-cancel-button")
-        .addEventListener("click", closeSignupModal);
-
-      document
-        .querySelectorAll(".accordion-header")
-        .forEach((h) => h.addEventListener("click", () => toggleAccordion(h)));
+        .addEventListener("click", () =>
+          el.signupModal.classList.add("hidden")
+        );
       document
         .getElementById("modal-close-button")
-        .addEventListener("click", closeModal);
+        .addEventListener("click", () => el.alert.classList.add("hidden"));
       document
         .getElementById("emergency-add-button")
         .addEventListener("click", emergencyAddAdmin);
       document
         .getElementById("emergency-cancel-button")
-        .addEventListener("click", closeEmergencyModal);
+        .addEventListener("click", () => el.emerg.classList.add("hidden"));
+
+      // 회비 확인 모달 버튼
+      document
+        .getElementById("dues-proceed-button")
+        .addEventListener("click", () => {
+          el.duesModal.classList.add("hidden");
+          confirmSignup(true);
+        });
+      document
+        .getElementById("dues-copy-button")
+        .addEventListener("click", async () => {
+          const d = duesSettings || {};
+          const text = `${d.bank || ""} ${d.number || ""}${
+            d.holder ? ` (${d.holder})` : ""
+          }`;
+          try {
+            await navigator.clipboard.writeText(text.trim());
+            showAlert("📋", "계좌 정보가 복사되었습니다.");
+          } catch {
+            showAlert("ℹ️", "복사 실패. 수동으로 복사해주세요.");
+          }
+        });
+      document
+        .getElementById("dues-cancel-button")
+        .addEventListener("click", () => el.duesModal.classList.add("hidden"));
 
       async function emergencyAddAdmin() {
         const newId = document.getElementById("new-admin-id").value.trim();
@@ -2352,22 +3642,54 @@
             else t.update(ref, { studentIds: arrayUnion(newId) });
           });
           showAlert("🎉", `비상 관리자(${newId}) 임명 완료`);
-          closeEmergencyModal();
+          el.emerg.classList.add("hidden");
         } catch {
           showAlert("😥", "임명 실패");
         }
       }
 
+      /* ========== CSV (이벤트 신청자) 다운로드 ========== */
+      async function exportApplicantsCSV(eventId) {
+        try {
+          const ref = doc(db, "events", eventId);
+          const snap = await getDoc(ref);
+          if (!snap.exists()) return showAlert("⛔", "이벤트 없음");
+          const ev = snap.data();
+          let rows = [
+            ["이벤트", ev.title || "", "", ""],
+            ["구분", "이름", "학번", "상태"],
+          ];
+          if (ev.type === "tasting") {
+            (ev.restaurants || []).forEach((r) => {
+              (r.reservations || []).forEach((p) => {
+                rows.push([r.name, p.name, p.studentId, "확정"]);
+              });
+              (r.waiting || []).forEach((p) => {
+                rows.push([r.name, p.name, p.studentId, "대기"]);
+              });
+            });
+          } else {
+            (ev.applicants || []).forEach((p) =>
+              rows.push(["일반", p.name, p.studentId, "확정"])
+            );
+            (ev.waiting || []).forEach((p) =>
+              rows.push(["일반", p.name, p.studentId, "대기"])
+            );
+          }
+          const ws = XLSX.utils.aoa_to_sheet(rows);
+          const wb = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(wb, ws, "신청자");
+          const ymd = new Date().toISOString().slice(0, 10).replaceAll("-", "");
+          XLSX.writeFile(wb, `Event_${ev.title || "no-title"}_${ymd}.csv`);
+        } catch (e) {
+          console.warn(e);
+          showAlert("😥", "CSV 내보내기 실패");
+        }
+      }
+
       // 시작
       main();
-      Object.assign(window, {
-        login,
-        logout,
-        showTab,
-        toggleAccordion,
-        closeModal,
-        closeEmergencyModal,
-      });
+      Object.assign(window, { login, logout, showTab, toggleAccordion });
     </script>
   </body>
 </html>
