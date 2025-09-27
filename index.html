@@ -10,7 +10,7 @@
     <meta name="theme-color" content="#6366f1" />
     <title>Foodie Lounge</title>
 
-    <!-- ▶︎ 파비콘/앱 아이콘 (프로젝트에 파일 올리고 경로 맞춰 쓰세요) -->
+    <!-- ▶︎ 파비콘/앱 아이콘 -->
     <link
       rel="icon"
       type="image/png"
@@ -245,6 +245,12 @@
         font-size: 12px;
         border-radius: 0.5rem;
       }
+
+      /* Presence pop */
+      #presence-pop {
+        position: absolute;
+        transform: translateY(8px);
+      }
     </style>
   </head>
   <body class="bg-gray-100 flex flex-col min-h-screen">
@@ -260,10 +266,29 @@
     <div
       class="container mx-auto px-3 sm:px-4 md:px-6 py-4 md:py-8 flex-grow max-w-6xl"
     >
-      <header class="text-center mb-6 md:mb-10">
-        <h1 class="text-3xl md:text-5xl font-bold text-gray-800">
-          Foodie Lounge
-        </h1>
+      <header class="text-center mb-6 md:mb-10 relative">
+        <div class="flex items-center justify-center gap-2 flex-wrap">
+          <h1 class="text-3xl md:text-5xl font-bold text-gray-800">
+            Foodie Lounge
+          </h1>
+          <!-- 관리자 전용 접속자 배지 -->
+          <button
+            id="presence-badge"
+            class="hidden text-sm md:text-base bg-gray-800 text-white rounded-full px-3 py-1 hover:bg-gray-700"
+          >
+            👥 접속 <b id="presence-count">0</b>명
+          </button>
+        </div>
+        <!-- 팝오버 -->
+        <div
+          id="presence-pop"
+          class="hidden right-0 left-0 mx-auto md:left-auto md:right-10 md:mx-0 w-full max-w-xs bg-white border rounded-xl shadow-xl p-3 z-30"
+        >
+          <div class="text-sm font-semibold text-gray-700 mb-2">
+            현재 접속자
+          </div>
+          <div id="presence-list" class="max-h-64 overflow-auto text-sm"></div>
+        </div>
         <p class="text-gray-600 mt-2 text-base md:text-lg">
           맛집 탐방 전, 필수 체크인 ✈️
         </p>
@@ -489,7 +514,7 @@
             type="button"
             class="flex-1 bg-indigo-600 text-white font-bold py-2.5 px-4 rounded-lg hover:bg-indigo-700"
           >
-            가입하기
+            가입 신청
           </button>
           <button
             id="signup-cancel-button"
@@ -563,7 +588,6 @@
         serverTimestamp,
         writeBatch,
         getDocs,
-        arrayUnion,
       } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
       /* ▶︎ Storage(이미지 업로드용) */
       import {
@@ -613,9 +637,12 @@
         eventsData = [];
       let membersData = [];
       let blocksData = [];
+      let presenceData = [];
+      let onlineUsers = [];
       let memberSearchTerm = "";
       let editingEventId = null;
       let roadmapShowAll = false;
+      let presenceTimer = null;
 
       const el = {
         loading: document.getElementById("loading-screen"),
@@ -634,6 +661,10 @@
         duesBoxContent: document.getElementById("dues-box-content"),
         duesModal: document.getElementById("dues-modal"),
         duesModalBody: document.getElementById("dues-modal-body"),
+        presenceBadge: document.getElementById("presence-badge"),
+        presenceCount: document.getElementById("presence-count"),
+        presencePop: document.getElementById("presence-pop"),
+        presenceList: document.getElementById("presence-list"),
       };
       const showAlert = (icon, msg) => {
         el.alertIcon.innerHTML = icon || "ℹ️";
@@ -663,6 +694,7 @@
         members: null,
         dues: null,
         blocks: null,
+        presence: null,
       };
       const clearAll = () =>
         Object.keys(unsub).forEach((k) => {
@@ -739,6 +771,13 @@
         const v = Number(n || 0);
         return isNaN(v) ? "" : v.toLocaleString("ko-KR") + "원";
       };
+      const timeAgo = (ms) => {
+        const diff = (Date.now() - ms) / 1000;
+        if (diff < 60) return `${Math.max(0, Math.floor(diff))}초 전`;
+        const m = diff / 60;
+        if (m < 60) return `${Math.floor(m)}분 전`;
+        return `${Math.floor(m / 60)}시간 전`;
+      };
 
       /* ========== 인증 ========== */
       async function login() {
@@ -757,24 +796,38 @@
               "등록된 회원이 아닙니다. 회원가입 기간에 <b>회원가입</b> 버튼으로 가입해주세요."
             );
           const data = ms.data() || {};
-          if (data.status === "blocked")
-            return showAlert(
-              "⛔",
-              "접근이 제한된 회원입니다. 운영진에 문의해주세요."
-            );
-          if ((data.name || "").trim() !== nm)
+          const nameOk = (data.name || "").trim() === nm;
+          if (!nameOk)
             return showAlert(
               "🙅‍♂️",
               "입력한 이름이 회원 정보와 일치하지 않습니다. 운영진에게 수정 요청해주세요."
             );
+          const status = data.status || "active"; // 기존 회원은 승인된 것으로 간주
+          if (status === "pending")
+            return showAlert(
+              "⏳",
+              "<b>관리자 승인 대기중</b>입니다. 승인이 완료되면 로그인할 수 있어요."
+            );
+          if (status === "rejected")
+            return showAlert(
+              "⛔",
+              "가입이 거절되었습니다. 운영진에 문의해주세요."
+            );
+          if (status === "blocked")
+            return showAlert(
+              "⛔",
+              "접근이 제한된 회원입니다. 운영진에 문의해주세요."
+            );
 
+          // 로그인 성공
           localStorage.setItem(
             "foodieUser",
             JSON.stringify({ studentId: sid, name: nm })
           );
           currentUser = { studentId: sid, name: nm };
+          startPresence();
           renderAll();
-          setupListeners();
+          setupListeners(); // 데이터 구독 재시작
         } catch (e) {
           console.warn(e);
           showAlert("😥", "로그인 중 오류가 발생했습니다.");
@@ -782,6 +835,7 @@
       }
       const logout = async () => {
         try {
+          stopPresence();
           clearAll();
           localStorage.removeItem("foodieUser");
           await signOut(auth);
@@ -795,9 +849,31 @@
         } catch (e) {
           console.warn("auth fail:", e?.message || e);
         } finally {
+          // 자동 로그인: 저장된 사용자로 상태 세팅 후 서버 데이터로 재검증
+          const saved = JSON.parse(
+            localStorage.getItem("foodieUser") || "null"
+          );
+          if (saved) {
+            currentUser = saved;
+            verifyAutoLogin(saved).catch(() => {});
+            startPresence();
+          }
           setupListeners();
           setTimeout(() => el.loading.classList.add("hidden"), 700);
           renderAll();
+        }
+      }
+      async function verifyAutoLogin(saved) {
+        try {
+          const mref = doc(db, "members", saved.studentId);
+          const ms = await getDoc(mref);
+          if (!ms.exists()) return logout();
+          const d = ms.data() || {};
+          if ((d.name || "").trim() !== saved.name) return logout();
+          const status = d.status || "active";
+          if (status !== "active") return logout();
+        } catch {
+          /* 무시 */
         }
       }
 
@@ -852,12 +928,33 @@
           unsub.members = null;
           membersData = [];
         }
+
+        // Presence 컬렉션(관리자만 구독)
+        if (isAdmin && !unsub.presence) {
+          unsub.presence = onSnapshot(
+            collection(db, "presence"),
+            (snap) => {
+              presenceData = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+              computeOnline();
+              renderPresenceUI();
+            },
+            (err) => console.warn("presence:", err?.message)
+          );
+        } else if (!isAdmin && unsub.presence) {
+          unsub.presence();
+          unsub.presence = null;
+          presenceData = [];
+          renderPresenceUI();
+        }
       }
 
       function setupListeners() {
-        currentUser = JSON.parse(localStorage.getItem("foodieUser"));
-        clearAll();
+        // saved user 유지
+        currentUser =
+          JSON.parse(localStorage.getItem("foodieUser") || "null") ||
+          currentUser;
 
+        clearAll();
         unsub.admins = onSnapshot(doc(db, "admins", "list"), (snap) => {
           adminList = snap.exists() ? snap.data().studentIds || [] : [];
           ensureAdminOptionals();
@@ -1021,6 +1118,7 @@
             el.name.value = ms.data().name || nm;
             return;
           }
+          // 승인 대기 상태로 생성
           await setDoc(mref, {
             studentId: sid,
             name: nm,
@@ -1029,11 +1127,14 @@
             college,
             department: dept,
             phone,
-            status: "active",
-            joinedAt: serverTimestamp(),
+            status: "pending",
+            requestedAt: serverTimestamp(),
           });
           closeSignupModal();
-          showAlert("🎉", "회원가입 완료! 이제 로그인할 수 있어요.");
+          showAlert(
+            "⏳",
+            "가입 신청이 접수되었습니다! <b>관리자 승인 대기중</b>입니다. 승인이 완료되면 로그인할 수 있어요."
+          );
           el.id.value = sid;
           el.name.value = nm;
         } catch (e) {
@@ -1041,6 +1142,91 @@
           showAlert("😥", "회원가입 중 오류가 발생했습니다.");
         }
       }
+
+      /* ========== Presence ========== */
+      function startPresence() {
+        if (!currentUser) return;
+        try {
+          // 즉시 기록 + 주기적 갱신
+          const ref = doc(db, "presence", currentUser.studentId);
+          const ping = () =>
+            setDoc(
+              ref,
+              {
+                studentId: currentUser.studentId,
+                name: currentUser.name,
+                ua: navigator.userAgent,
+                lastActiveMs: Date.now(),
+                updatedAt: serverTimestamp(),
+              },
+              { merge: true }
+            );
+          ping();
+          if (presenceTimer) clearInterval(presenceTimer);
+          presenceTimer = setInterval(ping, 25000);
+
+          const end = () => ping(); // 마지막 흔적만 남김
+          window.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === "hidden") end();
+            else ping();
+          });
+          window.addEventListener("pagehide", end);
+          window.addEventListener("beforeunload", end);
+        } catch (e) {
+          console.warn("presence start err", e);
+        }
+      }
+      function stopPresence() {
+        if (presenceTimer) {
+          clearInterval(presenceTimer);
+          presenceTimer = null;
+        }
+      }
+      function computeOnline() {
+        const threshold = Date.now() - 60 * 1000; // 60초 이내 활동
+        onlineUsers = presenceData
+          .filter((p) => (p.lastActiveMs || 0) >= threshold)
+          .sort((a, b) => b.lastActiveMs - a.lastActiveMs);
+      }
+      function renderPresenceUI() {
+        const isAdmin =
+          currentUser && adminList.includes(currentUser.studentId);
+        if (!isAdmin) {
+          el.presenceBadge.classList.add("hidden");
+          el.presencePop.classList.add("hidden");
+          return;
+        }
+        el.presenceBadge.classList.remove("hidden");
+        el.presenceCount.textContent = onlineUsers.length;
+        el.presenceList.innerHTML = onlineUsers.length
+          ? onlineUsers
+              .map(
+                (u) => `
+              <div class="flex items-center justify-between py-1">
+                <div class="truncate"><b>${
+                  u.name || ""
+                }</b> <span class="text-xs text-gray-500 font-mono">${mask(
+                  u.studentId
+                )}</span></div>
+                <div class="text-xs text-gray-500 ml-2">${timeAgo(
+                  u.lastActiveMs || 0
+                )}</div>
+              </div>`
+              )
+              .join("")
+          : `<div class="text-gray-400">지금은 접속자가 없습니다.</div>`;
+      }
+      el.presenceBadge.addEventListener("click", () => {
+        el.presencePop.classList.toggle("hidden");
+      });
+      document.addEventListener("click", (e) => {
+        if (
+          !e.target.closest("#presence-badge") &&
+          !e.target.closest("#presence-pop")
+        ) {
+          el.presencePop.classList.add("hidden");
+        }
+      });
 
       /* ========== 렌더 공통 ========== */
       function renderAll() {
@@ -1084,6 +1270,9 @@
           renderHistoryTab();
           renderSuggestionsTab(isAdmin);
           if (isAdmin) renderDashboardTab();
+          // Presence 헤더도 갱신
+          computeOnline();
+          renderPresenceUI();
         } else {
           el.pre.classList.remove("hidden");
           el.main.classList.add("hidden");
@@ -1108,7 +1297,6 @@
 
       /* ========== 홈 블록 렌더 (점수/QA/공지 등) ========== */
       function renderBlocks() {
-        /* ... (동일: 기존 코드와 동일 렌더) ... */
         const wrap = document.getElementById("dynamic-blocks");
         if (!wrap) return;
         const visible = (blocksData || []).filter((b) => b.visible !== false);
@@ -1220,7 +1408,6 @@
 
       /* ========== 로드맵 ========== */
       function renderRoadmap() {
-        /* (기존 로직 동일, UI padding만 조정) */
         const c = document.getElementById("roadmap-container");
         const btn = document.getElementById("roadmap-toggle-btn");
         if (!c) return;
@@ -1306,7 +1493,7 @@
               <input id="pay-holder" type="text" class="px-3 py-2 border rounded" placeholder="예금주">
               <input id="pay-note"   type="text" class="px-3 py-2 border rounded" placeholder="안내 문구(선택: 회비 금액 등)">
             </div>
-            <p class="text-xs text-gray-500 mt-1">* 사용자는 카드 상단에 입금 정보를 볼 수 있어요.</p>
+            <p class="text-xs text-gray-500 mt-1">* 관리자 설정의 회비/계좌 정보를 자동으로 채웁니다.</p>
           </div>
 
           <!-- 미식회 필드 -->
@@ -1378,7 +1565,6 @@
       }
 
       function adminFullTableHTML(ev) {
-        /* (기존 - 관리자용 참가자 CSV) */
         const isAdmin =
           currentUser && adminList.includes(currentUser.studentId);
         if (!isAdmin || !(ev.type === "mt" || ev.type === "assembly"))
@@ -1674,6 +1860,19 @@
         document
           .getElementById("payment-fields")
           .classList.toggle("hidden", !(type === "mt" || type === "assembly"));
+        // 회비/계좌 자동 채움
+        if (type === "mt" || type === "assembly") {
+          const d = duesSettings || {};
+          if (!document.getElementById("pay-bank").value)
+            document.getElementById("pay-bank").value = d.bank || "";
+          if (!document.getElementById("pay-number").value)
+            document.getElementById("pay-number").value = d.number || "";
+          if (!document.getElementById("pay-holder").value)
+            document.getElementById("pay-holder").value = d.holder || "";
+          if (!document.getElementById("pay-note").value)
+            document.getElementById("pay-note").value =
+              (d.amount ? `회비 ${formatKRW(d.amount)} ` : "") + (d.note || "");
+        }
       }
       function adminEventsListHTML() {
         if (eventsData.length === 0) return `<p class="text-gray-500">없음</p>`;
@@ -1745,7 +1944,6 @@
             task.on("state_changed", null, reject, () => resolve());
           });
           const url = await getDownloadURL(task.snapshot.ref);
-          // UI 반영
           row.querySelector("[data-field='imageUrl']").value = url;
           const img = row.querySelector("[data-role='preview']");
           img.src = url;
@@ -1760,7 +1958,7 @@
         }
       }
 
-      /* ===================== 신청 로직 (기존) ===================== */
+      /* ===================== 신청 로직 ===================== */
       async function reserveGeneral(id) {
         if (!currentUser) return showAlert("😥", "로그인이 필요합니다.");
         try {
@@ -1889,15 +2087,24 @@
         const status = document.getElementById("event-status").value;
         if (!type || !title || !datetime || !limit)
           return showAlert("😥", "타입/제목/일시/정원을 모두 입력해주세요.");
-        const payment =
-          type === "mt" || type === "assembly"
-            ? {
-                bank: document.getElementById("pay-bank").value.trim(),
-                number: document.getElementById("pay-number").value.trim(),
-                holder: document.getElementById("pay-holder").value.trim(),
-                note: document.getElementById("pay-note").value.trim(),
-              }
-            : null;
+
+        // 결제정보: MT/총회일 때 자동 연동
+        let payment = null;
+        if (type === "mt" || type === "assembly") {
+          const b = document.getElementById("pay-bank").value.trim();
+          const n = document.getElementById("pay-number").value.trim();
+          const h = document.getElementById("pay-holder").value.trim();
+          const note = document.getElementById("pay-note").value.trim();
+          const d = duesSettings || {};
+          payment = {
+            bank: b || d.bank || "",
+            number: n || d.number || "",
+            holder: h || d.holder || "",
+            note:
+              note ||
+              (d.amount ? `회비 ${formatKRW(d.amount)} ` : "") + (d.note || ""),
+          };
+        }
 
         try {
           if (!editingEventId) {
@@ -2089,8 +2296,86 @@
           showAlert("😥", "삭제 실패");
         }
       }
+      async function exportApplicantsCSV(id) {
+        try {
+          const ref = doc(db, "events", id);
+          const s = await getDoc(ref);
+          if (!s.exists()) return;
+          const ev = s.data();
+          let rows = [
+            [
+              "type",
+              "title",
+              "datetime",
+              "group",
+              "name",
+              "studentId",
+              "waitlist",
+            ],
+          ];
+          if (ev.type === "tasting") {
+            (ev.restaurants || []).forEach((r) => {
+              (r.reservations || []).forEach((p) =>
+                rows.push([
+                  ev.type,
+                  ev.title,
+                  ev.datetime,
+                  r.name,
+                  p.name,
+                  p.studentId,
+                  false,
+                ])
+              );
+              (r.waiting || []).forEach((p) =>
+                rows.push([
+                  ev.type,
+                  ev.title,
+                  ev.datetime,
+                  r.name,
+                  p.name,
+                  p.studentId,
+                  true,
+                ])
+              );
+            });
+          } else {
+            (ev.applicants || []).forEach((p) =>
+              rows.push([
+                ev.type,
+                ev.title,
+                ev.datetime,
+                "-",
+                p.name,
+                p.studentId,
+                false,
+              ])
+            );
+            (ev.waiting || []).forEach((p) =>
+              rows.push([
+                ev.type,
+                ev.title,
+                ev.datetime,
+                "-",
+                p.name,
+                p.studentId,
+                true,
+              ])
+            );
+          }
+          const ws = XLSX.utils.aoa_to_sheet(rows);
+          const wb = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(wb, ws, "applicants");
+          XLSX.writeFile(
+            wb,
+            `${(ev.title || "event").replace(/[\\/:*?"<>|]/g, "_")}_신청자.csv`
+          );
+        } catch (e) {
+          console.warn(e);
+          showAlert("😥", "CSV 생성 실패");
+        }
+      }
 
-      /* ===================== 보관 탭 (간단 표시 유지) ===================== */
+      /* ===================== 보관 탭 ===================== */
       function renderHistoryTab() {
         const c = document.getElementById("history-tab");
         if (!c) return;
@@ -2326,7 +2611,7 @@
 
             <!-- 회비/계좌 설정 -->
             <div class="section">
-              <h3 class="text-2xl font-bold mb-4 text-gray-700">회비/계좌 설정 (회원가입 노출)</h3>
+              <h3 class="text-2xl font-bold mb-4 text-gray-700">회비/계좌 설정 (회원가입 노출 & MT/총회 연동)</h3>
               <label class="flex items-center gap-2 mb-2"><input type="checkbox" id="dues-enabled"><span>회원가입 창에 회비/계좌 안내 표시</span></label>
               <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
                 <input id="dues-bank"   class="border rounded px-3 py-2" placeholder="은행명 (예: 국민)">
@@ -2400,14 +2685,6 @@
               <div id="excel-preview" class="text-sm text-gray-600 mt-2"></div>
 
               <hr class="my-4">
-              <div class="flex items-center justify-between mb-3 gap-2 flex-wrap">
-                <div class="flex items-center gap-2">
-                  <input id="member-search" class="border rounded px-3 py-2" placeholder="검색: 이름/학과/학번/전화">
-                  <span class="text-sm text-gray-500" id="member-count"></span>
-                </div>
-                <!-- ▶︎ 버튼을 '회원 명부' 섹션 내부로 이동 -->
-                <button id="export-xlsx" type="button" class="bg-blue-600 text-white px-3 py-2 rounded text-sm"><i class="fas fa-file-excel mr-1"></i>전체 명부 엑셀 다운로드</button>
-              </div>
               <div class="overflow-auto max-h-[540px] border rounded-lg">
                 <table class="min-w-full table-auto text-sm">
                   <thead class="table-sticky text-gray-700">
@@ -2419,11 +2696,19 @@
                       <th class="px-2 py-2 text-left">학과</th>
                       <th class="px-2 py-2 text-left">학번</th>
                       <th class="px-2 py-2 text-left">전화번호</th>
-                      <th class="px-2 py-2 text-center w-32">관리</th>
+                      <th class="px-2 py-2 text-left">상태</th>
+                      <th class="px-2 py-2 text-center w-40">관리</th>
                     </tr>
                   </thead>
                   <tbody id="members-tbody" class="divide-y"></tbody>
                 </table>
+              </div>
+              <div class="flex items-center justify-between mt-3 gap-2 flex-wrap">
+                <div class="flex items-center gap-2">
+                  <input id="member-search" class="border rounded px-3 py-2" placeholder="검색: 이름/학과/학번/전화">
+                  <span class="text-sm text-gray-500" id="member-count"></span>
+                </div>
+                <button id="export-xlsx" type="button" class="bg-blue-600 text-white px-3 py-2 rounded text-sm"><i class="fas fa-file-excel mr-1"></i>전체 명부 엑셀 다운로드</button>
               </div>
             </div>
           </div>`;
@@ -2526,7 +2811,7 @@
             renderMembersTable();
           });
 
-        // 회원 수정/삭제 동작(버그 수정: 위임 이벤트 추가)
+        // 회원 테이블 위임(수정/삭제/승인/거절)
         document
           .getElementById("members-tbody")
           .addEventListener("click", (e) => {
@@ -2535,9 +2820,10 @@
             const sid = btn.dataset.id;
             if (btn.dataset.memAct === "edit") editMemberPrompt(sid);
             if (btn.dataset.memAct === "delete") deleteMember(sid);
+            if (btn.dataset.memAct === "approve") approveMember(sid);
+            if (btn.dataset.memAct === "reject") rejectMember(sid);
           });
 
-        // 첫 렌더
         renderMembersTable();
       }
 
@@ -2940,6 +3226,7 @@
             "학과",
             "학번",
             "전화번호",
+            "상태",
           ];
           const rows = arr.map((m) => ({
             이름: m.name || "",
@@ -2949,6 +3236,7 @@
             학과: m.department || "",
             학번: m.studentId || m.id || "",
             전화번호: m.phone || "",
+            상태: m.status || "active",
           }));
           const ws = XLSX.utils.aoa_to_sheet([headers]);
           XLSX.utils.sheet_add_json(ws, rows, {
@@ -2965,7 +3253,7 @@
         }
       }
 
-      /* 회원 명부 렌더/수정/삭제 */
+      /* 회원 명부 렌더/수정/삭제/승인 */
       function renderMembersTable() {
         const tbody = document.getElementById("members-tbody");
         const countEl = document.getElementById("member-count");
@@ -2980,11 +3268,36 @@
         countEl && (countEl.textContent = `${list.length}명`);
         tbody.innerHTML =
           list.length === 0
-            ? `<tr><td colspan="8" class="text-center text-gray-400 py-6">회원 데이터가 없습니다.</td></tr>`
+            ? `<tr><td colspan="9" class="text-center text-gray-400 py-6">회원 데이터가 없습니다.</td></tr>`
             : list
-                .map(
-                  (m) => `
-            <tr class="hover:bg-gray-50">
+                .map((m) => {
+                  const status = m.status || "active";
+                  const statusBadge =
+                    status === "pending"
+                      ? `<span class="px-2 py-0.5 text-xs rounded bg-amber-100 text-amber-700">승인대기</span>`
+                      : status === "blocked"
+                      ? `<span class="px-2 py-0.5 text-xs rounded bg-red-100 text-red-700">차단</span>`
+                      : status === "rejected"
+                      ? `<span class="px-2 py-0.5 text-xs rounded bg-gray-200 text-gray-600">거절</span>`
+                      : `<span class="px-2 py-0.5 text-xs rounded bg-emerald-100 text-emerald-700">승인됨</span>`;
+                  const actions =
+                    status === "pending"
+                      ? `<button class="text-emerald-700 hover:text-emerald-900 text-xs" data-mem-act="approve" data-id="${
+                          m.studentId || m.id
+                        }"><i class="fas fa-check mr-1"></i>승인</button>
+                 <button class="text-amber-700 hover:text-amber-900 text-xs ml-2" data-mem-act="reject" data-id="${
+                   m.studentId || m.id
+                 }"><i class="fas fa-xmark mr-1"></i>거절</button>`
+                      : `<button class="text-blue-600 hover:text-blue-800 text-xs" data-mem-act="edit" data-id="${
+                          m.studentId || m.id
+                        }"><i class="fas fa-pen mr-1"></i>수정</button>
+                 <button class="text-red-600 hover:text-red-800 text-xs ml-2" data-mem-act="delete" data-id="${
+                   m.studentId || m.id
+                 }"><i class="fas fa-trash mr-1"></i>삭제</button>`;
+                  return `
+            <tr class="hover:bg-gray-50 ${
+              status === "pending" ? "bg-amber-50" : ""
+            }">
               <td class="px-2 py-2">${m.name || ""}</td>
               <td class="px-2 py-2">${m.gender || ""}</td>
               <td class="px-2 py-2">${m.year || ""}</td>
@@ -2992,17 +3305,33 @@
               <td class="px-2 py-2">${m.department || ""}</td>
               <td class="px-2 py-2 font-mono">${m.studentId || m.id || ""}</td>
               <td class="px-2 py-2">${m.phone || ""}</td>
-              <td class="px-2 py-2 text-center">
-                <button class="text-blue-600 hover:text-blue-800 text-xs" data-mem-act="edit" data-id="${
-                  m.studentId || m.id
-                }"><i class="fas fa-pen mr-1"></i>수정</button>
-                <button class="text-red-600 hover:text-red-800 text-xs ml-2" data-mem-act="delete" data-id="${
-                  m.studentId || m.id
-                }"><i class="fas fa-trash mr-1"></i>삭제</button>
-              </td>
-            </tr>`
-                )
+              <td class="px-2 py-2">${statusBadge}</td>
+              <td class="px-2 py-2 text-center">${actions}</td>
+            </tr>`;
+                })
                 .join("");
+      }
+      async function approveMember(sid) {
+        try {
+          await updateDoc(doc(db, "members", sid), {
+            status: "active",
+            approvedAt: serverTimestamp(),
+          });
+          showAlert("✅", "승인되었습니다.");
+        } catch (e) {
+          console.warn(e);
+          showAlert("😥", "승인 실패");
+        }
+      }
+      async function rejectMember(sid) {
+        if (!confirm("이 가입 신청을 거절하시겠습니까?")) return;
+        try {
+          await updateDoc(doc(db, "members", sid), { status: "rejected" });
+          showAlert("🗑️", "거절 처리되었습니다.");
+        } catch (e) {
+          console.warn(e);
+          showAlert("😥", "거절 실패");
+        }
       }
       async function editMemberPrompt(sid) {
         try {
@@ -3070,207 +3399,58 @@
       document
         .getElementById("modal-close-button")
         .addEventListener("click", () => el.alert.classList.add("hidden"));
-      document
-        .getElementById("emergency-add-button")
-        .addEventListener("click", emergencyAddAdmin);
-      document
-        .getElementById("emergency-cancel-button")
-        .addEventListener("click", closeEmergencyModal);
 
-      // 회비 모달 버튼
+      // 회비 확인 모달 버튼
       document
         .getElementById("dues-copy-button")
-        .addEventListener("click", async () => {
+        .addEventListener("click", () => {
           const d = duesSettings || {};
           const text = [d.bank, d.number].filter(Boolean).join(" ");
-          try {
-            await navigator.clipboard.writeText(text);
-            showAlert("✅", "계좌번호가 복사되었어요.");
-          } catch {
-            showAlert("ℹ️", `복사 실패. 직접 복사해 주세요:<br><b>${text}</b>`);
-          }
+          navigator.clipboard
+            ?.writeText(text)
+            .then(() => showAlert("📋", "계좌번호가 복사되었습니다!"))
+            .catch(() => showAlert("ℹ️", "복사 실패. 수동으로 복사해주세요."));
         });
       document
         .getElementById("dues-proceed-button")
         .addEventListener("click", () => {
           el.duesModal.classList.add("hidden");
-          // 실제 가입 진행
           confirmSignup(true);
         });
       document
         .getElementById("dues-cancel-button")
-        .addEventListener("click", () => {
-          el.duesModal.classList.add("hidden");
-        });
+        .addEventListener("click", () => el.duesModal.classList.add("hidden"));
 
-      // ===== 비상 복구 모드: 새 관리자 지정 =====
+      // 비상 관리자 임명
       async function emergencyAddAdmin() {
-        const sid = (
-          document.getElementById("new-admin-id").value || ""
-        ).trim();
-        if (!sid) return showAlert("😥", "학번을 입력해 주세요.");
+        const sid = document.getElementById("new-admin-id").value.trim();
+        if (!sid) return;
         try {
           const ref = doc(db, "admins", "list");
           await runTransaction(db, async (t) => {
             const s = await t.get(ref);
-            if (!s.exists()) {
-              t.set(ref, { studentIds: [sid] });
-            } else {
+            if (!s.exists()) t.set(ref, { studentIds: [sid] });
+            else {
               const arr = s.data().studentIds || [];
               if (!arr.includes(sid)) arr.push(sid);
               t.update(ref, { studentIds: arr });
             }
           });
           closeEmergencyModal();
-          showAlert("✅", `관리자(${sid})가 추가되었습니다.`);
+          showAlert("✅", `새 관리자(${sid})가 등록되었습니다.`);
         } catch (e) {
           console.warn(e);
-          showAlert("😥", "관리자 추가에 실패했어요.");
+          showAlert("😥", "등록 실패");
         }
       }
+      document
+        .getElementById("emergency-add-button")
+        .addEventListener("click", emergencyAddAdmin);
+      document
+        .getElementById("emergency-cancel-button")
+        .addEventListener("click", () => el.emerg.classList.add("hidden"));
 
-      // ===== 신청자 CSV 내보내기 (이벤트 카드 하단 버튼과 연결) =====
-      function csvCell(v) {
-        return `"${String(v ?? "").replace(/"/g, '""')}"`;
-      }
-      function downloadText(filename, text) {
-        const blob = new Blob([text], { type: "text/csv;charset=utf-8;" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = filename;
-        a.style.display = "none";
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        setTimeout(() => URL.revokeObjectURL(url), 1000);
-      }
-      async function exportApplicantsCSV(eventId) {
-        const ev = eventsData.find((e) => e.id === eventId);
-        if (!ev) return showAlert("⛔", "이벤트를 찾을 수 없어요.");
-
-        const today = new Date().toISOString().slice(0, 10);
-        let lines = [];
-
-        if (ev.type === "tasting") {
-          lines.push(
-            [
-              "게이트",
-              "상태",
-              "이름",
-              "학번",
-              "성별",
-              "학년",
-              "단과대",
-              "학과",
-              "전화",
-            ]
-              .map(csvCell)
-              .join(",")
-          );
-          (ev.restaurants || []).forEach((r) => {
-            const pushLine = (list, status) =>
-              (list || []).forEach((p) => {
-                const m =
-                  (membersData || []).find(
-                    (x) => (x.studentId || x.id) === p.studentId
-                  ) ||
-                  p ||
-                  {};
-                lines.push(
-                  [
-                    r.name || "",
-                    status,
-                    m.name || "",
-                    m.studentId || "",
-                    m.gender || "",
-                    m.year || "",
-                    m.college || "",
-                    m.department || "",
-                    m.phone || "",
-                  ]
-                    .map(csvCell)
-                    .join(",")
-                );
-              });
-            pushLine(r.reservations, "신청");
-            pushLine(r.waiting, "대기");
-          });
-        } else {
-          lines.push(
-            ["상태", "이름", "학번", "성별", "학년", "단과대", "학과", "전화"]
-              .map(csvCell)
-              .join(",")
-          );
-          const pushLine = (list, status) =>
-            (list || []).forEach((p) => {
-              const m =
-                (membersData || []).find(
-                  (x) => (x.studentId || x.id) === p.studentId
-                ) ||
-                p ||
-                {};
-              lines.push(
-                [
-                  status,
-                  m.name || "",
-                  m.studentId || "",
-                  m.gender || "",
-                  m.year || "",
-                  m.college || "",
-                  m.department || "",
-                  m.phone || "",
-                ]
-                  .map(csvCell)
-                  .join(",")
-              );
-            });
-          pushLine(ev.applicants, "신청");
-          pushLine(ev.waiting, "대기");
-        }
-
-        const filename = `${(ev.title || "event").replace(
-          /[\\/:*?"<>|]/g,
-          "_"
-        )}_${today}.csv`;
-        // BOM 추가(엑셀 한글 깨짐 방지)
-        const csv = "\ufeff" + lines.join("\n");
-        downloadText(filename, csv);
-      }
-
-      // ===== 모달 외부영역/ESC로 닫기 (편의)
-      document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape") {
-          el.alert.classList.add("hidden");
-          el.emerg.classList.add("hidden");
-          el.signupModal.classList.add("hidden");
-          el.duesModal.classList.add("hidden");
-        }
-      });
-      el.alert.addEventListener("click", (e) => {
-        if (e.target === el.alert) el.alert.classList.add("hidden");
-      });
-      el.emerg.addEventListener("click", (e) => {
-        if (e.target === el.emerg) el.emerg.classList.add("hidden");
-      });
-      el.signupModal.addEventListener("click", (e) => {
-        if (e.target === el.signupModal) el.signupModal.classList.add("hidden");
-      });
-      el.duesModal.addEventListener("click", (e) => {
-        if (e.target === el.duesModal) el.duesModal.classList.add("hidden");
-      });
-
-      // ===== 엔터키로 로그인
-      ["studentId", "studentName"].forEach((id) => {
-        const input = document.getElementById(id);
-        input &&
-          input.addEventListener("keydown", (e) => {
-            if (e.key === "Enter") login();
-          });
-      });
-
-      // 시작
-      window.addEventListener("DOMContentLoaded", main);
+      window.addEventListener("load", main);
     </script>
   </body>
 </html>
