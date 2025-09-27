@@ -2,7 +2,6 @@
 <html lang="ko">
   <head>
     <meta charset="UTF-8" />
-    <!-- 모바일 최적화 -->
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1, viewport-fit=cover"
@@ -10,7 +9,7 @@
     <meta name="theme-color" content="#6366f1" />
     <title>Foodie Lounge</title>
 
-    <!-- ▶︎ 파비콘/앱 아이콘 -->
+    <!-- 앱 아이콘 -->
     <link
       rel="icon"
       type="image/png"
@@ -75,7 +74,6 @@
           0 4px 6px -2px rgba(0, 0, 0, 0.05);
       }
 
-      /* 로딩 스피너 */
       .loader {
         border: 5px solid #f3f3f3;
         border-top: 5px solid #667eea;
@@ -128,11 +126,7 @@
       .accordion-item.active .accordion-header .fa-chevron-down {
         transform: rotate(180deg);
       }
-      .qa-title {
-        white-space: normal;
-        word-break: keep-all;
-        overflow-wrap: break-word;
-      }
+
       .roadmap-item {
         position: relative;
         padding-left: 30px;
@@ -178,11 +172,7 @@
         background: #f8fafc;
         z-index: 1;
       }
-      .file-pill {
-        font-size: 11px;
-      }
 
-      /* 모바일 가독성 강화 */
       input,
       select,
       textarea {
@@ -209,6 +199,7 @@
           padding: 1.5rem;
         }
       }
+
       .thumb {
         width: 64px;
         height: 64px;
@@ -216,8 +207,6 @@
         border-radius: 0.5rem;
         border: 1px solid #e5e7eb;
       }
-
-      /* 업로더 */
       .dz {
         width: 64px;
         height: 64px;
@@ -246,7 +235,6 @@
         border-radius: 0.5rem;
       }
 
-      /* Presence pop */
       #presence-pop {
         position: absolute;
         transform: translateY(8px);
@@ -279,7 +267,7 @@
             👥 접속 <b id="presence-count">0</b>명
           </button>
         </div>
-        <!-- 팝오버 -->
+        <!-- 접속자 팝오버 -->
         <div
           id="presence-pop"
           class="hidden right-0 left-0 mx-auto md:left-auto md:right-10 md:mx-0 w-full max-w-xs bg-white border rounded-xl shadow-xl p-3 z-30"
@@ -326,7 +314,6 @@
                 >
                   <i class="fas fa-right-to-bracket mr-2"></i>로그인
                 </button>
-                <!-- 회원가입 버튼(기간에만 활성화) -->
                 <button
                   id="signup-button"
                   type="button"
@@ -362,7 +349,7 @@
               </div>
             </div>
 
-            <!-- 홈 화면 동적 블록들 -->
+            <!-- 홈 화면 블록 -->
             <div id="dynamic-blocks" class="space-y-4 md:space-y-6"></div>
           </div>
 
@@ -450,7 +437,7 @@
           회원가입은 운영진이 설정한 기간에만 가능합니다.
         </p>
 
-        <!-- 회비/계좌 안내 박스 -->
+        <!-- 회비/계좌 안내 -->
         <div
           id="dues-box"
           class="hidden mt-4 bg-amber-50 border border-amber-200 rounded-lg p-3 text-amber-800"
@@ -563,9 +550,39 @@
       </div>
     </div>
 
+    <!-- 블록 에디터 모달(문단 편집) -->
+    <div
+      id="block-editor"
+      class="hidden fixed inset-0 bg-black/60 flex justify-center items-center px-4 z-50"
+    >
+      <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl p-5">
+        <h3
+          class="text-xl font-bold text-gray-800 mb-3"
+          id="block-editor-title"
+        >
+          블록 편집
+        </h3>
+        <div id="block-editor-body" class="space-y-3"></div>
+        <div class="flex gap-2 justify-end mt-4">
+          <button
+            id="block-editor-cancel"
+            class="px-4 py-2 rounded bg-gray-200"
+          >
+            취소
+          </button>
+          <button
+            id="block-editor-save"
+            class="px-4 py-2 rounded bg-indigo-600 text-white"
+          >
+            저장
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- App Script -->
     <script type="module">
-      /* ========== Firebase ========== */
+      /* ===== Firebase ===== */
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
       import {
         getAuth,
@@ -589,7 +606,6 @@
         writeBatch,
         getDocs,
       } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-      /* ▶︎ Storage(이미지 업로드용) */
       import {
         getStorage,
         ref as sRef,
@@ -613,7 +629,7 @@
       const IS_FILE = location.protocol === "file:";
       const USE_DEMO_OFFLINE = IS_FILE;
 
-      /* ========== 상태 ========== */
+      /* ===== 상태 ===== */
       let currentUser = null;
       let adminList = [];
       const MASTER_CODE = "foodie_emergency_2024!";
@@ -665,6 +681,11 @@
         presenceCount: document.getElementById("presence-count"),
         presencePop: document.getElementById("presence-pop"),
         presenceList: document.getElementById("presence-list"),
+        blockEditor: document.getElementById("block-editor"),
+        blockEditorTitle: document.getElementById("block-editor-title"),
+        blockEditorBody: document.getElementById("block-editor-body"),
+        blockEditorSave: document.getElementById("block-editor-save"),
+        blockEditorCancel: document.getElementById("block-editor-cancel"),
       };
       const showAlert = (icon, msg) => {
         el.alertIcon.innerHTML = icon || "ℹ️";
@@ -740,7 +761,7 @@
         ],
       };
 
-      /* ========== 유틸 ========== */
+      /* ===== 유틸 ===== */
       const mask = (sid) => (sid ? `${sid.slice(0, 4)}****` : "");
       const isWithin = (d, s, e) => {
         const x = new Date(d);
@@ -779,7 +800,7 @@
         return `${Math.floor(m / 60)}시간 전`;
       };
 
-      /* ========== 인증 ========== */
+      /* ===== 인증 ===== */
       async function login() {
         const sid = el.id.value.trim();
         const nm = el.name.value.trim();
@@ -802,7 +823,7 @@
               "🙅‍♂️",
               "입력한 이름이 회원 정보와 일치하지 않습니다. 운영진에게 수정 요청해주세요."
             );
-          const status = data.status || "active"; // 기존 회원은 승인된 것으로 간주
+          const status = data.status || "active";
           if (status === "pending")
             return showAlert(
               "⏳",
@@ -819,7 +840,6 @@
               "접근이 제한된 회원입니다. 운영진에 문의해주세요."
             );
 
-          // 로그인 성공
           localStorage.setItem(
             "foodieUser",
             JSON.stringify({ studentId: sid, name: nm })
@@ -827,7 +847,7 @@
           currentUser = { studentId: sid, name: nm };
           startPresence();
           renderAll();
-          setupListeners(); // 데이터 구독 재시작
+          setupListeners();
         } catch (e) {
           console.warn(e);
           showAlert("😥", "로그인 중 오류가 발생했습니다.");
@@ -849,7 +869,6 @@
         } catch (e) {
           console.warn("auth fail:", e?.message || e);
         } finally {
-          // 자동 로그인: 저장된 사용자로 상태 세팅 후 서버 데이터로 재검증
           const saved = JSON.parse(
             localStorage.getItem("foodieUser") || "null"
           );
@@ -873,7 +892,7 @@
           const status = d.status || "active";
           if (status !== "active") return logout();
         } catch {
-          /* 무시 */
+          /* ignore */
         }
       }
 
@@ -929,7 +948,6 @@
           membersData = [];
         }
 
-        // Presence 컬렉션(관리자만 구독)
         if (isAdmin && !unsub.presence) {
           unsub.presence = onSnapshot(
             collection(db, "presence"),
@@ -949,7 +967,6 @@
       }
 
       function setupListeners() {
-        // saved user 유지
         currentUser =
           JSON.parse(localStorage.getItem("foodieUser") || "null") ||
           currentUser;
@@ -1046,7 +1063,7 @@
         renderDuesInfoBox();
       }
 
-      /* ========== 회원가입 + 회비 확인 ========== */
+      /* ===== 회원가입 + 회비 안내 ===== */
       function renderDuesInfoBox() {
         if (!el.duesBox || !el.duesBoxContent) return;
         const d = duesSettings || {};
@@ -1097,7 +1114,6 @@
         const college = document.getElementById("signupCollege").value.trim();
         const dept = document.getElementById("signupDept").value.trim();
         const phone = document.getElementById("signupPhone").value.trim();
-
         if (!sid || !nm || !gender || !year || !college || !dept || !phone)
           return showAlert("😥", "모든 필드를 입력하세요.");
 
@@ -1118,7 +1134,6 @@
             el.name.value = ms.data().name || nm;
             return;
           }
-          // 승인 대기 상태로 생성
           await setDoc(mref, {
             studentId: sid,
             name: nm,
@@ -1143,11 +1158,10 @@
         }
       }
 
-      /* ========== Presence ========== */
+      /* ===== Presence ===== */
       function startPresence() {
         if (!currentUser) return;
         try {
-          // 즉시 기록 + 주기적 갱신
           const ref = doc(db, "presence", currentUser.studentId);
           const ping = () =>
             setDoc(
@@ -1164,8 +1178,7 @@
           ping();
           if (presenceTimer) clearInterval(presenceTimer);
           presenceTimer = setInterval(ping, 25000);
-
-          const end = () => ping(); // 마지막 흔적만 남김
+          const end = () => ping();
           window.addEventListener("visibilitychange", () => {
             if (document.visibilityState === "hidden") end();
             else ping();
@@ -1183,7 +1196,7 @@
         }
       }
       function computeOnline() {
-        const threshold = Date.now() - 60 * 1000; // 60초 이내 활동
+        const threshold = Date.now() - 60 * 1000;
         onlineUsers = presenceData
           .filter((p) => (p.lastActiveMs || 0) >= threshold)
           .sort((a, b) => b.lastActiveMs - a.lastActiveMs);
@@ -1216,19 +1229,18 @@
               .join("")
           : `<div class="text-gray-400">지금은 접속자가 없습니다.</div>`;
       }
-      el.presenceBadge.addEventListener("click", () => {
-        el.presencePop.classList.toggle("hidden");
-      });
+      el.presenceBadge.addEventListener("click", () =>
+        el.presencePop.classList.toggle("hidden")
+      );
       document.addEventListener("click", (e) => {
         if (
           !e.target.closest("#presence-badge") &&
           !e.target.closest("#presence-pop")
-        ) {
+        )
           el.presencePop.classList.add("hidden");
-        }
       });
 
-      /* ========== 렌더 공통 ========== */
+      /* ===== 렌더 ===== */
       function renderAll() {
         const isAdmin =
           currentUser && adminList.includes(currentUser.studentId);
@@ -1270,7 +1282,6 @@
           renderHistoryTab();
           renderSuggestionsTab(isAdmin);
           if (isAdmin) renderDashboardTab();
-          // Presence 헤더도 갱신
           computeOnline();
           renderPresenceUI();
         } else {
@@ -1281,7 +1292,6 @@
           updateSignupUI();
         }
       }
-
       const showTab = (name) => {
         document
           .querySelectorAll(".tab-content")
@@ -1295,7 +1305,7 @@
           ?.classList.add("active");
       };
 
-      /* ========== 홈 블록 렌더 (점수/QA/공지 등) ========== */
+      /* ===== 홈 블록 ===== */
       function renderBlocks() {
         const wrap = document.getElementById("dynamic-blocks");
         if (!wrap) return;
@@ -1304,7 +1314,7 @@
           wrap.innerHTML = `
             <div class="accordion-item section">
               <div class="accordion-header cursor-pointer p-4 md:p-6">
-                <h3 class="qa-title text-lg md:text-xl font-bold text-gray-700"><i class="fas fa-chart-bar mr-2 text-indigo-500"></i>조별 점수 실시간 현황</h3>
+                <h3 class="text-lg md:text-xl font-bold text-gray-700"><i class="fas fa-chart-bar mr-2 text-indigo-500"></i>조별 점수 실시간 현황</h3>
                 <i class="fas fa-chevron-down text-gray-500"></i>
               </div>
               <div class="accordion-content"><div id="team-scores-container-default" class="space-y-2"></div></div>
@@ -1322,7 +1332,7 @@
               return `
               <div class="accordion-item section" data-block="${b.id}">
                 <div class="accordion-header cursor-pointer p-4 md:p-6">
-                  <h3 class="qa-title text-lg md:text-xl font-bold text-gray-700"><i class="fas fa-chart-bar mr-2 text-indigo-500"></i>${
+                  <h3 class="text-lg md:text-xl font-bold text-gray-700"><i class="fas fa-chart-bar mr-2 text-indigo-500"></i>${
                     b.title || "조별 점수 실시간 현황"
                   }</h3>
                   <i class="fas fa-chevron-down text-gray-500"></i>
@@ -1339,7 +1349,7 @@
               return `
               <div class="accordion-item section" data-block="${b.id}">
                 <div class="accordion-header cursor-pointer p-4 md:p-6">
-                  <h3 class="qa-title text-lg md:text-xl font-bold text-gray-700"><i class="fas fa-question-circle mr-2 text-indigo-500"></i>${
+                  <h3 class="text-lg md:text-xl font-bold text-gray-700"><i class="fas fa-question-circle mr-2 text-indigo-500"></i>${
                     b.title || "Foodie Q&A"
                   }</h3>
                   <i class="fas fa-chevron-down text-gray-500"></i>
@@ -1361,8 +1371,8 @@
                 <h3 class="text-lg md:text-xl font-bold text-gray-700 mb-2"><i class="fas fa-bullhorn mr-2 text-indigo-500"></i>${
                   b.title || "공지"
                 }</h3>
-                <div class="prose prose-sm max-w-none text-gray-700">${
-                  b.payload?.html || "<p>내용이 없습니다.</p>"
+                <div class="prose prose-sm max-w-none text-gray-700 whitespace-pre-wrap">${
+                  b.payload?.text || (b.payload?.html ?? "내용이 없습니다.")
                 }</div>
               </div>`;
             }
@@ -1406,7 +1416,7 @@
                 .join("");
       }
 
-      /* ========== 로드맵 ========== */
+      /* ===== 로드맵 ===== */
       function renderRoadmap() {
         const c = document.getElementById("roadmap-container");
         const btn = document.getElementById("roadmap-toggle-btn");
@@ -1459,7 +1469,7 @@
         }
       }
 
-      /* ===================== 예약 탭 ===================== */
+      /* ===================== 신청 탭 ===================== */
 
       function eventAdminPanelHTML() {
         return `
@@ -1481,7 +1491,7 @@
               <option value="open">공개</option>
               <option value="archived">숨기기</option>
             </select>
-            <div class="text-sm text-gray-600 flex items-center">* "숨기기"로 저장하면 리스트에 안 보입니다.</div>
+            <div class="text-sm text-gray-600 flex items-center">* "숨기기"로 저장하면 리스트에서 숨김</div>
           </div>
 
           <!-- 결제정보 (MT/총회) -->
@@ -1491,14 +1501,14 @@
               <input id="pay-bank"   type="text" class="px-3 py-2 border rounded" placeholder="은행명 (예: 국민)">
               <input id="pay-number" type="text" class="px-3 py-2 border rounded" placeholder="계좌번호">
               <input id="pay-holder" type="text" class="px-3 py-2 border rounded" placeholder="예금주">
-              <input id="pay-note"   type="text" class="px-3 py-2 border rounded" placeholder="안내 문구(선택: 회비 금액 등)">
+              <input id="pay-note"   type="text" class="px-3 py-2 border rounded" placeholder="안내 문구(선택)">
             </div>
             <p class="text-xs text-gray-500 mt-1">* 관리자 설정의 회비/계좌 정보를 자동으로 채웁니다.</p>
           </div>
 
           <!-- 미식회 필드 -->
           <div id="tasting-fields" class="mt-3">
-            <h4 class="font-semibold text-indigo-700 mb-2">식당(게이트) <span class="text-xs text-gray-500">(이미지는 파일로 첨부하거나 드래그&드롭 가능)</span></h4>
+            <h4 class="font-semibold text-indigo-700 mb-2">식당(게이트) <span class="text-xs text-gray-500">(이미지는 파일로 첨부하거나 드래그&드롭)</span></h4>
             <div id="event-restaurants-wrap" class="space-y-2">${restaurantFieldHTML()}</div>
             <button id="add-restaurant-btn" type="button" class="mt-2 text-xs bg-white border border-indigo-300 text-indigo-700 px-3 py-1 rounded hover:bg-indigo-50">
               <i class="fas fa-plus mr-1"></i>식당 추가
@@ -1543,11 +1553,18 @@
           </div>`;
       }
 
-      function eventCardHTML(ev) {
-        return ev.type === "tasting"
-          ? tastingCardHTML(ev)
-          : generalCardHTML(ev);
-      }
+      /* ===== 이벤트 카드 ===== */
+      const adminInline = (ev) => {
+        const isAdmin =
+          currentUser && adminList.includes(currentUser.studentId);
+        if (!isAdmin) return "";
+        return `<div class="mt-3 flex gap-2">
+          <button type="button" class="text-blue-600 hover:text-blue-800 text-sm"  data-act="admin-edit"    data-id="${ev.id}"><i class="fas fa-pen"></i> 수정</button>
+          <button type="button" class="text-amber-600 hover:text-amber-800 text-sm" data-act="admin-archive" data-id="${ev.id}"><i class="fas fa-box-archive"></i> 보관</button>
+          <button type="button" class="text-red-600 hover:text-red-800 text-sm"    data-act="admin-delete"  data-id="${ev.id}"><i class="fas fa-trash"></i> 삭제</button>
+          <button type="button" class="text-green-700 hover:text-green-900 text-sm" data-act="export-xlsx"  data-id="${ev.id}"><i class="fas fa-file-excel"></i> 명단 다운로드</button>
+        </div>`;
+      };
 
       function paymentInfoHTML(ev) {
         if (!(ev.type === "mt" || ev.type === "assembly")) return "";
@@ -1564,33 +1581,28 @@
           </div>`;
       }
 
-      function adminFullTableHTML(ev) {
+      function adminStatsHTML(ev) {
         const isAdmin =
           currentUser && adminList.includes(currentUser.studentId);
-        if (!isAdmin || !(ev.type === "mt" || ev.type === "assembly"))
-          return "";
-        const header = `<thead class="text-gray-700"><tr><th class="px-2 py-1 text-left">이름</th><th class="px-2 py-1 text-left">학번</th><th class="px-2 py-1 text-left">성별</th><th class="px-2 py-1 text-left">학년</th><th class="px-2 py-1 text-left">단과대</th><th class="px-2 py-1 text-left">학과</th><th class="px-2 py-1 text-left">전화번호</th></tr></thead>`;
-        const rows = (ev.applicants || [])
-          .map((p) => {
-            const m =
-              (membersData || []).find(
-                (x) => (x.studentId || x.id) === p.studentId
-              ) || {};
-            const nm = m.name || p.name || "",
-              sid = m.studentId || p.studentId || "",
-              g = m.gender || p.gender || "",
-              yr = m.year || p.year || "",
-              col = m.college || p.college || "",
-              dep = m.department || p.department || "",
-              ph = m.phone || p.phone || "";
-            return `<tr class="border-t"><td class="px-2 py-1">${nm}</td><td class="px-2 py-1 font-mono">${sid}</td><td class="px-2 py-1">${g}</td><td class="px-2 py-1">${yr}</td><td class="px-2 py-1">${col}</td><td class="px-2 py-1">${dep}</td><td class="px-2 py-1">${ph}</td></tr>`;
-          })
-          .join("");
-        const body =
-          rows ||
-          `<tr><td class="px-2 py-6 text-center text-gray-400" colspan="7">신청자 없음</td></tr>`;
-        const toolbar = `<div class="flex items-center justify-between mb-2"><div class="text-xs font-semibold text-gray-700">관리자 전용 • 참가자 상세</div><button type="button" class="text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded" data-act="export-csv" data-id="${ev.id}"><i class="fas fa-file-csv mr-1"></i>CSV 다운로드</button></div>`;
-        return `<div class="mt-4 border-t pt-3">${toolbar}<div class="overflow-auto max-h-60 border rounded"><table class="min-w-full text-xs">${header}<tbody>${body}</tbody></table></div></div>`;
+        if (!isAdmin) return "";
+        const st = computeEventStats(ev);
+        const gLine =
+          st.total > 0
+            ? `남 ${st.genderPct.남}% · 여 ${st.genderPct.여}%${
+                st.genderPct.기타 ? ` · 기타 ${st.genderPct.기타}%` : ""
+              }`
+            : "자료 없음";
+        const colleges =
+          st.colleges
+            .slice(0, 5)
+            .map((c) => `${c.name} ${c.pct}%`)
+            .join(" · ") || "자료 없음";
+        return `
+          <div class="mt-3 text-xs bg-gray-50 border rounded p-2">
+            <div class="font-semibold text-gray-700">관리자용 신청자 통계 <span class="text-[11px] text-gray-500">(신청+대기 포함)</span></div>
+            <div class="mt-1 text-gray-700">성별: ${gLine}</div>
+            <div class="mt-1 text-gray-700">단과대 상위: ${colleges}</div>
+          </div>`;
       }
 
       function generalCardHTML(ev) {
@@ -1639,6 +1651,7 @@
               }%"></div></div>
               <p class="text-right text-sm mt-1 text-gray-600">신청: ${count} / ${lim} 명</p>
             </div>
+            ${adminStatsHTML(ev)}
             ${btn}
             <div class="mt-3">
               <div class="text-xs font-semibold text-gray-600 mb-1">참가자</div>
@@ -1653,6 +1666,7 @@
                 waitingList ||
                 '<div class="text-xs text-amber-400">대기자 없음</div>'
               }</div>
+              <div class="text-[11px] text-amber-700 mt-1">※ 빈자리가 생기면 <b>신청 순서대로 자동 승급</b>돼요.</div>
             </div>
             <div class="text-[11px] text-gray-400 mt-2">상태: ${
               ev.status || "open"
@@ -1729,7 +1743,7 @@
             <div class="mt-2"><div class="text-xs font-semibold text-gray-600 mb-1">대기자</div><div class="max-h-16 overflow-y-auto border rounded bg-amber-50 p-2">${
               waitingList ||
               '<div class="text-xs text-amber-400">대기자 없음</div>'
-            }</div></div>
+            }</div><div class="text-[11px] text-amber-700 mt-1">※ 자리가 비면 자동으로 <b>대기 → 참가</b>로 전환돼요.</div></div>
             ${btn}
           </div>`;
           })
@@ -1741,6 +1755,7 @@
             <p class="text-gray-500">🗓️ ${
               ev.datetime ? new Date(ev.datetime).toLocaleString("ko-KR") : "-"
             }</p>
+            ${adminStatsHTML(ev)}
             <div class="grid grid-cols-1 gap-3 mt-3">${list}</div>
             <div class="text-xs text-gray-400 mt-3">상태: ${
               ev.status || "open"
@@ -1750,17 +1765,42 @@
           </div>`;
       }
 
-      const adminInline = (ev) => {
+      function eventCardHTML(ev) {
+        return ev.type === "tasting"
+          ? tastingCardHTML(ev)
+          : generalCardHTML(ev);
+      }
+
+      function adminFullTableHTML(ev) {
         const isAdmin =
           currentUser && adminList.includes(currentUser.studentId);
-        if (!isAdmin) return "";
-        return `<div class="mt-3 flex gap-2">
-          <button type="button" class="text-blue-600 hover:text-blue-800 text-sm"  data-act="admin-edit"    data-id="${ev.id}"><i class="fas fa-pen"></i> 수정</button>
-          <button type="button" class="text-amber-600 hover:text-amber-800 text-sm" data-act="admin-archive" data-id="${ev.id}"><i class="fas fa-box-archive"></i> 보관</button>
-          <button type="button" class="text-red-600 hover:text-red-800 text-sm"    data-act="admin-delete"  data-id="${ev.id}"><i class="fas fa-trash"></i> 삭제</button>
-        </div>`;
-      };
+        if (!isAdmin || !(ev.type === "mt" || ev.type === "assembly"))
+          return "";
+        const header = `<thead class="text-gray-700"><tr><th class="px-2 py-1 text-left">이름</th><th class="px-2 py-1 text-left">학번</th><th class="px-2 py-1 text-left">성별</th><th class="px-2 py-1 text-left">학년</th><th class="px-2 py-1 text-left">단과대</th><th class="px-2 py-1 text-left">학과</th><th class="px-2 py-1 text-left">전화번호</th></tr></thead>`;
+        const rows = (ev.applicants || [])
+          .map((p) => {
+            const m =
+              (membersData || []).find(
+                (x) => (x.studentId || x.id) === p.studentId
+              ) || {};
+            const nm = m.name || p.name || "",
+              sid = m.studentId || p.studentId || "",
+              g = m.gender || p.gender || "",
+              yr = m.year || p.year || "",
+              col = m.college || p.college || "",
+              dep = m.department || p.department || "",
+              ph = m.phone || p.phone || "";
+            return `<tr class="border-t"><td class="px-2 py-1">${nm}</td><td class="px-2 py-1 font-mono">${sid}</td><td class="px-2 py-1">${g}</td><td class="px-2 py-1">${yr}</td><td class="px-2 py-1">${col}</td><td class="px-2 py-1">${dep}</td><td class="px-2 py-1">${ph}</td></tr>`;
+          })
+          .join("");
+        const body =
+          rows ||
+          `<tr><td class="px-2 py-6 text-center text-gray-400" colspan="7">신청자 없음</td></tr>`;
+        const toolbar = `<div class="flex items-center justify-between mb-2"><div class="text-xs font-semibold text-gray-700">관리자 전용 • 참가자 상세</div><button type="button" class="text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded" data-act="export-xlsx" data-id="${ev.id}"><i class="fas fa-file-excel mr-1"></i>명단 다운로드</button></div>`;
+        return `<div class="mt-4 border-t pt-3">${toolbar}<div class="overflow-auto max-h-60 border rounded"><table class="min-w-full text-xs">${header}<tbody>${body}</tbody></table></div></div>`;
+      }
 
+      /* ===== 예약 탭 렌더 ===== */
       function renderReservationTab(isAdmin) {
         const c = document.getElementById("reservation-tab");
         if (!c) return;
@@ -1799,7 +1839,6 @@
               if (f) uploadRestaurantImage(row, f);
             }
           });
-          // DnD
           ["dragenter", "dragover"].forEach((evt) => {
             wrap.addEventListener(evt, (e) => {
               const dz = e.target.closest(".dz");
@@ -1849,7 +1888,7 @@
           if (act === "admin-edit") return loadEventToForm(id);
           if (act === "admin-archive") return archiveEvent(id);
           if (act === "admin-delete") return deleteEvent(id);
-          if (act === "export-csv") return exportApplicantsCSV(id);
+          if (act === "export-xlsx") return exportApplicantsXLSX(id);
         });
       }
 
@@ -1860,7 +1899,6 @@
         document
           .getElementById("payment-fields")
           .classList.toggle("hidden", !(type === "mt" || type === "assembly"));
-        // 회비/계좌 자동 채움
         if (type === "mt" || type === "assembly") {
           const d = duesSettings || {};
           if (!document.getElementById("pay-bank").value)
@@ -1918,12 +1956,12 @@
           .getElementById("event-restaurants-wrap")
           .insertAdjacentHTML("beforeend", restaurantFieldHTML());
 
-      /* ===== 이미지 업로드 구현 (Storage) ===== */
+      /* ===== 이미지 업로드(Storage) ===== */
       async function uploadRestaurantImage(row, file) {
         if (IS_FILE) {
           showAlert(
             "ℹ️",
-            "로컬 파일로 여신 경우 업로드가 제한될 수 있어요. 깃허브 페이지/서버에서 테스트해 주세요."
+            "로컬 파일로 여신 경우 업로드가 제한될 수 있어요. GitHub Pages/서버에서 테스트해 주세요."
           );
           return;
         }
@@ -1958,7 +1996,7 @@
         }
       }
 
-      /* ===================== 신청 로직 ===================== */
+      /* ===== 신청 로직 ===== */
       async function reserveGeneral(id) {
         if (!currentUser) return showAlert("😥", "로그인이 필요합니다.");
         try {
@@ -2024,7 +2062,9 @@
                 .concat(r.waiting || [])
                 .some((p) => p.studentId === currentUser.studentId)
             );
-            if (already) return;
+            if (already) {
+              throw new Error("DUP");
+            }
             const idx = ev.restaurants.findIndex((r) => r.id === rid);
             if (idx === -1) throw new Error("restaurant not found");
             const r = ev.restaurants[idx];
@@ -2041,8 +2081,13 @@
             tx.update(ref, { restaurants: ev.restaurants });
           });
           showAlert("✅", "처리되었습니다.");
-        } catch {
-          showAlert("😥", "신청 실패");
+        } catch (e) {
+          if (String(e?.message).includes("DUP"))
+            showAlert(
+              "🙂",
+              "이미 다른 식당에 신청(또는 대기)되어 있어요.<br><b>한 번에 한 식당만</b> 선택할 수 있습니다."
+            );
+          else showAlert("😥", "신청 실패");
         }
       }
       async function cancelTasting(id, rid) {
@@ -2077,7 +2122,7 @@
         }
       }
 
-      /* ===================== 이벤트 CRUD ===================== */
+      /* ===== 이벤트 저장/보관/삭제 ===== */
       async function createOrSaveEvent() {
         const type = document.getElementById("event-type").value;
         const title = document.getElementById("event-title").value.trim();
@@ -2088,7 +2133,6 @@
         if (!type || !title || !datetime || !limit)
           return showAlert("😥", "타입/제목/일시/정원을 모두 입력해주세요.");
 
-        // 결제정보: MT/총회일 때 자동 연동
         let payment = null;
         if (type === "mt" || type === "assembly") {
           const b = document.getElementById("pay-bank").value.trim();
@@ -2296,86 +2340,58 @@
           showAlert("😥", "삭제 실패");
         }
       }
-      async function exportApplicantsCSV(id) {
-        try {
-          const ref = doc(db, "events", id);
-          const s = await getDoc(ref);
-          if (!s.exists()) return;
-          const ev = s.data();
-          let rows = [
-            [
-              "type",
-              "title",
-              "datetime",
-              "group",
-              "name",
-              "studentId",
-              "waitlist",
-            ],
-          ];
-          if (ev.type === "tasting") {
-            (ev.restaurants || []).forEach((r) => {
-              (r.reservations || []).forEach((p) =>
-                rows.push([
-                  ev.type,
-                  ev.title,
-                  ev.datetime,
-                  r.name,
-                  p.name,
-                  p.studentId,
-                  false,
-                ])
-              );
-              (r.waiting || []).forEach((p) =>
-                rows.push([
-                  ev.type,
-                  ev.title,
-                  ev.datetime,
-                  r.name,
-                  p.name,
-                  p.studentId,
-                  true,
-                ])
-              );
-            });
-          } else {
-            (ev.applicants || []).forEach((p) =>
-              rows.push([
-                ev.type,
-                ev.title,
-                ev.datetime,
-                "-",
-                p.name,
-                p.studentId,
-                false,
+
+      /* ===== 참가자/대기자 비율 계산 ===== */
+      function computeEventStats(ev) {
+        const all =
+          ev.type === "tasting"
+            ? (ev.restaurants || []).flatMap((r) => [
+                ...(r.reservations || []),
+                ...(r.waiting || []),
               ])
-            );
-            (ev.waiting || []).forEach((p) =>
-              rows.push([
-                ev.type,
-                ev.title,
-                ev.datetime,
-                "-",
-                p.name,
-                p.studentId,
-                true,
-              ])
-            );
-          }
-          const ws = XLSX.utils.aoa_to_sheet(rows);
-          const wb = XLSX.utils.book_new();
-          XLSX.utils.book_append_sheet(wb, ws, "applicants");
-          XLSX.writeFile(
-            wb,
-            `${(ev.title || "event").replace(/[\\/:*?"<>|]/g, "_")}_신청자.csv`
-          );
-        } catch (e) {
-          console.warn(e);
-          showAlert("😥", "CSV 생성 실패");
-        }
+            : [...(ev.applicants || []), ...(ev.waiting || [])];
+
+        const enrich = (p) => {
+          const m =
+            (membersData || []).find(
+              (x) => (x.studentId || x.id) === p.studentId
+            ) || {};
+          return {
+            gender: (m.gender || p.gender || "").trim() || "미상",
+            college: (m.college || p.college || "").trim() || "미상",
+          };
+        };
+        const stats = all.map(enrich);
+        const total = stats.length;
+
+        const genderCount = { 남: 0, 여: 0, 기타: 0, 미상: 0 };
+        stats.forEach((s) => {
+          if (genderCount[s.gender] == null) genderCount["미상"]++;
+          else genderCount[s.gender]++;
+        });
+        const genderPct = Object.fromEntries(
+          Object.entries(genderCount).map(([k, v]) => [
+            k,
+            total ? Math.round((v / total) * 1000) / 10 : 0,
+          ])
+        );
+
+        const collegeMap = new Map();
+        stats.forEach((s) => {
+          collegeMap.set(s.college, (collegeMap.get(s.college) || 0) + 1);
+        });
+        const colleges = [...collegeMap.entries()]
+          .map(([name, cnt]) => ({
+            name,
+            cnt,
+            pct: total ? Math.round((cnt / total) * 1000) / 10 : 0,
+          }))
+          .sort((a, b) => b.cnt - a.cnt);
+
+        return { total, genderPct, colleges };
       }
 
-      /* ===================== 보관 탭 ===================== */
+      /* ===== 보관 탭 ===== */
       function renderHistoryTab() {
         const c = document.getElementById("history-tab");
         if (!c) return;
@@ -2404,7 +2420,7 @@
           .join("");
       }
 
-      /* ===================== 건의 탭 ===================== */
+      /* ===== 건의 탭 ===== */
       function renderSuggestionsTab(isAdmin) {
         const c = document.getElementById("suggestions-tab");
         if (!c) return;
@@ -2484,7 +2500,7 @@
         }
       }
 
-      /* ===================== 관리자 대시보드 ===================== */
+      /* ===== 관리자 대시보드 ===== */
       function renderDashboardTab() {
         const c = document.getElementById("dashboard-tab");
         if (!c) return;
@@ -2522,15 +2538,19 @@
           )
           .join("");
 
+        // 임원 목록(이름 함께)
         const adminsHTML = adminList.length
           ? adminList
-              .map(
-                (sid) => `
-          <div class="flex items-center justify-between bg-gray-50 p-2 rounded">
-            <span class="font-mono">${sid}</span>
+              .map((sid) => {
+                const m = (membersData || []).find(
+                  (x) => (x.studentId || x.id) === sid
+                );
+                const nm = m?.name || "(이름 미확인)";
+                return `<div class="flex items-center justify-between bg-gray-50 p-2 rounded">
+            <span><span class="font-semibold">${nm}</span> <span class="text-gray-500 font-mono ml-1">${sid}</span></span>
             <button type="button" class="text-red-600" data-act="remove-admin" data-id="${sid}"><i class="fas fa-user-minus"></i></button>
-          </div>`
-              )
+          </div>`;
+              })
               .join("")
           : `<p class="text-gray-400">등록된 관리자가 없습니다.</p>`;
 
@@ -2572,62 +2592,12 @@
 
         c.innerHTML = `
           <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
-            <div class="section">
-              <h3 class="text-2xl font-bold mb-4 text-gray-700">조별 점수 관리</h3>
-              <div class="space-y-2">${
-                teamsHTML ||
-                '<p class="text-gray-400">등록된 조가 없습니다.</p>'
-              }</div>
-              <hr class="my-4">
-              <div class="flex gap-2">
-                <input id="new-team-name" class="flex-1 border rounded px-3 py-2" placeholder="새 조 이름">
-                <button id="add-team" type="button" class="bg-green-600 text-white px-4 rounded">추가</button>
-              </div>
-            </div>
 
-            <div class="section">
-              <h3 class="text-2xl font-bold mb-4 text-gray-700">활동 로드맵 관리</h3>
-              <div class="space-y-2">${
-                roadmapHTML ||
-                '<p class="text-gray-400">등록된 활동이 없습니다.</p>'
-              }</div>
-              <hr class="my-4">
-              <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
-                <input id="new-roadmap-name" class="md:col-span-2 border rounded px-3 py-2" placeholder="활동 이름">
-                <input id="new-roadmap-date" type="date" class="border rounded px-3 py-2">
-              </div>
-              <button id="add-roadmap" type="button" class="mt-2 bg-green-600 text-white px-4 py-2 rounded">추가</button>
-            </div>
-
-            <div class="section">
-              <h3 class="text-2xl font-bold mb-4 text-gray-700">임원(관리자) 관리</h3>
-              <div class="space-y-2" id="admins-list">${adminsHTML}</div>
-              <hr class="my-4">
-              <div class="flex gap-2">
-                <input id="new-admin-input" class="flex-1 border rounded px-3 py-2" placeholder="학번 입력">
-                <button id="add-admin-btn" type="button" class="bg-indigo-600 text-white px-4 rounded"><i class="fas fa-user-plus mr-1"></i>추가</button>
-              </div>
-            </div>
-
-            <!-- 회비/계좌 설정 -->
-            <div class="section">
-              <h3 class="text-2xl font-bold mb-4 text-gray-700">회비/계좌 설정 (회원가입 노출 & MT/총회 연동)</h3>
-              <label class="flex items-center gap-2 mb-2"><input type="checkbox" id="dues-enabled"><span>회원가입 창에 회비/계좌 안내 표시</span></label>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-                <input id="dues-bank"   class="border rounded px-3 py-2" placeholder="은행명 (예: 국민)">
-                <input id="dues-number" class="border rounded px-3 py-2" placeholder="계좌번호">
-                <input id="dues-holder" class="border rounded px-3 py-2" placeholder="예금주">
-                <input id="dues-amount" class="border rounded px-3 py-2" placeholder="회비 금액 (숫자)">
-              </div>
-              <textarea id="dues-note" class="border rounded px-3 py-2 w-full mt-2" rows="2" placeholder="안내 문구(선택)"></textarea>
-              <button id="save-dues" type="button" class="mt-2 bg-indigo-600 text-white px-4 py-2 rounded">저장</button>
-            </div>
-
-            <!-- 홈 화면 블록 관리 -->
+            <!-- 홈 화면 & 활동 관리(통합) -->
             <div class="section xl:col-span-2">
-              <div class="flex items-center justify-between">
-                <h3 class="text-2xl font-bold text-gray-700">홈 화면 블록 관리 (점수/QA/공지 등)</h3>
-              </div>
+              <h3 class="text-2xl font-bold text-gray-700">홈 화면 & 활동 관리 (블록 + 점수 + 로드맵)</h3>
+
+              <!-- 블록 추가 -->
               <div class="grid grid-cols-1 md:grid-cols-4 gap-2 mt-3">
                 <select id="block-type" class="border rounded px-3 py-2">
                   <option value="scores">scores(조별 점수)</option>
@@ -2638,19 +2608,63 @@
                 <input id="block-order" type="number" class="border rounded px-3 py-2" placeholder="order (예: 10)">
                 <button id="add-block" class="bg-green-600 text-white px-4 py-2 rounded md:col-span-4">블록 추가</button>
               </div>
-              <hr class="my-4">
-              <div id="blocks-list" class="space-y-2">${
-                blocksHTML ||
-                '<p class="text-gray-400">등록된 블록이 없습니다.</p>'
-              }</div>
+
+              <!-- 블록 목록 -->
+              <div class="mt-4">
+                <div id="blocks-list" class="space-y-2">${
+                  blocksHTML ||
+                  '<p class="text-gray-400">등록된 블록이 없습니다.</p>'
+                }</div>
+              </div>
+
+              <hr class="my-6">
+
+              <!-- 점수 + 로드맵(기존 두 섹션을 하나로) -->
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div>
+                  <h4 class="text-xl font-bold text-gray-700 mb-3">조별 점수 관리</h4>
+                  <div class="space-y-2">${
+                    teamsHTML ||
+                    '<p class="text-gray-400">등록된 조가 없습니다.</p>'
+                  }</div>
+                  <div class="flex gap-2 mt-3">
+                    <input id="new-team-name" class="flex-1 border rounded px-3 py-2" placeholder="새 조 이름">
+                    <button id="add-team" type="button" class="bg-green-600 text-white px-4 rounded">추가</button>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 class="text-xl font-bold text-gray-700 mb-3">활동 로드맵 관리</h4>
+                  <div class="space-y-2">${
+                    roadmapHTML ||
+                    '<p class="text-gray-400">등록된 활동이 없습니다.</p>'
+                  }</div>
+                  <div class="grid grid-cols-1 md:grid-cols-3 gap-2 mt-3">
+                    <input id="new-roadmap-name" class="md:col-span-2 border rounded px-3 py-2" placeholder="활동 이름">
+                    <input id="new-roadmap-date" type="date" class="border rounded px-3 py-2">
+                  </div>
+                  <button id="add-roadmap" type="button" class="mt-2 bg-green-600 text-white px-4 py-2 rounded">추가</button>
+                </div>
+              </div>
             </div>
 
-            <!-- 회원관리 + 엑셀 -->
-            <div class="section xl:col-span-2">
-              <h3 class="text-2xl font-bold mb-2 text-gray-700">회원 관리</h3>
+            <!-- 임원(관리자) 관리 -->
+            <div class="section">
+              <h3 class="text-2xl font-bold mb-4 text-gray-700">임원(관리자) 관리</h3>
+              <div class="space-y-2" id="admins-list">${adminsHTML}</div>
+              <hr class="my-4">
+              <div class="flex gap-2">
+                <input id="new-admin-input" class="flex-1 border rounded px-3 py-2" placeholder="학번 입력">
+                <button id="add-admin-btn" type="button" class="bg-indigo-600 text-white px-4 rounded"><i class="fas fa-user-plus mr-1"></i>추가</button>
+              </div>
+            </div>
+
+            <!-- 회원가입/회비 설정 + 회원 관리 -->
+            <div class="section">
+              <h3 class="text-2xl font-bold mb-2 text-gray-700">회원가입 & 회비 설정</h3>
               <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div class="md:col-span-2">
-                  <h4 class="font-semibold text-gray-700">회원가입 기간 설정</h4>
+                  <h4 class="font-semibold text-gray-700">회원가입 기간</h4>
                   <div class="grid grid-cols-1 sm:grid-cols-5 gap-2 mt-2">
                     <label class="flex items-center gap-2 sm:col-span-5"><input type="checkbox" id="signup-open" class="w-4 h-4"><span>상시 오픈</span></label>
                     <input id="signup-start" type="date" class="border rounded px-3 py-2 sm:col-span-2" placeholder="시작일">
@@ -2658,6 +2672,50 @@
                     <button id="save-signup" type="button" class="bg-indigo-600 text-white px-4 rounded sm:col-span-1">저장</button>
                   </div>
                   <p class="text-xs text-gray-500 mt-1">* 상시 오픈 체크 시 기간과 무관하게 언제든 가입 가능</p>
+                </div>
+                <div>
+                  <h4 class="font-semibold text-gray-700">회비/계좌 설정</h4>
+                  <label class="flex items-center gap-2 mb-2"><input type="checkbox" id="dues-enabled"><span>회원가입 창에 회비/계좌 안내 표시</span></label>
+                  <div class="grid grid-cols-1 gap-2">
+                    <input id="dues-bank"   class="border rounded px-3 py-2" placeholder="은행명 (예: 국민)">
+                    <input id="dues-number" class="border rounded px-3 py-2" placeholder="계좌번호">
+                    <input id="dues-holder" class="border rounded px-3 py-2" placeholder="예금주">
+                    <input id="dues-amount" class="border rounded px-3 py-2" placeholder="회비 금액 (숫자)">
+                  </div>
+                  <textarea id="dues-note" class="border rounded px-3 py-2 w-full mt-2" rows="2" placeholder="안내 문구(선택)"></textarea>
+                  <button id="save-dues" type="button" class="mt-2 bg-indigo-600 text-white px-4 py-2 rounded w-full">저장</button>
+                </div>
+              </div>
+
+              <hr class="my-4">
+              <h3 class="text-xl font-bold text-gray-700">회원 관리</h3>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div class="md:col-span-2">
+                  <div class="overflow-auto max-h-[420px] border rounded-lg">
+                    <table class="min-w-full table-auto text-sm">
+                      <thead class="table-sticky text-gray-700">
+                        <tr>
+                          <th class="px-2 py-2 text-left">이름</th>
+                          <th class="px-2 py-2 text-left">성별</th>
+                          <th class="px-2 py-2 text-left">학년</th>
+                          <th class="px-2 py-2 text-left">단과대</th>
+                          <th class="px-2 py-2 text-left">학과</th>
+                          <th class="px-2 py-2 text-left">학번</th>
+                          <th class="px-2 py-2 text-left">전화번호</th>
+                          <th class="px-2 py-2 text-left">상태</th>
+                          <th class="px-2 py-2 text-center w-40">관리</th>
+                        </tr>
+                      </thead>
+                      <tbody id="members-tbody" class="divide-y"></tbody>
+                    </table>
+                  </div>
+                  <div class="flex items-center justify-between mt-3 gap-2 flex-wrap">
+                    <div class="flex items-center gap-2">
+                      <input id="member-search" class="border rounded px-3 py-2" placeholder="검색: 이름/학과/학번/전화">
+                      <span class="text-sm text-gray-500" id="member-count"></span>
+                    </div>
+                    <button id="export-xlsx" type="button" class="bg-blue-600 text-white px-3 py-2 rounded text-sm"><i class="fas fa-file-excel mr-1"></i>전체 명부 엑셀</button>
+                  </div>
                 </div>
                 <div>
                   <h4 class="font-semibold text-gray-700">수동 회원 추가</h4>
@@ -2676,44 +2734,17 @@
 
               <hr class="my-4">
               <h4 class="font-semibold text-gray-700">엑셀/CSV 일괄 업로드</h4>
-              <p class="text-sm text-gray-500">열 이름(한국어/영어 어느 쪽도 가능): <b>이름/name</b>, <b>성별/gender</b>, <b>학년/year</b>, <b>단과대/college</b>, <b>학과/department/major</b>, <b>학번/studentId</b>, <b>전화번호/phone</b></p>
+              <p class="text-sm text-gray-500">열 이름(한국어/영어 모두 인식): <b>이름/name</b>, <b>성별/gender</b>, <b>학년/year</b>, <b>단과대/college</b>, <b>학과/department/major</b>, <b>학번/studentId</b>, <b>전화번호/phone</b></p>
               <div class="flex flex-col sm:flex-row gap-2 mt-2">
                 <input id="excel-file" type="file" accept=".xlsx,.csv" class="border rounded px-3 py-2 bg-white">
                 <button id="preview-excel" type="button" class="bg-gray-700 text-white px-4 rounded">미리보기</button>
                 <button id="import-excel"  type="button" class="bg-emerald-600 text-white px-4 rounded" disabled>업로드</button>
               </div>
               <div id="excel-preview" class="text-sm text-gray-600 mt-2"></div>
-
-              <hr class="my-4">
-              <div class="overflow-auto max-h-[540px] border rounded-lg">
-                <table class="min-w-full table-auto text-sm">
-                  <thead class="table-sticky text-gray-700">
-                    <tr>
-                      <th class="px-2 py-2 text-left">이름</th>
-                      <th class="px-2 py-2 text-left">성별</th>
-                      <th class="px-2 py-2 text-left">학년</th>
-                      <th class="px-2 py-2 text-left">단과대</th>
-                      <th class="px-2 py-2 text-left">학과</th>
-                      <th class="px-2 py-2 text-left">학번</th>
-                      <th class="px-2 py-2 text-left">전화번호</th>
-                      <th class="px-2 py-2 text-left">상태</th>
-                      <th class="px-2 py-2 text-center w-40">관리</th>
-                    </tr>
-                  </thead>
-                  <tbody id="members-tbody" class="divide-y"></tbody>
-                </table>
-              </div>
-              <div class="flex items-center justify-between mt-3 gap-2 flex-wrap">
-                <div class="flex items-center gap-2">
-                  <input id="member-search" class="border rounded px-3 py-2" placeholder="검색: 이름/학과/학번/전화">
-                  <span class="text-sm text-gray-500" id="member-count"></span>
-                </div>
-                <button id="export-xlsx" type="button" class="bg-blue-600 text-white px-3 py-2 rounded text-sm"><i class="fas fa-file-excel mr-1"></i>전체 명부 엑셀 다운로드</button>
-              </div>
             </div>
           </div>`;
 
-        // 버튼 바인딩
+        // 액션 바인딩
         c.addEventListener("click", (e) => {
           const b = e.target.closest("button[data-act]");
           if (!b) return;
@@ -2790,7 +2821,7 @@
             if (act === "down") moveBlock(id, 1);
           });
 
-        // Members manual & excel
+        // Members
         document
           .getElementById("add-member-btn")
           .addEventListener("click", addMemberManual);
@@ -2803,7 +2834,6 @@
         document
           .getElementById("export-xlsx")
           .addEventListener("click", exportMembersXLSX);
-
         document
           .getElementById("member-search")
           .addEventListener("input", (e) => {
@@ -2811,7 +2841,7 @@
             renderMembersTable();
           });
 
-        // 회원 테이블 위임(수정/삭제/승인/거절)
+        // 회원 테이블 버튼(승인/거절/편집/삭제)
         document
           .getElementById("members-tbody")
           .addEventListener("click", (e) => {
@@ -2827,7 +2857,7 @@
         renderMembersTable();
       }
 
-      /* ===== 블록 관리 함수 ===== */
+      /* ===== 블록 관리 ===== */
       async function addBlock() {
         const type = document.getElementById("block-type").value;
         const title =
@@ -2841,9 +2871,15 @@
           parseInt(document.getElementById("block-order").value, 10) ||
           (blocksData.length + 1) * 10;
         const base = { type, title, order, visible: true };
-        if (type === "qa") base.payload = { why: [], how: [] };
+        if (type === "qa")
+          base.payload = {
+            why: ["푸디는 함께 맛있는 경험을 나누는 동아리예요!"],
+            how: ["로그인 ▶︎ 신청 ▶︎ 즐기기"],
+          };
         if (type === "notice")
-          base.payload = { html: "<p>내용을 편집해 주세요.</p>" };
+          base.payload = {
+            text: "여기에 공지 내용을 자유롭게 입력하세요.\n줄바꿈과 문단을 그대로 표시합니다.",
+          };
         await addDoc(collection(db, "homepageBlocks"), base);
         showAlert("🎉", "블록이 추가되었습니다.");
         document.getElementById("block-title").value = "";
@@ -2863,40 +2899,76 @@
         });
         showAlert("✅", "메타 수정됨");
       }
+      // 문단 편집 모달
+      function openBlockEditor(innerHTML, onSave) {
+        el.blockEditorBody.innerHTML = innerHTML;
+        el.blockEditor.classList.remove("hidden");
+        const off = () => {
+          el.blockEditor.classList.add("hidden");
+          el.blockEditorSave.replaceWith(el.blockEditorSave.cloneNode(true)); // 리스너 초기화
+        };
+        el.blockEditorCancel.onclick = off;
+        el.blockEditorSave.onclick = () => {
+          onSave();
+          off();
+        };
+      }
       async function editBlockContent(id) {
         const blk = blocksData.find((b) => b.id === id);
         if (!blk) return;
         if (blk.type === "qa") {
-          const whyStr = prompt(
-            "🧭 왜 만들었나요? (항목을 줄바꿈으로 구분)",
-            (blk.payload?.why || []).join("\n")
+          el.blockEditorTitle.textContent = "Q&A 블록 편집";
+          openBlockEditor(
+            `
+            <div>
+              <label class="block text-sm font-semibold mb-1">🧭 왜 만들었나요? (줄마다 항목)</label>
+              <textarea id="blk-why" rows="6" class="w-full border rounded px-3 py-2 whitespace-pre">${(
+                blk.payload?.why || []
+              ).join("\n")}</textarea>
+            </div>
+            <div class="mt-2">
+              <label class="block text-sm font-semibold mb-1">🛠 어떻게 쓰나요? (줄마다 항목)</label>
+              <textarea id="blk-how" rows="6" class="w-full border rounded px-3 py-2 whitespace-pre">${(
+                blk.payload?.how || []
+              ).join("\n")}</textarea>
+            </div>`,
+            async () => {
+              const why = document
+                .getElementById("blk-why")
+                .value.split(/\n/)
+                .map((s) => s.trim())
+                .filter(Boolean);
+              const how = document
+                .getElementById("blk-how")
+                .value.split(/\n/)
+                .map((s) => s.trim())
+                .filter(Boolean);
+              await updateDoc(doc(db, "homepageBlocks", id), {
+                payload: { why, how },
+              });
+              showAlert("✅", "내용이 저장되었습니다.");
+            }
           );
-          if (whyStr === null) return;
-          const howStr = prompt(
-            "🛠 어떻게 쓰나요? (항목을 줄바꿈으로 구분)",
-            (blk.payload?.how || []).join("\n")
-          );
-          if (howStr === null) return;
-          const why = whyStr
-            .split(/\n/)
-            .map((s) => s.trim())
-            .filter(Boolean);
-          const how = howStr
-            .split(/\n/)
-            .map((s) => s.trim())
-            .filter(Boolean);
-          await updateDoc(doc(db, "homepageBlocks", id), {
-            payload: { why, how },
-          });
         } else {
-          const html = prompt(
-            "블록 HTML 내용",
-            blk.payload?.html || "<p>내용</p>"
+          el.blockEditorTitle.textContent = "공지/자유 블록 편집";
+          openBlockEditor(
+            `
+            <div>
+              <label class="block text-sm font-semibold mb-1">내용(문단)</label>
+              <textarea id="blk-text" rows="10" class="w-full border rounded px-3 py-2 whitespace-pre">${
+                blk.payload?.text || blk.payload?.html || ""
+              }</textarea>
+              <p class="text-xs text-gray-500 mt-1">* 줄바꿈을 그대로 표시합니다.</p>
+            </div>`,
+            async () => {
+              const text = document.getElementById("blk-text").value;
+              await updateDoc(doc(db, "homepageBlocks", id), {
+                payload: { text },
+              });
+              showAlert("✅", "내용이 저장되었습니다.");
+            }
           );
-          if (html === null) return;
-          await updateDoc(doc(db, "homepageBlocks", id), { payload: { html } });
         }
-        showAlert("✅", "내용이 저장되었습니다.");
       }
       async function moveBlock(id, delta) {
         const ordered = [...blocksData].sort(
@@ -2914,7 +2986,7 @@
         }
       }
 
-      /* ===== 조별 점수 CRUD ===== */
+      /* ===== 팀/로드맵 ===== */
       async function saveTeam(id) {
         const name = document.getElementById(`name-${id}`).value.trim();
         const score = parseInt(
@@ -2945,88 +3017,90 @@
         try {
           await addDoc(collection(db, "teams"), { name, score: 0 });
           document.getElementById("new-team-name").value = "";
-          showAlert("🎉", "추가됨");
+          showAlert("🎉", "조가 추가되었습니다.");
         } catch {
-          showAlert("😥", "실패");
+          showAlert("😥", "추가 실패");
         }
       }
 
       async function addRoadmap() {
-        const n = document.getElementById("new-roadmap-name").value.trim();
-        const d = document.getElementById("new-roadmap-date").value;
-        if (!n || !d) return showAlert("😥", "이름/날짜 필요");
+        const name = document.getElementById("new-roadmap-name").value.trim();
+        const date = document.getElementById("new-roadmap-date").value;
+        if (!name || !date)
+          return showAlert("😥", "활동 이름과 날짜를 입력하세요.");
         try {
           await addDoc(collection(db, "roadmap"), {
-            activityName: n,
-            activityDate: d,
+            activityName: name,
+            activityDate: date,
           });
           document.getElementById("new-roadmap-name").value = "";
           document.getElementById("new-roadmap-date").value = "";
-          showAlert("🎉", "추가됨");
+          showAlert("🎉", "로드맵이 추가되었습니다.");
         } catch {
-          showAlert("😥", "실패");
+          showAlert("😥", "추가 실패");
         }
       }
       async function updateRoadmapItem(id, name, date) {
+        if (!id || !name || !date) return;
         try {
           await updateDoc(doc(db, "roadmap", id), {
             activityName: name,
             activityDate: date,
           });
-          showAlert("✅", "수정됨");
+          showAlert("✅", "로드맵이 수정되었습니다.");
         } catch {
-          showAlert("😥", "실패");
+          showAlert("😥", "수정 실패");
         }
       }
       async function delRoadmap(id) {
-        if (!confirm("삭제할까요?")) return;
+        if (!confirm("이 일정을 삭제할까요?")) return;
         try {
           await deleteDoc(doc(db, "roadmap", id));
-          showAlert("🗑️", "삭제됨");
+          showAlert("🗑️", "삭제되었습니다.");
         } catch {
-          showAlert("😥", "실패");
+          showAlert("😥", "삭제 실패");
         }
       }
 
-      /* 임원(관리자) 관리 */
+      /* ===== 관리자 계정 관리 ===== */
       async function addAdmin() {
-        const input = document.getElementById("new-admin-input");
-        const sid = input.value.trim();
-        if (!sid) return;
+        const sid = document.getElementById("new-admin-input").value.trim();
+        if (!sid) return showAlert("😥", "학번을 입력하세요.");
         try {
-          const ref = doc(db, "admins", "list");
-          await runTransaction(db, async (t) => {
-            const s = await t.get(ref);
-            if (!s.exists()) t.set(ref, { studentIds: [sid] });
-            else {
-              const arr = s.data().studentIds || [];
-              if (!arr.includes(sid)) arr.push(sid);
-              t.update(ref, { studentIds: arr });
-            }
+          await runTransaction(db, async (tx) => {
+            const ref = doc(db, "admins", "list");
+            const snap = await tx.get(ref);
+            const arr = snap.exists() ? snap.data().studentIds || [] : [];
+            if (!arr.includes(sid)) arr.push(sid);
+            tx.set(ref, { studentIds: arr }, { merge: true });
           });
-          input.value = "";
-          showAlert("🎉", `관리자(${sid}) 추가됨`);
+          document.getElementById("new-admin-input").value = "";
+          showAlert("✅", "관리자가 추가되었습니다.");
         } catch {
           showAlert("😥", "추가 실패");
         }
       }
       async function removeAdmin(sid) {
-        if (!confirm(`${sid} 관리자를 해제할까요?`)) return;
+        if (!sid) return;
+        if (!confirm("해당 관리자를 제거할까요?")) return;
         try {
-          const ref = doc(db, "admins", "list");
-          await runTransaction(db, async (t) => {
-            const s = await t.get(ref);
-            if (!s.exists()) return;
-            const arr = (s.data().studentIds || []).filter((x) => x !== sid);
-            t.update(ref, { studentIds: arr });
+          await runTransaction(db, async (tx) => {
+            const ref = doc(db, "admins", "list");
+            const snap = await tx.get(ref);
+            const arr = snap.exists() ? snap.data().studentIds || [] : [];
+            tx.set(
+              ref,
+              { studentIds: arr.filter((x) => x !== sid) },
+              { merge: true }
+            );
           });
-          showAlert("🗑️", "해제됨");
+          showAlert("🗑️", "관리자에서 제거됐습니다.");
         } catch {
-          showAlert("😥", "해제 실패");
+          showAlert("😥", "제거 실패");
         }
       }
 
-      /* 회원가입 기간 설정 */
+      /* ===== 회원가입/회비 설정 저장 ===== */
       async function saveSignupSettings() {
         const open = document.getElementById("signup-open").checked;
         const start = document.getElementById("signup-start").value;
@@ -3037,14 +3111,11 @@
             { open, start, end },
             { merge: true }
           );
-          showAlert("✅", "회원가입 설정 저장됨");
-          updateSignupUI();
+          showAlert("✅", "회원가입 설정이 저장되었습니다.");
         } catch {
           showAlert("😥", "저장 실패");
         }
       }
-
-      /* 회비/계좌 설정 저장 */
       async function saveDuesSettings() {
         const enabled = document.getElementById("dues-enabled").checked;
         const bank = document.getElementById("dues-bank").value.trim();
@@ -3058,301 +3129,132 @@
             { enabled, bank, number, holder, amount, note },
             { merge: true }
           );
-          showAlert("✅", "회비/계좌 정보 저장됨");
-          renderDuesInfoBox();
+          showAlert("✅", "회비/계좌 설정이 저장되었습니다.");
         } catch {
           showAlert("😥", "저장 실패");
         }
       }
 
-      /* 수동 회원 추가 */
+      /* ===== 회원 관리 ===== */
+      const findMember = (sid) =>
+        (membersData || []).find((x) => (x.studentId || x.id) === sid) || {};
+
+      function normalize(s) {
+        return (s ?? "").toString().toLowerCase();
+      }
+      function memberMatches(m, q) {
+        if (!q) return true;
+        return [m.name, m.department, m.college, m.studentId, m.phone].some(
+          (v) => normalize(v).includes(q)
+        );
+      }
+
+      function renderMembersTable() {
+        const tbody = document.getElementById("members-tbody");
+        if (!tbody) return;
+        const q = memberSearchTerm;
+        const list = (membersData || []).filter((m) => memberMatches(m, q));
+        document.getElementById(
+          "member-count"
+        ).textContent = `총 ${list.length}명`;
+        tbody.innerHTML = list
+          .map((m) => {
+            const sid = m.studentId || m.id || "";
+            const chip = (st) => {
+              const map = {
+                pending: "bg-amber-100 text-amber-700",
+                active: "bg-green-100 text-green-700",
+                rejected: "bg-red-100 text-red-700",
+                blocked: "bg-gray-200 text-gray-600",
+              };
+              return `<span class="px-2 py-0.5 rounded ${
+                map[st] || "bg-gray-100"
+              }">${st || "active"}</span>`;
+            };
+            const actPending =
+              m.status === "pending"
+                ? `<button class="text-xs bg-green-600 text-white px-2 py-1 rounded" data-mem-act="approve" data-id="${sid}">승인</button>
+               <button class="text-xs bg-amber-600 text-white px-2 py-1 rounded" data-mem-act="reject" data-id="${sid}">거절</button>`
+                : "";
+            return `<tr class="hover:bg-gray-50">
+            <td class="px-2 py-2">${m.name || ""}</td>
+            <td class="px-2 py-2">${m.gender || ""}</td>
+            <td class="px-2 py-2">${m.year || ""}</td>
+            <td class="px-2 py-2">${m.college || ""}</td>
+            <td class="px-2 py-2">${m.department || ""}</td>
+            <td class="px-2 py-2 font-mono">${sid}</td>
+            <td class="px-2 py-2">${m.phone || ""}</td>
+            <td class="px-2 py-2">${chip(m.status || "active")}</td>
+            <td class="px-2 py-2 text-center space-x-1">
+              ${actPending}
+              <button class="text-xs bg-white border px-2 py-1 rounded" data-mem-act="edit" data-id="${sid}">편집</button>
+              <button class="text-xs bg-red-600 text-white px-2 py-1 rounded" data-mem-act="delete" data-id="${sid}">삭제</button>
+            </td>
+          </tr>`;
+          })
+          .join("");
+      }
+
       async function addMemberManual() {
-        const sid = document.getElementById("m-sid").value.trim();
         const name = document.getElementById("m-name").value.trim();
         const gender = document.getElementById("m-gender").value.trim();
         const year = document.getElementById("m-year").value.trim();
         const college = document.getElementById("m-college").value.trim();
         const department = document.getElementById("m-dept").value.trim();
+        const studentId = document.getElementById("m-sid").value.trim();
         const phone = document.getElementById("m-phone").value.trim();
-        if (
-          !sid ||
-          !name ||
-          !gender ||
-          !year ||
-          !college ||
-          !department ||
-          !phone
-        )
-          return showAlert("😥", "모든 필드를 입력하세요.");
+        if (!name || !studentId)
+          return showAlert("😥", "이름과 학번은 필수입니다.");
         try {
           await setDoc(
-            doc(db, "members", sid),
+            doc(db, "members", studentId),
             {
-              studentId: sid,
               name,
               gender,
               year,
               college,
               department,
+              studentId,
               phone,
               status: "active",
-              joinedAt: serverTimestamp(),
             },
             { merge: true }
           );
-          document.getElementById("m-sid").value = "";
-          document.getElementById("m-name").value = "";
-          document.getElementById("m-gender").value = "";
-          document.getElementById("m-year").value = "";
-          document.getElementById("m-college").value = "";
-          document.getElementById("m-dept").value = "";
-          document.getElementById("m-phone").value = "";
-          showAlert("🎉", "회원 추가 완료");
+          [
+            "m-name",
+            "m-gender",
+            "m-year",
+            "m-college",
+            "m-dept",
+            "m-sid",
+            "m-phone",
+          ].forEach((id) => {
+            const el = document.getElementById(id);
+            if (el) el.value = "";
+          });
+          showAlert("✅", "회원이 추가(수정)되었습니다.");
         } catch {
           showAlert("😥", "추가 실패");
         }
       }
 
-      /* 엑셀/CSV 업로드/다운로드 */
-      let excelRows = [];
-      function valFromKeys(r, keys) {
-        for (const k of keys) {
-          if (r[k] !== undefined && r[k] !== null && String(r[k]).trim() !== "")
-            return String(r[k]).trim();
-        }
-        return "";
-      }
-      function previewExcel() {
-        const file = document.getElementById("excel-file").files?.[0];
-        const preview = document.getElementById("excel-preview");
-        const importBtn = document.getElementById("import-excel");
-        if (!file) {
-          preview.textContent = "파일을 선택하세요.";
-          importBtn.disabled = true;
-          return;
-        }
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          try {
-            const data = new Uint8Array(e.target.result);
-            const wb = XLSX.read(data, { type: "array" });
-            const ws = wb.Sheets[wb.SheetNames[0]];
-            const json = XLSX.utils.sheet_to_json(ws, { defval: "" });
-            excelRows = json
-              .map((r) => ({
-                name: valFromKeys(r, ["이름", "name", "성명", "NM"]),
-                gender: valFromKeys(r, ["성별", "gender"]),
-                year: valFromKeys(r, ["학년", "year", "grade"]),
-                college: valFromKeys(r, ["단과대", "college"]),
-                department: valFromKeys(r, ["학과", "department", "major"]),
-                studentId: valFromKeys(r, ["학번", "studentId", "SID"]),
-                phone: valFromKeys(r, [
-                  "전화번호",
-                  "phone",
-                  "tel",
-                  "연락처",
-                  "mobile",
-                ]),
-              }))
-              .filter((r) => r.studentId && r.name);
-            preview.innerHTML =
-              `<b>${excelRows.length}</b>명 인식됨 (첫 5명):<br>` +
-              excelRows
-                .slice(0, 5)
-                .map(
-                  (r) => `${r.studentId} / ${r.name} / ${r.department || ""}`
-                )
-                .join("<br>");
-            importBtn.disabled = excelRows.length === 0;
-          } catch (err) {
-            console.warn(err);
-            preview.textContent = "파일 파싱 실패. 헤더를 확인하세요.";
-            importBtn.disabled = true;
-          }
-        };
-        reader.readAsArrayBuffer(file);
-      }
-      async function importExcelConfirmed() {
-        if (excelRows.length === 0) return;
-        if (
-          !confirm(
-            `${excelRows.length}명 업로드할까요? 같은 학번은 덮어씁니다.`
-          )
-        )
-          return;
-        try {
-          const CHUNK = 400;
-          for (let i = 0; i < excelRows.length; i += CHUNK) {
-            const batch = writeBatch(db);
-            excelRows.slice(i, i + CHUNK).forEach((r) => {
-              const ref = doc(db, "members", r.studentId);
-              batch.set(
-                ref,
-                {
-                  studentId: r.studentId,
-                  name: r.name,
-                  gender: r.gender,
-                  year: r.year,
-                  college: r.college,
-                  department: r.department,
-                  phone: r.phone,
-                  status: "active",
-                  joinedAt: serverTimestamp(),
-                },
-                { merge: true }
-              );
-            });
-            await batch.commit();
-          }
-          showAlert("✅", "일괄 업로드 완료");
-          document.getElementById("import-excel").disabled = true;
-        } catch (err) {
-          console.warn(err);
-          showAlert("😥", "업로드 실패");
-        }
-      }
-      async function exportMembersXLSX() {
-        try {
-          let arr = membersData;
-          if (!arr || arr.length === 0) {
-            const snap = await getDocs(collection(db, "members"));
-            arr = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-          }
-          const headers = [
-            "이름",
-            "성별",
-            "학년",
-            "단과대",
-            "학과",
-            "학번",
-            "전화번호",
-            "상태",
-          ];
-          const rows = arr.map((m) => ({
-            이름: m.name || "",
-            성별: m.gender || "",
-            학년: m.year || "",
-            단과대: m.college || "",
-            학과: m.department || "",
-            학번: m.studentId || m.id || "",
-            전화번호: m.phone || "",
-            상태: m.status || "active",
-          }));
-          const ws = XLSX.utils.aoa_to_sheet([headers]);
-          XLSX.utils.sheet_add_json(ws, rows, {
-            origin: "A2",
-            skipHeader: true,
-          });
-          const wb = XLSX.utils.book_new();
-          XLSX.utils.book_append_sheet(wb, ws, "푸디 회원명부");
-          const ymd = new Date().toISOString().slice(0, 10).replaceAll("-", "");
-          XLSX.writeFile(wb, `푸디_전체_회원_명단_${ymd}.xlsx`);
-        } catch (err) {
-          console.warn(err);
-          showAlert("😥", "엑셀 다운로드 중 오류가 발생했습니다.");
-        }
-      }
-
-      /* 회원 명부 렌더/수정/삭제/승인 */
-      function renderMembersTable() {
-        const tbody = document.getElementById("members-tbody");
-        const countEl = document.getElementById("member-count");
-        if (!tbody) return;
-        const list = (membersData || []).filter((m) => {
-          if (!memberSearchTerm) return true;
-          const hay = `${m.name || ""} ${m.department || ""} ${
-            m.college || ""
-          } ${m.studentId || ""} ${m.phone || ""}`.toLowerCase();
-          return hay.includes(memberSearchTerm);
-        });
-        countEl && (countEl.textContent = `${list.length}명`);
-        tbody.innerHTML =
-          list.length === 0
-            ? `<tr><td colspan="9" class="text-center text-gray-400 py-6">회원 데이터가 없습니다.</td></tr>`
-            : list
-                .map((m) => {
-                  const status = m.status || "active";
-                  const statusBadge =
-                    status === "pending"
-                      ? `<span class="px-2 py-0.5 text-xs rounded bg-amber-100 text-amber-700">승인대기</span>`
-                      : status === "blocked"
-                      ? `<span class="px-2 py-0.5 text-xs rounded bg-red-100 text-red-700">차단</span>`
-                      : status === "rejected"
-                      ? `<span class="px-2 py-0.5 text-xs rounded bg-gray-200 text-gray-600">거절</span>`
-                      : `<span class="px-2 py-0.5 text-xs rounded bg-emerald-100 text-emerald-700">승인됨</span>`;
-                  const actions =
-                    status === "pending"
-                      ? `<button class="text-emerald-700 hover:text-emerald-900 text-xs" data-mem-act="approve" data-id="${
-                          m.studentId || m.id
-                        }"><i class="fas fa-check mr-1"></i>승인</button>
-                 <button class="text-amber-700 hover:text-amber-900 text-xs ml-2" data-mem-act="reject" data-id="${
-                   m.studentId || m.id
-                 }"><i class="fas fa-xmark mr-1"></i>거절</button>`
-                      : `<button class="text-blue-600 hover:text-blue-800 text-xs" data-mem-act="edit" data-id="${
-                          m.studentId || m.id
-                        }"><i class="fas fa-pen mr-1"></i>수정</button>
-                 <button class="text-red-600 hover:text-red-800 text-xs ml-2" data-mem-act="delete" data-id="${
-                   m.studentId || m.id
-                 }"><i class="fas fa-trash mr-1"></i>삭제</button>`;
-                  return `
-            <tr class="hover:bg-gray-50 ${
-              status === "pending" ? "bg-amber-50" : ""
-            }">
-              <td class="px-2 py-2">${m.name || ""}</td>
-              <td class="px-2 py-2">${m.gender || ""}</td>
-              <td class="px-2 py-2">${m.year || ""}</td>
-              <td class="px-2 py-2">${m.college || ""}</td>
-              <td class="px-2 py-2">${m.department || ""}</td>
-              <td class="px-2 py-2 font-mono">${m.studentId || m.id || ""}</td>
-              <td class="px-2 py-2">${m.phone || ""}</td>
-              <td class="px-2 py-2">${statusBadge}</td>
-              <td class="px-2 py-2 text-center">${actions}</td>
-            </tr>`;
-                })
-                .join("");
-      }
-      async function approveMember(sid) {
+      async function editMemberPrompt(sid) {
+        const m = findMember(sid);
+        if (!m) return;
+        const name = prompt("이름", m.name || "");
+        if (name === null) return;
+        const gender = prompt("성별(남/여/기타)", m.gender || "");
+        if (gender === null) return;
+        const year = prompt("학년", m.year || "");
+        if (year === null) return;
+        const college = prompt("단과대", m.college || "");
+        if (college === null) return;
+        const department = prompt("학과", m.department || "");
+        if (department === null) return;
+        const phone = prompt("전화번호", m.phone || "");
+        if (phone === null) return;
         try {
           await updateDoc(doc(db, "members", sid), {
-            status: "active",
-            approvedAt: serverTimestamp(),
-          });
-          showAlert("✅", "승인되었습니다.");
-        } catch (e) {
-          console.warn(e);
-          showAlert("😥", "승인 실패");
-        }
-      }
-      async function rejectMember(sid) {
-        if (!confirm("이 가입 신청을 거절하시겠습니까?")) return;
-        try {
-          await updateDoc(doc(db, "members", sid), { status: "rejected" });
-          showAlert("🗑️", "거절 처리되었습니다.");
-        } catch (e) {
-          console.warn(e);
-          showAlert("😥", "거절 실패");
-        }
-      }
-      async function editMemberPrompt(sid) {
-        try {
-          const ref = doc(db, "members", sid);
-          const snap = await getDoc(ref);
-          if (!snap.exists())
-            return showAlert("⛔", "해당 회원을 찾을 수 없습니다.");
-          const m = snap.data();
-          const name = prompt("이름", m.name || "");
-          if (name === null) return;
-          const gender = prompt("성별(남/여/기타)", m.gender || "");
-          if (gender === null) return;
-          const year = prompt("학년(숫자)", m.year || "");
-          if (year === null) return;
-          const college = prompt("단과대", m.college || "");
-          if (college === null) return;
-          const department = prompt("학과", m.department || "");
-          if (department === null) return;
-          const phone = prompt("전화번호", m.phone || "");
-          if (phone === null) return;
-          await updateDoc(ref, {
             name,
             gender,
             year,
@@ -3360,56 +3262,243 @@
             department,
             phone,
           });
-          showAlert("✅", "회원 정보가 수정되었습니다.");
-        } catch (e) {
-          console.warn(e);
-          showAlert("😥", "수정 중 오류");
+          showAlert("✅", "수정되었습니다.");
+        } catch {
+          showAlert("😥", "수정 실패");
         }
       }
       async function deleteMember(sid) {
+        if (!confirm("이 회원을 삭제할까요?")) return;
+        try {
+          await deleteDoc(doc(db, "members", sid));
+          showAlert("🗑️", "삭제되었습니다.");
+        } catch {
+          showAlert("😥", "삭제 실패");
+        }
+      }
+      async function approveMember(sid) {
+        try {
+          await updateDoc(doc(db, "members", sid), {
+            status: "active",
+            approvedAt: serverTimestamp(),
+            approvedBy: currentUser?.studentId || "",
+          });
+          showAlert("✅", "회원이 승인되었습니다.");
+        } catch {
+          showAlert("😥", "승인 실패");
+        }
+      }
+      async function rejectMember(sid) {
+        if (!confirm("가입 신청을 거절할까요?")) return;
+        try {
+          await updateDoc(doc(db, "members", sid), { status: "rejected" });
+          showAlert("🛑", "거절 처리했습니다.");
+        } catch {
+          showAlert("😥", "거절 실패");
+        }
+      }
+
+      /* ===== 엑셀: 미리보기/업로드/내보내기 ===== */
+      let excelImportCache = [];
+      function mapRowToMember(row) {
+        // 한국어/영어 키 매핑
+        const get = (...keys) =>
+          keys
+            .map((k) => k.toLowerCase())
+            .reduce((acc, k) => acc ?? row[k], null);
+        // 입력 row의 키를 소문자화
+        const lower = {};
+        Object.keys(row || {}).forEach(
+          (k) => (lower[k.toLowerCase().trim()] = row[k])
+        );
+        const name = get("이름", "name");
+        const gender = get("성별", "gender");
+        const year = get("학년", "year");
+        const college = get("단과대", "college");
+        const department = get("학과", "department", "major");
+        const studentId = get("학번", "studentid", "student_id");
+        const phone = get("전화번호", "phone", "tel", "mobile");
+        return {
+          name,
+          gender,
+          year,
+          college,
+          department,
+          studentId,
+          phone,
+          status: "active",
+        };
+      }
+
+      function previewExcel() {
+        const file = document.getElementById("excel-file").files?.[0];
+        if (!file) return showAlert("😥", "파일을 선택하세요.");
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            const wb = XLSX.read(e.target.result, { type: "binary" });
+            const ws = wb.Sheets[wb.SheetNames[0]];
+            const json = XLSX.utils.sheet_to_json(ws, { defval: "" });
+            excelImportCache = json
+              .map(mapRowToMember)
+              .filter((r) => r.studentId && r.name);
+            const html = excelImportCache
+              .slice(0, 10)
+              .map((r) => `${r.name} / ${r.studentId} / ${r.department || ""}`)
+              .join("<br>");
+            document.getElementById("excel-preview").innerHTML =
+              excelImportCache.length
+                ? `미리보기 (${excelImportCache.length}명)<br>${html}${
+                    excelImportCache.length > 10 ? "<br>..." : ""
+                  }`
+                : "인식된 데이터가 없습니다.";
+            document.getElementById("import-excel").disabled =
+              excelImportCache.length === 0;
+            showAlert(
+              "👀",
+              "미리보기를 생성했습니다. [업로드]를 누르면 반영됩니다."
+            );
+          } catch {
+            showAlert("😥", "파일 해석 실패");
+          }
+        };
+        reader.readAsBinaryString(file);
+      }
+
+      async function importExcelConfirmed() {
+        if (excelImportCache.length === 0) return;
         if (
           !confirm(
-            `${sid} 회원 정보를 삭제할까요? 이 작업은 되돌릴 수 없습니다.`
+            `${excelImportCache.length}명의 회원 데이터를 업로드할까요? (같은 학번은 덮어쓰기)`
           )
         )
           return;
         try {
-          await deleteDoc(doc(db, "members", sid));
-          showAlert("🗑️", "삭제되었습니다.");
-        } catch (e) {
-          console.warn(e);
-          showAlert("😥", "삭제 실패");
+          const batch = writeBatch(db);
+          excelImportCache.forEach((r) => {
+            const ref = doc(db, "members", r.studentId);
+            batch.set(ref, r, { merge: true });
+          });
+          await batch.commit();
+          showAlert("✅", "일괄 업로드가 완료되었습니다.");
+          excelImportCache = [];
+          document.getElementById("import-excel").disabled = true;
+          document.getElementById("excel-preview").innerHTML = "";
+          document.getElementById("excel-file").value = "";
+        } catch {
+          showAlert("😥", "업로드 실패");
         }
       }
 
-      /* 공통 UI 바인딩 */
-      const toggleAccordion = (h) => h.parentElement.classList.toggle("active");
+      function exportMembersXLSX() {
+        const rows = (membersData || []).map((m) => ({
+          이름: m.name || "",
+          학번: m.studentId || m.id || "",
+          성별: m.gender || "",
+          학년: m.year || "",
+          단과대: m.college || "",
+          학과: m.department || "",
+          전화번호: m.phone || "",
+        }));
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.json_to_sheet(rows);
+        XLSX.utils.book_append_sheet(wb, ws, "members");
+        XLSX.writeFile(wb, "foodie_members.xlsx");
+      }
+
+      function exportApplicantsXLSX(eventId) {
+        const ev = eventsData.find((e) => e.id === eventId);
+        if (!ev) return showAlert("😥", "이벤트를 찾을 수 없습니다.");
+        const baseHeaders = [
+          "이름",
+          "학번",
+          "성별",
+          "학년",
+          "단과대",
+          "학과",
+          "전화번호",
+        ];
+        const makeRow = (p, extra) => {
+          const m = findMember(p.studentId);
+          return {
+            이름: m.name || p.name || "",
+            학번: m.studentId || p.studentId || "",
+            성별: m.gender || p.gender || "",
+            학년: m.year || p.year || "",
+            단과대: m.college || p.college || "",
+            학과: m.department || p.department || "",
+            전화번호: m.phone || p.phone || "",
+            ...(extra || {}),
+          };
+        };
+
+        let rows = [];
+        if (ev.type === "tasting") {
+          // 식당별 참가자(대기 제외) 내보내기
+          (ev.restaurants || []).forEach((r) => {
+            (r.reservations || []).forEach((p) => {
+              rows.push(makeRow(p, { 식당: r.name || "" }));
+            });
+          });
+        } else {
+          (ev.applicants || []).forEach((p) => rows.push(makeRow(p)));
+        }
+        if (rows.length === 0)
+          return showAlert("ℹ️", "내보낼 참가자가 없습니다.");
+
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.json_to_sheet(rows);
+        XLSX.utils.book_append_sheet(
+          wb,
+          ws,
+          ev.type === "tasting" ? "tasting" : "event"
+        );
+        const filename = `${ev.type || "event"}_${(ev.title || "list").replace(
+          /[\\/:*?"<>|]/g,
+          "_"
+        )}.xlsx`;
+        XLSX.writeFile(wb, filename);
+        showAlert("✅", "엑셀 파일을 다운로드했습니다.");
+      }
+
+      /* ===== 기타 UI ===== */
+      function toggleAccordion(hd) {
+        const item = hd.closest(".accordion-item");
+        if (!item) return;
+        item.classList.toggle("active");
+      }
+
+      /* ===== 모달/버튼 바인딩 ===== */
+      document
+        .getElementById("modal-close-button")
+        .addEventListener("click", closeModal);
+
       document.getElementById("login-button").addEventListener("click", login);
       document
         .getElementById("signup-button")
         .addEventListener("click", openSignupModal);
+
       document
         .getElementById("signup-confirm-button")
         .addEventListener("click", () => confirmSignup(false));
       document
         .getElementById("signup-cancel-button")
-        .addEventListener("click", () =>
-          el.signupModal.classList.add("hidden")
-        );
-      document
-        .getElementById("modal-close-button")
-        .addEventListener("click", () => el.alert.classList.add("hidden"));
+        .addEventListener("click", closeSignupModal);
 
-      // 회비 확인 모달 버튼
+      // 회비 확인 모달
       document
         .getElementById("dues-copy-button")
-        .addEventListener("click", () => {
+        .addEventListener("click", async () => {
           const d = duesSettings || {};
-          const text = [d.bank, d.number].filter(Boolean).join(" ");
-          navigator.clipboard
-            ?.writeText(text)
-            .then(() => showAlert("📋", "계좌번호가 복사되었습니다!"))
-            .catch(() => showAlert("ℹ️", "복사 실패. 수동으로 복사해주세요."));
+          const text =
+            [d.bank, d.number].filter(Boolean).join(" ") +
+            (d.holder ? ` (${d.holder})` : "");
+          try {
+            await navigator.clipboard.writeText(text);
+            showAlert("📋", "계좌가 복사되었습니다.");
+          } catch {
+            showAlert("ℹ️", "복사 실패. 수동으로 복사해주세요.");
+          }
         });
       document
         .getElementById("dues-proceed-button")
@@ -3421,36 +3510,36 @@
         .getElementById("dues-cancel-button")
         .addEventListener("click", () => el.duesModal.classList.add("hidden"));
 
-      // 비상 관리자 임명
-      async function emergencyAddAdmin() {
-        const sid = document.getElementById("new-admin-id").value.trim();
-        if (!sid) return;
-        try {
-          const ref = doc(db, "admins", "list");
-          await runTransaction(db, async (t) => {
-            const s = await t.get(ref);
-            if (!s.exists()) t.set(ref, { studentIds: [sid] });
-            else {
-              const arr = s.data().studentIds || [];
-              if (!arr.includes(sid)) arr.push(sid);
-              t.update(ref, { studentIds: arr });
-            }
-          });
-          closeEmergencyModal();
-          showAlert("✅", `새 관리자(${sid})가 등록되었습니다.`);
-        } catch (e) {
-          console.warn(e);
-          showAlert("😥", "등록 실패");
-        }
-      }
+      // 비상 복구 모달
       document
         .getElementById("emergency-add-button")
-        .addEventListener("click", emergencyAddAdmin);
+        .addEventListener("click", async () => {
+          const sid = document.getElementById("new-admin-id").value.trim();
+          if (!sid) return showAlert("😥", "학번을 입력하세요.");
+          try {
+            await runTransaction(db, async (tx) => {
+              const ref = doc(db, "admins", "list");
+              const snap = await tx.get(ref);
+              const arr = snap.exists() ? snap.data().studentIds || [] : [];
+              if (!arr.includes(sid)) arr.push(sid);
+              tx.set(ref, { studentIds: arr }, { merge: true });
+            });
+            closeEmergencyModal();
+            showAlert(
+              "✅",
+              "새 관리자가 임명되었습니다. 이제 해당 학번으로 로그인하면 대시보드에 접근할 수 있습니다."
+            );
+          } catch (e) {
+            console.warn(e);
+            showAlert("😥", "관리자 임명 중 오류가 발생했습니다.");
+          }
+        });
       document
         .getElementById("emergency-cancel-button")
-        .addEventListener("click", () => el.emerg.classList.add("hidden"));
+        .addEventListener("click", closeEmergencyModal);
 
-      window.addEventListener("load", main);
+      // 시작
+      main();
     </script>
   </body>
 </html>
