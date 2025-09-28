@@ -644,6 +644,7 @@
         amount: "",
         note: "",
       };
+      let homeSettings = { showScores: true }; // 새로 추가: 홈 표시 옵션
 
       // data
       let teamsData = [],
@@ -694,15 +695,6 @@
       };
       const closeModal = () => el.alert.classList.add("hidden");
       const closeEmergencyModal = () => el.emerg.classList.add("hidden");
-      const openSignupModal = () => {
-        if (!isSignupOpen())
-          return showAlert("⛔", "현재는 회원가입 기간이 아닙니다.");
-        el.signupModal.classList.remove("hidden");
-        document.getElementById("signupId").value = el.id.value.trim();
-        document.getElementById("signupName").value = el.name.value.trim();
-        renderDuesInfoBox();
-      };
-      const closeSignupModal = () => el.signupModal.classList.add("hidden");
 
       const unsub = {
         admins: null,
@@ -714,6 +706,7 @@
         signup: null,
         members: null,
         dues: null,
+        home: null,
         blocks: null,
         presence: null,
       };
@@ -799,6 +792,22 @@
         if (m < 60) return `${Math.floor(m)}분 전`;
         return `${Math.floor(m / 60)}시간 전`;
       };
+
+      // 타입/상태 라벨(한국어)
+      const typeLabel = (t) =>
+        ({
+          tasting: "미식회",
+          general: "일반 이벤트",
+          mt: "MT",
+          assembly: "총회",
+        }[t] || t);
+      const typeBadgeClass = (t) =>
+        t === "tasting"
+          ? "bg-purple-100 text-purple-700"
+          : t === "mt" || t === "assembly"
+          ? "bg-sky-100 text-sky-700"
+          : "bg-emerald-100 text-emerald-700";
+      const statusLabel = (s) => ({ open: "공개", archived: "숨김" }[s] || s);
 
       /* ===== 인증 ===== */
       async function login() {
@@ -1001,6 +1010,12 @@
           renderAll();
         });
 
+        // 새로 추가: 홈 표시 옵션
+        unsub.home = onSnapshot(doc(db, "settings", "home"), (snap) => {
+          homeSettings = snap.exists() ? snap.data() : { showScores: true };
+          renderAll();
+        });
+
         unsub.blocks = onSnapshot(
           query(collection(db, "homepageBlocks"), orderBy("order", "asc")),
           (snap) => {
@@ -1085,6 +1100,16 @@
           lines.push(`<span class="text-amber-700">${d.note || ""}</span>`);
         el.duesBoxContent.innerHTML = lines.join("<br/>");
       }
+
+      function openSignupModal() {
+        if (!isSignupOpen())
+          return showAlert("⛔", "현재는 회원가입 기간이 아닙니다.");
+        el.signupModal.classList.remove("hidden");
+        document.getElementById("signupId").value = el.id.value.trim();
+        document.getElementById("signupName").value = el.name.value.trim();
+        renderDuesInfoBox();
+      }
+      const closeSignupModal = () => el.signupModal.classList.add("hidden");
 
       function openDuesModal() {
         const d = duesSettings || {};
@@ -1310,74 +1335,104 @@
         const wrap = document.getElementById("dynamic-blocks");
         if (!wrap) return;
         const visible = (blocksData || []).filter((b) => b.visible !== false);
-        if (visible.length === 0) {
-          wrap.innerHTML = `
+
+        // 점수블록 표시 조건:
+        // 1) 블록 목록에 type="scores"가 표시중이거나
+        // 2) 관리자 설정(settings/home.showScores)이 true이면 기본 점수 블록을 상단에 추가
+        const hasScoresBlock = visible.some(
+          (b) => b.type === "scores" && b.visible !== false
+        );
+
+        const snippets = [];
+
+        // (A) 관리자 설정으로 기본 점수 블록 자동 표시
+        if (homeSettings?.showScores && !hasScoresBlock) {
+          snippets.push(`
+            <div class="accordion-item section" data-block="__auto_scores">
+              <div class="accordion-header cursor-pointer p-4 md:p-6">
+                <h3 class="text-lg md:text-xl font-bold text-gray-700"><i class="fas fa-chart-bar mr-2 text-indigo-500"></i>조별 점수 실시간 현황</h3>
+                <i class="fas fa-chevron-down text-gray-500"></i>
+              </div>
+              <div class="accordion-content"><div id="team-scores-container-auto" class="space-y-2"></div></div>
+            </div>`);
+        }
+
+        // (B) 관리자가 만든 커스텀 블록들
+        if (visible.length > 0) {
+          snippets.push(
+            ...visible.map((b) => {
+              if (b.type === "scores") {
+                const boxId = `team-scores-container-${b.id}`;
+                return `
+                <div class="accordion-item section" data-block="${b.id}">
+                  <div class="accordion-header cursor-pointer p-4 md:p-6">
+                    <h3 class="text-lg md:text-xl font-bold text-gray-700"><i class="fas fa-chart-bar mr-2 text-indigo-500"></i>${
+                      b.title || "조별 점수 실시간 현황"
+                    }</h3>
+                    <i class="fas fa-chevron-down text-gray-500"></i>
+                  </div>
+                  <div class="accordion-content"><div id="${boxId}" class="space-y-2"></div></div>
+                </div>`;
+              } else if (b.type === "qa") {
+                const why = (b.payload?.why || [])
+                  .map((s) => `<li>${s}</li>`)
+                  .join("");
+                const how = (b.payload?.how || [])
+                  .map((s) => `<li>${s}</li>`)
+                  .join("");
+                return `
+                <div class="accordion-item section" data-block="${b.id}">
+                  <div class="accordion-header cursor-pointer p-4 md:p-6">
+                    <h3 class="text-lg md:text-xl font-bold text-gray-700"><i class="fas fa-question-circle mr-2 text-indigo-500"></i>${
+                      b.title || "Foodie Q&A"
+                    }</h3>
+                    <i class="fas fa-chevron-down text-gray-500"></i>
+                  </div>
+                  <div class="accordion-content">
+                    <div class="space-y-4 text-gray-700">
+                      <div><p class="font-semibold">🧭 왜 만들었나요?</p><ul class="list-disc pl-8 mt-1 space-y-1 text-gray-600">${
+                        why || "<li>운영진이 곧 업데이트합니다.</li>"
+                      }</ul></div>
+                      <div><p class="font-semibold">🛠 어떻게 쓰나요?</p><ol class="list-decimal pl-8 mt-1 space-y-1 text-gray-600">${
+                        how || "<li>운영진이 곧 업데이트합니다.</li>"
+                      }</ol></div>
+                    </div>
+                  </div>
+                </div>`;
+              } else {
+                return `
+                <div class="section" data-block="${b.id}">
+                  <h3 class="text-lg md:text-xl font-bold text-gray-700 mb-2"><i class="fas fa-bullhorn mr-2 text-indigo-500"></i>${
+                    b.title || "공지"
+                  }</h3>
+                  <div class="prose prose-sm max-w-none text-gray-700 whitespace-pre-wrap">${
+                    b.payload?.text || (b.payload?.html ?? "내용이 없습니다.")
+                  }</div>
+                </div>`;
+              }
+            })
+          );
+        }
+
+        // (C) 블록이 하나도 없고, 자동표시도 꺼져있다면 — 기본 점수 안내(이전 동작 유지)
+        if (visible.length === 0 && !homeSettings?.showScores) {
+          snippets.push(`
             <div class="accordion-item section">
               <div class="accordion-header cursor-pointer p-4 md:p-6">
                 <h3 class="text-lg md:text-xl font-bold text-gray-700"><i class="fas fa-chart-bar mr-2 text-indigo-500"></i>조별 점수 실시간 현황</h3>
                 <i class="fas fa-chevron-down text-gray-500"></i>
               </div>
               <div class="accordion-content"><div id="team-scores-container-default" class="space-y-2"></div></div>
-            </div>`;
-          renderTeamScores(
-            document.getElementById("team-scores-container-default")
-          );
-          attachAccordionHandlers(wrap);
-          return;
+            </div>`);
         }
-        wrap.innerHTML = visible
-          .map((b) => {
-            if (b.type === "scores") {
-              const boxId = `team-scores-container-${b.id}`;
-              return `
-              <div class="accordion-item section" data-block="${b.id}">
-                <div class="accordion-header cursor-pointer p-4 md:p-6">
-                  <h3 class="text-lg md:text-xl font-bold text-gray-700"><i class="fas fa-chart-bar mr-2 text-indigo-500"></i>${
-                    b.title || "조별 점수 실시간 현황"
-                  }</h3>
-                  <i class="fas fa-chevron-down text-gray-500"></i>
-                </div>
-                <div class="accordion-content"><div id="${boxId}" class="space-y-2"></div></div>
-              </div>`;
-            } else if (b.type === "qa") {
-              const why = (b.payload?.why || [])
-                .map((s) => `<li>${s}</li>`)
-                .join("");
-              const how = (b.payload?.how || [])
-                .map((s) => `<li>${s}</li>`)
-                .join("");
-              return `
-              <div class="accordion-item section" data-block="${b.id}">
-                <div class="accordion-header cursor-pointer p-4 md:p-6">
-                  <h3 class="text-lg md:text-xl font-bold text-gray-700"><i class="fas fa-question-circle mr-2 text-indigo-500"></i>${
-                    b.title || "Foodie Q&A"
-                  }</h3>
-                  <i class="fas fa-chevron-down text-gray-500"></i>
-                </div>
-                <div class="accordion-content">
-                  <div class="space-y-4 text-gray-700">
-                    <div><p class="font-semibold">🧭 왜 만들었나요?</p><ul class="list-disc pl-8 mt-1 space-y-1 text-gray-600">${
-                      why || "<li>운영진이 곧 업데이트합니다.</li>"
-                    }</ul></div>
-                    <div><p class="font-semibold">🛠 어떻게 쓰나요?</p><ol class="list-decimal pl-8 mt-1 space-y-1 text-gray-600">${
-                      how || "<li>운영진이 곧 업데이트합니다.</li>"
-                    }</ol></div>
-                  </div>
-                </div>
-              </div>`;
-            } else {
-              return `
-              <div class="section" data-block="${b.id}">
-                <h3 class="text-lg md:text-xl font-bold text-gray-700 mb-2"><i class="fas fa-bullhorn mr-2 text-indigo-500"></i>${
-                  b.title || "공지"
-                }</h3>
-                <div class="prose prose-sm max-w-none text-gray-700 whitespace-pre-wrap">${
-                  b.payload?.text || (b.payload?.html ?? "내용이 없습니다.")
-                }</div>
-              </div>`;
-            }
-          })
-          .join("");
+
+        wrap.innerHTML =
+          snippets.join("") ||
+          `<div class="section text-center text-gray-400">표시할 블록이 없습니다.</div>`;
+
+        // 점수 컨테이너 렌더
+        const auto = document.getElementById("team-scores-container-auto");
+        if (auto) renderTeamScores(auto);
         visible
           .filter((b) => b.type === "scores")
           .forEach((b) => {
@@ -1386,6 +1441,9 @@
             );
             if (target) renderTeamScores(target);
           });
+        const def = document.getElementById("team-scores-container-default");
+        if (def) renderTeamScores(def);
+
         attachAccordionHandlers(wrap);
       }
       function attachAccordionHandlers(root) {
@@ -1474,41 +1532,44 @@
       function eventAdminPanelHTML() {
         return `
         <div class="bg-indigo-50 border-l-4 border-indigo-500 p-4 md:p-6 rounded-lg mb-6">
-          <h3 class="text-xl font-bold text-indigo-800 mb-3"><i class="fas fa-crown mr-2"></i>관리자 패널 (이벤트/미식회)</h3>
+          <h3 class="text-xl font-bold text-indigo-800 mb-1"><i class="fas fa-crown mr-2"></i>관리자 패널 (이벤트/미식회)</h3>
+          <p class="text-xs text-indigo-900/80 mb-3">아래에서 새로운 이벤트를 만들거나 수정할 수 있습니다. <b>유형</b>을 먼저 선택한 뒤, <b>제목/일시/정원</b>을 입력하세요. 미식회는 식당(게이트)을 1개 이상 추가해야 합니다.</p>
+
           <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-3">
-            <select id="event-type" class="px-3 py-2 border rounded-lg">
-              <option value="tasting">미식회(tasting)</option>
-              <option value="general">일반 이벤트(general)</option>
-              <option value="mt">MT(mt)</option>
-              <option value="assembly">총회(assembly)</option>
+            <select id="event-type" class="px-3 py-2 border rounded-lg" title="이벤트 유형을 선택하세요">
+              <option value="tasting">미식회 (tasting)</option>
+              <option value="general">일반 이벤트 (general)</option>
+              <option value="mt">MT (mt)</option>
+              <option value="assembly">총회 (assembly)</option>
             </select>
-            <input id="event-title" type="text" placeholder="제목" class="px-3 py-2 border rounded-lg md:col-span-2">
-            <input id="event-datetime" type="datetime-local" class="px-3 py-2 border rounded-lg">
+            <input id="event-title" type="text" placeholder="제목" class="px-3 py-2 border rounded-lg md:col-span-2" title="이벤트 제목을 입력하세요">
+            <input id="event-datetime" type="datetime-local" class="px-3 py-2 border rounded-lg" title="이벤트 일시를 입력하세요">
           </div>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
-            <input id="event-limit" type="number" min="1" placeholder="(기본) 정원" class="px-3 py-2 border rounded-lg">
-            <select id="event-status" class="px-3 py-2 border rounded-lg">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-1">
+            <input id="event-limit" type="number" min="1" placeholder="(기본) 정원" class="px-3 py-2 border rounded-lg" title="정원을 입력하세요">
+            <select id="event-status" class="px-3 py-2 border rounded-lg" title="목록에서 숨기려면 숨김을 선택">
               <option value="open">공개</option>
-              <option value="archived">숨기기</option>
+              <option value="archived">숨김</option>
             </select>
-            <div class="text-sm text-gray-600 flex items-center">* "숨기기"로 저장하면 리스트에서 숨김</div>
+            <div class="text-xs text-gray-600 flex items-center">* "숨김"은 사용자 목록에서 보이지 않습니다.</div>
           </div>
 
           <!-- 결제정보 (MT/총회) -->
-          <div id="payment-fields" class="hidden">
-            <h4 class="font-semibold text-indigo-700 mb-2">회비 입금 정보 (MT/총회)</h4>
+          <div id="payment-fields" class="hidden mt-2">
+            <h4 class="font-semibold text-indigo-700 mb-1">회비 입금 정보 (MT/총회)</h4>
+            <p class="text-xs text-gray-600 mb-2">아래 계좌 정보는 관리자 설정의 회비/계좌 정보를 자동으로 불러옵니다. 필요한 경우 수정하세요.</p>
             <div class="grid grid-cols-1 md:grid-cols-4 gap-2">
               <input id="pay-bank"   type="text" class="px-3 py-2 border rounded" placeholder="은행명 (예: 국민)">
               <input id="pay-number" type="text" class="px-3 py-2 border rounded" placeholder="계좌번호">
               <input id="pay-holder" type="text" class="px-3 py-2 border rounded" placeholder="예금주">
               <input id="pay-note"   type="text" class="px-3 py-2 border rounded" placeholder="안내 문구(선택)">
             </div>
-            <p class="text-xs text-gray-500 mt-1">* 관리자 설정의 회비/계좌 정보를 자동으로 채웁니다.</p>
           </div>
 
           <!-- 미식회 필드 -->
           <div id="tasting-fields" class="mt-3">
-            <h4 class="font-semibold text-indigo-700 mb-2">식당(게이트) <span class="text-xs text-gray-500">(이미지는 파일로 첨부하거나 드래그&드롭)</span></h4>
+            <h4 class="font-semibold text-indigo-700 mb-1">식당(게이트) 관리</h4>
+            <p class="text-xs text-gray-600 mb-2">각 식당에 대한 이름/정보/정원을 입력하고, 이미지는 파일 선택 또는 드래그&드롭으로 업로드하세요.</p>
             <div id="event-restaurants-wrap" class="space-y-2">${restaurantFieldHTML()}</div>
             <button id="add-restaurant-btn" type="button" class="mt-2 text-xs bg-white border border-indigo-300 text-indigo-700 px-3 py-1 rounded hover:bg-indigo-50">
               <i class="fas fa-plus mr-1"></i>식당 추가
@@ -1521,7 +1582,8 @@
           </div>
 
           <hr class="my-4">
-          <h4 class="font-semibold text-gray-700 mb-2">현재 이벤트</h4>
+          <h4 class="font-semibold text-gray-700 mb-1">현재 이벤트</h4>
+          <p class="text-xs text-gray-600 mb-2">아래 목록에서 수정/보관/삭제가 가능합니다.</p>
           <div class="space-y-2">${adminEventsListHTML()}</div>
         </div>`;
       }
@@ -1668,14 +1730,12 @@
               }</div>
               <div class="text-[11px] text-amber-700 mt-1">※ 빈자리가 생기면 <b>신청 순서대로 자동 승급</b>돼요.</div>
             </div>
-            <div class="text-[11px] text-gray-400 mt-2">상태: ${
+            <div class="text-[11px] text-gray-400 mt-2">상태: ${statusLabel(
               ev.status || "open"
-            }</div>
-            <div class="flex gap-2 mt-2 text-sm text-gray-600"><span class="px-2 py-0.5 rounded ${
-              ev.type === "mt" || ev.type === "assembly"
-                ? "bg-sky-100 text-sky-700"
-                : "bg-emerald-100 text-emerald-700"
-            }">${ev.type}</span></div>
+            )}</div>
+            <div class="flex gap-2 mt-2 text-sm text-gray-600"><span class="px-2 py-0.5 rounded ${typeBadgeClass(
+              ev.type
+            )}">${typeLabel(ev.type)}</span></div>
             ${adminFullTableHTML(ev)}
             ${adminInline(ev)}
           </div>`;
@@ -1757,10 +1817,12 @@
             }</p>
             ${adminStatsHTML(ev)}
             <div class="grid grid-cols-1 gap-3 mt-3">${list}</div>
-            <div class="text-xs text-gray-400 mt-3">상태: ${
+            <div class="text-xs text-gray-400 mt-3">상태: ${statusLabel(
               ev.status || "open"
-            }</div>
-            <div class="flex gap-2 mt-2 text-sm text-gray-600"><span class="px-2 py-0.5 rounded bg-purple-100 text-purple-700">tasting</span></div>
+            )}</div>
+            <div class="flex gap-2 mt-2 text-sm text-gray-600"><span class="px-2 py-0.5 rounded ${typeBadgeClass(
+              ev.type
+            )}">${typeLabel(ev.type)}</span></div>
             ${adminInline(ev)}
           </div>`;
       }
@@ -1815,7 +1877,11 @@
 
         c.innerHTML =
           adminPanel +
-          `<div class="section"><h2 class="text-2xl font-bold mb-4 text-gray-800">진행 중 목록</h2>${listHTML}</div>`;
+          `<div class="section">
+          <h2 class="text-2xl font-bold mb-1 text-gray-800">진행 중 목록</h2>
+          <p class="text-xs text-gray-500 mb-3">현재 신청 가능한 이벤트/미식회입니다.</p>
+          ${listHTML}
+        </div>`;
 
         if (isAdmin) {
           const wrap = document.getElementById("event-restaurants-wrap");
@@ -1919,33 +1985,28 @@
             const when = ev.datetime
               ? new Date(ev.datetime).toLocaleString("ko-KR")
               : "-";
-            const badge =
-              ev.type === "tasting"
-                ? "bg-purple-100 text-purple-700"
-                : ev.type === "mt" || ev.type === "assembly"
-                ? "bg-sky-100 text-sky-700"
-                : "bg-emerald-100 text-emerald-700";
+            const badge = typeBadgeClass(ev.type);
             return `<div class="flex items-center justify-between bg-white p-3 rounded border">
-            <div class="min-w-0"><span class="text-sm px-2 py-0.5 rounded ${badge}">${
+            <div class="min-w-0"><span class="text-sm px-2 py-0.5 rounded ${badge}">${typeLabel(
               ev.type
-            }</span>
+            )}</span>
             <span class="font-semibold ml-2">${ev.title || "(제목 없음)"}</span>
             <span class="text-sm text-gray-500 ml-2">(${when})</span>
             <span class="text-xs ml-2 px-2 py-0.5 rounded ${
               ev.status === "open"
                 ? "bg-green-100 text-green-700"
                 : "bg-gray-200 text-gray-700"
-            }">${ev.status || "open"}</span></div>
+            }">${statusLabel(ev.status || "open")}</span></div>
             <div class="flex gap-2">
               <button type="button" class="text-blue-600 hover:text-blue-800"  data-act="admin-edit"    data-id="${
                 ev.id
-              }"><i class="fas fa-pen"></i></button>
+              }" title="수정"><i class="fas fa-pen"></i></button>
               <button type="button" class="text-amber-600 hover:text-amber-800" data-act="admin-archive" data-id="${
                 ev.id
-              }"><i class="fas fa-box-archive"></i></button>
+              }" title="보관(숨김)"><i class="fas fa-box-archive"></i></button>
               <button type="button" class="text-red-600 hover:text-red-800"    data-act="admin-delete"  data-id="${
                 ev.id
-              }"><i class="fas fa-trash"></i></button>
+              }" title="삭제"><i class="fas fa-trash"></i></button>
             </div>
           </div>`;
           })
@@ -2313,7 +2374,7 @@
       }
 
       async function archiveEvent(id) {
-        if (!confirm("이 이벤트를 보관(archived) 하시겠습니까?")) return;
+        if (!confirm("이 이벤트를 보관(숨김) 하시겠습니까?")) return;
         try {
           const ref = doc(db, "events", id);
           const snap = await getDoc(ref);
@@ -2426,7 +2487,8 @@
         if (!c) return;
         c.innerHTML = `
           <div class="section">
-            <h3 class="text-2xl font-bold mb-4 text-gray-700">익명 건의함</h3>
+            <h3 class="text-2xl font-bold mb-1 text-gray-700">익명 건의함</h3>
+            <p class="text-xs text-gray-500 mb-3">푸디 활동에 대한 아이디어/건의를 자유롭게 남겨주세요. 운영진만 작성자 정보를 볼 수 있습니다.</p>
             <div class="flex">
               <input type="text" id="suggestion-input" class="w-full px-4 py-2 border rounded-l-lg" placeholder="여기에 건의사항을 입력하세요...">
               <button id="submit-suggestion-button" type="button" class="bg-gray-800 text-white font-semibold px-6 rounded-r-lg hover:bg-gray-700">제출</button>
@@ -2449,7 +2511,7 @@
                 </div>
                 <button data-id="${
                   s.id
-                }" type="button" class="del-suggestion text-red-600 hover:text-red-800 ml-3"><i class="fas fa-trash"></i></button>
+                }" type="button" class="del-suggestion text-red-600 hover:text-red-800 ml-3" title="삭제"><i class="fas fa-trash"></i></button>
               </div>`
                           )
                           .join("")
@@ -2529,10 +2591,10 @@
                 r.id
               }" data-name="${r.activityName}" data-date="${
               r.activityDate
-            }"><i class="fas fa-pen"></i></button>
+            }" title="수정"><i class="fas fa-pen"></i></button>
               <button type="button" class="text-red-600"  data-act="del-roadmap"  data-id="${
                 r.id
-              }"><i class="fas fa-trash"></i></button>
+              }" title="삭제"><i class="fas fa-trash"></i></button>
             </div>
           </div>`
           )
@@ -2548,7 +2610,7 @@
                 const nm = m?.name || "(이름 미확인)";
                 return `<div class="flex items-center justify-between bg-gray-50 p-2 rounded">
             <span><span class="font-semibold">${nm}</span> <span class="text-gray-500 font-mono ml-1">${sid}</span></span>
-            <button type="button" class="text-red-600" data-act="remove-admin" data-id="${sid}"><i class="fas fa-user-minus"></i></button>
+            <button type="button" class="text-red-600" data-act="remove-admin" data-id="${sid}" title="관리자 해제"><i class="fas fa-user-minus"></i></button>
           </div>`;
               })
               .join("")
@@ -2595,22 +2657,36 @@
 
             <!-- 홈 화면 & 활동 관리(통합) -->
             <div class="section xl:col-span-2">
-              <h3 class="text-2xl font-bold text-gray-700">홈 화면 & 활동 관리 (블록 + 점수 + 로드맵)</h3>
+              <h3 class="text-2xl font-bold text-gray-700">홈 화면 & 활동 관리</h3>
+              <p class="text-xs text-gray-500 mb-3">홈 화면에 표시할 블록을 관리하고, 조별 점수와 활동 로드맵을 수정합니다.</p>
+
+              <!-- 홈 표시 옵션 -->
+              <div class="rounded-lg border p-3 mb-4 bg-white">
+                <h4 class="font-semibold text-gray-700 mb-1">홈 표시 옵션</h4>
+                <p class="text-xs text-gray-500 mb-2">블록에 점수 블록이 없어도 <b>조별 점수</b>를 상단에 자동 표시할지 설정합니다.</p>
+                <div class="flex items-center gap-3">
+                  <label class="flex items-center gap-2 text-sm">
+                    <input type="checkbox" id="home-show-scores"> 조별 점수 블록 자동 표시
+                  </label>
+                  <button id="save-home" class="text-xs bg-indigo-600 text-white px-3 py-1 rounded">저장</button>
+                </div>
+              </div>
 
               <!-- 블록 추가 -->
-              <div class="grid grid-cols-1 md:grid-cols-4 gap-2 mt-3">
-                <select id="block-type" class="border rounded px-3 py-2">
+              <div class="grid grid-cols-1 md:grid-cols-4 gap-2 mt-1">
+                <select id="block-type" class="border rounded px-3 py-2" title="블록 유형을 선택하세요">
                   <option value="scores">scores(조별 점수)</option>
                   <option value="qa">qa(Q&A)</option>
                   <option value="notice">notice(공지/자유)</option>
                 </select>
-                <input id="block-title" class="border rounded px-3 py-2 md:col-span-2" placeholder="블록 제목">
-                <input id="block-order" type="number" class="border rounded px-3 py-2" placeholder="order (예: 10)">
+                <input id="block-title" class="border rounded px-3 py-2 md:col-span-2" placeholder="블록 제목" title="블록 제목">
+                <input id="block-order" type="number" class="border rounded px-3 py-2" placeholder="order (예: 10)" title="표시 순서(숫자)">
                 <button id="add-block" class="bg-green-600 text-white px-4 py-2 rounded md:col-span-4">블록 추가</button>
               </div>
+              <p class="text-xs text-gray-500 mt-1">* order 값이 낮을수록 위쪽에 표시됩니다.</p>
 
               <!-- 블록 목록 -->
-              <div class="mt-4">
+              <div class="mt-3">
                 <div id="blocks-list" class="space-y-2">${
                   blocksHTML ||
                   '<p class="text-gray-400">등록된 블록이 없습니다.</p>'
@@ -2619,10 +2695,11 @@
 
               <hr class="my-6">
 
-              <!-- 점수 + 로드맵(기존 두 섹션을 하나로) -->
+              <!-- 점수 + 로드맵 -->
               <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div>
                   <h4 class="text-xl font-bold text-gray-700 mb-3">조별 점수 관리</h4>
+                  <p class="text-xs text-gray-500 mb-2">조 이름과 점수를 수정하거나 새 조를 추가하세요.</p>
                   <div class="space-y-2">${
                     teamsHTML ||
                     '<p class="text-gray-400">등록된 조가 없습니다.</p>'
@@ -2635,6 +2712,7 @@
 
                 <div>
                   <h4 class="text-xl font-bold text-gray-700 mb-3">활동 로드맵 관리</h4>
+                  <p class="text-xs text-gray-500 mb-2">활동 이름과 날짜를 추가/수정할 수 있습니다.</p>
                   <div class="space-y-2">${
                     roadmapHTML ||
                     '<p class="text-gray-400">등록된 활동이 없습니다.</p>'
@@ -2650,7 +2728,8 @@
 
             <!-- 임원(관리자) 관리 -->
             <div class="section">
-              <h3 class="text-2xl font-bold mb-4 text-gray-700">임원(관리자) 관리</h3>
+              <h3 class="text-2xl font-bold mb-1 text-gray-700">임원(관리자) 관리</h3>
+              <p class="text-xs text-gray-500 mb-3">여기에 추가된 학번은 관리자 권한을 갖습니다. 실수로 제거하면 비상 복구 모드를 이용하세요.</p>
               <div class="space-y-2" id="admins-list">${adminsHTML}</div>
               <hr class="my-4">
               <div class="flex gap-2">
@@ -2662,6 +2741,7 @@
             <!-- 회원가입/회비 설정 + 회원 관리 -->
             <div class="section">
               <h3 class="text-2xl font-bold mb-2 text-gray-700">회원가입 & 회비 설정</h3>
+              <p class="text-xs text-gray-500 mb-3">회원가입 가능 기간과 회비/계좌 정보를 설정합니다.</p>
               <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div class="md:col-span-2">
                   <h4 class="font-semibold text-gray-700">회원가입 기간</h4>
@@ -2689,6 +2769,7 @@
 
               <hr class="my-4">
               <h3 class="text-xl font-bold text-gray-700">회원 관리</h3>
+              <p class="text-xs text-gray-500 mb-2">승인 대기 회원을 승인/거절하고, 기존 회원 정보를 수정/삭제하거나 엑셀로 내보낼 수 있습니다.</p>
               <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div class="md:col-span-2">
                   <div class="overflow-auto max-h-[420px] border rounded-lg">
@@ -2793,6 +2874,13 @@
         document
           .getElementById("save-dues")
           .addEventListener("click", saveDuesSettings);
+
+        // 홈 표시 옵션(새로 추가)
+        document.getElementById("home-show-scores").checked =
+          !!homeSettings.showScores;
+        document
+          .getElementById("save-home")
+          .addEventListener("click", saveHomeSettings);
 
         // 블록 관리
         document
@@ -2983,6 +3071,21 @@
           await updateDoc(doc(db, "homepageBlocks", b.id), {
             order: (k + 1) * 10,
           });
+        }
+      }
+
+      /* ===== 홈 옵션 저장 ===== */
+      async function saveHomeSettings() {
+        const showScores = document.getElementById("home-show-scores").checked;
+        try {
+          await setDoc(
+            doc(db, "settings", "home"),
+            { showScores },
+            { merge: true }
+          );
+          showAlert("✅", "홈 표시 옵션이 저장되었습니다.");
+        } catch {
+          showAlert("😥", "저장 실패");
         }
       }
 
@@ -3409,15 +3512,6 @@
       function exportApplicantsXLSX(eventId) {
         const ev = eventsData.find((e) => e.id === eventId);
         if (!ev) return showAlert("😥", "이벤트를 찾을 수 없습니다.");
-        const baseHeaders = [
-          "이름",
-          "학번",
-          "성별",
-          "학년",
-          "단과대",
-          "학과",
-          "전화번호",
-        ];
         const makeRow = (p, extra) => {
           const m = findMember(p.studentId);
           return {
@@ -3434,7 +3528,6 @@
 
         let rows = [];
         if (ev.type === "tasting") {
-          // 식당별 참가자(대기 제외) 내보내기
           (ev.restaurants || []).forEach((r) => {
             (r.reservations || []).forEach((p) => {
               rows.push(makeRow(p, { 식당: r.name || "" }));
@@ -3453,10 +3546,9 @@
           ws,
           ev.type === "tasting" ? "tasting" : "event"
         );
-        const filename = `${ev.type || "event"}_${(ev.title || "list").replace(
-          /[\\/:*?"<>|]/g,
-          "_"
-        )}.xlsx`;
+        const filename = `${typeLabel(ev.type) || "이벤트"}_${(
+          ev.title || "명단"
+        ).replace(/[\\/:*?"<>|]/g, "_")}.xlsx`;
         XLSX.writeFile(wb, filename);
         showAlert("✅", "엑셀 파일을 다운로드했습니다.");
       }
@@ -3524,21 +3616,20 @@
               if (!arr.includes(sid)) arr.push(sid);
               tx.set(ref, { studentIds: arr }, { merge: true });
             });
-            closeEmergencyModal();
             showAlert(
               "✅",
-              "새 관리자가 임명되었습니다. 이제 해당 학번으로 로그인하면 대시보드에 접근할 수 있습니다."
+              "새 관리자가 임명되었습니다. 이제 관리자 계정으로 접속해 설정을 복구하세요."
             );
-          } catch (e) {
-            console.warn(e);
-            showAlert("😥", "관리자 임명 중 오류가 발생했습니다.");
+            closeEmergencyModal();
+          } catch {
+            showAlert("😥", "임명 실패");
           }
         });
       document
         .getElementById("emergency-cancel-button")
         .addEventListener("click", closeEmergencyModal);
 
-      // 시작
+      // 초기 실행
       main();
     </script>
   </body>
