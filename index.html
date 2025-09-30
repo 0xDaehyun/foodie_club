@@ -2727,46 +2727,41 @@
               <h3 class="text-xl font-bold text-gray-800 mb-2">블록 순서/노출 관리</h3>
               <p class="text-xs text-gray-600 mb-2">드래그하여 순서를 변경하고, 눈 아이콘으로 노출을 토글하세요. <b>순서/노출 저장</b>을 눌러야 반영됩니다.</p>
               <ul id="blocks-sortable" class="sortable divide-y rounded border bg-white">
-                ${blocksData
-                  .map(
-                    (b) =>
-                      `<li draggable="true" data-id="${
-                        b.id
-                      }" class="flex items-center justify-between px-3 py-2">
-                    <div class="flex items-center gap-2 min-w-0">
-                      <i class="fas fa-grip-vertical text-gray-400"></i>
-                      <span class="text-xs px-2 py-0.5 rounded ${
-                        b.type === "scores"
-                          ? "bg-emerald-100 text-emerald-700"
-                          : b.type === "qa"
-                          ? "bg-purple-100 text-purple-700"
-                          : "bg-indigo-100 text-indigo-700"
-                      }">${saf(b.type)}</span>
-                      <span class="truncate">${saf(
-                        b.title || "(제목 없음)"
-                      )}</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                      <button class="toggle-visible text-sm ${
-                        b.visible !== false ? "text-green-600" : "text-gray-400"
-                      }" title="노출 토글">
-                        <i class="fas ${
-                          b.visible !== false ? "fa-eye" : "fa-eye-slash"
-                        }"></i>
-                      </button>
-                      <button class="edit-block text-blue-600" data-id="${
-                        b.id
-                      }" data-type="${
-                        b.type
-                      }" title="수정"><i class="fas fa-pen"></i></button>
-                      <button class="delete-block text-red-600" data-id="${
-                        b.id
-                      }" title="삭제"><i class="fas fa-trash"></i></button>
-                    </div>
-                  </li>`
-                  )
-                  .join("")}
-              </ul>
+  ${blocksData
+    .map(
+      (b) =>
+        `<li draggable="true" data-id="${b.id}" data-visible="${
+          b.visible !== false
+        }" class="flex items-center justify-between px-3 py-2">
+      <div class="flex items-center gap-2 min-w-0">
+        <i class="fas fa-grip-vertical text-gray-400"></i>
+        <span class="text-xs px-2 py-0.5 rounded ${
+          b.type === "scores"
+            ? "bg-emerald-100 text-emerald-700"
+            : b.type === "qa"
+            ? "bg-purple-100 text-purple-700"
+            : "bg-indigo-100 text-indigo-700"
+        }">${saf(b.type)}</span>
+        <span class="truncate">${saf(b.title || "(제목 없음)")}</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <button class="toggle-visible text-sm ${
+          b.visible !== false ? "text-green-600" : "text-gray-400"
+        }" title="노출 토글">
+          <i class="fas ${b.visible !== false ? "fa-eye" : "fa-eye-slash"}"></i>
+        </button>
+        <button class="edit-block text-blue-600" data-id="${b.id}" data-type="${
+          b.type
+        }" title="수정"><i class="fas fa-pen"></i></button>
+        <button class="delete-block text-red-600" data-id="${
+          b.id
+        }" title="삭제"><i class="fas fa-trash"></i></button>
+      </div>
+    </li>`
+    )
+    .join("")}
+</ul>
+
               <div class="mt-3 flex gap-2">
                 <button id="save-block-order" class="px-3 py-2 bg-gray-800 text-white rounded">순서/노출 저장</button>
               </div>
@@ -2852,11 +2847,17 @@
           if (e.target.closest(".toggle-visible")) {
             const icon = li.querySelector(".toggle-visible i");
             const btn = li.querySelector(".toggle-visible");
-            const isVisible = icon.classList.contains("fa-eye");
-            icon.classList.toggle("fa-eye", !isVisible);
-            icon.classList.toggle("fa-eye-slash", isVisible);
-            btn.classList.toggle("text-green-600", !isVisible);
-            btn.classList.toggle("text-gray-400", isVisible);
+            const isVisible = (li.dataset.visible ?? "true") === "true"; // 현재 상태는 dataset에서
+            const next = !isVisible;
+
+            // UI 아이콘/색상 토글
+            icon.classList.toggle("fa-eye", next);
+            icon.classList.toggle("fa-eye-slash", !next);
+            btn.classList.toggle("text-green-600", next);
+            btn.classList.toggle("text-gray-400", !next);
+
+            // 실제 상태 저장
+            li.dataset.visible = String(next);
             return;
           }
           if (e.target.closest(".delete-block")) {
@@ -2914,19 +2915,31 @@
             const lis = [
               ...container.querySelectorAll("#blocks-sortable li[data-id]"),
             ];
-            const batch = writeBatch(db);
-            lis.forEach((li, idx) => {
-              const id = li.dataset.id;
-              const visible = li
-                .querySelector(".toggle-visible i")
-                .classList.contains("fa-eye");
-              batch.update(doc(db, "homepageBlocks", id), {
-                order: idx,
-                visible,
+            if (!lis.length) return showAlert("ℹ️", "저장할 블록이 없습니다.");
+
+            try {
+              const batch = writeBatch(db);
+              lis.forEach((li, idx) => {
+                const id = li.dataset.id;
+                const visible = (li.dataset.visible ?? "true") === "true";
+                // 안전하게 병합 저장
+                batch.set(
+                  doc(db, "homepageBlocks", id),
+                  { order: idx, visible },
+                  { merge: true }
+                );
               });
-            });
-            await batch.commit();
-            showAlert("✅", "블록 순서/노출이 저장되었습니다.");
+              await batch.commit();
+              showAlert("✅", "블록 순서/노출이 저장되었습니다.");
+            } catch (err) {
+              console.warn(err);
+              showAlert(
+                "😥",
+                `저장 중 오류가 발생했습니다.${
+                  err?.message ? `<br><small>${saf(err.message)}</small>` : ""
+                }`
+              );
+            }
           });
 
         // 공지 저장/리셋
