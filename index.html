@@ -251,6 +251,19 @@
         border-radius: 0.5rem;
         font-size: 0.75rem;
       }
+      /* 타입별 카드 상단 보더(직관적 색상) */
+      .accent-tasting {
+        border-top: 4px solid #a78bfa;
+      } /* purple-400 */
+      .accent-general {
+        border-top: 4px solid #34d399;
+      } /* emerald-400 */
+      .accent-mt {
+        border-top: 4px solid #60a5fa;
+      } /* blue-400 */
+      .accent-assembly {
+        border-top: 4px solid #f472b6;
+      } /* pink-400 */
     </style>
   </head>
   <body class="bg-gray-100 flex flex-col min-h-screen">
@@ -471,8 +484,6 @@
             <option value="여">여</option>
             <option value="기타">기타</option>
           </select>
-
-          <!-- 학년 선택 -->
           <select
             id="signupYear"
             class="input-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400"
@@ -484,7 +495,6 @@
             <option value="4학년">4학년</option>
             <option value="기타">기타</option>
           </select>
-
           <input
             id="signupCollege"
             type="text"
@@ -565,7 +575,7 @@
       </div>
     </div>
 
-    <!-- 공용(문단) 에디터 모달(필요 시) -->
+    <!-- 공용(문단) 에디터 모달 -->
     <div
       id="block-editor"
       class="hidden fixed inset-0 bg-black/60 flex justify-center items-center px-4 z-50"
@@ -762,9 +772,19 @@
       const typeBadgeClass = (t) =>
         t === "tasting"
           ? "bg-purple-100 text-purple-700"
-          : t === "mt" || t === "assembly"
-          ? "bg-sky-100 text-sky-700"
-          : "bg-emerald-100 text-emerald-700";
+          : t === "mt"
+          ? "bg-blue-100 text-blue-700"
+          : t === "assembly"
+          ? "bg-pink-100 text-pink-700"
+          : "bg-emerald-100 text-emerald-700"; /* general */
+      const typeAccentClass = (t) =>
+        t === "tasting"
+          ? "accent-tasting"
+          : t === "mt"
+          ? "accent-mt"
+          : t === "assembly"
+          ? "accent-assembly"
+          : "accent-general"; /* general */
       const statusLabel = (s) => ({ open: "공개", archived: "숨김" }[s] || s);
       const saf = (x) =>
         window.DOMPurify
@@ -978,6 +998,7 @@
             id: "r1",
             activityName: "1차 미식회",
             activityDate: new Date().toISOString().slice(0, 10),
+            order: 0,
           },
           {
             id: "r2",
@@ -985,6 +1006,7 @@
             activityDate: new Date(Date.now() + 7 * 86400000)
               .toISOString()
               .slice(0, 10),
+            order: 1,
           },
           {
             id: "r3",
@@ -992,6 +1014,7 @@
             activityDate: new Date(Date.now() + 14 * 86400000)
               .toISOString()
               .slice(0, 10),
+            order: 2,
           },
           {
             id: "r4",
@@ -999,6 +1022,7 @@
             activityDate: new Date(Date.now() + 21 * 86400000)
               .toISOString()
               .slice(0, 10),
+            order: 3,
           },
         ],
       };
@@ -1050,8 +1074,9 @@
           );
         }
         if (!unsubPublic.roadmap) {
+          // 로드맵: order 필드를 관리하므로 정렬은 렌더링 시점에서 처리
           unsubPublic.roadmap = onSnapshot(
-            query(collection(db, "roadmap"), orderBy("activityDate", "asc")),
+            collection(db, "roadmap"),
             (snap) => {
               roadmapData = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
               scheduleRender();
@@ -1249,10 +1274,10 @@
               const btn = e.target.closest(".tab-btn");
               if (btn) showTab(btn.dataset.tab);
             });
-          renderReservationTab(isAdmin);
+          renderReservationTab(isAdmin); // 신청하기 탭
           renderHistoryTab(isAdmin);
           renderSuggestionsTab(isAdmin);
-          if (isAdmin) renderDashboardTab();
+          if (isAdmin) renderDashboardTab(); // 이벤트 관리 탭 제거됨(요청사항 4)
           computeOnline();
           renderPresenceUI();
         } else {
@@ -1420,11 +1445,15 @@
                   })
                   .join("")
               : `<p class="text-gray-400 text-center">팀이 없습니다.</p>`;
-            return `<div class="accordion-item section" data-block="${
-              b.id
-            }"><div class="accordion-header cursor-pointer p-4 md:p-6"><h3 class="text-lg md:text-xl font-bold text-gray-700"><i class="fas fa-chart-bar mr-2 text-indigo-500"></i>${saf(
-              b.title || "점수판"
-            )}</h3><i class="fas fa-chevron-down text-gray-500"></i></div><div class="accordion-content"><div class="space-y-2">${list}</div></div></div>`;
+            return `<div class="accordion-item section" data-block="${b.id}">
+                      <div class="accordion-header cursor-pointer p-4 md:p-6">
+                        <h3 class="text-lg md:text-xl font-bold text-gray-700"><i class="fas fa-chart-bar mr-2 text-indigo-500"></i>${saf(
+                          b.title || "점수판"
+                        )}</h3>
+                        <i class="fas fa-chevron-down text-gray-500"></i>
+                      </div>
+                      <div class="accordion-content"><div class="space-y-2">${list}</div></div>
+                    </div>`;
           } else if (b.type === "qa") {
             const items = b.payload?.items || [];
             const html = items.length
@@ -1439,21 +1468,25 @@
                   )
                   .join("")
               : `<div class="text-gray-400">질문이 없습니다.</div>`;
-            return `<div class="accordion-item section" data-block="${
-              b.id
-            }"><div class="accordion-header cursor-pointer p-4 md:p-6"><h3 class="text-lg md:text-xl font-bold text-gray-700"><i class="fas fa-question-circle mr-2 text-indigo-500"></i>${saf(
-              b.title || "Q&A"
-            )}</h3><i class="fas fa-chevron-down text-gray-500"></i></div><div class="accordion-content"><div class="space-y-2">${html}</div></div></div>`;
+            return `<div class="accordion-item section" data-block="${b.id}">
+                      <div class="accordion-header cursor-pointer p-4 md:p-6">
+                        <h3 class="text-lg md:text-xl font-bold text-gray-700"><i class="fas fa-question-circle mr-2 text-indigo-500"></i>${saf(
+                          b.title || "Q&A"
+                        )}</h3>
+                        <i class="fas fa-chevron-down text-gray-500"></i>
+                      </div>
+                      <div class="accordion-content"><div class="space-y-2">${html}</div></div>
+                    </div>`;
           } else {
-            // notice / text
             const content = saf(b.payload?.html || b.payload?.text || "");
-            return `<div class="section" data-block="${
-              b.id
-            }"><h3 class="text-lg md:text-xl font-bold text-gray-700 mb-2"><i class="fas fa-bullhorn mr-2 text-indigo-500"></i>${saf(
-              b.title || "공지"
-            )}</h3><div class="prose prose-sm max-w-none text-gray-700 whitespace-pre-wrap">${
-              content || "내용이 없습니다."
-            }</div></div>`;
+            return `<div class="section" data-block="${b.id}">
+                      <h3 class="text-lg md:text-xl font-bold text-gray-700 mb-2"><i class="fas fa-bullhorn mr-2 text-indigo-500"></i>${saf(
+                        b.title || "공지"
+                      )}</h3>
+                      <div class="prose prose-sm max-w-none text-gray-700 whitespace-pre-wrap">${
+                        content || "내용이 없습니다."
+                      }</div>
+                    </div>`;
           }
         });
         wrap.innerHTML = snippets.length
@@ -1469,9 +1502,15 @@
         const total = roadmapData.length;
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        const sorted = [...roadmapData].sort((a, b) =>
-          (a.activityDate || "").localeCompare(b.activityDate || "")
-        );
+
+        // order 우선 → 날짜(오름차순)
+        const sorted = [...roadmapData].sort((a, b) => {
+          const ao = a.order ?? 999999,
+            bo = b.order ?? 999999;
+          if (ao !== bo) return ao - bo;
+          return (a.activityDate || "").localeCompare(b.activityDate || "");
+        });
+
         const enriched = sorted.map((item) => {
           const d = new Date(item.activityDate);
           let status = "upcoming";
@@ -1492,14 +1531,14 @@
             ? `<p class="text-gray-400 text-center py-4">예정된 활동이 없습니다. 회장님이 곧 일정을 추가할 거예요!</p>`
             : itemsToShow
                 .map(
-                  (item) =>
-                    `<div class="roadmap-item ${
-                      item._status
-                    }"><div class="font-bold text-gray-800">${saf(
-                      item.activityName
-                    )}</div><div class="text-sm text-gray-500">${item._date.toLocaleDateString(
-                      "ko-KR"
-                    )}</div></div>`
+                  (item) => `<div class="roadmap-item ${item._status}">
+                <div class="font-bold text-gray-800">${saf(
+                  item.activityName
+                )}</div>
+                <div class="text-sm text-gray-500">${item._date.toLocaleDateString(
+                  "ko-KR"
+                )}</div>
+              </div>`
                 )
                 .join("");
         if (btn) {
@@ -1516,18 +1555,21 @@
 
       /* ===================== 신청 탭 ===================== */
       function computeEventStats(ev) {
-        const all =
-          ev.type === "tasting"
-            ? (ev.restaurants || []).flatMap((r) => [
-                ...(r.reservations || []),
-                ...(r.waiting || []),
-              ])
-            : [...(ev.applicants || []), ...(ev.waiting || [])];
-        const enrich = (p) => ({
+        const getAll = () => {
+          if (ev.type === "tasting") {
+            const arr = [];
+            (ev.restaurants || []).forEach((r) => {
+              arr.push(...(r.reservations || []), ...(r.waiting || []));
+            });
+            return arr;
+          }
+          return [...(ev.applicants || []), ...(ev.waiting || [])];
+        };
+        const all = getAll();
+        const stats = all.map((p) => ({
           gender: p.gender || "미상",
           college: p.college || "미상",
-        });
-        const stats = all.map(enrich);
+        }));
         const total = stats.length;
         const genderCount = { 남: 0, 여: 0, 기타: 0, 미상: 0 };
         stats.forEach((s) => {
@@ -1542,7 +1584,8 @@
         );
         const collegeMap = new Map();
         stats.forEach((s) => {
-          collegeMap.set(s.college, (collegeMap.get(s.college) || 0) + 1);
+          const key = s.college || "미상";
+          collegeMap.set(key, (collegeMap.get(key) || 0) + 1);
         });
         const colleges = [...collegeMap.entries()]
           .map(([name, cnt]) => ({
@@ -1569,24 +1612,40 @@
             .slice(0, 5)
             .map((c) => `${saf(c.name)} ${c.pct}%`)
             .join(" · ") || "자료 없음";
-        return `<div class="mt-3 text-xs bg-gray-50 border rounded p-2"><div class="font-semibold text-gray-700">관리자용 신청자 통계 <span class="text-[11px] text-gray-500">(신청+대기 포함)</span></div><div class="mt-1 text-gray-700">성별: ${gLine}</div><div class="mt-1 text-gray-700">단과대 상위: ${colleges}</div></div>`;
+        return `<div class="mt-3 text-xs bg-gray-50 border rounded p-2">
+                 <div class="font-semibold text-gray-700">관리자용 신청자 통계 <span class="text-[11px] text-gray-500">(신청+대기 포함)</span></div>
+                 <div class="mt-1 text-gray-700">성별: ${gLine}</div>
+                 <div class="mt-1 text-gray-700">단과대 상위: ${colleges}</div>
+               </div>`;
       }
       const adminInline = (ev) => {
         const isAdmin =
           currentUser && adminList.includes(currentUser.studentId);
         if (!isAdmin) return "";
-        return `<div class="mt-3 flex gap-2"><button type="button" class="text-blue-600 hover:text-blue-800 text-sm" data-act="admin-edit" data-id="${ev.id}"><i class="fas fa-pen"></i> 수정</button><button type="button" class="text-amber-600 hover:text-amber-800 text-sm" data-act="admin-archive" data-id="${ev.id}"><i class="fas fa-box-archive"></i> 보관</button><button type="button" class="text-green-700 hover:text-green-900 text-sm" data-act="admin-unarchive" data-id="${ev.id}"><i class="fas fa-rotate-left"></i> 재게시</button><button type="button" class="text-red-600 hover:text-red-800 text-sm" data-act="admin-delete" data-id="${ev.id}"><i class="fas fa-trash"></i> 삭제</button><button type="button" class="text-green-700 hover:text-green-900 text-sm" data-act="export-xlsx" data-id="${ev.id}"><i class="fas fa-file-excel"></i> 명단 다운로드</button></div>`;
+        return `<div class="mt-3 flex gap-2">
+                  <button type="button" class="text-blue-600 hover:text-blue-800 text-sm" data-act="admin-edit" data-id="${ev.id}"><i class="fas fa-pen"></i> 수정</button>
+                  <button type="button" class="text-amber-600 hover:text-amber-800 text-sm" data-act="admin-archive" data-id="${ev.id}"><i class="fas fa-box-archive"></i> 보관</button>
+                  <button type="button" class="text-green-700 hover:text-green-900 text-sm" data-act="admin-unarchive" data-id="${ev.id}"><i class="fas fa-rotate-left"></i> 재게시</button>
+                  <button type="button" class="text-red-600 hover:text-red-800 text-sm" data-act="admin-delete" data-id="${ev.id}"><i class="fas fa-trash"></i> 삭제</button>
+                  <button type="button" class="text-green-700 hover:text-green-900 text-sm" data-act="export-xlsx" data-id="${ev.id}"><i class="fas fa-file-excel"></i> 명단 다운로드</button>
+                </div>`;
       };
       function paymentInfoHTML(ev) {
         if (!(ev.type === "mt" || ev.type === "assembly")) return "";
         const p = ev.payment || {};
         if (!p.bank && !p.number && !p.holder && !p.note) return "";
         const line = [p.bank, p.number].filter(Boolean).map(saf).join(" ");
-        return `<div class="mt-2 text-sm bg-amber-50 border border-amber-200 rounded p-2"><div class="font-semibold text-amber-800">💸 회비 입금 정보</div><div class="text-amber-700">${
-          line || ""
-        }${p.holder ? ` (예금주 ${saf(p.holder)})` : ""}</div>${
-          p.note ? `<div class="text-amber-700">${saf(p.note)}</div>` : ""
-        }</div>`;
+        return `<div class="mt-2 text-sm bg-amber-50 border border-amber-200 rounded p-2">
+                  <div class="font-semibold text-amber-800">💸 회비 입금 정보</div>
+                  <div class="text-amber-700">${line || ""}${
+          p.holder ? ` (예금주 ${saf(p.holder)})` : ""
+        }</div>
+                  ${
+                    p.note
+                      ? `<div class="text-amber-700">${saf(p.note)}</div>`
+                      : ""
+                  }
+                </div>`;
       }
 
       function generalCardHTML(ev) {
@@ -1625,27 +1684,48 @@
               )}</span></div>`
           )
           .join("");
-        return `<div class="section card-hover"><h3 class="text-xl font-bold text-gray-800">${saf(
-          ev.title
-        )}</h3><p class="text-gray-500">🗓️ ${
-          ev.datetime ? new Date(ev.datetime).toLocaleString("ko-KR") : "-"
-        }</p>${paymentInfoHTML(
-          ev
-        )}<div class="mt-3"><div class="w-full bg-gray-200 rounded-full h-4"><div class="bg-green-500 h-4 rounded-full" style="width:${
-          lim ? Math.min(100, Math.round((count / lim) * 100)) : 0
-        }%"></div></div><p class="text-right text-sm mt-1 text-gray-600">신청: ${count} / ${lim} 명</p></div>${adminStatsHTML(
-          ev
-        )}${btn}<div class="mt-3"><div class="text-xs font-semibold text-gray-600 mb-1">참가자</div><div class="max-h-28 overflow-y-auto border rounded bg-gray-50 p-2">${
-          namesList || '<div class="text-xs text-gray-400">아직 없음</div>'
-        }</div></div><div class="mt-2"><div class="text-xs font-semibold text-gray-600 mb-1">대기자</div><div class="max-h-24 overflow-y-auto border rounded bg-amber-50 p-2">${
-          waitingList || '<div class="text-xs text-amber-400">대기자 없음</div>'
-        }</div><div class="text-[11px] text-amber-700 mt-1">※ 빈자리가 생기면 <b>신청 순서대로 자동 승급</b>돼요.</div></div><div class="text-[11px] text-gray-400 mt-2">상태: ${statusLabel(
-          ev.status || "open"
-        )}</div><div class="flex gap-2 mt-2 text-sm text-gray-600"><span class="px-2 py-0.5 rounded ${typeBadgeClass(
-          ev.type
-        )}">${typeLabel(ev.type)}</span></div>${adminFullTableHTML(
-          ev
-        )}${adminInline(ev)}</div>`;
+        return `<div class="section card-hover ${typeAccentClass(ev.type)}">
+                  <h3 class="text-xl font-bold text-gray-800">${saf(
+                    ev.title
+                  )}</h3>
+                  <p class="text-gray-500">🗓️ ${
+                    ev.datetime
+                      ? new Date(ev.datetime).toLocaleString("ko-KR")
+                      : "-"
+                  }</p>
+                  ${paymentInfoHTML(ev)}
+                  <div class="mt-3">
+                    <div class="w-full bg-gray-200 rounded-full h-4"><div class="bg-green-500 h-4 rounded-full" style="width:${
+                      lim ? Math.min(100, Math.round((count / lim) * 100)) : 0
+                    }%"></div></div>
+                    <p class="text-right text-sm mt-1 text-gray-600">신청: ${count} / ${lim} 명</p>
+                  </div>
+                  ${adminStatsHTML(ev)}
+                  ${btn}
+                  <div class="mt-3">
+                    <div class="text-xs font-semibold text-gray-600 mb-1">참가자</div>
+                    <div class="max-h-28 overflow-y-auto border rounded bg-gray-50 p-2">${
+                      namesList ||
+                      '<div class="text-xs text-gray-400">아직 없음</div>'
+                    }</div>
+                  </div>
+                  <div class="mt-2">
+                    <div class="text-xs font-semibold text-gray-600 mb-1">대기자</div>
+                    <div class="max-h-24 overflow-y-auto border rounded bg-amber-50 p-2">${
+                      waitingList ||
+                      '<div class="text-xs text-amber-400">대기자 없음</div>'
+                    }</div>
+                    <div class="text-[11px] text-amber-700 mt-1">※ 빈자리가 생기면 <b>신청 순서대로 자동 승급</b>돼요.</div>
+                  </div>
+                  <div class="text-[11px] text-gray-400 mt-2">상태: ${statusLabel(
+                    ev.status || "open"
+                  )}</div>
+                  <div class="flex gap-2 mt-2 text-sm text-gray-600"><span class="px-2 py-0.5 rounded ${typeBadgeClass(
+                    ev.type
+                  )}">${typeLabel(ev.type)}</span></div>
+                  ${adminFullTableHTML(ev)}
+                  ${adminInline(ev)}
+                </div>`;
       }
       function tastingCardHTML(ev) {
         const list = (ev.restaurants || [])
@@ -1682,87 +1762,122 @@
                   )}</span></div>`
               )
               .join("");
-            return `<div class="border rounded p-3">${
-              r.imageUrl
-                ? `<img src="${saf(r.imageUrl)}" alt="${saf(
-                    r.name
-                  )}" class="w-full h-32 object-cover rounded mb-2" onerror="this.style.display='none'">`
-                : ""
-            }<div class="flex justify-between"><div><b>${saf(
-              r.name
-            )}</b><div class="text-sm text-gray-500">${saf(
+            return `<div class="border rounded p-3">
+                    ${
+                      r.imageUrl
+                        ? `<img src="${saf(r.imageUrl)}" alt="${saf(
+                            r.name
+                          )}" class="w-full h-32 object-cover rounded mb-2" onerror="this.style.display='none'">`
+                        : ""
+                    }
+                    <div class="flex justify-between">
+                      <div><b>${saf(
+                        r.name
+                      )}</b><div class="text-sm text-gray-500">${saf(
               r.info || ""
-            )}</div></div><div class="text-sm text-gray-600">${cnt}/${cap}</div></div><div class="w-full bg-gray-200 rounded-full h-3 mt-2"><div class="bg-green-500 h-3 rounded-full" style="width:${
-              cap ? Math.min(100, Math.round((cnt / cap) * 100)) : 0
-            }%"></div></div><div class="mt-2"><div class="text-xs font-semibold text-gray-600 mb-1">참가자</div><div class="max-h-20 overflow-y-auto border rounded bg-gray-50 p-2">${
-              namesList || '<div class="text-xs text-gray-400">아직 없음</div>'
-            }</div></div><div class="mt-2"><div class="text-xs font-semibold text-gray-600 mb-1">대기자</div><div class="max-h-16 overflow-y-auto border rounded bg-amber-50 p-2">${
-              waitingList ||
-              '<div class="text-xs text-amber-400">대기자 없음</div>'
-            }</div><div class="text-[11px] text-amber-700 mt-1">※ 자리가 비면 자동으로 <b>대기 → 참가</b>로 전환돼요.</div></div>${btn}</div>`;
+            )}</div></div>
+                      <div class="text-sm text-gray-600">${cnt}/${cap}</div>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-3 mt-2"><div class="bg-green-500 h-3 rounded-full" style="width:${
+                      cap ? Math.min(100, Math.round((cnt / cap) * 100)) : 0
+                    }%"></div></div>
+                    <div class="mt-2"><div class="text-xs font-semibold text-gray-600 mb-1">참가자</div><div class="max-h-20 overflow-y-auto border rounded bg-gray-50 p-2">${
+                      namesList ||
+                      '<div class="text-xs text-gray-400">아직 없음</div>'
+                    }</div></div>
+                    <div class="mt-2"><div class="text-xs font-semibold text-gray-600 mb-1">대기자</div><div class="max-h-16 overflow-y-auto border rounded bg-amber-50 p-2">${
+                      waitingList ||
+                      '<div class="text-xs text-amber-400">대기자 없음</div>'
+                    }</div>
+                      <div class="text-[11px] text-amber-700 mt-1">※ 자리가 비면 자동으로 <b>대기 → 참가</b>로 전환돼요.</div></div>
+                    ${btn}
+                  </div>`;
           })
           .join("");
-        return `<div class="section card-hover"><h3 class="text-xl font-bold text-gray-800">${saf(
-          ev.title
-        )}</h3><p class="text-gray-500">🗓️ ${
-          ev.datetime ? new Date(ev.datetime).toLocaleString("ko-KR") : "-"
-        }</p>${adminStatsHTML(
-          ev
-        )}<div class="grid grid-cols-1 gap-3 mt-3">${list}</div><div class="text-xs text-gray-400 mt-3">상태: ${statusLabel(
-          ev.status || "open"
-        )}</div><div class="flex gap-2 mt-2 text-sm text-gray-600"><span class="px-2 py-0.5 rounded ${typeBadgeClass(
-          ev.type
-        )}">${typeLabel(ev.type)}</span></div>${adminInline(ev)}</div>`;
+        return `<div class="section card-hover ${typeAccentClass(ev.type)}">
+                  <h3 class="text-xl font-bold text-gray-800">${saf(
+                    ev.title
+                  )}</h3>
+                  <p class="text-gray-500">🗓️ ${
+                    ev.datetime
+                      ? new Date(ev.datetime).toLocaleString("ko-KR")
+                      : "-"
+                  }</p>
+                  ${adminStatsHTML(ev)}
+                  <div class="grid grid-cols-1 gap-3 mt-3">${list}</div>
+                  <div class="text-xs text-gray-400 mt-3">상태: ${statusLabel(
+                    ev.status || "open"
+                  )}</div>
+                  <div class="flex gap-2 mt-2 text-sm text-gray-600"><span class="px-2 py-0.5 rounded ${typeBadgeClass(
+                    ev.type
+                  )}">${typeLabel(ev.type)}</span></div>
+                  ${adminInline(ev)}
+                </div>`;
       }
       function eventCardHTML(ev) {
         return ev.type === "tasting"
           ? tastingCardHTML(ev)
           : generalCardHTML(ev);
       }
+
       function adminFullTableHTML(ev) {
         const isAdmin =
           currentUser && adminList.includes(currentUser.studentId);
         if (!isAdmin || !(ev.type === "mt" || ev.type === "assembly"))
           return "";
-        const header = `<thead class="text-gray-700"><tr><th class="px-2 py-1 text-left">이름</th><th class="px-2 py-1 text-left">학번</th><th class="px-2 py-1 text-left">성별</th><th class="px-2 py-1 text-left">학년</th><th class="px-2 py-1 text-left">단과대</th><th class="px-2 py-1 text-left">학과</th><th class="px-2 py-1 text-left">전화번호</th></tr></thead>`;
+        const header = `<thead class="text-gray-700 table-sticky"><tr>
+            <th class="px-2 py-1 text-left">이름</th><th class="px-2 py-1 text-left">학번</th><th class="px-2 py-1 text-left">성별</th>
+            <th class="px-2 py-1 text-left">학년</th><th class="px-2 py-1 text-left">단과대</th><th class="px-2 py-1 text-left">학과</th><th class="px-2 py-1 text-left">전화번호</th>
+          </tr></thead>`;
         const rows = (ev.applicants || [])
-          .map((p) => {
-            const m = { ...p };
-            return `<tr class="border-t"><td class="px-2 py-1">${saf(
-              m.name || ""
-            )}</td><td class="px-2 py-1 font-mono">${saf(
-              m.studentId || ""
-            )}</td><td class="px-2 py-1">${saf(
-              m.gender || ""
-            )}</td><td class="px-2 py-1">${saf(
-              m.year || ""
-            )}</td><td class="px-2 py-1">${saf(
-              m.college || ""
-            )}</td><td class="px-2 py-1">${saf(
-              m.department || ""
-            )}</td><td class="px-2 py-1">${saf(m.phone || "")}</td></tr>`;
-          })
+          .map(
+            (m) => `<tr class="border-t">
+            <td class="px-2 py-1">${saf(m.name || "")}</td>
+            <td class="px-2 py-1 font-mono">${saf(m.studentId || "")}</td>
+            <td class="px-2 py-1">${saf(m.gender || "")}</td>
+            <td class="px-2 py-1">${saf(m.year || "")}</td>
+            <td class="px-2 py-1">${saf(m.college || "")}</td>
+            <td class="px-2 py-1">${saf(m.department || "")}</td>
+            <td class="px-2 py-1">${saf(m.phone || "")}</td>
+          </tr>`
+          )
           .join("");
         const body =
           rows ||
           `<tr><td class="px-2 py-6 text-center text-gray-400" colspan="7">신청자 없음</td></tr>`;
-        const toolbar = `<div class="flex items-center justify-between mb-2"><div class="text-xs font-semibold text-gray-700">관리자 전용 • 참가자 상세</div><button type="button" class="text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded" data-act="export-xlsx" data-id="${ev.id}"><i class="fas fa-file-excel mr-1"></i>명단 다운로드</button></div>`;
-        return `<div class="mt-4 border-t pt-3">${toolbar}<div class="overflow-auto max-h-60 border rounded"><table class="min-w-full text-xs">${header}<tbody>${body}</tbody></table></div></div>`;
+        const toolbar = `<div class="flex items-center justify-between mb-2">
+            <div class="text-xs font-semibold text-gray-700">관리자 전용 • 참가자 상세</div>
+            <button type="button" class="text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded" data-act="export-xlsx" data-id="${ev.id}">
+              <i class="fas fa-file-excel mr-1"></i>명단 다운로드
+            </button>
+          </div>`;
+        return `<div class="mt-4 border-t pt-3">${toolbar}<div class="overflow-auto max-h-60 border rounded">
+            <table class="min-w-full text-xs">${header}<tbody>${body}</tbody></table></div></div>`;
       }
 
       function renderReservationTab(isAdmin) {
         const c = document.getElementById("reservation-tab");
         if (!c) return;
+
         const listHTML =
           eventsData.filter((e) => e.status !== "archived").length === 0
             ? `<div class="text-center py-12"><i class="fas fa-calendar-xmark text-4xl text-gray-300"></i><p class="mt-3 text-gray-500">진행 중인 이벤트/미식회가 없습니다.</p></div>`
-            : `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">${eventsData
-                .filter((e) => e.status !== "archived")
-                .map(eventCardHTML)
-                .join("")}</div>`;
+            : `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                ${eventsData
+                  .filter((e) => e.status !== "archived")
+                  .map(eventCardHTML)
+                  .join("")}
+               </div>`;
+
+        // 요청사항 5: 이벤트 생성/관리 폼을 맨 위로
         c.innerHTML =
-          `<div class="section"><h2 class="text-2xl font-bold mb-1 text-gray-800">진행 중 목록</h2><p class="text-xs text-gray-500 mb-3">현재 신청 가능한 이벤트/미식회입니다.</p>${listHTML}</div>` +
-          (isAdmin ? adminEventsPanelHTML() : "");
+          (isAdmin ? adminEventsPanelHTML() : "") +
+          `<div class="section mt-6">
+             <h2 class="text-2xl font-bold mb-1 text-gray-800">진행 중 목록</h2>
+             <p class="text-xs text-gray-500 mb-3">현재 신청 가능한 이벤트/미식회입니다.</p>
+             ${listHTML}
+           </div>`;
+
         c.addEventListener("click", async (e) => {
           const b = e.target.closest("button[data-act]");
           if (!b) return;
@@ -1782,9 +1897,60 @@
         if (isAdmin) bindAdminEventsPanel();
       }
 
-      /* ===== 이벤트 관리자 패널 ===== */
+      /* ===== 이벤트 관리자 패널 (대시보드에서 제거, 신청하기 탭 상단으로 이동) ===== */
       function adminEventsPanelHTML() {
-        return `<div class="section mt-6"><h3 class="text-2xl font-bold text-gray-800 mb-1">이벤트·미식회 관리</h3><p class="text-xs text-gray-500 mb-4">유형을 선택하고 제목/일시/정원 등을 입력한 후 저장하세요. 미식회는 식당(게이트)을 1개 이상 추가해야 합니다.</p><div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-3"><select id="event-type" class="px-3 py-2 border rounded-lg" title="이벤트 유형을 선택하세요"><option value="tasting">미식회</option><option value="general">일반 이벤트</option><option value="mt">MT</option><option value="assembly">총회</option></select><input id="event-title" type="text" placeholder="제목" class="px-3 py-2 border rounded-lg md:col-span-2" title="이벤트 제목을 입력하세요"><input id="event-datetime" type="datetime-local" class="px-3 py-2 border rounded-lg" title="이벤트 일시를 입력하세요"></div><div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-1"><input id="event-limit" type="number" min="1" placeholder="(기본) 정원" class="px-3 py-2 border rounded-lg"><select id="event-status" class="px-3 py-2 border rounded-lg" title="목록에서 숨기려면 숨김을 선택"><option value="open">공개</option><option value="archived">숨김</option></select><div class="text-xs text-gray-600 flex items-center">* "숨김"은 사용자 목록에서 보이지 않습니다.</div></div><div id="payment-fields" class="hidden mt-2"><h4 class="font-semibold text-indigo-700 mb-1">회비 입금 정보 (MT/총회)</h4><p class="text-xs text-gray-600 mb-2">관리자 설정의 회비/계좌 정보를 기본으로 불러옵니다. 필요 시 수정하세요.</p><div class="grid grid-cols-1 md:grid-cols-4 gap-2"><input id="pay-bank" type="text" class="px-3 py-2 border rounded" placeholder="은행명 (예: 국민)"><input id="pay-number" type="text" class="px-3 py-2 border rounded" placeholder="계좌번호"><input id="pay-holder" type="text" class="px-3 py-2 border rounded" placeholder="예금주"><input id="pay-note" type="text" class="px-3 py-2 border rounded" placeholder="안내 문구(선택)"></div></div><div id="tasting-fields" class="mt-3"><h4 class="font-semibold text-indigo-700 mb-1">식당(게이트) 관리</h4><p class="text-xs text-gray-600 mb-2">각 식당에 대한 이름/정보/정원을 입력하고, 이미지는 파일 선택 또는 드래그&드롭으로 업로드하세요.</p><div id="event-restaurants-wrap" class="space-y-2">${restaurantFieldHTML()}</div><button id="add-restaurant-btn" type="button" class="mt-2 text-xs bg-white border border-indigo-300 text-indigo-700 px-3 py-1 rounded hover:bg-indigo-50"><i class="fas fa-plus mr-1"></i>식당 추가</button></div><div class="flex gap-2 mt-4"><button id="save-event-btn" type="button" class="flex-1 bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700">생성/저장</button><button id="reset-event-btn" type="button" class="flex-1 bg-gray-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-700">폼 초기화</button></div><hr class="my-4"><h4 class="font-semibold text-gray-700 mb-1">현재 이벤트</h4><p class="text-xs text-gray-600 mb-2">아래 목록에서 수정/보관/재게시/삭제가 가능합니다.</p><div class="space-y-2">${adminEventsListHTML()}</div></div>`;
+        return `<div class="section">
+          <h3 class="text-2xl font-bold text-gray-800 mb-1">이벤트·미식회 생성</h3>
+          <p class="text-xs text-gray-500 mb-4">유형을 선택하고 제목/일시/정원 등을 입력한 후 저장하세요. 미식회는 식당(게이트)을 1개 이상 추가해야 합니다.</p>
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-3">
+            <select id="event-type" class="px-3 py-2 border rounded-lg" title="이벤트 유형을 선택하세요">
+              <option value="tasting">미식회</option>
+              <option value="general">일반 이벤트</option>
+              <option value="mt">MT</option>
+              <option value="assembly">총회</option>
+            </select>
+            <input id="event-title" type="text" placeholder="제목" class="px-3 py-2 border rounded-lg md:col-span-2" title="이벤트 제목을 입력하세요">
+            <input id="event-datetime" type="datetime-local" class="px-3 py-2 border rounded-lg" title="이벤트 일시를 입력하세요">
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-1">
+            <input id="event-limit" type="number" min="1" placeholder="(기본) 정원" class="px-3 py-2 border rounded-lg">
+            <select id="event-status" class="px-3 py-2 border rounded-lg" title="목록에서 숨기려면 숨김을 선택">
+              <option value="open">공개</option>
+              <option value="archived">숨김</option>
+            </select>
+            <div class="text-xs text-gray-600 flex items-center">* "숨김"은 사용자 목록에서 보이지 않습니다.</div>
+          </div>
+
+          <div id="payment-fields" class="hidden mt-2">
+            <h4 class="font-semibold text-indigo-700 mb-1">회비 입금 정보 (MT/총회)</h4>
+            <p class="text-xs text-gray-600 mb-2">관리자 설정의 회비/계좌 정보를 기본으로 불러옵니다. 필요 시 수정하세요.</p>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-2">
+              <input id="pay-bank" type="text" class="px-3 py-2 border rounded" placeholder="은행명 (예: 국민)">
+              <input id="pay-number" type="text" class="px-3 py-2 border rounded" placeholder="계좌번호">
+              <input id="pay-holder" type="text" class="px-3 py-2 border rounded" placeholder="예금주">
+              <input id="pay-note" type="text" class="px-3 py-2 border rounded" placeholder="안내 문구(선택)">
+            </div>
+          </div>
+
+          <div id="tasting-fields" class="mt-3">
+            <h4 class="font-semibold text-indigo-700 mb-1">식당(게이트) 관리</h4>
+            <p class="text-xs text-gray-600 mb-2">각 식당에 대한 이름/정보/정원을 입력하고, 이미지는 파일 선택 또는 드래그&드롭으로 업로드하세요.</p>
+            <div id="event-restaurants-wrap" class="space-y-2">${restaurantFieldHTML()}</div>
+            <button id="add-restaurant-btn" type="button" class="mt-2 text-xs bg-white border border-indigo-300 text-indigo-700 px-3 py-1 rounded hover:bg-indigo-50">
+              <i class="fas fa-plus mr-1"></i>식당 추가
+            </button>
+          </div>
+
+          <div class="flex gap-2 mt-4">
+            <button id="save-event-btn" type="button" class="flex-1 bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700">생성/저장</button>
+            <button id="reset-event-btn" type="button" class="flex-1 bg-gray-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-700">폼 초기화</button>
+          </div>
+
+          <hr class="my-4">
+          <h4 class="font-semibold text-gray-700 mb-1">현재 이벤트</h4>
+          <p class="text-xs text-gray-600 mb-2">아래 목록에서 수정/보관/재게시/삭제가 가능합니다.</p>
+          <div class="space-y-2">${adminEventsListHTML()}</div>
+        </div>`;
       }
       function bindAdminEventsPanel() {
         const wrap = document.getElementById("event-restaurants-wrap");
@@ -1844,21 +2010,36 @@
       }
       function restaurantFieldHTML(n = "", i = "", c = "", url = "", id = "") {
         const rid = id || `res_${Math.random().toString(36).slice(2, 9)}`;
-        return `<div class="restaurant-row flex items-start gap-2 md:gap-3" data-id="${rid}"><div class="relative"><img src="${saf(
-          url || ""
-        )}" class="thumb ${
+        return `<div class="restaurant-row flex items-start gap-2 md:gap-3" data-id="${rid}">
+          <div class="relative">
+            <img src="${saf(url || "")}" class="thumb ${
           url ? "" : "hidden"
-        }" data-role="preview" alt="preview"><div class="dz ${
-          url ? "hidden" : ""
-        }" data-role="dropzone">이미지</div><div class="dz-overlay hidden" data-role="uploading">업로드중…</div></div><div class="flex-1 grid grid-cols-1 md:grid-cols-4 gap-2"><input data-field="name" type="text" value="${saf(
-          n
-        )}" placeholder="식당 이름" class="px-3 py-2 border rounded"><input data-field="info" type="text" value="${saf(
-          i
-        )}" placeholder="식당 정보" class="px-3 py-2 border rounded md:col-span-2"><div class="flex items-center gap-2"><button type="button" class="select-image bg-white border px-2 py-2 rounded text-xs">파일 선택</button><input type="file" accept="image/*" class="hidden" data-role="file"><input data-field="imageUrl" type="text" value="${saf(
-          url
-        )}" placeholder="이미지 URL(선택)" class="px-3 py-2 border rounded flex-1 md:hidden"></div><input data-field="capacity" type="number" min="1" value="${saf(
-          c
-        )}" placeholder="정원" class="px-3 py-2 border rounded w-full md:w-24"></div><button type="button" class="remove-restaurant text-red-600 hover:text-red-800"><i class="fas fa-trash"></i></button></div>`;
+        }" data-role="preview" alt="preview">
+            <div class="dz ${
+              url ? "hidden" : ""
+            }" data-role="dropzone">이미지</div>
+            <div class="dz-overlay hidden" data-role="uploading">업로드중…</div>
+          </div>
+          <div class="flex-1 grid grid-cols-1 md:grid-cols-4 gap-2">
+            <input data-field="name" type="text" value="${saf(
+              n
+            )}" placeholder="식당 이름" class="px-3 py-2 border rounded">
+            <input data-field="info" type="text" value="${saf(
+              i
+            )}" placeholder="식당 정보" class="px-3 py-2 border rounded md:col-span-2">
+            <div class="flex items-center gap-2">
+              <button type="button" class="select-image bg-white border px-2 py-2 rounded text-xs">파일 선택</button>
+              <input type="file" accept="image/*" class="hidden" data-role="file">
+              <input data-field="imageUrl" type="text" value="${saf(
+                url
+              )}" placeholder="이미지 URL(선택)" class="px-3 py-2 border rounded flex-1 md:hidden">
+            </div>
+            <input data-field="capacity" type="number" min="1" value="${saf(
+              c
+            )}" placeholder="정원" class="px-3 py-2 border rounded w-full md:w-24">
+          </div>
+          <button type="button" class="remove-restaurant text-red-600 hover:text-red-800"><i class="fas fa-trash"></i></button>
+        </div>`;
       }
       function onTypeChange(type) {
         document
@@ -1888,25 +2069,36 @@
               ? new Date(ev.datetime).toLocaleString("ko-KR")
               : "-";
             const badge = typeBadgeClass(ev.type);
-            return `<div class="flex items-center justify-between bg-white p-3 rounded border"><div class="min-w-0"><span class="text-sm px-2 py-0.5 rounded ${badge}">${typeLabel(
+            return `<div class="flex items-center justify-between bg-white p-3 rounded border">
+            <div class="min-w-0">
+              <span class="text-sm px-2 py-0.5 rounded ${badge}">${typeLabel(
               ev.type
-            )}</span><span class="font-semibold ml-2">${saf(
-              ev.title || "(제목 없음)"
-            )}</span><span class="text-sm text-gray-500 ml-2">(${when})</span><span class="text-xs ml-2 px-2 py-0.5 rounded ${
-              ev.status === "open"
-                ? "bg-green-100 text-green-700"
-                : "bg-gray-200 text-gray-700"
-            }">${statusLabel(
-              ev.status || "open"
-            )}</span></div><div class="flex gap-2"><button type="button" class="text-blue-600 hover:text-blue-800" data-act="admin-edit" data-id="${
-              ev.id
-            }" title="수정"><i class="fas fa-pen"></i></button><button type="button" class="text-amber-600 hover:text-amber-800" data-act="admin-archive" data-id="${
-              ev.id
-            }" title="보관(숨김)"><i class="fas fa-box-archive"></i></button><button type="button" class="text-green-700 hover:text-green-900" data-act="admin-unarchive" data-id="${
-              ev.id
-            }" title="재게시"><i class="fas fa-rotate-left"></i></button><button type="button" class="text-red-600 hover:text-red-800" data-act="admin-delete" data-id="${
-              ev.id
-            }" title="삭제"><i class="fas fa-trash"></i></button></div></div>`;
+            )}</span>
+              <span class="font-semibold ml-2">${saf(
+                ev.title || "(제목 없음)"
+              )}</span>
+              <span class="text-sm text-gray-500 ml-2">(${when})</span>
+              <span class="text-xs ml-2 px-2 py-0.5 rounded ${
+                ev.status === "open"
+                  ? "bg-green-100 text-green-700"
+                  : "bg-gray-200 text-gray-700"
+              }">${statusLabel(ev.status || "open")}</span>
+            </div>
+            <div class="flex gap-2">
+              <button type="button" class="text-blue-600 hover:text-blue-800" data-act="admin-edit" data-id="${
+                ev.id
+              }" title="수정"><i class="fas fa-pen"></i></button>
+              <button type="button" class="text-amber-600 hover:text-amber-800" data-act="admin-archive" data-id="${
+                ev.id
+              }" title="보관(숨김)"><i class="fas fa-box-archive"></i></button>
+              <button type="button" class="text-green-700 hover:text-green-900" data-act="admin-unarchive" data-id="${
+                ev.id
+              }" title="재게시"><i class="fas fa-rotate-left"></i></button>
+              <button type="button" class="text-red-600 hover:text-red-800" data-act="admin-delete" data-id="${
+                ev.id
+              }" title="삭제"><i class="fas fa-trash"></i></button>
+            </div>
+          </div>`;
           })
           .join("");
       }
@@ -1954,9 +2146,30 @@
         }
       }
 
+      /* ===== 회원 프로필 조회(신청 정보 풍부화) ===== */
+      async function getCurrentMemberProfile() {
+        try {
+          if (!currentUser?.studentId) return {};
+          const snap = await getDoc(doc(db, "members", currentUser.studentId));
+          return snap.exists() ? snap.data() || {} : {};
+        } catch {
+          return {};
+        }
+      }
+      function pickProfileFields(p = {}) {
+        return {
+          gender: p.gender || "",
+          year: p.year || "",
+          college: p.college || "",
+          department: p.department || "",
+          phone: p.phone || "",
+        };
+      }
+
       /* ===== 신청 로직 ===== */
       async function reserveGeneral(id) {
         if (!currentUser) return showAlert("😥", "로그인이 필요합니다.");
+        const prof = pickProfileFields(await getCurrentMemberProfile());
         try {
           await runTransaction(db, async (tx) => {
             const ref = doc(db, "events", id);
@@ -1968,6 +2181,7 @@
             if (isUserIn([...ev.applicants, ...ev.waiting])) return;
             const entry = {
               ...currentUser,
+              ...prof,
               timestamp: new Date().toISOString(),
             };
             const lim = parseInt(ev.limit || 0, 10) || 0;
@@ -2009,6 +2223,7 @@
       }
       async function reserveTasting(id, rid) {
         if (!currentUser) return showAlert("😥", "로그인이 필요합니다.");
+        const prof = pickProfileFields(await getCurrentMemberProfile());
         try {
           await runTransaction(db, async (tx) => {
             const ref = doc(db, "events", id);
@@ -2029,6 +2244,7 @@
             const cap = r.capacity ?? ev.limit ?? 0;
             const entry = {
               ...currentUser,
+              ...prof,
               timestamp: new Date().toISOString(),
             };
             if (r.reservations.length < cap) r.reservations.push(entry);
@@ -2088,6 +2304,7 @@
         const status = document.getElementById("event-status").value;
         if (!type || !title || !datetime || !limit)
           return showAlert("😥", "타입/제목/일시/정원을 모두 입력해주세요.");
+
         let payment = null;
         if (type === "mt" || type === "assembly") {
           const b = document.getElementById("pay-bank").value.trim();
@@ -2298,8 +2515,22 @@
         try {
           const ev = eventsData.find((e) => e.id === id);
           if (!ev) return showAlert("😥", "이벤트를 찾을 수 없습니다.");
-          let rows = [];
+          let rows = [],
+            header = [];
+
           if (ev.type === "tasting") {
+            header = [
+              "구분",
+              "식당",
+              "이름",
+              "학번",
+              "성별",
+              "학년",
+              "단과대",
+              "학과",
+              "전화번호",
+              "비고",
+            ];
             (ev.restaurants || []).forEach((r) => {
               (r.reservations || []).forEach((p) =>
                 rows.push({
@@ -2307,6 +2538,11 @@
                   식당: r.name || "",
                   이름: p.name || "",
                   학번: p.studentId || "",
+                  성별: p.gender || "",
+                  학년: p.year || "",
+                  단과대: p.college || "",
+                  학과: p.department || "",
+                  전화번호: p.phone || "",
                   비고: "",
                 })
               );
@@ -2316,16 +2552,37 @@
                   식당: r.name || "",
                   이름: p.name || "",
                   학번: p.studentId || "",
+                  성별: p.gender || "",
+                  학년: p.year || "",
+                  단과대: p.college || "",
+                  학과: p.department || "",
+                  전화번호: p.phone || "",
                   비고: "",
                 })
               );
             });
-          } else {
+          } else if (ev.type === "mt" || ev.type === "assembly") {
+            header = [
+              "구분",
+              "이름",
+              "학번",
+              "성별",
+              "학년",
+              "단과대",
+              "학과",
+              "전화번호",
+              "비고",
+            ];
             (ev.applicants || []).forEach((p) =>
               rows.push({
                 구분: "참가",
                 이름: p.name || "",
                 학번: p.studentId || "",
+                성별: p.gender || "",
+                학년: p.year || "",
+                단과대: p.college || "",
+                학과: p.department || "",
+                전화번호: p.phone || "",
                 비고: "",
               })
             );
@@ -2334,14 +2591,70 @@
                 구분: "대기",
                 이름: p.name || "",
                 학번: p.studentId || "",
+                성별: p.gender || "",
+                학년: p.year || "",
+                단과대: p.college || "",
+                학과: p.department || "",
+                전화번호: p.phone || "",
+                비고: "",
+              })
+            );
+          } else {
+            header = [
+              "구분",
+              "이름",
+              "학번",
+              "성별",
+              "학년",
+              "단과대",
+              "학과",
+              "전화번호",
+              "비고",
+            ];
+            (ev.applicants || []).forEach((p) =>
+              rows.push({
+                구분: "참가",
+                이름: p.name || "",
+                학번: p.studentId || "",
+                성별: p.gender || "",
+                학년: p.year || "",
+                단과대: p.college || "",
+                학과: p.department || "",
+                전화번호: p.phone || "",
+                비고: "",
+              })
+            );
+            (ev.waiting || []).forEach((p) =>
+              rows.push({
+                구분: "대기",
+                이름: p.name || "",
+                학번: p.studentId || "",
+                성별: p.gender || "",
+                학년: p.year || "",
+                단과대: p.college || "",
+                학과: p.department || "",
+                전화번호: p.phone || "",
                 비고: "",
               })
             );
           }
           if (rows.length === 0)
-            rows = [{ 구분: "-", 이름: "-", 학번: "-", 비고: "" }];
+            rows = [
+              {
+                구분: "-",
+                이름: "-",
+                학번: "-",
+                성별: "-",
+                학년: "-",
+                단과대: "-",
+                학과: "-",
+                전화번호: "-",
+                비고: "",
+              },
+            ];
+
           const wb = XLSX.utils.book_new();
-          const ws = XLSX.utils.json_to_sheet(rows);
+          const ws = XLSX.utils.json_to_sheet(rows, { header });
           XLSX.utils.book_append_sheet(wb, ws, "명단");
           const fname = `${ev.title || "event"}_명단.xlsx`;
           XLSX.writeFile(wb, fname);
@@ -2354,7 +2667,25 @@
       /* ===================== 관리자 대시보드 ===================== */
       function renderDashboardTab() {
         const c = document.getElementById("dashboard-tab");
-        c.innerHTML = `<div class="section"><h2 class="text-2xl font-bold text-gray-800 mb-4">관리자 대시보드</h2><div class="flex flex-wrap gap-2 mb-4"><button class="subtab-btn px-3 py-1.5 rounded bg-gray-800 text-white" data-sub="events"><i class="fas fa-calendar-alt mr-1"></i>이벤트</button><button class="subtab-btn px-3 py-1.5 rounded bg-gray-200" data-sub="homeblocks"><i class="fas fa-house-chimney mr-1"></i>홈 블록</button><button class="subtab-btn px-3 py-1.5 rounded bg-gray-200" data-sub="members"><i class="fas fa-users mr-1"></i>회원</button><button class="subtab-btn px-3 py-1.5 rounded bg-gray-200" data-sub="hof"><i class="fas fa-trophy mr-1"></i>명예의 전당</button><button class="subtab-btn px-3 py-1.5 rounded bg-gray-200" data-sub="system"><i class="fas fa-gear mr-1"></i>시스템</button></div><div id="subtab-container"></div></div>`;
+        c.innerHTML = `<div class="section">
+          <h2 class="text-2xl font-bold text-gray-800 mb-4">관리자 대시보드</h2>
+          <div class="flex flex-wrap gap-2 mb-4">
+            <!-- 이벤트 탭 제거(요청사항 4) -->
+            <button class="subtab-btn px-3 py-1.5 rounded bg-gray-800 text-white" data-sub="homeblocks">
+              <i class="fas fa-house-chimney mr-1"></i>홈 블록·로드맵
+            </button>
+            <button class="subtab-btn px-3 py-1.5 rounded bg-gray-200" data-sub="members">
+              <i class="fas fa-users mr-1"></i>회원
+            </button>
+            <button class="subtab-btn px-3 py-1.5 rounded bg-gray-200" data-sub="hof">
+              <i class="fas fa-trophy mr-1"></i>명예의 전당
+            </button>
+            <button class="subtab-btn px-3 py-1.5 rounded bg-gray-200" data-sub="system">
+              <i class="fas fa-gear mr-1"></i>시스템
+            </button>
+          </div>
+          <div id="subtab-container"></div>
+        </div>`;
         const bWrap = c.querySelector(".flex.flex-wrap");
         bWrap.addEventListener("click", (e) => {
           const b = e.target.closest(".subtab-btn");
@@ -2365,15 +2696,10 @@
           b.classList.add("bg-gray-800", "text-white");
           showSubtab(b.dataset.sub);
         });
-        showSubtab("events");
+        showSubtab("homeblocks"); // 기본 탭
       }
       function showSubtab(name) {
         const cont = document.getElementById("subtab-container");
-        if (name === "events") {
-          cont.innerHTML = adminEventsPanelHTML();
-          bindAdminEventsPanel();
-          return;
-        }
         if (name === "homeblocks") {
           renderHomeBlocksAdmin(cont);
           return;
@@ -2392,54 +2718,145 @@
         }
       }
 
-      /* ===== 홈 블록 관리 ===== */
+      /* ===== 홈 블록 + 로드맵 관리 ===== */
       function renderHomeBlocksAdmin(container) {
-        container.innerHTML = `<div class="grid grid-cols-1 gap-4"><div class="section"><h3 class="text-xl font-bold text-gray-800 mb-2">블록 순서/노출 관리</h3><p class="text-xs text-gray-600 mb-2">드래그하여 순서를 변경하고, 눈 아이콘으로 노출을 토글하세요. 저장을 눌러야 반영됩니다.</p><ul id="blocks-sortable" class="sortable divide-y rounded border bg-white">${blocksData
-          .map(
-            (b) =>
-              `<li draggable="true" data-id="${
-                b.id
-              }" class="flex items-center justify-between px-3 py-2"><div class="flex items-center gap-2 min-w-0"><i class="fas fa-grip-vertical text-gray-400"></i><span class="text-xs px-2 py-0.5 rounded ${
-                b.type === "scores"
-                  ? "bg-emerald-100 text-emerald-700"
-                  : b.type === "qa"
-                  ? "bg-purple-100 text-purple-700"
-                  : "bg-indigo-100 text-indigo-700"
-              }">${saf(b.type)}</span><span class="truncate">${saf(
-                b.title || "(제목 없음)"
-              )}</span></div><div class="flex items-center gap-2"><button class="toggle-visible text-sm ${
-                b.visible !== false ? "text-green-600" : "text-gray-400"
-              }" title="노출 토글"><i class="fas ${
-                b.visible !== false ? "fa-eye" : "fa-eye-slash"
-              }"></i></button><button class="edit-block text-blue-600" data-id="${
-                b.id
-              }" data-type="${
-                b.type
-              }" title="수정"><i class="fas fa-pen"></i></button><button class="delete-block text-red-600" data-id="${
-                b.id
-              }" title="삭제"><i class="fas fa-trash"></i></button></div></li>`
-          )
-          .join(
-            ""
-          )}</ul><div class="mt-3 flex gap-2"><button id="save-block-order" class="px-3 py-2 bg-gray-800 text-white rounded">순서/노출 저장</button></div></div><div class="section"><h3 class="text-xl font-bold text-gray-800 mb-2">공지 블록</h3><div class="grid grid-cols-1 md:grid-cols-3 gap-2"><input id="notice-title" class="px-3 py-2 border rounded" placeholder="제목"><select id="notice-visible" class="px-3 py-2 border rounded"><option value="true">노출</option><option value="false">숨김</option></select></div><textarea id="notice-html" rows="6" class="mt-2 w-full px-3 py-2 border rounded" placeholder="내용(HTML/텍스트)"></textarea><div class="mt-2 flex gap-2"><button id="notice-save" class="px-3 py-2 bg-indigo-600 text-white rounded">${
-          editingBlockId_notice ? "수정" : "추가"
-        }</button><button id="notice-reset" class="px-3 py-2 bg-gray-200 rounded">초기화</button></div></div><div class="section"><h3 class="text-xl font-bold text-gray-800 mb-2">Q&A 블록</h3><div class="grid grid-cols-1 md:grid-cols-3 gap-2"><input id="qa-title" class="px-3 py-2 border rounded" placeholder="제목 (예: 자주 묻는 질문)"><select id="qa-visible" class="px-3 py-2 border rounded"><option value="true">노출</option><option value="false">숨김</option></select></div><div id="qa-items" class="mt-2 space-y-2"></div><button id="qa-add" class="mt-1 text-xs bg-white border px-3 py-1 rounded">질문 추가</button><div class="mt-2 flex gap-2"><button id="qa-save" class="px-3 py-2 bg-indigo-600 text-white rounded">${
-          editingBlockId_qa ? "수정" : "추가"
-        }</button><button id="qa-reset" class="px-3 py-2 bg-gray-200 rounded">초기화</button></div></div><div class="section"><h3 class="text-xl font-bold text-gray-800 mb-2">커스텀 점수판 블록</h3><div class="grid grid-cols-1 md:grid-cols-3 gap-2"><input id="scores-title" class="px-3 py-2 border rounded" placeholder="블록 이름(제목)"><select id="scores-visible" class="px-3 py-2 border rounded"><option value="true">노출</option><option value="false">숨김</option></select></div><div id="scores-rows" class="mt-2 space-y-2"></div><button id="scores-add" class="mt-1 text-xs bg-white border px-3 py-1 rounded">조 추가</button><div class="mt-2 flex gap-2"><button id="scores-save" class="px-3 py-2 bg-indigo-600 text-white rounded">${
-          editingBlockId_scores ? "수정" : "추가"
-        }</button><button id="scores-reset" class="px-3 py-2 bg-gray-200 rounded">초기화</button></div></div></div>`;
+        container.innerHTML = `
+          <div class="grid grid-cols-1 gap-4">
+            <!-- 블록 순서/노출 -->
+            <div class="section">
+              <h3 class="text-xl font-bold text-gray-800 mb-2">블록 순서/노출 관리</h3>
+              <p class="text-xs text-gray-600 mb-2">드래그하여 순서를 변경하고, 눈 아이콘으로 노출을 토글하세요. <b>순서/노출 저장</b>을 눌러야 반영됩니다.</p>
+              <ul id="blocks-sortable" class="sortable divide-y rounded border bg-white">
+                ${blocksData
+                  .map(
+                    (b) =>
+                      `<li draggable="true" data-id="${
+                        b.id
+                      }" class="flex items-center justify-between px-3 py-2">
+                    <div class="flex items-center gap-2 min-w-0">
+                      <i class="fas fa-grip-vertical text-gray-400"></i>
+                      <span class="text-xs px-2 py-0.5 rounded ${
+                        b.type === "scores"
+                          ? "bg-emerald-100 text-emerald-700"
+                          : b.type === "qa"
+                          ? "bg-purple-100 text-purple-700"
+                          : "bg-indigo-100 text-indigo-700"
+                      }">${saf(b.type)}</span>
+                      <span class="truncate">${saf(
+                        b.title || "(제목 없음)"
+                      )}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <button class="toggle-visible text-sm ${
+                        b.visible !== false ? "text-green-600" : "text-gray-400"
+                      }" title="노출 토글">
+                        <i class="fas ${
+                          b.visible !== false ? "fa-eye" : "fa-eye-slash"
+                        }"></i>
+                      </button>
+                      <button class="edit-block text-blue-600" data-id="${
+                        b.id
+                      }" data-type="${
+                        b.type
+                      }" title="수정"><i class="fas fa-pen"></i></button>
+                      <button class="delete-block text-red-600" data-id="${
+                        b.id
+                      }" title="삭제"><i class="fas fa-trash"></i></button>
+                    </div>
+                  </li>`
+                  )
+                  .join("")}
+              </ul>
+              <div class="mt-3 flex gap-2">
+                <button id="save-block-order" class="px-3 py-2 bg-gray-800 text-white rounded">순서/노출 저장</button>
+              </div>
+            </div>
+
+            <!-- 공지 -->
+            <div class="section">
+              <h3 class="text-xl font-bold text-gray-800 mb-2">공지 블록</h3>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                <input id="notice-title" class="px-3 py-2 border rounded" placeholder="제목">
+                <select id="notice-visible" class="px-3 py-2 border rounded"><option value="true">노출</option><option value="false">숨김</option></select>
+              </div>
+              <textarea id="notice-html" rows="6" class="mt-2 w-full px-3 py-2 border rounded" placeholder="내용(HTML/텍스트)"></textarea>
+              <div class="mt-2 flex gap-2">
+                <button id="notice-save" class="px-3 py-2 bg-indigo-600 text-white rounded">${
+                  editingBlockId_notice ? "수정" : "추가"
+                }</button>
+                <button id="notice-reset" class="px-3 py-2 bg-gray-200 rounded">초기화</button>
+              </div>
+            </div>
+
+            <!-- Q&A -->
+            <div class="section">
+              <h3 class="text-xl font-bold text-gray-800 mb-2">Q&A 블록</h3>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                <input id="qa-title" class="px-3 py-2 border rounded" placeholder="제목 (예: 자주 묻는 질문)">
+                <select id="qa-visible" class="px-3 py-2 border rounded"><option value="true">노출</option><option value="false">숨김</option></select>
+              </div>
+              <div id="qa-items" class="mt-2 space-y-2"></div>
+              <button id="qa-add" class="mt-1 text-xs bg-white border px-3 py-1 rounded">질문 추가</button>
+              <div class="mt-2 flex gap-2">
+                <button id="qa-save" class="px-3 py-2 bg-indigo-600 text-white rounded">${
+                  editingBlockId_qa ? "수정" : "추가"
+                }</button>
+                <button id="qa-reset" class="px-3 py-2 bg-gray-200 rounded">초기화</button>
+              </div>
+            </div>
+
+            <!-- 점수판 -->
+            <div class="section">
+              <h3 class="text-xl font-bold text-gray-800 mb-2">커스텀 점수판 블록</h3>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                <input id="scores-title" class="px-3 py-2 border rounded" placeholder="블록 이름(제목)">
+                <select id="scores-visible" class="px-3 py-2 border rounded"><option value="true">노출</option><option value="false">숨김</option></select>
+              </div>
+              <div id="scores-rows" class="mt-2 space-y-2"></div>
+              <button id="scores-add" class="mt-1 text-xs bg-white border px-3 py-1 rounded">조 추가</button>
+              <div class="mt-2 flex gap-2">
+                <button id="scores-save" class="px-3 py-2 bg-indigo-600 text-white rounded">${
+                  editingBlockId_scores ? "수정" : "추가"
+                }</button>
+                <button id="scores-reset" class="px-3 py-2 bg-gray-200 rounded">초기화</button>
+              </div>
+            </div>
+
+            <!-- 로드맵 관리(신규) -->
+            <div class="section">
+              <h3 class="text-xl font-bold text-gray-800 mb-2">푸디 로드맵 관리</h3>
+              <p class="text-xs text-gray-600 mb-2">드래그로 순서를 바꾸고 저장하세요. 항목 추가/수정/삭제도 가능합니다.</p>
+              <ul id="roadmap-sortable" class="sortable divide-y rounded border bg-white">
+                ${renderRoadmapAdminList()}
+              </ul>
+              <div class="mt-3 flex gap-2">
+                <button id="save-roadmap-order" class="px-3 py-2 bg-gray-800 text-white rounded">로드맵 순서 저장</button>
+              </div>
+              <hr class="my-4">
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                <input id="rm-name" class="px-3 py-2 border rounded" placeholder="활동 이름">
+                <input id="rm-date" type="date" class="px-3 py-2 border rounded">
+                <button id="rm-add" class="px-3 py-2 bg-indigo-600 text-white rounded"><i class="fas fa-plus mr-1"></i>로드맵 추가</button>
+              </div>
+            </div>
+          </div>`;
+
+        // 블록 DnD
         const sortable = container.querySelector("#blocks-sortable");
         enableSimpleDnd(sortable);
+
+        // 블록: 토글 클릭 시 DOM만 바꾸고, 저장 버튼에서 일괄 반영
         sortable.addEventListener("click", async (e) => {
           const li = e.target.closest("li[data-id]");
           if (!li) return;
           if (e.target.closest(".toggle-visible")) {
-            const id = li.dataset.id;
-            const b = blocksData.find((x) => x.id === id);
-            if (!b) return;
-            await updateDoc(doc(db, "homepageBlocks", id), {
-              visible: b.visible === false ? true : false,
-            });
+            const icon = li.querySelector(".toggle-visible i");
+            const btn = li.querySelector(".toggle-visible");
+            const isVisible = icon.classList.contains("fa-eye");
+            icon.classList.toggle("fa-eye", !isVisible);
+            icon.classList.toggle("fa-eye-slash", isVisible);
+            btn.classList.toggle("text-green-600", !isVisible);
+            btn.classList.toggle("text-gray-400", isVisible);
             return;
           }
           if (e.target.closest(".delete-block")) {
@@ -2489,6 +2906,8 @@
             return;
           }
         });
+
+        // 블록 저장
         container
           .querySelector("#save-block-order")
           .addEventListener("click", async () => {
@@ -2498,17 +2917,19 @@
             const batch = writeBatch(db);
             lis.forEach((li, idx) => {
               const id = li.dataset.id;
-              const visibleBtn = li.querySelector(".toggle-visible i");
-              const visible = visibleBtn.classList.contains("fa-eye");
+              const visible = li
+                .querySelector(".toggle-visible i")
+                .classList.contains("fa-eye");
               batch.update(doc(db, "homepageBlocks", id), {
                 order: idx,
                 visible,
               });
             });
             await batch.commit();
-            showAlert("✅", "순서/노출이 저장되었습니다.");
+            showAlert("✅", "블록 순서/노출이 저장되었습니다.");
           });
-        // 공지 저장
+
+        // 공지 저장/리셋
         container
           .querySelector("#notice-save")
           .addEventListener("click", async () => {
@@ -2546,8 +2967,10 @@
             container.querySelector("#notice-visible").value = "true";
             container.querySelector("#notice-html").value = "";
           });
+
         // Q&A
         const qaBox = container.querySelector("#qa-items");
+        qaBox.innerHTML = "";
         addQAItem(qaBox, "", "");
         container
           .querySelector("#qa-add")
@@ -2600,8 +3023,10 @@
           qaBox.innerHTML = "";
           addQAItem(qaBox, "", "");
         });
+
         // 점수판
         const scBox = container.querySelector("#scores-rows");
+        scBox.innerHTML = "";
         addScoreRow(scBox, "", 0);
         container
           .querySelector("#scores-add")
@@ -2656,25 +3081,132 @@
             scBox.innerHTML = "";
             addScoreRow(scBox, "", 0);
           });
+
+        // 로드맵 관리
+        const rmUl = container.querySelector("#roadmap-sortable");
+        enableSimpleDnd(rmUl);
+        container
+          .querySelector("#save-roadmap-order")
+          .addEventListener("click", async () => {
+            const lis = [
+              ...container.querySelectorAll("#roadmap-sortable li[data-id]"),
+            ];
+            const batch = writeBatch(db);
+            lis.forEach((li, idx) =>
+              batch.update(doc(db, "roadmap", li.dataset.id), { order: idx })
+            );
+            await batch.commit();
+            showAlert("✅", "로드맵 순서가 저장되었습니다.");
+          });
+        container
+          .querySelector("#rm-add")
+          .addEventListener("click", async () => {
+            const name = container.querySelector("#rm-name").value.trim();
+            const date = container.querySelector("#rm-date").value;
+            if (!name || !date)
+              return showAlert("😥", "이름과 날짜를 입력하세요.");
+            const ord = roadmapData?.length || 0;
+            await addDoc(collection(db, "roadmap"), {
+              activityName: name,
+              activityDate: date,
+              order: ord,
+            });
+            container.querySelector("#rm-name").value = "";
+            container.querySelector("#rm-date").value = "";
+            showAlert("🎉", "로드맵 항목이 추가되었습니다.");
+          });
+        rmUl.addEventListener("click", async (e) => {
+          const li = e.target.closest("li[data-id]");
+          if (!li) return;
+          const id = li.dataset.id;
+          if (e.target.closest(".rm-edit")) {
+            const item = roadmapData.find((x) => x.id === id) || {};
+            el.blockEditorTitle.textContent = "로드맵 수정";
+            el.blockEditorBody.innerHTML = `
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                <input id="rm-e-name" class="px-3 py-2 border rounded" placeholder="활동 이름" value="${saf(
+                  item.activityName || ""
+                )}">
+                <input id="rm-e-date" type="date" class="px-3 py-2 border rounded" value="${saf(
+                  item.activityDate || ""
+                )}">
+              </div>`;
+            el.blockEditor.classList.remove("hidden");
+            el.blockEditorSave.onclick = async () => {
+              await updateDoc(doc(db, "roadmap", id), {
+                activityName: document.getElementById("rm-e-name").value.trim(),
+                activityDate: document.getElementById("rm-e-date").value,
+              });
+              el.blockEditor.classList.add("hidden");
+              showAlert("✅", "로드맵이 수정되었습니다.");
+            };
+            el.blockEditorCancel.onclick = () =>
+              el.blockEditor.classList.add("hidden");
+            return;
+          }
+          if (e.target.closest(".rm-delete")) {
+            if (!confirm("해당 로드맵 항목을 삭제할까요?")) return;
+            await deleteDoc(doc(db, "roadmap", id));
+            showAlert("🗑️", "삭제되었습니다.");
+          }
+        });
+      }
+      function renderRoadmapAdminList() {
+        if (!roadmapData?.length)
+          return `<li class="px-3 py-2 text-gray-400">항목이 없습니다.</li>`;
+        const sorted = [...roadmapData].sort((a, b) => {
+          const ao = a.order ?? 999999,
+            bo = b.order ?? 999999;
+          if (ao !== bo) return ao - bo;
+          return (a.activityDate || "").localeCompare(b.activityDate || "");
+        });
+        return sorted
+          .map(
+            (r) => `<li draggable="true" data-id="${
+              r.id
+            }" class="flex items-center justify-between px-3 py-2">
+            <div class="flex items-center gap-2 min-w-0">
+              <i class="fas fa-grip-vertical text-gray-400"></i>
+              <span class="truncate"><b>${saf(
+                r.activityName || ""
+              )}</b> <span class="text-sm text-gray-500 ml-1">${saf(
+              r.activityDate || "-"
+            )}</span></span>
+            </div>
+            <div class="flex items-center gap-2">
+              <button class="rm-edit text-blue-600" title="수정"><i class="fas fa-pen"></i></button>
+              <button class="rm-delete text-red-600" title="삭제"><i class="fas fa-trash"></i></button>
+            </div>
+          </li>`
+          )
+          .join("");
       }
       function addQAItem(host, q = "", a = "") {
         host.insertAdjacentHTML(
           "beforeend",
-          `<div class="qa-row grid grid-cols-1 md:grid-cols-5 gap-2"><input data-q class="px-3 py-2 border rounded md:col-span-2" placeholder="질문" value="${saf(
-            q
-          )}"><input data-a class="px-3 py-2 border rounded md:col-span-3" placeholder="답변" value="${saf(
-            a
-          )}"><button type="button" class="remove-qa text-red-600 text-sm"><i class="fas fa-trash"></i></button></div>`
+          `<div class="qa-row grid grid-cols-1 md:grid-cols-5 gap-2">
+            <input data-q class="px-3 py-2 border rounded md:col-span-2" placeholder="질문" value="${saf(
+              q
+            )}">
+            <input data-a class="px-3 py-2 border rounded md:col-span-3" placeholder="답변" value="${saf(
+              a
+            )}">
+            <button type="button" class="remove-qa text-red-600 text-sm"><i class="fas fa-trash"></i></button>
+          </div>`
         );
       }
       function addScoreRow(host, name = "", score = 0) {
         host.insertAdjacentHTML(
           "beforeend",
-          `<div class="score-row grid grid-cols-12 gap-2"><input data-name class="px-3 py-2 border rounded col-span-7" placeholder="조 이름" value="${saf(
-            name
-          )}"><input data-score type="number" class="px-3 py-2 border rounded col-span-4" placeholder="점수" value="${saf(
-            score
-          )}"><button type="button" class="remove-score-row text-red-600 col-span-1"><i class="fas fa-trash"></i></button></div>`
+          `<div class="score-row grid grid-cols-12 gap-2">
+            <input data-name class="px-3 py-2 border rounded col-span-7" placeholder="조 이름" value="${saf(
+              name
+            )}">
+            <input data-score type="number" class="px-3 py-2 border rounded col-span-4" placeholder="점수" value="${saf(
+              score
+            )}">
+            <button type="button" class="remove-score-row text-red-600 col-span-1"><i class="fas fa-trash"></i></button>
+          </div>`
         );
       }
       function enableSimpleDnd(ul) {
@@ -2701,39 +3233,120 @@
         });
       }
 
-      /* ===== 회원 관리 탭 ===== */
+      /* ===== 회원 관리 탭 (요청사항 2, 7: 버튼 단순화/그룹 분리) ===== */
       function renderMembersAdmin(container) {
-        container.innerHTML = `<div class="section"><h3 class="text-xl font-bold text-gray-800 mb-2">회원 관리</h3><div class="flex flex-wrap items-center gap-2 mb-3"><input id="member-search" class="px-3 py-2 border rounded flex-1 min-w-[200px]" placeholder="이름/학번/학과 검색"><button id="members-export" class="px-3 py-2 bg-blue-600 text-white rounded"><i class="fas fa-file-csv mr-1"></i>CSV 다운로드(한글)</button><button id="members-delete-all" class="px-3 py-2 bg-red-600 text-white rounded"><i class="fas fa-trash mr-1"></i>회원 전체 삭제</button></div><div class="overflow-auto border rounded"><table class="min-w-full text-sm"><thead class="bg-gray-50"><tr><th class="px-3 py-2 text-left">이름</th><th class="px-3 py-2 text-left">학번</th><th class="px-3 py-2 text-left">성별</th><th class="px-3 py-2 text-left">학년</th><th class="px-3 py-2 text-left">단과대</th><th class="px-3 py-2 text-left">학과</th><th class="px-3 py-2 text-left">전화번호</th><th class="px-3 py-2 text-left">상태</th><th class="px-3 py-2 text-left">관리</th></tr></thead><tbody id="members-tbody">${membersRowsHTML(
-          memberSearchTerm
-        )}</tbody></table></div><p class="text-xs text-gray-500 mt-2">* CSV는 UTF-8(BOM)으로 저장되어 엑셀에서 한글이 깨지지 않습니다.</p></div>`;
-        container.querySelector("#member-search").value = memberSearchTerm;
-        container
-          .querySelector("#member-search")
-          .addEventListener("input", (e) => {
-            memberSearchTerm = e.target.value;
-            container.querySelector("#members-tbody").innerHTML =
-              membersRowsHTML(memberSearchTerm);
-          });
+        const pendingSet = (membersData || []).filter(
+          (m) => (m.status || "pending") !== "active"
+        );
+        const activeSet = (membersData || []).filter(
+          (m) => (m.status || "pending") === "active"
+        );
+
+        container.innerHTML = `<div class="section">
+          <h3 class="text-xl font-bold text-gray-800 mb-2">회원 관리</h3>
+
+          <div class="flex flex-wrap items-center gap-2 mb-3">
+            <input id="member-search" class="px-3 py-2 border rounded flex-1 min-w-[200px]" placeholder="이름/학번/학과 검색">
+            <button id="members-export" class="px-3 py-2 bg-blue-600 text-white rounded"><i class="fas fa-file-csv mr-1"></i>CSV 다운로드(한글)</button>
+            <button id="members-delete-all" class="px-3 py-2 bg-red-600 text-white rounded"><i class="fas fa-trash mr-1"></i>회원 전체 삭제</button>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div>
+              <h4 class="font-semibold text-amber-700 mb-2">승인 필요(대기/거절/차단)</h4>
+              <div class="overflow-auto border rounded">
+                <table class="min-w-full text-sm">
+                  <thead class="bg-gray-50">
+                    <tr>
+                      <th class="px-3 py-2 text-left">이름</th>
+                      <th class="px-3 py-2 text-left">학번</th>
+                      <th class="px-3 py-2 text-left">성별</th>
+                      <th class="px-3 py-2 text-left">학년</th>
+                      <th class="px-3 py-2 text-left">단과대</th>
+                      <th class="px-3 py-2 text-left">학과</th>
+                      <th class="px-3 py-2 text-left">전화번호</th>
+                      <th class="px-3 py-2 text-left">상태</th>
+                      <th class="px-3 py-2 text-left">관리</th>
+                    </tr>
+                  </thead>
+                  <tbody id="members-tbody-pending">${membersRowsHTMLGrouped(
+                    pendingSet,
+                    true,
+                    memberSearchTerm
+                  )}</tbody>
+                </table>
+              </div>
+            </div>
+
+            <div>
+              <h4 class="font-semibold text-emerald-700 mb-2">활동중(승인됨)</h4>
+              <div class="overflow-auto border rounded">
+                <table class="min-w-full text-sm">
+                  <thead class="bg-gray-50">
+                    <tr>
+                      <th class="px-3 py-2 text-left">이름</th>
+                      <th class="px-3 py-2 text-left">학번</th>
+                      <th class="px-3 py-2 text-left">성별</th>
+                      <th class="px-3 py-2 text-left">학년</th>
+                      <th class="px-3 py-2 text-left">단과대</th>
+                      <th class="px-3 py-2 text-left">학과</th>
+                      <th class="px-3 py-2 text-left">전화번호</th>
+                      <th class="px-3 py-2 text-left">관리</th>
+                    </tr>
+                  </thead>
+                  <tbody id="members-tbody-active">${membersRowsHTMLGrouped(
+                    activeSet,
+                    false,
+                    memberSearchTerm
+                  )}</tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <p class="text-xs text-gray-500 mt-2">* CSV는 UTF-8(BOM)으로 저장되어 엑셀에서 한글이 깨지지 않습니다.</p>
+        </div>`;
+
+        // 검색
+        const searchInput = container.querySelector("#member-search");
+        searchInput.value = memberSearchTerm;
+        searchInput.addEventListener("input", (e) => {
+          memberSearchTerm = e.target.value;
+          const pendingSetNow = (membersData || []).filter(
+            (m) => (m.status || "pending") !== "active"
+          );
+          const activeSetNow = (membersData || []).filter(
+            (m) => (m.status || "pending") === "active"
+          );
+          container.querySelector("#members-tbody-pending").innerHTML =
+            membersRowsHTMLGrouped(pendingSetNow, true, memberSearchTerm);
+          container.querySelector("#members-tbody-active").innerHTML =
+            membersRowsHTMLGrouped(activeSetNow, false, memberSearchTerm);
+        });
+
+        // 버튼들
         container
           .querySelector("#members-export")
           .addEventListener("click", exportMembersCSV);
         container
           .querySelector("#members-delete-all")
           .addEventListener("click", deleteAllMembers);
-        container
-          .querySelector("#members-tbody")
-          .addEventListener("click", onMembersTableClick);
+
+        container.addEventListener("click", onMembersTableClick);
       }
-      function membersRowsHTML(keyword) {
+      function membersRowsHTMLGrouped(list, isPendingGroup, keyword) {
         const kw = (keyword || "").toLowerCase();
-        const list = (membersData || []).filter((m) => {
+        const filtered = (list || []).filter((m) => {
           const s = [m.name, m.studentId, m.department, m.college, m.phone].map(
             (x) => String(x || "").toLowerCase()
           );
           return kw ? s.some((v) => v.includes(kw)) : true;
         });
-        if (list.length === 0)
-          return `<tr><td colspan="9" class="px-3 py-4 text-center text-gray-400">회원이 없습니다.</td></tr>`;
+        if (filtered.length === 0)
+          return `<tr><td colspan="${
+            isPendingGroup ? 9 : 8
+          }" class="px-3 py-4 text-center text-gray-400">해당 항목이 없습니다.</td></tr>`;
+
         const mapStatus = (s) =>
           ({
             active: "활동중",
@@ -2743,37 +3356,35 @@
           }[s] ||
           s ||
           "-");
-        return list
-          .map(
-            (m) =>
-              `<tr class="border-t"><td class="px-3 py-2">${saf(
-                m.name || ""
-              )}</td><td class="px-3 py-2 font-mono">${saf(
-                m.studentId || ""
-              )}</td><td class="px-3 py-2">${saf(
-                m.gender || ""
-              )}</td><td class="px-3 py-2">${saf(
-                m.year || ""
-              )}</td><td class="px-3 py-2">${saf(
-                m.college || ""
-              )}</td><td class="px-3 py-2">${saf(
-                m.department || ""
-              )}</td><td class="px-3 py-2">${saf(
-                m.phone || ""
-              )}</td><td class="px-3 py-2">${mapStatus(
-                m.status
-              )}</td><td class="px-3 py-2 space-x-2 whitespace-nowrap"><button class="text-green-700 hover:text-green-900 text-xs" data-act="approve" data-id="${
-                m.studentId
-              }">승인</button><button class="text-amber-700 hover:text-amber-900 text-xs" data-act="reject" data-id="${
-                m.studentId
-              }">거절</button><button class="text-gray-700 hover:text-black text-xs" data-act="block" data-id="${
-                m.studentId
-              }">차단</button><button class="text-blue-700 hover:text-blue-900 text-xs" data-act="edit" data-id="${
-                m.studentId
-              }">수정</button><button class="text-red-700 hover:text-red-900 text-xs" data-act="delete" data-id="${
-                m.studentId
-              }">삭제</button></td></tr>`
-          )
+
+        return filtered
+          .map((m) => {
+            const actionBtns = isPendingGroup
+              ? `<button class="text-emerald-700 hover:text-emerald-900 text-xs" data-act="approve" data-id="${m.studentId}"><i class="fas fa-check mr-1"></i>승인</button>
+               <button class="text-amber-700 hover:text-amber-900 text-xs" data-act="reject" data-id="${m.studentId}"><i class="fas fa-xmark mr-1"></i>거절</button>
+               <button class="text-gray-700 hover:text-black text-xs" data-act="block" data-id="${m.studentId}"><i class="fas fa-ban mr-1"></i>차단</button>
+               <button class="text-blue-700 hover:text-blue-900 text-xs" data-act="edit" data-id="${m.studentId}"><i class="fas fa-pen mr-1"></i>수정</button>
+               <button class="text-red-700 hover:text-red-900 text-xs" data-act="delete" data-id="${m.studentId}"><i class="fas fa-trash mr-1"></i>삭제</button>`
+              : `<button class="text-gray-700 hover:text-black text-xs" data-act="block" data-id="${m.studentId}"><i class="fas fa-ban mr-1"></i>차단</button>
+               <button class="text-blue-700 hover:text-blue-900 text-xs" data-act="edit" data-id="${m.studentId}"><i class="fas fa-pen mr-1"></i>수정</button>
+               <button class="text-red-700 hover:text-red-900 text-xs" data-act="delete" data-id="${m.studentId}"><i class="fas fa-trash mr-1"></i>삭제</button>`;
+
+            return `<tr class="border-t">
+            <td class="px-3 py-2">${saf(m.name || "")}</td>
+            <td class="px-3 py-2 font-mono">${saf(m.studentId || "")}</td>
+            <td class="px-3 py-2">${saf(m.gender || "")}</td>
+            <td class="px-3 py-2">${saf(m.year || "")}</td>
+            <td class="px-3 py-2">${saf(m.college || "")}</td>
+            <td class="px-3 py-2">${saf(m.department || "")}</td>
+            <td class="px-3 py-2">${saf(m.phone || "")}</td>
+            ${
+              isPendingGroup
+                ? `<td class="px-3 py-2">${mapStatus(m.status)}</td>`
+                : ""
+            }
+            <td class="px-3 py-2 space-x-2 whitespace-nowrap">${actionBtns}</td>
+          </tr>`;
+          })
           .join("");
       }
       function onMembersTableClick(e) {
@@ -2817,41 +3428,65 @@
         el.blockEditorTitle.textContent = `회원 정보 수정 — ${saf(
           m.name || ""
         )}`;
-        el.blockEditorBody.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 gap-2"><input id="mem-name" class="px-3 py-2 border rounded" placeholder="이름" value="${saf(
-          m.name || ""
-        )}"><input id="mem-id" class="px-3 py-2 border rounded bg-gray-50" disabled placeholder="학번" value="${saf(
-          m.studentId || ""
-        )}"><select id="mem-gender" class="px-3 py-2 border rounded"><option value="남" ${
-          m.gender === "남" ? "selected" : ""
-        }>남</option><option value="여" ${
-          m.gender === "여" ? "selected" : ""
-        }>여</option><option value="기타" ${
-          m.gender === "기타" ? "selected" : ""
-        }>기타</option></select><select id="mem-year" class="px-3 py-2 border rounded"><option value="1학년" ${
-          m.year === "1학년" ? "selected" : ""
-        }>1학년</option><option value="2학년" ${
-          m.year === "2학년" ? "selected" : ""
-        }>2학년</option><option value="3학년" ${
-          m.year === "3학년" ? "selected" : ""
-        }>3학년</option><option value="4학년" ${
-          m.year === "4학년" ? "selected" : ""
-        }>4학년</option><option value="기타" ${
-          m.year === "기타" ? "selected" : ""
-        }>기타</option></select><input id="mem-college" class="px-3 py-2 border rounded" placeholder="단과대" value="${saf(
-          m.college || ""
-        )}"><input id="mem-dept" class="px-3 py-2 border rounded" placeholder="학과" value="${saf(
-          m.department || ""
-        )}"><input id="mem-phone" class="px-3 py-2 border rounded" placeholder="전화번호" value="${saf(
-          m.phone || ""
-        )}"><select id="mem-status" class="px-3 py-2 border rounded"><option value="active" ${
-          m.status === "active" ? "selected" : ""
-        }>활동중</option><option value="pending" ${
-          m.status === "pending" ? "selected" : ""
-        }>승인대기</option><option value="rejected" ${
-          m.status === "rejected" ? "selected" : ""
-        }>거절</option><option value="blocked" ${
-          m.status === "blocked" ? "selected" : ""
-        }>차단</option></select></div>`;
+        el.blockEditorBody.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+            <input id="mem-name" class="px-3 py-2 border rounded" placeholder="이름" value="${saf(
+              m.name || ""
+            )}">
+            <input id="mem-id" class="px-3 py-2 border rounded bg-gray-50" disabled placeholder="학번" value="${saf(
+              m.studentId || ""
+            )}">
+            <select id="mem-gender" class="px-3 py-2 border rounded">
+              <option value="남" ${
+                m.gender === "남" ? "selected" : ""
+              }>남</option>
+              <option value="여" ${
+                m.gender === "여" ? "selected" : ""
+              }>여</option>
+              <option value="기타" ${
+                m.gender === "기타" ? "selected" : ""
+              }>기타</option>
+            </select>
+            <select id="mem-year" class="px-3 py-2 border rounded">
+              <option value="1학년" ${
+                m.year === "1학년" ? "selected" : ""
+              }>1학년</option>
+              <option value="2학년" ${
+                m.year === "2학년" ? "selected" : ""
+              }>2학년</option>
+              <option value="3학년" ${
+                m.year === "3학년" ? "selected" : ""
+              }>3학년</option>
+              <option value="4학년" ${
+                m.year === "4학년" ? "selected" : ""
+              }>4학년</option>
+              <option value="기타" ${
+                m.year === "기타" ? "selected" : ""
+              }>기타</option>
+            </select>
+            <input id="mem-college" class="px-3 py-2 border rounded" placeholder="단과대" value="${saf(
+              m.college || ""
+            )}">
+            <input id="mem-dept" class="px-3 py-2 border rounded" placeholder="학과" value="${saf(
+              m.department || ""
+            )}">
+            <input id="mem-phone" class="px-3 py-2 border rounded" placeholder="전화번호" value="${saf(
+              m.phone || ""
+            )}">
+            <select id="mem-status" class="px-3 py-2 border rounded">
+              <option value="active" ${
+                m.status === "active" ? "selected" : ""
+              }>활동중</option>
+              <option value="pending" ${
+                m.status === "pending" ? "selected" : ""
+              }>승인대기</option>
+              <option value="rejected" ${
+                m.status === "rejected" ? "selected" : ""
+              }>거절</option>
+              <option value="blocked" ${
+                m.status === "blocked" ? "selected" : ""
+              }>차단</option>
+            </select>
+          </div>`;
         el.blockEditor.classList.remove("hidden");
         el.blockEditorSave.onclick = async () => {
           try {
@@ -2939,342 +3574,530 @@
         }
       }
 
-      /* ===== 명예의 전당 탭(보관 + HOF) ===== */
+      /* ===== 명예의 전당(보관) 사용자 탭 ===== */
       function renderHistoryTab(isAdmin) {
         const c = document.getElementById("history-tab");
         if (!c) return;
-        const archived = eventsData.filter((e) => e.status === "archived");
-        const eventsHTML = archived.length
-          ? archived
-              .map(
-                (ev) =>
-                  `<div class="border rounded p-3 bg-white"><div class="flex items-center justify-between"><div class="min-w-0"><div class="font-semibold">${saf(
-                    ev.title || ""
-                  )}</div><div class="text-xs text-gray-500">${
-                    ev.datetime
-                      ? new Date(ev.datetime).toLocaleString("ko-KR")
-                      : "-"
-                  } • <span class="badge ${typeBadgeClass(
-                    ev.type
-                  )}">${typeLabel(
-                    ev.type
-                  )}</span></div></div><div class="flex gap-2">${
-                    isAdmin
-                      ? `<button class="text-blue-600" data-act="edit-event" data-id="${ev.id}"><i class="fas fa-pen"></i> 수정</button><button class="text-green-700" data-act="unarchive-event" data-id="${ev.id}"><i class="fas fa-rotate-left"></i> 재게시</button><button class="text-red-600" data-act="delete-event" data-id="${ev.id}"><i class="fas fa-trash"></i> 삭제</button>`
-                      : ""
-                  }</div></div></div>`
-              )
-              .join("")
-          : `<div class="text-gray-400 text-center py-6">보관된 이벤트가 없습니다.</div>`;
-        const hofHTML = historyData.length
-          ? historyData
-              .map(
-                (h) =>
-                  `<div class="border rounded p-3 bg-white"><div class="flex items-center gap-3"><img src="${saf(
-                    h.imageUrl ||
-                      "https://dummyimage.com/80x80/efefef/aaa.png&text=HOF"
-                  )}" class="w-16 h-16 object-cover rounded"/><div class="min-w-0"><div class="font-semibold">${saf(
-                    h.title || ""
-                  )}</div><div class="text-xs text-gray-500">${
-                    h.date ? new Date(h.date).toLocaleDateString("ko-KR") : "-"
-                  } ${
-                    h.winner ? `• 우승: ${saf(h.winner)}` : ""
-                  }</div><div class="text-sm text-gray-700 mt-1 whitespace-pre-wrap">${saf(
-                    h.description || ""
-                  )}</div></div></div>${
-                    isAdmin
-                      ? `<div class="mt-2 text-right"><button class="text-blue-600 text-xs" data-act="edit-hof" data-id="${h.id}">수정</button> • <button class="text-red-600 text-xs" data-act="delete-hof" data-id="${h.id}">삭제</button></div>`
-                      : ""
-                  }</div>`
-              )
-              .join("")
-          : `<div class="text-gray-400 text-center py-6">명예의 전당 항목이 없습니다.</div>`;
-        c.innerHTML = `<div class="grid grid-cols-1 lg:grid-cols-2 gap-6"><div class="section"><h3 class="text-xl font-bold mb-2">보관된 이벤트</h3>${eventsHTML}</div><div class="section"><h3 class="text-xl font-bold mb-2">명예의 전당</h3>${hofHTML}</div></div>`;
-        c.onclick = async (e) => {
-          const b = e.target.closest("button[data-act]");
-          if (!b) return;
-          const act = b.dataset.act,
-            id = b.dataset.id;
-          if (act === "unarchive-event") return unarchiveEvent(id);
-          if (act === "delete-event") return deleteEvent(id);
-          if (act === "edit-event") return loadEventToForm(id);
-          if (act === "delete-hof") return deleteHOF(id);
-          if (act === "edit-hof") return editHOF(id);
-        };
+
+        if (!(historyData || []).length) {
+          c.innerHTML = `<div class="section text-center text-gray-500">
+            <i class="fas fa-trophy text-3xl text-amber-400"></i>
+            <p class="mt-2">아직 등록된 보관 기록이 없습니다.</p>
+          </div>`;
+          return;
+        }
+
+        const cards = historyData
+          .map((item) => {
+            const when = item.date
+              ? new Date(item.date).toLocaleDateString("ko-KR")
+              : "-";
+            const img = item.imageUrl
+              ? `<img src="${saf(
+                  item.imageUrl
+                )}" class="w-full h-40 object-cover rounded mb-2" onerror="this.style.display='none'">`
+              : "";
+            return `<div class="section card-hover">
+              ${img}
+              <div class="flex items-center justify-between">
+                <h3 class="text-lg font-bold text-gray-800 truncate">${saf(
+                  item.title || "(제목 없음)"
+                )}</h3>
+                <span class="text-sm text-gray-500">${when}</span>
+              </div>
+              ${
+                item.subtitle
+                  ? `<div class="text-sm text-indigo-700 mt-0.5">${saf(
+                      item.subtitle
+                    )}</div>`
+                  : ""
+              }
+              ${
+                item.description
+                  ? `<p class="text-gray-700 mt-2 whitespace-pre-wrap">${saf(
+                      item.description
+                    )}</p>`
+                  : ""
+              }
+            </div>`;
+          })
+          .join("");
+
+        c.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">${cards}</div>`;
       }
-      function renderHOFAdmin(container) {
-        container.innerHTML = `<div class="section"><h3 class="text-xl font-bold text-gray-800 mb-2">명예의 전당 관리</h3><div class="grid grid-cols-1 md:grid-cols-2 gap-2"><input id="hof-title" class="px-3 py-2 border rounded" placeholder="제목 (예: 1차 미식회 MVP)"><input id="hof-date" type="date" class="px-3 py-2 border rounded" placeholder="날짜"></div><div class="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2"><input id="hof-winner" class="px-3 py-2 border rounded" placeholder="우승 팀/회원(선택)"><input id="hof-image" class="px-3 py-2 border rounded" placeholder="이미지 URL(선택)"></div><textarea id="hof-desc" rows="4" class="w-full mt-2 px-3 py-2 border rounded" placeholder="설명/한줄평"></textarea><div class="flex gap-2 mt-3"><button id="hof-save" class="px-3 py-2 bg-indigo-600 text-white rounded">추가/수정</button><button id="hof-reset" class="px-3 py-2 bg-gray-200 rounded">초기화</button></div><hr class="my-4"><h4 class="font-semibold mb-2">현재 항목</h4><div id="hof-list" class="space-y-2">${
-          (historyData || [])
-            .map(
-              (h) =>
-                `<div class="flex items-center justify-between bg-white border rounded p-2"><div class="min-w-0"><div class="font-semibold">${saf(
-                  h.title || ""
-                )}</div><div class="text-xs text-gray-500">${
-                  h.date ? new Date(h.date).toLocaleDateString("ko-KR") : "-"
-                } ${
-                  h.winner ? `• 우승: ${saf(h.winner)}` : ""
-                }</div></div><div class="flex gap-2"><button class="text-blue-600" data-id="${
-                  h.id
-                }" data-act="edit">수정</button><button class="text-red-600" data-id="${
-                  h.id
-                }" data-act="delete">삭제</button></div></div>`
-            )
-            .join("") || `<div class="text-gray-400">없음</div>`
-        }</div>`;
-        let editingId = null;
-        container.querySelector("#hof-save").onclick = async () => {
-          const title = container.querySelector("#hof-title").value.trim();
-          const date = container.querySelector("#hof-date").value;
-          const winner = container.querySelector("#hof-winner").value.trim();
-          const imageUrl = container.querySelector("#hof-image").value.trim();
-          const description = container.querySelector("#hof-desc").value;
-          if (!title || !date)
-            return showAlert("😥", "제목과 날짜를 입력하세요.");
-          try {
-            if (!editingId) {
-              await addDoc(collection(db, "history"), {
-                title,
-                date,
-                winner,
-                imageUrl,
-                description,
-                createdAt: serverTimestamp(),
-                createdBy: currentUser?.studentId || "",
-              });
-              showAlert("🎉", "추가되었습니다.");
-            } else {
-              await updateDoc(doc(db, "history", editingId), {
-                title,
-                date,
-                winner,
-                imageUrl,
-                description,
-              });
-              showAlert("✅", "수정되었습니다.");
-              editingId = null;
+
+      /* ===== 아이디어 건의 탭 ===== */
+      function renderSuggestionsTab(isAdmin) {
+        const c = document.getElementById("suggestions-tab");
+        if (!c) return;
+
+        const list = (suggestionsData || [])
+          .map(
+            (s) => `
+          <div class="border rounded p-3 bg-white">
+            <div class="text-sm text-gray-500 flex items-center justify-between">
+              <span>${saf(s.name || "익명")} · ${
+              s.timestamp?.toDate
+                ? new Date(s.timestamp.toDate()).toLocaleString("ko-KR")
+                : "-"
+            }</span>
+              ${
+                isAdmin
+                  ? `<button class="text-red-600 text-xs" data-act="del-sug" data-id="${s.id}"><i class="fas fa-trash"></i> 삭제</button>`
+                  : ""
+              }
+            </div>
+            ${
+              s.title
+                ? `<div class="font-semibold text-gray-800 mt-1">${saf(
+                    s.title
+                  )}</div>`
+                : ""
             }
-            renderHOFAdmin(container);
-          } catch {
-            showAlert("😥", "저장 실패");
+            <div class="text-gray-700 whitespace-pre-wrap mt-1">${saf(
+              s.text || ""
+            )}</div>
+          </div>
+        `
+          )
+          .join("");
+
+        c.innerHTML = `
+          <div class="section">
+            <h3 class="text-xl font-bold text-gray-800 mb-2">아이디어 건의</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+              <input id="sug-title" class="px-3 py-2 border rounded" placeholder="제목(선택)">
+              <textarea id="sug-text" rows="3" class="px-3 py-2 border rounded md:col-span-2" placeholder="아이디어를 적어주세요."></textarea>
+            </div>
+            <div class="mt-2">
+              <button id="sug-submit" class="px-4 py-2 bg-indigo-600 text-white rounded font-bold">보내기</button>
+            </div>
+          </div>
+          <div class="mt-4 grid grid-cols-1 gap-3">${
+            list ||
+            `<div class="text-gray-400 text-center">아직 건의가 없습니다.</div>`
+          }</div>
+        `;
+
+        c.onclick = async (e) => {
+          const b = e.target.closest("button[data-act='del-sug']");
+          if (b) {
+            try {
+              await deleteDoc(doc(db, "suggestions", b.dataset.id));
+              showAlert("🗑️", "삭제되었습니다.");
+            } catch (err) {
+              console.warn(err);
+              showAlert("😥", "삭제 실패");
+            }
           }
         };
-        container.querySelector("#hof-reset").onclick = () => {
-          editingId = null;
-          container.querySelector("#hof-title").value = "";
-          container.querySelector("#hof-date").value = "";
-          container.querySelector("#hof-winner").value = "";
-          container.querySelector("#hof-image").value = "";
-          container.querySelector("#hof-desc").value = "";
+
+        c.querySelector("#sug-submit").onclick = async () => {
+          const title = c.querySelector("#sug-title").value.trim();
+          const text = c.querySelector("#sug-text").value.trim();
+          if (!text) return showAlert("😥", "내용을 입력해주세요.");
+          try {
+            await addDoc(collection(db, "suggestions"), {
+              studentId: currentUser?.studentId || "",
+              name: currentUser?.name || "익명",
+              title,
+              text,
+              timestamp: serverTimestamp(),
+            });
+            c.querySelector("#sug-title").value = "";
+            c.querySelector("#sug-text").value = "";
+            showAlert("✅", "건의가 접수되었습니다. 고마워요!");
+          } catch (e) {
+            console.warn(e);
+            showAlert("😥", "등록 실패");
+          }
         };
-        container.querySelector("#hof-list").onclick = (e) => {
+      }
+
+      /* ===== 명예의 전당 관리자 ===== */
+      function renderHOFAdmin(container) {
+        const cards = (historyData || [])
+          .map(
+            (h) => `
+          <div class="border rounded p-3 bg-white flex items-start gap-3">
+            ${
+              h.imageUrl
+                ? `<img src="${saf(
+                    h.imageUrl
+                  )}" class="w-24 h-24 object-cover rounded" onerror="this.style.display='none'">`
+                : ""
+            }
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between">
+                <div class="truncate font-semibold">${saf(
+                  h.title || "(제목 없음)"
+                )}</div>
+                <div class="text-sm text-gray-500">${
+                  h.date ? saf(h.date) : "-"
+                }</div>
+              </div>
+              ${
+                h.subtitle
+                  ? `<div class="text-sm text-indigo-700">${saf(
+                      h.subtitle
+                    )}</div>`
+                  : ""
+              }
+              ${
+                h.description
+                  ? `<div class="text-sm text-gray-700 mt-1 line-clamp-2">${saf(
+                      h.description
+                    )}</div>`
+                  : ""
+              }
+              <div class="mt-2 space-x-2">
+                <button class="text-blue-600 text-sm" data-act="edit-hof" data-id="${
+                  h.id
+                }"><i class="fas fa-pen"></i> 수정</button>
+                <button class="text-red-600 text-sm" data-act="del-hof" data-id="${
+                  h.id
+                }"><i class="fas fa-trash"></i> 삭제</button>
+              </div>
+            </div>
+          </div>
+        `
+          )
+          .join("");
+
+        container.innerHTML = `
+          <div class="grid grid-cols-1 gap-4">
+            <div class="section">
+              <h3 class="text-xl font-bold text-gray-800 mb-2">명예의 전당 등록</h3>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                <input id="hof-title" class="px-3 py-2 border rounded" placeholder="제목">
+                <input id="hof-date" type="date" class="px-3 py-2 border rounded">
+                <input id="hof-subtitle" class="px-3 py-2 border rounded md:col-span-2" placeholder="부제(선택)">
+                <input id="hof-image" class="px-3 py-2 border rounded md:col-span-2" placeholder="이미지 URL(선택)">
+                <textarea id="hof-desc" rows="4" class="px-3 py-2 border rounded md:col-span-2" placeholder="설명"></textarea>
+              </div>
+              <div class="mt-2 space-x-2">
+                <button id="hof-add" class="px-4 py-2 bg-indigo-600 text-white rounded">추가</button>
+                <button id="hof-reset" class="px-3 py-2 bg-gray-200 rounded">리셋</button>
+              </div>
+            </div>
+
+            <div class="section">
+              <h3 class="text-xl font-bold text-gray-800 mb-2">등록된 항목</h3>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3">${
+                cards || `<div class="text-gray-400">항목 없음</div>`
+              }</div>
+            </div>
+          </div>
+        `;
+
+        container.onclick = async (e) => {
           const b = e.target.closest("button[data-act]");
           if (!b) return;
           const id = b.dataset.id;
-          const act = b.dataset.act;
-          if (act === "delete") {
-            deleteHOF(id);
-          } else if (act === "edit") {
-            const h = historyData.find((x) => x.id === id) || {};
-            editingId = id;
-            container.querySelector("#hof-title").value = h.title || "";
-            container.querySelector("#hof-date").value = h.date || "";
-            container.querySelector("#hof-winner").value = h.winner || "";
-            container.querySelector("#hof-image").value = h.imageUrl || "";
-            container.querySelector("#hof-desc").value = h.description || "";
-            window.scrollTo({ top: 0, behavior: "smooth" });
+          if (b.dataset.act === "del-hof") {
+            if (!confirm("삭제하시겠어요?")) return;
+            try {
+              await deleteDoc(doc(db, "history", id));
+              showAlert("🗑️", "삭제되었습니다.");
+            } catch (err) {
+              console.warn(err);
+              showAlert("😥", "삭제 실패");
+            }
+          }
+          if (b.dataset.act === "edit-hof") {
+            const item = historyData.find((x) => x.id === id) || {};
+            el.blockEditorTitle.textContent = "명예의 전당 수정";
+            el.blockEditorBody.innerHTML = `
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                <input id="eh-title" class="px-3 py-2 border rounded" placeholder="제목" value="${saf(
+                  item.title || ""
+                )}">
+                <input id="eh-date" type="date" class="px-3 py-2 border rounded" value="${saf(
+                  item.date || ""
+                )}">
+                <input id="eh-subtitle" class="px-3 py-2 border rounded md:col-span-2" placeholder="부제" value="${saf(
+                  item.subtitle || ""
+                )}">
+                <input id="eh-image" class="px-3 py-2 border rounded md:col-span-2" placeholder="이미지 URL" value="${saf(
+                  item.imageUrl || ""
+                )}">
+                <textarea id="eh-desc" rows="4" class="px-3 py-2 border rounded md:col-span-2" placeholder="설명">${saf(
+                  item.description || ""
+                )}</textarea>
+              </div>`;
+            el.blockEditor.classList.remove("hidden");
+            el.blockEditorSave.onclick = async () => {
+              try {
+                await updateDoc(doc(db, "history", id), {
+                  title: document.getElementById("eh-title").value.trim(),
+                  date: document.getElementById("eh-date").value,
+                  subtitle: document.getElementById("eh-subtitle").value.trim(),
+                  imageUrl: document.getElementById("eh-image").value.trim(),
+                  description: document.getElementById("eh-desc").value.trim(),
+                });
+                el.blockEditor.classList.add("hidden");
+                showAlert("✅", "수정되었습니다.");
+              } catch (e) {
+                console.warn(e);
+                showAlert("😥", "수정 실패");
+              }
+            };
+            el.blockEditorCancel.onclick = () =>
+              el.blockEditor.classList.add("hidden");
           }
         };
-      }
-      async function deleteHOF(id) {
-        if (!confirm("삭제하시겠어요?")) return;
-        try {
-          await deleteDoc(doc(db, "history", id));
-          showAlert("🗑️", "삭제되었습니다.");
-        } catch {
-          showAlert("😥", "삭제 실패");
-        }
-      }
-      function editHOF(id) {
-        showTab("dashboard");
-        renderDashboardTab();
-        showSubtab("hof"); // 관리 탭에서 처리
+
+        container.querySelector("#hof-add").onclick = async () => {
+          const title = container.querySelector("#hof-title").value.trim();
+          const date = container.querySelector("#hof-date").value;
+          const subtitle = container
+            .querySelector("#hof-subtitle")
+            .value.trim();
+          const imageUrl = container.querySelector("#hof-image").value.trim();
+          const description = container.querySelector("#hof-desc").value.trim();
+          if (!title || !date)
+            return showAlert("😥", "제목과 날짜를 입력해주세요.");
+          try {
+            await addDoc(collection(db, "history"), {
+              title,
+              date,
+              subtitle,
+              imageUrl,
+              description,
+              createdAt: serverTimestamp(),
+            });
+            [
+              "hof-title",
+              "hof-date",
+              "hof-subtitle",
+              "hof-image",
+              "hof-desc",
+            ].forEach((id) => (container.querySelector("#" + id).value = ""));
+            showAlert("🎉", "등록되었습니다.");
+          } catch (e) {
+            console.warn(e);
+            showAlert("😥", "등록 실패");
+          }
+        };
+        container.querySelector("#hof-reset").onclick = () => {
+          [
+            "hof-title",
+            "hof-date",
+            "hof-subtitle",
+            "hof-image",
+            "hof-desc",
+          ].forEach((id) => (container.querySelector("#" + id).value = ""));
+        };
       }
 
-      /* ===== 시스템 탭(관리자 임명, 가입/회비 설정) ===== */
+      /* ===== 시스템 설정 관리자 ===== */
       function renderSystemAdmin(container) {
-        container.innerHTML = `<div class="grid grid-cols-1 gap-4"><div class="section"><h3 class="text-xl font-bold mb-2">관리자 임명/해제</h3><div class="flex items-center gap-2 mb-2"><input id="admin-sid" class="px-3 py-2 border rounded flex-1" placeholder="학번 입력"><button id="admin-add" class="px-3 py-2 bg-gray-800 text-white rounded">추가</button></div><div id="admin-list" class="space-y-1">${
-          (adminList || [])
-            .map(
-              (sid) =>
-                `<div class="flex items-center justify-between bg-white border rounded px-3 py-2"><div class="font-mono">${saf(
-                  sid
-                )}</div><button class="text-red-600" data-sid="${saf(
-                  sid
-                )}" data-act="remove">해제</button></div>`
-            )
-            .join("") || `<div class="text-gray-400">관리자가 없습니다.</div>`
-        }</div></div><div class="section"><h3 class="text-xl font-bold mb-2">회원가입 설정</h3><div class="grid grid-cols-1 md:grid-cols-3 gap-2"><select id="signup-open" class="px-3 py-2 border rounded"><option value="true">항상 허용</option><option value="false">기간만 허용</option></select><input id="signup-start" type="date" class="px-3 py-2 border rounded" placeholder="시작일"><input id="signup-end" type="date" class="px-3 py-2 border rounded" placeholder="종료일"></div><div class="mt-2"><button id="signup-save" class="px-3 py-2 bg-indigo-600 text-white rounded">저장</button></div></div><div class="section"><h3 class="text-xl font-bold mb-2">회비/계좌 설정</h3><div class="grid grid-cols-1 md:grid-cols-5 gap-2"><label class="flex items-center gap-2 md:col-span-5"><input id="dues-enabled" type="checkbox"> <span>가입 시 회비 안내 노출</span></label><input id="dues-bank" class="px-3 py-2 border rounded" placeholder="은행명(예: 국민)"><input id="dues-number" class="px-3 py-2 border rounded" placeholder="계좌번호"><input id="dues-holder" class="px-3 py-2 border rounded" placeholder="예금주"><input id="dues-amount" class="px-3 py-2 border rounded" placeholder="금액(숫자)"><input id="dues-note" class="px-3 py-2 border rounded md:col-span-5" placeholder="안내 문구(선택)"></div><div class="mt-2"><button id="dues-save" class="px-3 py-2 bg-indigo-600 text-white rounded">저장</button></div></div></div>`;
-        // 관리자 리스트 버튼
-        container.querySelector("#admin-add").onclick = async () => {
-          const sid = container.querySelector("#admin-sid").value.trim();
-          if (!sid) return;
-          try {
-            const mem = await getDoc(doc(db, "members", sid));
-            if (!mem.exists())
-              return showAlert("😥", "해당 학번의 회원이 없습니다.");
-            const ref = doc(db, "admins", "list");
-            const snap = await getDoc(ref);
-            let list = snap.exists() ? snap.data().studentIds || [] : [];
-            if (!list.includes(sid)) list.push(sid);
-            await setDoc(ref, { studentIds: list }, { merge: true });
-            showAlert("✅", "관리자로 추가되었습니다.");
-          } catch {
-            showAlert("😥", "추가 실패");
-          }
+        const signup = signupSettings || { open: false, start: "", end: "" };
+        const dues = duesSettings || {
+          enabled: false,
+          bank: "",
+          number: "",
+          holder: "",
+          amount: "",
+          note: "",
         };
-        container.querySelector("#admin-list").onclick = async (e) => {
-          const b = e.target.closest("button[data-act='remove']");
-          if (!b) return;
-          const sid = b.dataset.sid;
-          try {
-            const ref = doc(db, "admins", "list");
-            const snap = await getDoc(ref);
-            let list = snap.exists() ? snap.data().studentIds || [] : [];
-            list = list.filter((x) => x !== sid);
-            await setDoc(ref, { studentIds: list }, { merge: true });
-            showAlert("🗑️", "해제되었습니다.");
-          } catch {
-            showAlert("😥", "해제 실패");
-          }
-        };
-        // 가입 설정
-        container.querySelector("#signup-open").value = String(
-          !!signupSettings.open
-        );
-        container.querySelector("#signup-start").value =
-          signupSettings.start || "";
-        container.querySelector("#signup-end").value = signupSettings.end || "";
-        container.querySelector("#signup-save").onclick = async () => {
+        const admins = adminList || [];
+
+        container.innerHTML = `
+          <div class="grid grid-cols-1 gap-4">
+            <div class="section">
+              <h3 class="text-xl font-bold text-gray-800 mb-2">회원가입 기간</h3>
+              <div class="grid grid-cols-1 md:grid-cols-4 gap-2">
+                <select id="set-signup-open" class="px-3 py-2 border rounded">
+                  <option value="auto" ${
+                    signup.open ? "" : "selected"
+                  }>기간 기반</option>
+                  <option value="force" ${
+                    signup.open ? "selected" : ""
+                  }>항상 열기</option>
+                </select>
+                <input id="set-signup-start" type="date" class="px-3 py-2 border rounded" value="${saf(
+                  signup.start || ""
+                )}">
+                <input id="set-signup-end" type="date" class="px-3 py-2 border rounded" value="${saf(
+                  signup.end || ""
+                )}">
+                <button id="set-signup-save" class="px-3 py-2 bg-indigo-600 text-white rounded">저장</button>
+              </div>
+              <p class="text-xs text-gray-500 mt-1">* "항상 열기" 선택 시 기간과 무관하게 회원가입이 가능합니다.</p>
+            </div>
+
+            <div class="section">
+              <h3 class="text-xl font-bold text-gray-800 mb-2">회비/계좌 설정</h3>
+              <div class="grid grid-cols-1 md:grid-cols-6 gap-2">
+                <select id="set-dues-enabled" class="px-3 py-2 border rounded">
+                  <option value="false" ${
+                    dues.enabled ? "" : "selected"
+                  }>사용 안 함</option>
+                  <option value="true" ${
+                    dues.enabled ? "selected" : ""
+                  }>사용</option>
+                </select>
+                <input id="set-dues-bank"   class="px-3 py-2 border rounded" placeholder="은행" value="${saf(
+                  dues.bank || ""
+                )}">
+                <input id="set-dues-number" class="px-3 py-2 border rounded" placeholder="계좌번호" value="${saf(
+                  dues.number || ""
+                )}">
+                <input id="set-dues-holder" class="px-3 py-2 border rounded" placeholder="예금주" value="${saf(
+                  dues.holder || ""
+                )}">
+                <input id="set-dues-amount" class="px-3 py-2 border rounded" placeholder="금액(숫자)" value="${saf(
+                  dues.amount || ""
+                )}">
+                <input id="set-dues-note"   class="px-3 py-2 border rounded md:col-span-2" placeholder="안내 문구" value="${saf(
+                  dues.note || ""
+                )}">
+                <button id="set-dues-save" class="px-3 py-2 bg-indigo-600 text-white rounded md:col-span-1">저장</button>
+              </div>
+            </div>
+
+            <div class="section">
+              <h3 class="text-xl font-bold text-gray-800 mb-2">관리자</h3>
+              <div class="flex items-center gap-2 mb-2">
+                <input id="admin-add-id" class="px-3 py-2 border rounded flex-1" placeholder="학번 입력">
+                <button id="admin-add-btn" class="px-3 py-2 bg-gray-800 text-white rounded">추가</button>
+              </div>
+              <div class="border rounded divide-y bg-white">
+                ${
+                  (admins || []).length
+                    ? admins
+                        .map(
+                          (id) => `
+                  <div class="flex items-center justify-between px-3 py-2">
+                    <div class="font-mono">${saf(id)}</div>
+                    <button class="text-red-600 text-sm" data-act="admin-remove" data-id="${saf(
+                      id
+                    )}"><i class="fas fa-trash"></i> 제거</button>
+                  </div>
+                `
+                        )
+                        .join("")
+                    : `<div class="px-3 py-2 text-gray-400">등록된 관리자가 없습니다.</div>`
+                }
+              </div>
+              <p class="text-xs text-gray-500 mt-2">* 비상시: 로그인 화면에서 학번에 <b>${saf(
+                MASTER_CODE
+              )}</b> 입력 후 '관리자 임명'으로 복구</p>
+            </div>
+          </div>
+        `;
+
+        // 저장 핸들러
+        container.querySelector("#set-signup-save").onclick = async () => {
+          const mode = container.querySelector("#set-signup-open").value;
+          const start = container.querySelector("#set-signup-start").value;
+          const end = container.querySelector("#set-signup-end").value;
+          const open = mode === "force";
           try {
             await setDoc(
               doc(db, "settings", "signup"),
-              {
-                open: container.querySelector("#signup-open").value === "true",
-                start: container.querySelector("#signup-start").value || "",
-                end: container.querySelector("#signup-end").value || "",
-              },
+              { open, start, end },
               { merge: true }
             );
-            showAlert("✅", "저장되었습니다.");
-          } catch {
+            showAlert("✅", "회원가입 설정이 저장되었습니다.");
+          } catch (e) {
+            console.warn(e);
             showAlert("😥", "저장 실패");
           }
         };
-        // 회비 설정
-        container.querySelector("#dues-enabled").checked =
-          !!duesSettings.enabled;
-        container.querySelector("#dues-bank").value = duesSettings.bank || "";
-        container.querySelector("#dues-number").value =
-          duesSettings.number || "";
-        container.querySelector("#dues-holder").value =
-          duesSettings.holder || "";
-        container.querySelector("#dues-amount").value =
-          duesSettings.amount || "";
-        container.querySelector("#dues-note").value = duesSettings.note || "";
-        container.querySelector("#dues-save").onclick = async () => {
+
+        container.querySelector("#set-dues-save").onclick = async () => {
+          const enabled =
+            container.querySelector("#set-dues-enabled").value === "true";
+          const bank = container.querySelector("#set-dues-bank").value.trim();
+          const number = container
+            .querySelector("#set-dues-number")
+            .value.trim();
+          const holder = container
+            .querySelector("#set-dues-holder")
+            .value.trim();
+          const amount = container
+            .querySelector("#set-dues-amount")
+            .value.trim();
+          const note = container.querySelector("#set-dues-note").value.trim();
           try {
             await setDoc(
               doc(db, "settings", "dues"),
-              {
-                enabled: container.querySelector("#dues-enabled").checked,
-                bank: container.querySelector("#dues-bank").value.trim(),
-                number: container.querySelector("#dues-number").value.trim(),
-                holder: container.querySelector("#dues-holder").value.trim(),
-                amount: container.querySelector("#dues-amount").value.trim(),
-                note: container.querySelector("#dues-note").value,
-              },
+              { enabled, bank, number, holder, amount, note },
               { merge: true }
             );
-            showAlert("✅", "저장되었습니다.");
-          } catch {
+            showAlert("✅", "회비/계좌 설정이 저장되었습니다.");
+          } catch (e) {
+            console.warn(e);
             showAlert("😥", "저장 실패");
           }
         };
-      }
 
-      /* ===== 건의 탭 ===== */
-      function renderSuggestionsTab(isAdmin) {
-        const c = document.getElementById("suggestions-tab");
-        c.innerHTML = `<div class="section"><h3 class="text-xl font-bold text-gray-800 mb-2">아이디어 건의</h3><div class="grid grid-cols-1 md:grid-cols-2 gap-2"><input id="sg-title" class="px-3 py-2 border rounded" placeholder="제목"><input id="sg-category" class="px-3 py-2 border rounded" placeholder="카테고리(선택)"></div><textarea id="sg-body" rows="4" class="w-full mt-2 px-3 py-2 border rounded" placeholder="내용"></textarea><div class="mt-2"><button id="sg-send" class="px-3 py-2 bg-indigo-600 text-white rounded">보내기</button></div><hr class="my-4"><h4 class="font-semibold mb-2">최근 건의</h4><div class="space-y-2">${
-          (suggestionsData || [])
-            .slice(0, 20)
-            .map(
-              (s) =>
-                `<div class="bg-white border rounded p-2"><div class="font-semibold">${saf(
-                  s.title || ""
-                )}</div><div class="text-xs text-gray-500">${new Date(
-                  s.timestamp?.seconds ? s.timestamp.seconds * 1000 : Date.now()
-                ).toLocaleString("ko-KR")} • ${saf(
-                  s.category || "일반"
-                )}</div><div class="text-sm text-gray-700 mt-1 whitespace-pre-wrap">${saf(
-                  s.body || ""
-                )}</div></div>`
-            )
-            .join("") || `<div class="text-gray-400">아직 없습니다.</div>`
-        }</div>`;
-        c.querySelector("#sg-send").onclick = async () => {
-          const title = c.querySelector("#sg-title").value.trim();
-          const category = c.querySelector("#sg-category").value.trim();
-          const body = c.querySelector("#sg-body").value;
-          if (!title || !body)
-            return showAlert("😥", "제목과 내용을 입력하세요.");
+        // 관리자 추가/제거
+        container.querySelector("#admin-add-btn").onclick = async () => {
+          const sid = container.querySelector("#admin-add-id").value.trim();
+          if (!sid) return showAlert("😥", "학번을 입력하세요.");
           try {
-            await addDoc(collection(db, "suggestions"), {
-              title,
-              category,
-              body,
-              user: currentUser || {},
-              timestamp: serverTimestamp(),
+            await runTransaction(db, async (tx) => {
+              const ref = doc(db, "admins", "list");
+              const snap = await tx.get(ref);
+              const arr = snap.exists() ? snap.data().studentIds || [] : [];
+              if (!arr.includes(sid)) arr.push(sid);
+              tx.set(ref, { studentIds: arr }, { merge: true });
             });
-            showAlert("✅", "보내졌습니다.");
-            c.querySelector("#sg-title").value = "";
-            c.querySelector("#sg-category").value = "";
-            c.querySelector("#sg-body").value = "";
-          } catch {
-            showAlert("😥", "오류");
+            container.querySelector("#admin-add-id").value = "";
+            showAlert("✅", "관리자가 추가되었습니다.");
+          } catch (e) {
+            console.warn(e);
+            showAlert("😥", "추가 실패");
+          }
+        };
+        container.onclick = async (e) => {
+          const b = e.target.closest("button[data-act='admin-remove']");
+          if (!b) return;
+          const sid = b.dataset.id;
+          if (!confirm(`관리자에서 제거할까요?\n${sid}`)) return;
+          try {
+            await runTransaction(db, async (tx) => {
+              const ref = doc(db, "admins", "list");
+              const snap = await tx.get(ref);
+              const arr = snap.exists() ? snap.data().studentIds || [] : [];
+              const next = arr.filter((x) => x !== sid);
+              tx.set(ref, { studentIds: next }, { merge: true });
+            });
+            showAlert("✅", "제거되었습니다.");
+          } catch (e) {
+            console.warn(e);
+            showAlert("😥", "제거 실패");
           }
         };
       }
-
-      /* ===== 기타 ===== */
-      document
-        .getElementById("block-editor-cancel")
-        .addEventListener("click", () =>
-          el.blockEditor.classList.add("hidden")
-        );
-      document
-        .getElementById("modal-close-button")
-        .addEventListener("click", closeModal);
 
       /* ===== 비상 관리자 임명 ===== */
       async function addEmergencyAdmin() {
         const sid = document.getElementById("new-admin-id").value.trim();
-        if (!sid) return;
+        if (!sid) return showAlert("😥", "학번을 입력하세요.");
         try {
-          const mem = await getDoc(doc(db, "members", sid));
-          if (!mem.exists())
-            return showAlert("😥", "해당 학번의 회원이 없습니다.");
-          const ref = doc(db, "admins", "list");
-          const snap = await getDoc(ref);
-          let list = snap.exists() ? snap.data().studentIds || [] : [];
-          if (!list.includes(sid)) list.push(sid);
-          await setDoc(ref, { studentIds: list }, { merge: true });
+          await runTransaction(db, async (tx) => {
+            const ref = doc(db, "admins", "list");
+            const snap = await tx.get(ref);
+            const arr = snap.exists() ? snap.data().studentIds || [] : [];
+            if (!arr.includes(sid)) arr.push(sid);
+            tx.set(ref, { studentIds: arr }, { merge: true });
+          });
           closeEmergencyModal();
-          showAlert("✅", "관리자가 임명되었습니다.");
-        } catch {
-          showAlert("😥", "임명 실패");
+          showAlert("✅", `관리자에 ${saf(sid)}를(을) 추가했습니다.`);
+        } catch (e) {
+          console.warn(e);
+          showAlert("😥", "관리자 임명 중 오류가 발생했습니다.");
         }
       }
+
+      /* ===== 전역: 에디터 모달 밖 클릭 시 닫힘 방지(명시 버튼만) ===== */
+      // 이미 각 사용처에서 cancel과 save 핸들러를 지정함
+
+      // ===================== (끝) =====================
     </script>
   </body>
 </html>
