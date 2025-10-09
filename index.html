@@ -722,6 +722,22 @@
           🎮 미니게임
         </h3>
 
+        <!-- 게임 탭 -->
+        <div class="flex border-b border-gray-200 mb-4">
+          <button
+            id="games-tab-btn"
+            class="flex-1 py-2 px-4 text-center font-medium text-purple-600 border-b-2 border-purple-600"
+          >
+            게임하기
+          </button>
+          <button
+            id="ranking-tab-btn"
+            class="flex-1 py-2 px-4 text-center font-medium text-gray-500 hover:text-gray-700"
+          >
+            🏆 랭킹
+          </button>
+        </div>
+
         <!-- 게임 선택 -->
         <div id="game-selection" class="space-y-3">
           <button
@@ -742,6 +758,13 @@
           >
             📝 단어 맞추기
           </button>
+        </div>
+
+        <!-- 랭킹 화면 -->
+        <div id="ranking-screen" class="hidden">
+          <div id="ranking-content" class="space-y-4">
+            <!-- 랭킹이 여기에 표시됩니다 -->
+          </div>
         </div>
 
         <!-- 게임 화면 -->
@@ -1699,6 +1722,11 @@
         else {
           clearAdmin();
           renderPresenceUI();
+        }
+
+        // 게임 점수 데이터 로드 (모든 로그인 사용자)
+        if (currentUser) {
+          loadGameScores();
         }
       }
 
@@ -5309,6 +5337,7 @@
       /* ===== 미니게임 ===== */
       let currentGame = null;
       let gameState = {};
+      let gameScores = {}; // 게임 점수 데이터
 
       function showGameSelection() {
         document.getElementById("game-selection").classList.remove("hidden");
@@ -5320,6 +5349,143 @@
       function showGameScreen() {
         document.getElementById("game-selection").classList.add("hidden");
         document.getElementById("game-screen").classList.remove("hidden");
+        document.getElementById("ranking-screen").classList.add("hidden");
+      }
+
+      function showRankingScreen() {
+        document.getElementById("game-selection").classList.add("hidden");
+        document.getElementById("game-screen").classList.add("hidden");
+        document.getElementById("ranking-screen").classList.remove("hidden");
+        renderGameRankings();
+      }
+
+      function showGameSelectionFromRanking() {
+        document.getElementById("game-selection").classList.remove("hidden");
+        document.getElementById("game-screen").classList.add("hidden");
+        document.getElementById("ranking-screen").classList.add("hidden");
+        currentGame = null;
+        gameState = {};
+      }
+
+      // 게임 점수 저장
+      async function saveGameScore(gameType, score, details = {}) {
+        if (!currentUser) return;
+
+        try {
+          const scoreData = {
+            studentId: currentUser.studentId,
+            name: currentUser.name,
+            gameType: gameType,
+            score: score,
+            details: details,
+            timestamp: new Date(),
+            date: new Date().toISOString().split("T")[0], // YYYY-MM-DD 형식
+          };
+
+          await addDoc(collection(db, "gameScores"), scoreData);
+
+          // 로컬 데이터 업데이트
+          if (!gameScores[gameType]) {
+            gameScores[gameType] = [];
+          }
+          gameScores[gameType].push(scoreData);
+
+          console.log(`${gameType} 점수 저장:`, scoreData);
+        } catch (error) {
+          console.error("점수 저장 오류:", error);
+        }
+      }
+
+      // 게임 랭킹 렌더링
+      function renderGameRankings() {
+        const content = document.getElementById("ranking-content");
+        if (!content) return;
+
+        const games = [
+          {
+            type: "number-guess",
+            name: "🔢 숫자 맞추기",
+            description: "최소 시도 횟수",
+          },
+          {
+            type: "color-memory",
+            name: "🎨 색깔 기억하기",
+            description: "최고 레벨",
+          },
+          {
+            type: "word-scramble",
+            name: "📝 단어 맞추기",
+            description: "최소 시도 횟수",
+          },
+        ];
+
+        let html = '<div class="space-y-6">';
+
+        games.forEach((game) => {
+          const scores = gameScores[game.type] || [];
+          const sortedScores = scores
+            .sort((a, b) => {
+              if (game.type === "color-memory") {
+                return (b.details.level || 0) - (a.details.level || 0);
+              } else {
+                return (
+                  (a.details.attempts || 999) - (b.details.attempts || 999)
+                );
+              }
+            })
+            .slice(0, 10); // 상위 10명
+
+          html += `
+            <div class="border rounded-lg p-4">
+              <h4 class="font-bold text-lg mb-2">${game.name}</h4>
+              <p class="text-sm text-gray-600 mb-3">${game.description}</p>
+              <div class="space-y-2">
+          `;
+
+          if (sortedScores.length === 0) {
+            html +=
+              '<p class="text-gray-400 text-center py-4">아직 기록이 없습니다.</p>';
+          } else {
+            sortedScores.forEach((score, index) => {
+              const rank = index + 1;
+              const rankIcon =
+                rank === 1
+                  ? "🥇"
+                  : rank === 2
+                  ? "🥈"
+                  : rank === 3
+                  ? "🥉"
+                  : `${rank}.`;
+              const displayValue =
+                game.type === "color-memory"
+                  ? `레벨 ${score.details.level || 0}`
+                  : `${score.details.attempts || 0}번`;
+
+              html += `
+                <div class="flex items-center justify-between p-2 bg-gray-50 rounded">
+                  <div class="flex items-center gap-3">
+                    <span class="text-lg">${rankIcon}</span>
+                    <span class="font-medium">${saf(score.name)}</span>
+                  </div>
+                  <div class="text-right">
+                    <div class="font-bold text-blue-600">${displayValue}</div>
+                    <div class="text-xs text-gray-500">${new Date(
+                      score.timestamp
+                    ).toLocaleDateString()}</div>
+                  </div>
+                </div>
+              `;
+            });
+          }
+
+          html += `
+              </div>
+            </div>
+          `;
+        });
+
+        html += "</div>";
+        content.innerHTML = html;
       }
 
       // 숫자 맞추기 게임
@@ -5402,6 +5568,12 @@
           `;
           document.getElementById("guess-btn").disabled = true;
           input.disabled = true;
+
+          // 점수 저장
+          saveGameScore("number-guess", gameState.attempts, {
+            attempts: gameState.attempts,
+            targetNumber: gameState.targetNumber,
+          });
         } else if (gameState.attempts >= gameState.maxAttempts) {
           result.innerHTML = `
             <div class="text-red-600">
@@ -5537,6 +5709,13 @@
               <p>다음 레벨로 진행합니다.</p>
             </div>
           `;
+
+          // 점수 저장 (레벨 클리어 시마다)
+          saveGameScore("color-memory", gameState.level - 1, {
+            level: gameState.level - 1,
+            sequence: gameState.sequence.slice(0, -1), // 마지막에 추가된 것 제외
+          });
+
           setTimeout(() => {
             updateColorMemoryUI();
           }, 1500);
@@ -5646,6 +5825,13 @@
           `;
           document.getElementById("word-guess-btn").disabled = true;
           input.disabled = true;
+
+          // 점수 저장
+          saveGameScore("word-scramble", gameState.attempts, {
+            attempts: gameState.attempts,
+            word: gameState.currentWord,
+            scrambledWord: gameState.scrambledWord,
+          });
         } else if (gameState.attempts >= gameState.maxAttempts) {
           result.innerHTML = `
             <div class="text-red-600">
@@ -5660,6 +5846,34 @@
         }
 
         input.value = "";
+      }
+
+      // 게임 점수 데이터 로드
+      function loadGameScores() {
+        if (!currentUser) return;
+
+        const unsubscribe = onSnapshot(
+          collection(db, "gameScores"),
+          (snapshot) => {
+            gameScores = {};
+            snapshot.forEach((doc) => {
+              const data = doc.data();
+              if (!gameScores[data.gameType]) {
+                gameScores[data.gameType] = [];
+              }
+              gameScores[data.gameType].push({
+                id: doc.id,
+                ...data,
+              });
+            });
+            console.log("게임 점수 로드됨:", gameScores);
+          },
+          (error) => {
+            console.error("게임 점수 로드 오류:", error);
+          }
+        );
+
+        return unsubscribe;
       }
 
       // 게임 버튼 이벤트 리스너
@@ -5683,6 +5897,27 @@
             if (currentGame === "number-guess") startNumberGuessGame();
             else if (currentGame === "color-memory") startColorMemoryGame();
             else if (currentGame === "word-scramble") startWordScrambleGame();
+          });
+
+        // 탭 버튼 이벤트 리스너
+        document
+          .getElementById("games-tab-btn")
+          ?.addEventListener("click", () => {
+            document.getElementById("games-tab-btn").className =
+              "flex-1 py-2 px-4 text-center font-medium text-purple-600 border-b-2 border-purple-600";
+            document.getElementById("ranking-tab-btn").className =
+              "flex-1 py-2 px-4 text-center font-medium text-gray-500 hover:text-gray-700";
+            showGameSelectionFromRanking();
+          });
+
+        document
+          .getElementById("ranking-tab-btn")
+          ?.addEventListener("click", () => {
+            document.getElementById("ranking-tab-btn").className =
+              "flex-1 py-2 px-4 text-center font-medium text-purple-600 border-b-2 border-purple-600";
+            document.getElementById("games-tab-btn").className =
+              "flex-1 py-2 px-4 text-center font-medium text-gray-500 hover:text-gray-700";
+            showRankingScreen();
           });
       });
 
