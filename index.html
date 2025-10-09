@@ -50,6 +50,71 @@
           opacity: 1;
         }
       }
+
+      /* 모바일 텍스트 잘림 방지 */
+      * {
+        word-wrap: break-word;
+        word-break: break-word;
+        overflow-wrap: break-word;
+      }
+
+      /* 모바일에서 텍스트 크기 최적화 */
+      @media (max-width: 768px) {
+        .text-sm {
+          font-size: 0.875rem !important;
+        }
+        .text-base {
+          font-size: 1rem !important;
+        }
+        .text-lg {
+          font-size: 1.125rem !important;
+        }
+        .text-xl {
+          font-size: 1.25rem !important;
+        }
+        .text-2xl {
+          font-size: 1.5rem !important;
+        }
+
+        /* 긴 텍스트 자동 줄바꿈 */
+        .truncate {
+          white-space: normal !important;
+          overflow: visible !important;
+          text-overflow: unset !important;
+        }
+
+        /* 블록 제목 최적화 */
+        .block-title {
+          word-break: keep-all;
+          line-height: 1.4;
+          hyphens: auto;
+        }
+
+        /* 카드 내 텍스트 최적화 */
+        .card-text {
+          word-break: keep-all;
+          line-height: 1.5;
+          overflow-wrap: break-word;
+        }
+
+        /* 버튼 텍스트 최적화 */
+        .btn-text {
+          white-space: normal;
+          word-break: keep-all;
+        }
+
+        /* 모바일에서 패딩 조정 */
+        .mobile-padding {
+          padding-left: 0.75rem;
+          padding-right: 0.75rem;
+        }
+
+        /* 모바일에서 마진 조정 */
+        .mobile-margin {
+          margin-left: 0.5rem;
+          margin-right: 0.5rem;
+        }
+      }
     </style>
     <script>
       tailwind.config = {
@@ -1220,6 +1285,7 @@
       let adminList = [];
       let adminPositions = {};
       let customDefaultPositions = [];
+      let deletedDefaultPositions = [];
       const MASTER_CODE = "foodie_emergency_2024!";
 
       // settings
@@ -1741,6 +1807,18 @@
               scheduleRender();
             },
             (err) => console.warn("customPositions:", err?.message)
+          );
+        }
+        if (!unsubPublic.deletedPositions) {
+          unsubPublic.deletedPositions = onSnapshot(
+            doc(db, "settings", "deletedPositions"),
+            (snap) => {
+              deletedDefaultPositions = snap.exists()
+                ? snap.data().positions || []
+                : [];
+              scheduleRender();
+            },
+            (err) => console.warn("deletedPositions:", err?.message)
           );
         }
         if (!unsubPublic.roadmap) {
@@ -2523,10 +2601,10 @@
                 <div class="flex items-center gap-3 flex-1 min-w-0">
                   <span class="flex items-center justify-center w-6 h-6 bg-green-500 text-white text-xs font-bold rounded-full flex-shrink-0">${originalIndex}</span>
                   <div class="flex-1 min-w-0">
-                    <div class="font-medium text-gray-800 truncate">${saf(
+                    <div class="font-medium text-gray-800 card-text break-words">${saf(
                       a.name
                     )}</div>
-                    <div class="text-xs text-green-600 mt-1">${regDate}</div>
+                    <div class="text-xs text-green-600 mt-1 break-words">${regDate}</div>
                   </div>
                 </div>
                 <span class="font-mono text-xs text-gray-500 flex-shrink-0 ml-2">${mask(
@@ -2555,10 +2633,10 @@
                 <div class="flex items-center gap-3 flex-1 min-w-0">
                   <span class="flex items-center justify-center w-6 h-6 bg-amber-500 text-white text-xs font-bold rounded-full flex-shrink-0">${originalIndex}</span>
                   <div class="flex-1 min-w-0">
-                    <div class="font-medium text-gray-800 truncate">${saf(
+                    <div class="font-medium text-gray-800 card-text break-words">${saf(
                       a.name
                     )}</div>
-                    <div class="text-xs text-amber-600 mt-1">${regDate}</div>
+                    <div class="text-xs text-amber-600 mt-1 break-words">${regDate}</div>
                   </div>
                 </div>
                 <span class="font-mono text-xs text-gray-500 flex-shrink-0 ml-2">${mask(
@@ -3630,6 +3708,8 @@
             }
             showAlert("🎉", "이벤트가 생성되었습니다.");
             closeEventModal();
+            // 이벤트 목록만 새로고침 (전체 페이지 렌더링 방지)
+            renderEventsAdmin(document.getElementById("subtab-container"));
           } else {
             const ref = doc(db, "events", editingEventId);
             const snap = await getDoc(ref);
@@ -3681,6 +3761,8 @@
             }
             showAlert("✅", "이벤트가 수정되었습니다.");
             closeEventModal();
+            // 이벤트 목록만 새로고침 (전체 페이지 렌더링 방지)
+            renderEventsAdmin(document.getElementById("subtab-container"));
           }
           resetEventForm();
         } catch {
@@ -3732,6 +3814,8 @@
         try {
           await deleteDoc(doc(db, "events", id));
           showAlert("🗑️", "삭제되었습니다.");
+          // 이벤트 목록만 새로고침 (전체 페이지 렌더링 방지)
+          renderEventsAdmin(document.getElementById("subtab-container"));
         } catch {
           showAlert("😥", "삭제 실패");
         }
@@ -4101,11 +4185,19 @@
           "홍보부장",
         ];
 
-        // 삭제 불가능한 직책들
+        // 삭제 불가능한 직책들 (회장과 부회장만)
         const undeletablePositions = ["회장", "부회장"];
 
-        // 기본 직책과 커스텀 직책을 합쳐서 표시
-        const allPositions = [...defaultPositions, ...customDefaultPositions];
+        // 삭제된 기본 직책들을 제외한 기본 직책들
+        const activeDefaultPositions = defaultPositions.filter(
+          (pos) => !deletedDefaultPositions.includes(pos)
+        );
+
+        // 활성 기본 직책과 커스텀 직책을 합쳐서 표시
+        const allPositions = [
+          ...activeDefaultPositions,
+          ...customDefaultPositions,
+        ];
 
         return allPositions
           .map((pos) => {
@@ -4122,7 +4214,7 @@
             ${
               isUndeletable
                 ? '<span class="text-xs text-gray-400">삭제 불가</span>'
-                : `<button class="remove-position-btn text-red-500 hover:text-red-700" data-position="${pos}">
+                : `<button class="remove-position-btn text-red-500 hover:text-red-700" data-position="${pos}" onclick="removeDefaultPosition('${pos}')">
                 <i class="fas fa-times"></i>
               </button>`
             }
@@ -4232,20 +4324,39 @@
             "홍보부장",
           ];
 
-          // 커스텀 기본 직책에서 제거
-          let newCustomPositions = customDefaultPositions.filter(
-            (p) => p !== position
-          );
+          // 확인 대화상자
+          if (!confirm(`"${position}" 직책을 삭제하시겠습니까?`)) {
+            return;
+          }
 
-          // Firebase에 저장
-          await setDoc(
-            doc(db, "settings", "customPositions"),
-            { positions: newCustomPositions },
-            { merge: true }
-          );
+          // 기본 직책인지 확인
+          const isDefaultPosition = defaultPositions.includes(position);
 
-          // 로컬 배열 업데이트
-          customDefaultPositions = newCustomPositions;
+          if (isDefaultPosition) {
+            // 기본 직책인 경우, 삭제된 직책 목록에 추가
+            const newDeletedPositions = [...deletedDefaultPositions, position];
+
+            await setDoc(
+              doc(db, "settings", "deletedPositions"),
+              { positions: newDeletedPositions },
+              { merge: true }
+            );
+
+            deletedDefaultPositions = newDeletedPositions;
+          } else {
+            // 커스텀 직책인 경우, 커스텀 목록에서 제거
+            const newCustomPositions = customDefaultPositions.filter(
+              (p) => p !== position
+            );
+
+            await setDoc(
+              doc(db, "settings", "customPositions"),
+              { positions: newCustomPositions },
+              { merge: true }
+            );
+
+            customDefaultPositions = newCustomPositions;
+          }
 
           // 해당 직책을 가진 모든 관리자에서 제거
           const newPositions = { ...adminPositions };
@@ -4264,7 +4375,16 @@
             { merge: true }
           );
 
-          showAlert("✅", `"${position}" 직책이 제거되었습니다.`);
+          showAlert("✅", `"${position}" 직책이 삭제되었습니다.`);
+
+          // UI 새로고침
+          const defaultPositionsList = document.getElementById(
+            "default-positions-list"
+          );
+          if (defaultPositionsList) {
+            defaultPositionsList.innerHTML = renderDefaultPositions();
+          }
+
           renderPositionsAdmin(document.getElementById("subtab-container"));
         } catch (e) {
           console.error(e);
@@ -4307,12 +4427,12 @@
       /* ===== 홈 블록 + 로드맵 관리 ===== */
       function renderBlockListItem(block) {
         return `
-          <li class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border block-item" data-block-id="${
+          <li class="flex items-start justify-between p-3 bg-gray-50 rounded-lg border block-item" data-block-id="${
             block.id
           }" draggable="true">
-            <div class="flex items-center gap-3">
-              <i class="fas fa-grip-vertical text-gray-400 cursor-move"></i>
-              <span class="text-xs px-2 py-1 rounded ${
+            <div class="flex items-start gap-3 flex-1 min-w-0">
+              <i class="fas fa-grip-vertical text-gray-400 cursor-move mt-1"></i>
+              <span class="text-xs px-2 py-1 rounded flex-shrink-0 ${
                 block.type === "scores"
                   ? "bg-green-100 text-green-700"
                   : block.type === "qa"
@@ -4329,19 +4449,21 @@
             ? "로드맵"
             : "점수판"
         }</span>
-              <span class="font-medium">${saf(
-                block.title || "(제목 없음)"
-              )}</span>
-              <span class="text-xs ${
-                block.visible !== false ? "text-green-600" : "text-gray-400"
-              }">
-                <i class="fas ${
-                  block.visible !== false ? "fa-eye" : "fa-eye-slash"
-                } mr-1"></i>
-                ${block.visible !== false ? "노출" : "숨김"}
-              </span>
+              <div class="flex-1 min-w-0">
+                <span class="font-medium block-title text-gray-800 break-words">${saf(
+                  block.title || "(제목 없음)"
+                )}</span>
+                <span class="text-xs ${
+                  block.visible !== false ? "text-green-600" : "text-gray-400"
+                }">
+                  <i class="fas ${
+                    block.visible !== false ? "fa-eye" : "fa-eye-slash"
+                  } mr-1"></i>
+                  ${block.visible !== false ? "노출" : "숨김"}
+                </span>
+              </div>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 flex-shrink-0 ml-2">
               <button class="edit-block-btn bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600 transition-colors" 
                       data-id="${block.id}" data-type="${block.type}">
                 <i class="fas fa-edit mr-1"></i>수정
@@ -4518,7 +4640,7 @@
               <p class="text-xs text-gray-600 mb-2">공지, Q&A, 점수판, 로드맵 블록을 생성하고 관리할 수 있습니다.</p>
               
               <div class="flex gap-3 mb-4">
-                <button id="add-new-block" class="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors">
+                <button id="add-new-block" class="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors btn-text">
                   <i class="fas fa-plus mr-2"></i>새 블록 생성
                 </button>
               </div>
@@ -4579,7 +4701,7 @@
               </div>
               
               <div class="mt-4 flex gap-2">
-                <button id="save-block-order" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors">
+                <button id="save-block-order" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors btn-text">
                   <i class="fas fa-save mr-2"></i>블록 순서 저장
                 </button>
               </div>
