@@ -170,20 +170,49 @@
         box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
           0 4px 6px -2px rgba(0, 0, 0, 0.05);
       }
-      .loader {
-        border: 5px solid #f3f3f3;
-        border-top: 5px solid #667eea;
-        border-radius: 50%;
-        width: 48px;
-        height: 48px;
-        animation: spin 1s linear infinite;
+      .foodie-loader {
+        width: 200px;
+        height: 8px;
+        background-color: #f3f3f3;
+        border-radius: 4px;
+        overflow: hidden;
+        position: relative;
       }
-      @keyframes spin {
+
+      .loading-bar {
+        width: 100%;
+        height: 100%;
+        position: relative;
+      }
+
+      .bar-container {
+        width: 100%;
+        height: 100%;
+        position: relative;
+      }
+
+      .bar-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #f97316, #ea580c, #dc2626);
+        border-radius: 4px;
+        animation: loading-slide 2s ease-in-out infinite;
+        position: absolute;
+        top: 0;
+        left: 0;
+      }
+
+      @keyframes loading-slide {
         0% {
-          transform: rotate(0);
+          width: 0%;
+          left: 0%;
+        }
+        50% {
+          width: 100%;
+          left: 0%;
         }
         100% {
-          transform: rotate(360deg);
+          width: 0%;
+          left: 100%;
         }
       }
       .tab-btn.active {
@@ -433,6 +462,17 @@
         color: #f59e0b;
         font-weight: 700;
       }
+
+      /* 자동 로그인 체크박스 스타일 */
+      #auto-login-checkbox:checked {
+        background-color: #ea580c;
+        border-color: #ea580c;
+      }
+
+      #auto-login-checkbox:checked ~ label {
+        color: #c2410c;
+        font-weight: 600;
+      }
       .h-pulse {
         animation: hblink 1.6s ease-out infinite;
       }
@@ -628,39 +668,10 @@
       class="fixed inset-0 bg-white flex flex-col justify-center items-center z-40"
     >
       <div class="foodie-loader">
-        <div class="loading-dots">
-          <div
-            class="dot"
-            style="
-              background-color: #f97316;
-              width: 20px;
-              height: 20px;
-              border-radius: 50%;
-              animation: dot-pulse 1s infinite ease-in-out;
-            "
-          ></div>
-          <div
-            class="dot"
-            style="
-              background-color: #f97316;
-              width: 20px;
-              height: 20px;
-              border-radius: 50%;
-              animation: dot-pulse 1s infinite ease-in-out;
-              animation-delay: 0.2s;
-            "
-          ></div>
-          <div
-            class="dot"
-            style="
-              background-color: #f97316;
-              width: 20px;
-              height: 20px;
-              border-radius: 50%;
-              animation: dot-pulse 1s infinite ease-in-out;
-              animation-delay: 0.4s;
-            "
-          ></div>
+        <div class="loading-bar">
+          <div class="bar-container">
+            <div class="bar-fill"></div>
+          </div>
         </div>
       </div>
       <p class="mt-3 text-gray-600">Foodie Web에 접속중...</p>
@@ -747,17 +758,25 @@
                 </p>
 
                 <!-- 자동 로그인 체크박스 -->
-                <div class="flex items-center justify-center space-x-2">
-                  <input
-                    id="auto-login-checkbox"
-                    type="checkbox"
-                    class="w-4 h-4 text-orange-600 bg-gray-100 border-gray-300 rounded focus:ring-orange-500 focus:ring-2"
-                  />
+                <div
+                  class="flex items-center justify-center space-x-2 bg-orange-50 border border-orange-200 rounded-lg p-3"
+                >
+                  <div class="relative">
+                    <input
+                      id="auto-login-checkbox"
+                      type="checkbox"
+                      class="w-5 h-5 text-orange-600 bg-white border-2 border-orange-300 rounded-md focus:ring-orange-500 focus:ring-2 transition-all duration-200 hover:border-orange-400"
+                    />
+                    <div
+                      class="absolute inset-0 rounded-md bg-gradient-to-r from-orange-400 to-orange-500 opacity-0 transition-opacity duration-200 pointer-events-none"
+                    ></div>
+                  </div>
                   <label
                     for="auto-login-checkbox"
-                    class="text-sm text-gray-600"
+                    class="text-sm font-medium text-orange-700 cursor-pointer hover:text-orange-800 transition-colors duration-200"
                   >
-                    자동 로그인 (30일간 저장)
+                    <i class="fas fa-magic-wand-sparkles mr-1"></i>자동 로그인
+                    (30일간 저장)
                   </label>
                 </div>
 
@@ -2031,15 +2050,15 @@
             <div class="mb-6 md:mb-8 bg-gray-200 rounded-lg p-1 flex flex-wrap justify-center gap-2" id="tab-buttons">
               <button type="button" data-tab="reservation" class="tab-btn flex-1 py-2 px-3 sm:px-4 rounded-md font-semibold text-gray-700 active transition-all duration-200 hover:bg-white hover:shadow-sm">
                 <i class="fas fa-check mr-2"></i>
-                <span>신청하기</span>
+                <span>신청</span>
               </button>
               <button type="button" data-tab="history" class="tab-btn flex-1 py-2 px-3 sm:px-4 rounded-md font-semibold text-gray-700 transition-all duration-200 hover:bg-white hover:shadow-sm">
                 <i class="fas fa-history mr-2"></i>
-                <span>활동 기록</span>
+                <span>활동</span>
               </button>
               <button type="button" data-tab="suggestions" class="tab-btn flex-1 py-2 px-3 sm:px-4 rounded-md font-semibold text-gray-700 transition-all duration-200 hover:bg-white hover:shadow-sm">
                 <i class="fas fa-question-circle mr-2"></i>
-                <span>문의하기</span>
+                <span>문의</span>
               </button>
               <button type="button" data-tab="dashboard" class="tab-btn flex-1 py-2 px-3 sm:px-4 rounded-md font-semibold text-gray-700 transition-all duration-200 hover:bg-white hover:shadow-sm ${
                 isAdmin ? "" : "hidden"
@@ -2571,16 +2590,33 @@
           : isUserIn(ev.waiting)
           ? "wait"
           : "none";
-        const btn =
-          my === "apply"
-            ? `<button type="button" class="w-full mt-3 bg-gray-600 text-white font-bold py-2 rounded" data-act="cancel-general" data-id="${ev.id}">신청 취소</button>`
-            : my === "wait"
-            ? `<button type="button" class="w-full mt-3 bg-orange-600 text-white font-bold py-2 rounded" data-act="cancel-wait-general" data-id="${ev.id}">대기 취소</button>`
-            : `<button type="button" class="w-full mt-3 ${
-                count < lim ? "bg-green-600" : "bg-amber-500"
-              } text-white font-bold py-2 rounded" data-act="reserve-general" data-id="${
-                ev.id
-              }">${count < lim ? "신청하기" : "대기 신청"}</button>`;
+
+        // 디버깅: 사용자 상태 확인
+        console.log(`Event ${ev.id}: currentUser =`, currentUser);
+        console.log(
+          `Event ${ev.id}: my = ${my}, count = ${count}, lim = ${lim}`
+        );
+
+        // 로그인된 사용자에게만 버튼 표시
+        let btn;
+        if (currentUser) {
+          if (my === "apply") {
+            btn = `<button type="button" class="w-full mt-3 bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg transition-colors cursor-pointer" data-act="cancel-general" data-id="${ev.id}">신청 취소</button>`;
+          } else if (my === "wait") {
+            btn = `<button type="button" class="w-full mt-3 bg-orange-600 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded-lg transition-colors cursor-pointer" data-act="cancel-wait-general" data-id="${ev.id}">대기 취소</button>`;
+          } else {
+            btn = `<button type="button" class="w-full mt-3 ${
+              count < lim
+                ? "bg-green-600 hover:bg-green-700"
+                : "bg-amber-500 hover:bg-amber-600"
+            } text-white font-bold py-2 px-4 rounded-lg transition-colors cursor-pointer" data-act="reserve-general" data-id="${
+              ev.id
+            }">${count < lim ? "신청하기" : "대기 신청"}</button>`;
+          }
+        } else {
+          btn = `<div class="w-full mt-3 bg-gray-100 text-gray-500 font-bold py-2 rounded text-center">로그인 후 신청 가능</div>`;
+        }
+
         const namesList = (ev.applicants || [])
           .slice()
           .reverse() // 최신 신청자가 맨 위에 오도록 역순 정렬
@@ -2647,7 +2683,9 @@
           .join("");
         return `<div class="section card-hover ${typeAccentClass(
           ev.type
-        )}" data-event-id="${ev.id}">
+        )}" data-event-id="${
+          ev.id
+        }" style="position: relative; z-index: 1; margin-bottom: 1.5rem; height: auto; overflow: visible; clear: both;">
                   <h3 class="text-xl font-bold text-gray-800">${saf(
                     ev.title
                   )}</h3>
@@ -2661,19 +2699,19 @@
                     <div class="w-full bg-gray-200 rounded-full h-4"><div class="bg-green-500 h-4 rounded-full" style="width:${
                       lim ? Math.min(100, Math.round((count / lim) * 100)) : 0
                     }%"></div></div>
-                    <p class="text-right text-sm mt-1 text-gray-600  ${count} / ${lim} 명</p>
+                    <p class="text-right text-sm mt-1 text-gray-600">신청: ${count} / ${lim} 명</p>
                   </div>
                   ${adminStatsHTML(ev)}
                   ${btn}
                   <div class="mt-3">
-                    <div class="text-xs font-semibold text-gray-600  mb-1">참가자</div>
+                    <div class="text-xs font-semibold text-gray-600 mb-1">참가자</div>
                     <div class="max-h-28 overflow-y-auto border rounded bg-gray-50 p-2">${
                       namesList ||
                       '<div class="text-xs text-gray-400">아직 없음</div>'
                     }</div>
                   </div>
                   <div class="mt-2">
-                    <div class="text-xs font-semibold text-gray-600  mb-1">대기자</div>
+                    <div class="text-xs font-semibold text-gray-600 mb-1">대기자</div>
                     <div class="max-h-24 overflow-y-auto border rounded bg-amber-50 p-2">${
                       waitingList ||
                       '<div class="text-xs text-amber-400">대기자 없음</div>'
@@ -2683,9 +2721,11 @@
                   <div class="text-[11px] text-gray-400 mt-2">상태: ${statusLabel(
                     ev.status || "open"
                   )}</div>
-                  <div class="flex gap-2 mt-2 text-sm text-gray-600  class="px-2 py-0.5 rounded ${typeBadgeClass(
-                    ev.type
-                  )}">${typeLabel(ev.type)}</span></div>
+                  <div class="flex gap-2 mt-2 text-sm text-gray-600">
+                    <span class="px-2 py-0.5 rounded ${typeBadgeClass(
+                      ev.type
+                    )}">${typeLabel(ev.type)}</span>
+                  </div>
                   ${adminFullTableHTML(ev)}
                   ${adminInline(ev)}
                 </div>`;
@@ -2704,15 +2744,17 @@
             const isInWaiting = (r.waiting || []).some(
               (p) => p.studentId === currentUser?.studentId
             );
-            const btn = isInReservations
-              ? `<button type="button" class="w-full mt-2 bg-gray-600 text-white font-bold py-1.5 rounded" data-act="cancel-tasting" data-id="${ev.id}" data-rid="${r.id}">신청 취소</button>`
-              : isInWaiting
-              ? `<button type="button" class="w-full mt-2 bg-orange-600 text-white font-bold py-1.5 rounded" data-act="cancel-wait-tasting" data-id="${ev.id}" data-rid="${r.id}">대기 취소</button>`
-              : `<button type="button" class="w-full mt-2 ${
-                  cnt < cap ? "bg-green-600" : "bg-amber-500"
-                } text-white font-bold py-1.5 rounded" data-act="reserve-tasting" data-id="${
-                  ev.id
-                }" data-rid="${r.id}">${cnt < cap ? "신청" : "대기"}</button>`;
+            const btn = currentUser
+              ? isInReservations
+                ? `<button type="button" class="w-full mt-2 bg-gray-600 text-white font-bold py-1.5 rounded" data-act="cancel-tasting" data-id="${ev.id}" data-rid="${r.id}">신청 취소</button>`
+                : isInWaiting
+                ? `<button type="button" class="w-full mt-2 bg-orange-600 text-white font-bold py-1.5 rounded" data-act="cancel-wait-tasting" data-id="${ev.id}" data-rid="${r.id}">대기 취소</button>`
+                : `<button type="button" class="w-full mt-2 ${
+                    cnt < cap ? "bg-green-600" : "bg-amber-500"
+                  } text-white font-bold py-1.5 rounded" data-act="reserve-tasting" data-id="${
+                    ev.id
+                  }" data-rid="${r.id}">${cnt < cap ? "신청" : "대기"}</button>`
+              : `<div class="w-full mt-2 bg-gray-100 text-gray-500 font-bold py-1.5 rounded text-center text-sm">로그인 후 신청 가능</div>`;
             const namesList = (r.reservations || [])
               .map(
                 (a, index) =>
@@ -2783,7 +2825,9 @@
           .join("");
         return `<div class="section card-hover ${typeAccentClass(
           ev.type
-        )}" data-event-id="${ev.id}">
+        )}" data-event-id="${
+          ev.id
+        }" style="position: relative; z-index: 1; margin-bottom: 1.5rem; height: auto; overflow: visible; clear: both;">
                   <h3 class="text-xl font-bold text-gray-800">${saf(
                     ev.title
                   )}</h3>
@@ -2797,9 +2841,11 @@
                   <div class="text-xs text-gray-400 mt-3">상태: ${statusLabel(
                     ev.status || "open"
                   )}</div>
-                  <div class="flex gap-2 mt-2 text-sm text-gray-600  class="px-2 py-0.5 rounded ${typeBadgeClass(
-                    ev.type
-                  )}">${typeLabel(ev.type)}</span></div>
+                  <div class="flex gap-2 mt-2 text-sm text-gray-600">
+                    <span class="px-2 py-0.5 rounded ${typeBadgeClass(
+                      ev.type
+                    )}">${typeLabel(ev.type)}</span>
+                  </div>
                   ${adminInline(ev)}
                 </div>`;
       }
@@ -2856,7 +2902,7 @@
         const listHTML =
           activeEvents.length === 0
             ? `<div class="text-center py-12"><i class="fas fa-calendar-xmark text-4xl text-gray-300"></i><p class="mt-3 text-gray-500">진행 중인 이벤트/미식회가 없습니다.</p></div>`
-            : `<div id="events-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            : `<div id="events-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" style="position: relative; z-index: 1; min-height: 200px;">
                 ${activeEvents
                   .sort((a, b) => (a.order || 999) - (b.order || 999))
                   .map(eventCardHTML)
@@ -2894,33 +2940,42 @@
              ${listHTML}
            </div>`;
 
-        c.addEventListener("click", async (e) => {
-          const b = e.target.closest("button[data-act]");
-          if (!b) return;
-          const act = b.dataset.act,
-            id = b.dataset.id,
-            rid = b.dataset.rid;
-          if (act === "reserve-general") return reserveGeneral(id);
-          if (act === "cancel-general") return cancelGeneral(id);
-          if (act === "cancel-wait-general") return cancelWaitGeneral(id);
-          if (act === "reserve-tasting") return reserveTasting(id, rid);
-          if (act === "cancel-tasting") return cancelTasting(id, rid);
-          if (act === "cancel-wait-tasting") return cancelWaitTasting(id, rid);
-          if (act === "admin-edit") return loadEventToForm(id);
-          if (act === "admin-archive") return archiveEvent(id);
-          if (act === "admin-unarchive") return unarchiveEvent(id);
-          if (act === "admin-delete") return deleteEvent(id);
-          if (act === "export-xlsx") return exportApplicantsXLSX(id);
-        });
+        // 기존 이벤트 리스너 제거 (중복 방지)
+        c.removeEventListener("click", handleReservationTabClick);
+
+        // 새로운 이벤트 리스너 등록
+        c.addEventListener("click", handleReservationTabClick);
 
         // 순서 변경 버튼 이벤트 리스너 (관리자만)
         if (isAdmin) {
           const toggleBtn = document.getElementById("toggle-order-btn");
           if (toggleBtn) {
+            // 기존 리스너 제거 후 새로 등록
+            toggleBtn.removeEventListener("click", toggleEventOrderMode);
             toggleBtn.addEventListener("click", toggleEventOrderMode);
           }
         }
         // bindAdminEventsPanel은 모달 내부에서만 호출됨
+      }
+
+      // 이벤트 리스너 함수를 별도로 분리
+      async function handleReservationTabClick(e) {
+        const b = e.target.closest("button[data-act]");
+        if (!b) return;
+        const act = b.dataset.act,
+          id = b.dataset.id,
+          rid = b.dataset.rid;
+        if (act === "reserve-general") return reserveGeneral(id);
+        if (act === "cancel-general") return cancelGeneral(id);
+        if (act === "cancel-wait-general") return cancelWaitGeneral(id);
+        if (act === "reserve-tasting") return reserveTasting(id, rid);
+        if (act === "cancel-tasting") return cancelTasting(id, rid);
+        if (act === "cancel-wait-tasting") return cancelWaitTasting(id, rid);
+        if (act === "admin-edit") return loadEventToForm(id);
+        if (act === "admin-archive") return archiveEvent(id);
+        if (act === "admin-unarchive") return unarchiveEvent(id);
+        if (act === "admin-delete") return deleteEvent(id);
+        if (act === "export-xlsx") return exportApplicantsXLSX(id);
       }
 
       /* ===== 이벤트 순서 변경 기능 ===== */
