@@ -2036,7 +2036,7 @@
               <div class="flex items-center justify-between mb-4">
                 <p class="text-gray-700 text-lg md:text-xl font-medium"><span class="text-orange-600 font-bold text-3xl md:text-4xl">Foodie</span> <b id="userNameDisplay">${saf(
                   currentUser.name
-                )}</b>${getPositionSuffix()}님, 환영합니다!</p>
+                )}</b>${getPositionSuffix()}님</p>
                 <button id="logout-button" type="button" class="text-sm md:text-base text-gray-500 hover:text-red-500 bg-white px-3 py-1 rounded-full border">로그아웃</button>
               </div>
               
@@ -6848,9 +6848,43 @@
           renderBlocks();
           updateSignupUI();
 
+          // 저장된 사용자 정보 확인
+          const savedUser = localStorage.getItem("foodieUser");
+          if (savedUser) {
+            try {
+              currentUser = JSON.parse(savedUser);
+              renderAll();
+            } catch (e) {
+              console.warn("저장된 사용자 정보 파싱 실패:", e);
+            }
+          }
+
           // 자동 로그인 시도
-          attemptAutoLogin();
+          attemptAutoLogin().then((success) => {
+            // 자동 로그인 실패 시에도 기본 렌더링 실행
+            if (!success && !currentUser) {
+              renderAll();
+            }
+          });
         }, 1000);
+      });
+
+      // 페이지 가시성 변경 시 렌더링 보장
+      document.addEventListener("visibilitychange", () => {
+        if (!document.hidden && currentUser) {
+          setTimeout(() => {
+            renderAll();
+          }, 100);
+        }
+      });
+
+      // 윈도우 포커스 시 렌더링 보장
+      window.addEventListener("focus", () => {
+        if (currentUser) {
+          setTimeout(() => {
+            renderAll();
+          }, 100);
+        }
       });
 
       // ===================== 이벤트 모달 관리 =====================
