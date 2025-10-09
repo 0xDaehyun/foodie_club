@@ -36,6 +36,21 @@
 
     <!-- Tailwind -->
     <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Loading Animation -->
+    <style>
+      @keyframes dot-pulse {
+        0%,
+        100% {
+          transform: scale(0.5);
+          opacity: 0.3;
+        }
+        50% {
+          transform: scale(1.2);
+          opacity: 1;
+        }
+      }
+    </style>
     <script>
       tailwind.config = {
         future: {
@@ -547,8 +562,43 @@
       id="loading-screen"
       class="fixed inset-0 bg-white flex flex-col justify-center items-center z-40"
     >
-      <div class="loader"></div>
-      <p class="mt-3 text-gray-600">Foodie Lounge에 오신 것을 환영합니다...</p>
+      <div class="foodie-loader">
+        <div class="loading-dots">
+          <div
+            class="dot"
+            style="
+              background-color: #f97316;
+              width: 20px;
+              height: 20px;
+              border-radius: 50%;
+              animation: dot-pulse 1s infinite ease-in-out;
+            "
+          ></div>
+          <div
+            class="dot"
+            style="
+              background-color: #f97316;
+              width: 20px;
+              height: 20px;
+              border-radius: 50%;
+              animation: dot-pulse 1s infinite ease-in-out;
+              animation-delay: 0.2s;
+            "
+          ></div>
+          <div
+            class="dot"
+            style="
+              background-color: #f97316;
+              width: 20px;
+              height: 20px;
+              border-radius: 50%;
+              animation: dot-pulse 1s infinite ease-in-out;
+              animation-delay: 0.4s;
+            "
+          ></div>
+        </div>
+      </div>
+      <p class="mt-3 text-gray-600">Foodie Web에 접속중...</p>
     </div>
 
     <div
@@ -565,7 +615,10 @@
           </div>
 
           <!-- 접속자 명단과 조모임 순위 - 오른쪽으로 이동 -->
-          <div class="flex items-center gap-2 mx-auto md:mx-0 md:ml-auto">
+          <div
+            id="game-buttons-container"
+            class="flex items-center gap-2 mx-auto md:mx-0 md:ml-auto"
+          >
             <!-- 접속자(모두 보임) -->
             <button
               id="presence-badge"
@@ -627,6 +680,22 @@
                 <p class="text-xs text-center text-red-500 px-2">
                   학번과 이름을 정확하게 기입해주세요!<br />
                 </p>
+
+                <!-- 자동 로그인 체크박스 -->
+                <div class="flex items-center justify-center space-x-2">
+                  <input
+                    id="auto-login-checkbox"
+                    type="checkbox"
+                    class="w-4 h-4 text-orange-600 bg-gray-100 border-gray-300 rounded focus:ring-orange-500 focus:ring-2"
+                  />
+                  <label
+                    for="auto-login-checkbox"
+                    class="text-sm text-gray-600"
+                  >
+                    자동 로그인 (30일간 저장)
+                  </label>
+                </div>
+
                 <button
                   id="login-button"
                   type="button"
@@ -1347,6 +1416,14 @@
             JSON.stringify({ studentId: sid, name: nm })
           );
           currentUser = { studentId: sid, name: nm };
+
+          // 자동 로그인 체크박스가 체크된 경우 정보 저장
+          const autoLoginCheckbox = document.getElementById(
+            "auto-login-checkbox"
+          );
+          if (autoLoginCheckbox && autoLoginCheckbox.checked) {
+            saveAutoLogin(sid, nm);
+          }
           startPresence();
           try {
             const a = await getDoc(doc(db, "admins", "list"));
@@ -1366,6 +1443,7 @@
           localStorage.removeItem("foodieUser");
           currentUser = null;
           clearAdmin();
+          clearAutoLogin(); // 자동 로그인 정보 삭제
           await signOut(auth);
         } catch (e) {
           console.warn(e);
@@ -1456,6 +1534,37 @@
               )
               .join("")
           : `<div class="text-gray-400">지금은 접속자가 없습니다.</div>`;
+      }
+
+      function updateGameButtonsVisibility() {
+        const gameButtonsContainer = document.getElementById(
+          "game-buttons-container"
+        );
+        if (!gameButtonsContainer) return;
+
+        // 로그인 화면(pre-login-info)에서는 표시, 로그아웃 화면에서는 숨김
+        const preLoginInfo = document.getElementById("pre-login-info");
+        const mainContent = document.getElementById("main-content");
+
+        // 로그인 화면이 보이는 경우 (pre-login-info가 표시되고 main-content가 숨겨진 경우)
+        const isLoginScreen =
+          preLoginInfo &&
+          !preLoginInfo.classList.contains("hidden") &&
+          mainContent &&
+          mainContent.classList.contains("hidden");
+
+        // 로그인된 상태 (main-content가 표시되고 pre-login-info가 숨겨진 경우)
+        const isLoggedIn =
+          mainContent &&
+          !mainContent.classList.contains("hidden") &&
+          preLoginInfo &&
+          preLoginInfo.classList.contains("hidden");
+
+        if (isLoginScreen || isLoggedIn) {
+          gameButtonsContainer.classList.remove("hidden");
+        } else {
+          gameButtonsContainer.classList.add("hidden");
+        }
       }
       document.addEventListener("click", (e) => {
         if (
@@ -1745,7 +1854,7 @@
             verifyAutoLogin(saved).catch(() => {});
             startPresence();
           }
-          setTimeout(() => el.loading.classList.add("hidden"), 700);
+          setTimeout(() => el.loading.classList.add("hidden"), 2000);
           document
             .getElementById("login-button")
             .addEventListener("click", login);
@@ -1816,7 +1925,7 @@
           el.main.innerHTML = `
             <div class="mb-4 md:mb-6">
               <div class="flex items-center justify-between mb-4">
-                <p class="text-gray-700 text-lg md:text-xl font-medium"><span class="text-orange-600 font-bold">Foodie</span> <b id="userNameDisplay">${saf(
+                <p class="text-gray-700 text-lg md:text-xl font-medium"><span class="text-orange-600 font-bold text-xl md:text-2xl">Foodie</span> <b id="userNameDisplay">${saf(
                   currentUser.name
                 )}</b>${getPositionSuffix()}님, 환영합니다!</p>
                 <button id="logout-button" type="button" class="text-sm md:text-base text-gray-500 hover:text-red-500 bg-white px-3 py-1 rounded-full border">로그아웃</button>
@@ -1924,6 +2033,7 @@
           renderRoadmap();
           renderBlocks();
           updateSignupUI();
+          updateGameButtonsVisibility();
           // 로그아웃 상태에서도 조모임 순위 버튼 작동
           document
             .getElementById("rank-button")
@@ -5334,6 +5444,129 @@
           </div>`;
       }
 
+      /* ===== 자동 로그인 ===== */
+      const AUTO_LOGIN_KEY = "foodie_auto_login";
+      const KEYCHAIN_SERVICE = "foodie_web_service";
+
+      // 자동 로그인 정보 저장
+      function saveAutoLogin(studentId, password) {
+        try {
+          const loginData = {
+            studentId: studentId,
+            password: password,
+            timestamp: Date.now(),
+          };
+
+          // localStorage에 저장
+          localStorage.setItem(AUTO_LOGIN_KEY, JSON.stringify(loginData));
+
+          // Apple Keychain 지원 (iOS Safari)
+          if (window.CredentialManager && window.CredentialManager.store) {
+            window.CredentialManager.store({
+              service: KEYCHAIN_SERVICE,
+              username: studentId,
+              password: password,
+            }).catch((err) => console.log("Keychain 저장 실패:", err));
+          }
+
+          console.log("자동 로그인 정보 저장됨");
+        } catch (error) {
+          console.error("자동 로그인 저장 오류:", error);
+        }
+      }
+
+      // 자동 로그인 정보 불러오기
+      function loadAutoLogin() {
+        try {
+          // localStorage에서 불러오기
+          const saved = localStorage.getItem(AUTO_LOGIN_KEY);
+          if (saved) {
+            const loginData = JSON.parse(saved);
+            // 30일 이내의 데이터만 유효
+            if (Date.now() - loginData.timestamp < 30 * 24 * 60 * 60 * 1000) {
+              return loginData;
+            }
+          }
+
+          // Apple Keychain에서 불러오기 (iOS Safari)
+          if (window.CredentialManager && window.CredentialManager.get) {
+            return window.CredentialManager.get({
+              service: KEYCHAIN_SERVICE,
+            })
+              .then((credential) => {
+                if (credential) {
+                  return {
+                    studentId: credential.username,
+                    password: credential.password,
+                    timestamp: Date.now(),
+                  };
+                }
+                return null;
+              })
+              .catch((err) => {
+                console.log("Keychain 불러오기 실패:", err);
+                return null;
+              });
+          }
+
+          return null;
+        } catch (error) {
+          console.error("자동 로그인 불러오기 오류:", error);
+          return null;
+        }
+      }
+
+      // 자동 로그인 정보 삭제
+      function clearAutoLogin() {
+        try {
+          localStorage.removeItem(AUTO_LOGIN_KEY);
+
+          if (window.CredentialManager && window.CredentialManager.delete) {
+            window.CredentialManager.delete({
+              service: KEYCHAIN_SERVICE,
+            }).catch((err) => console.log("Keychain 삭제 실패:", err));
+          }
+
+          console.log("자동 로그인 정보 삭제됨");
+        } catch (error) {
+          console.error("자동 로그인 삭제 오류:", error);
+        }
+      }
+
+      // 자동 로그인 시도
+      async function attemptAutoLogin() {
+        try {
+          const loginData = await loadAutoLogin();
+          if (!loginData) return false;
+
+          // 로그인 폼에 값 설정
+          const studentIdInput = document.getElementById("studentId");
+          const studentNameInput = document.getElementById("studentName");
+
+          if (studentIdInput && studentNameInput) {
+            studentIdInput.value = loginData.studentId;
+            studentNameInput.value = loginData.password; // 이름이 패스워드 역할
+
+            // 자동 로그인 체크박스 체크
+            const autoLoginCheckbox = document.getElementById(
+              "auto-login-checkbox"
+            );
+            if (autoLoginCheckbox) {
+              autoLoginCheckbox.checked = true;
+            }
+
+            // 자동 로그인 시도
+            await login();
+            return true;
+          }
+
+          return false;
+        } catch (error) {
+          console.error("자동 로그인 시도 오류:", error);
+          return false;
+        }
+      }
+
       /* ===== 미니게임 ===== */
       let currentGame = null;
       let gameState = {};
@@ -5492,9 +5725,9 @@
       function startNumberGuessGame() {
         currentGame = "number-guess";
         gameState = {
-          targetNumber: Math.floor(Math.random() * 100) + 1,
+          targetNumber: Math.floor(Math.random() * 10000) + 1,
           attempts: 0,
-          maxAttempts: 7,
+          maxAttempts: 15, // 범위가 커졌으므로 시도 횟수 증가
         };
 
         showGameScreen();
@@ -5508,7 +5741,7 @@
         content.innerHTML = `
           <div class="mb-4">
             <h4 class="text-lg font-bold text-blue-700 mb-2">🔢 숫자 맞추기</h4>
-            <p class="text-sm text-gray-600">1부터 100 사이의 숫자를 맞춰보세요!</p>
+            <p class="text-sm text-gray-600">1부터 10,000 사이의 숫자를 맞춰보세요!</p>
             <p class="text-sm text-gray-500">남은 기회: ${
               maxAttempts - attempts
             }번</p>
@@ -5519,8 +5752,8 @@
               type="number" 
               id="number-input" 
               min="1" 
-              max="100" 
-              placeholder="숫자 입력"
+              max="10000" 
+              placeholder="숫자 입력 (1-10000)"
               class="w-full p-3 border border-gray-300 rounded-lg text-center text-lg"
             >
           </div>
@@ -5551,9 +5784,9 @@
         const result = document.getElementById("guess-result");
         const guess = parseInt(input.value);
 
-        if (isNaN(guess) || guess < 1 || guess > 100) {
+        if (isNaN(guess) || guess < 1 || guess > 10000) {
           result.innerHTML =
-            '<p class="text-red-500">1부터 100 사이의 숫자를 입력해주세요!</p>';
+            '<p class="text-red-500">1부터 10,000 사이의 숫자를 입력해주세요!</p>';
           return;
         }
 
@@ -5600,6 +5833,7 @@
           level: 1,
           colors: ["red", "blue", "green", "yellow"],
           isShowing: false,
+          maxLevel: 100, // 최대 레벨 100으로 확장
         };
 
         generateSequence();
@@ -5620,7 +5854,7 @@
           <div class="mb-4">
             <h4 class="text-lg font-bold text-green-700 mb-2">🎨 색깔 기억하기</h4>
             <p class="text-sm text-gray-600">색깔 순서를 기억하고 따라해보세요!</p>
-            <p class="text-sm text-gray-500">레벨: ${gameState.level}</p>
+            <p class="text-sm text-gray-500">레벨: ${gameState.level}/${gameState.maxLevel}</p>
           </div>
           
           <div class="grid grid-cols-2 gap-4 mb-4">
@@ -5699,6 +5933,24 @@
         }
 
         if (gameState.playerSequence.length === gameState.sequence.length) {
+          // 최대 레벨 달성 체크
+          if (gameState.level >= gameState.maxLevel) {
+            result.innerHTML = `
+              <div class="text-yellow-600">
+                <p class="text-xl font-bold">🏆 최대 레벨 달성!</p>
+                <p>레벨 ${gameState.level} 클리어! 모든 레벨을 완주했습니다!</p>
+              </div>
+            `;
+
+            // 최대 레벨 달성 점수 저장
+            saveGameScore("color-memory", gameState.level, {
+              level: gameState.level,
+              completed: true,
+              sequence: gameState.sequence,
+            });
+            return;
+          }
+
           gameState.level++;
           generateSequence();
           result.innerHTML = `
@@ -5706,7 +5958,9 @@
               <p class="text-xl font-bold">🎉 레벨 ${
                 gameState.level - 1
               } 클리어!</p>
-              <p>다음 레벨로 진행합니다.</p>
+              <p>다음 레벨로 진행합니다. (${gameState.level}/${
+            gameState.maxLevel
+          })</p>
             </div>
           `;
 
@@ -5725,28 +5979,18 @@
       // 단어 맞추기 게임
       function startWordScrambleGame() {
         currentGame = "word-scramble";
-        const words = [
-          "푸디",
-          "미식회",
-          "조모임",
-          "회장",
-          "부회장",
-          "총무",
-          "기획",
-          "홍보",
-          "회원",
-          "단체",
-        ];
-        gameState = {
-          currentWord: words[Math.floor(Math.random() * words.length)],
-          scrambledWord: "",
-          attempts: 0,
-          maxAttempts: 3,
-        };
 
-        gameState.scrambledWord = scrambleWord(gameState.currentWord);
+        // 개발 중 메시지 표시
         showGameScreen();
-        updateWordScrambleUI();
+        const content = document.getElementById("game-content");
+        content.innerHTML = `
+          <div class="text-center py-8">
+            <div class="text-6xl mb-4">🚧</div>
+            <h4 class="text-xl font-bold text-gray-700 mb-2">단어 맞추기 게임</h4>
+            <p class="text-gray-600 mb-4">현재 개발 중입니다.</p>
+            <p class="text-sm text-gray-500">곧 출시될 예정이니 기다려주세요!</p>
+          </div>
+        `;
       }
 
       function scrambleWord(word) {
@@ -6395,7 +6639,7 @@
       // ===================== 초기화 =====================
       // 페이지 로드 시 초기화
       document.addEventListener("DOMContentLoaded", function () {
-        // 로딩 화면 숨기기
+        // 로딩 화면 숨기기 (애니메이션을 보기 위해 시간 연장)
         setTimeout(() => {
           const loadingScreen = document.getElementById("loading-screen");
           if (loadingScreen) {
@@ -6407,6 +6651,9 @@
           renderRoadmap();
           renderBlocks();
           updateSignupUI();
+
+          // 자동 로그인 시도
+          attemptAutoLogin();
         }, 1000);
       });
 
@@ -7371,4 +7618,3 @@
     </div>
   </body>
 </html>
-}
