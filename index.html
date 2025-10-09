@@ -2034,7 +2034,7 @@
           el.main.innerHTML = `
             <div class="mb-4 md:mb-6">
               <div class="flex items-center justify-between mb-4">
-                <p class="text-gray-700 text-lg md:text-xl font-medium"><span class="text-orange-600 font-bold text-3xl md:text-4xl">Foodie</span> <b id="userNameDisplay">${saf(
+                <p class="text-gray-700 text-lg md:text-xl font-medium"><span class="text-orange-600 font-bold text-4xl md:text-5xl">Foodie</span> <b id="userNameDisplay">${saf(
                   currentUser.name
                 )}</b>${getPositionSuffix()}님</p>
                 <button id="logout-button" type="button" class="text-sm md:text-base text-gray-500 hover:text-red-500 bg-white px-3 py-1 rounded-full border">로그아웃</button>
@@ -2472,12 +2472,15 @@
         });
         let itemsToShow = enriched;
         if (!roadmapShowAll) {
-          // 최대 4개만 표시 (완료된 일정 최대 2개 + 예정된 일정 최대 2개)
+          // 최근 끝난 일정 1개 + 앞으로 올 일정들만 표시
           const completed = enriched.filter((x) => x._status === "completed");
           const upcoming = enriched.filter((x) => x._status !== "completed");
-          let keptCompleted = completed;
-          if (completed.length >= 2) keptCompleted = completed.slice(-2);
-          itemsToShow = [...keptCompleted, ...upcoming].slice(0, 4);
+
+          // 최근 끝난 일정 1개만 선택 (가장 최근 것)
+          const latestCompleted =
+            completed.length > 0 ? [completed[completed.length - 1]] : [];
+
+          itemsToShow = [...latestCompleted, ...upcoming];
         }
         c.innerHTML =
           total === 0
@@ -3154,6 +3157,14 @@
         });
 
         console.log("Order updates:", orderUpdates);
+        console.log(
+          "Current eventsData before update:",
+          eventsData.map((ev) => ({
+            id: ev.id,
+            order: ev.order,
+            title: ev.title,
+          }))
+        );
 
         if (orderUpdates.length === 0) {
           showAlert("😥", "저장할 이벤트를 찾을 수 없습니다.");
@@ -3169,12 +3180,43 @@
           });
           await batch.commit();
 
+          // 로컬 데이터를 DOM 순서대로 완전히 재정렬
+          const reorderedEvents = [];
+          orderUpdates.forEach((update) => {
+            const event = eventsData.find((ev) => ev.id === update.id);
+            if (event) {
+              // 새로운 order 값으로 업데이트
+              event.order = update.order;
+              reorderedEvents.push(event);
+            }
+          });
+
+          // 나머지 이벤트들 (DOM에 없는 것들) 추가
+          eventsData.forEach((event) => {
+            if (!orderUpdates.find((update) => update.id === event.id)) {
+              reorderedEvents.push(event);
+            }
+          });
+
+          // eventsData를 새로운 순서로 교체
+          eventsData.length = 0;
+          eventsData.push(...reorderedEvents);
+
+          console.log(
+            "eventsData after update:",
+            eventsData.map((ev) => ({
+              id: ev.id,
+              order: ev.order,
+              title: ev.title,
+            }))
+          );
+
           showAlert("✅", "이벤트 순서가 저장되었습니다.");
 
-          // 저장 후 이벤트 목록 새로고침
-          setTimeout(() => {
-            renderEventsAdmin(document.getElementById("subtab-container"));
-          }, 500);
+          // 저장 후 즉시 현재 탭 새로고침 (지연 없이)
+          const isAdmin =
+            currentUser && adminList.includes(currentUser.studentId);
+          renderReservationTab(isAdmin);
         } catch (error) {
           console.error("순서 저장 오류:", error);
           showAlert("😥", "순서 저장 중 오류가 발생했습니다.");
