@@ -1049,6 +1049,12 @@
           >
             🚗 자동차 레이싱
           </button>
+          <button
+            id="ball-bounce-btn"
+            class="w-full p-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
+          >
+            ⚽ 공 튀기기
+          </button>
         </div>
 
         <!-- 랭킹 화면 -->
@@ -9736,6 +9742,10 @@
               // 자동차 레이싱: 더 긴 거리면 업데이트
               shouldUpdate =
                 (details.distance || 0) > (duplicateName.details.distance || 0);
+            } else if (gameType === "ball-bounce") {
+              // 공 튀기기: 더 높은 점수면 업데이트
+              shouldUpdate =
+                (details.score || 0) > (duplicateName.details.score || 0);
             } else {
               // 숫자 맞추기: 더 적은 시도 횟수면 업데이트
               shouldUpdate =
@@ -9801,6 +9811,11 @@
             name: "🚗 자동차 레이싱",
             description: "최고 거리",
           },
+          {
+            type: "ball-bounce",
+            name: "⚽ 공 튀기기",
+            description: "최고 점수",
+          },
         ];
 
         let html = '<div class="space-y-6">';
@@ -9832,6 +9847,8 @@
                 return (b.details.level || 0) - (a.details.level || 0);
               } else if (game.type === "car-racing") {
                 return (b.details.distance || 0) - (a.details.distance || 0);
+              } else if (game.type === "ball-bounce") {
+                return (b.details.score || 0) - (a.details.score || 0);
               } else {
                 return (
                   (a.details.attempts || 999) - (b.details.attempts || 999)
@@ -9873,6 +9890,8 @@
                 displayValue = `레벨 ${score.details.level || 0}`;
               } else if (game.type === "car-racing") {
                 displayValue = `${score.details.distance || 0}m`;
+              } else if (game.type === "ball-bounce") {
+                displayValue = `${score.details.score || 0}점`;
               } else {
                 displayValue = `${score.details.attempts || 0}번`;
               }
@@ -9935,7 +9954,7 @@
             .getElementById("clear-game-scores")
             ?.addEventListener("click", async () => {
               const gameType = prompt(
-                "초기화할 게임을 선택하세요:\n1. number-guess (숫자 맞추기)\n2. color-memory (색깔 기억하기)\n3. car-racing (자동차 레이싱)\n\n게임 타입을 입력하세요:"
+                "초기화할 게임을 선택하세요:\n1. number-guess (숫자 맞추기)\n2. color-memory (색깔 기억하기)\n3. car-racing (자동차 레이싱)\n4. ball-bounce (공 튀기기)\n\n게임 타입을 입력하세요:"
               );
               if (!gameType) return;
 
@@ -9973,6 +9992,7 @@
                 "number-guess": "숫자 맞추기",
                 "color-memory": "색깔 기억하기",
                 "car-racing": "자동차 레이싱",
+                "ball-bounce": "공 튀기기",
               };
 
               if (
@@ -10278,8 +10298,9 @@
         showGameScreen();
         updateCarRacingUI();
 
-        // 키보드 이벤트 리스너 추가
+        // 키보드와 터치 이벤트 리스너 추가
         document.addEventListener("keydown", handleCarRacingKey);
+        document.addEventListener("touchstart", handleCarRacingTouch);
       }
 
       function updateCarRacingUI() {
@@ -10288,10 +10309,10 @@
 
         content.innerHTML = `
           <div class="mb-4">
-            <h4 class="text-lg font-bold text-red-700 mb-2">🚗 자동차 레이싱</h4>
-            <p class="text-sm text-gray-600">좌우 화살표로 장애물을 피하세요!</p>
+            <h4 class="text-lg font-bold text-red-700 mb-2">🏎️ 자동차 레이싱</h4>
+            <p class="text-sm text-gray-600">터치하거나 좌우 화살표로 장애물을 피하세요!</p>
             <div class="flex justify-between text-sm text-gray-600 mt-2">
-              <span>거리: ${distance}m</span>
+              <span>거리: ${Math.floor(distance)}m</span>
               <span>속도: ${speed.toFixed(1)}x</span>
             </div>
           </div>
@@ -10304,12 +10325,27 @@
             <div class="absolute left-1/3 w-1 h-full bg-yellow-400 opacity-50"></div>
             <div class="absolute right-1/3 w-1 h-full bg-yellow-400 opacity-50"></div>
             
-            <!-- 자동차 -->
-            <div id="car" class="absolute bottom-4 w-8 h-12 bg-red-500 rounded transition-all duration-100" 
+            <!-- 자동차 (실제 자동차 모양) -->
+            <div id="car" class="absolute bottom-4 w-10 h-16 transition-all duration-100" 
                  style="left: ${
                    carPosition === 0 ? "25%" : carPosition === 1 ? "50%" : "75%"
                  }; transform: translateX(-50%);">
-              <div class="w-full h-full bg-red-600 rounded flex items-center justify-center text-white text-xs font-bold">🚗</div>
+              <div class="relative w-full h-full">
+                <!-- 자동차 본체 -->
+                <div class="absolute bottom-0 w-full h-10 bg-gradient-to-t from-red-600 to-red-500 rounded-lg shadow-lg"></div>
+                <!-- 자동차 지붕 -->
+                <div class="absolute top-2 left-1 right-1 h-6 bg-gradient-to-t from-red-400 to-red-300 rounded-md"></div>
+                <!-- 앞유리 -->
+                <div class="absolute top-3 left-2 right-2 h-3 bg-blue-200 opacity-60 rounded-sm"></div>
+                <!-- 헤드라이트 -->
+                <div class="absolute bottom-8 left-1 w-2 h-2 bg-yellow-300 rounded-full"></div>
+                <div class="absolute bottom-8 right-1 w-2 h-2 bg-yellow-300 rounded-full"></div>
+                <!-- 바퀴 -->
+                <div class="absolute bottom-1 left-1 w-2 h-2 bg-gray-800 rounded-full"></div>
+                <div class="absolute bottom-1 right-1 w-2 h-2 bg-gray-800 rounded-full"></div>
+                <div class="absolute top-6 left-1 w-2 h-2 bg-gray-800 rounded-full"></div>
+                <div class="absolute top-6 right-1 w-2 h-2 bg-gray-800 rounded-full"></div>
+              </div>
             </div>
             
             <!-- 장애물들 -->
@@ -10320,9 +10356,9 @@
                 ? `
               <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
                 <div class="text-center text-white">
-                  <div class="text-2xl mb-2">🎮</div>
-                  <p class="text-lg font-bold mb-2">준비되면 스페이스바를 누르세요!</p>
-                  <p class="text-sm opacity-75">좌우 화살표 키로 조작</p>
+                  <div class="text-2xl mb-2">🏎️</div>
+                  <p class="text-lg font-bold mb-2">준비되면 시작 버튼을 누르세요!</p>
+                  <p class="text-sm opacity-75">터치하거나 좌우 화살표로 조작</p>
                 </div>
               </div>
             `
@@ -10330,9 +10366,16 @@
             }
           </div>
           
-          <div class="mt-4 text-center">
-            <button id="start-race-btn" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors">
+          <!-- 터치 컨트롤 -->
+          <div class="mt-4 flex justify-center gap-4">
+            <button id="left-btn" class="w-16 h-16 bg-blue-500 text-white rounded-full flex items-center justify-center text-2xl hover:bg-blue-600 active:bg-blue-700 transition-colors touch-manipulation">
+              ←
+            </button>
+            <button id="start-race-btn" class="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 active:bg-green-700 transition-colors touch-manipulation">
               ${gameRunning ? "게임 중..." : "시작!"}
+            </button>
+            <button id="right-btn" class="w-16 h-16 bg-blue-500 text-white rounded-full flex items-center justify-center text-2xl hover:bg-blue-600 active:bg-blue-700 transition-colors touch-manipulation">
+              →
             </button>
           </div>
         `;
@@ -10341,6 +10384,16 @@
         document
           .getElementById("start-race-btn")
           ?.addEventListener("click", startCarRace);
+
+        // 터치 컨트롤 버튼 이벤트 리스너
+        document
+          .getElementById("left-btn")
+          ?.addEventListener("click", () => moveCarLeft());
+
+        document
+          .getElementById("right-btn")
+          ?.addEventListener("click", () => moveCarRight());
+
         updateObstaclesDisplay();
       }
 
@@ -10424,8 +10477,9 @@
         gameState.gameRunning = false;
         clearInterval(gameState.gameLoop);
 
-        // 키보드 이벤트 리스너 제거
+        // 키보드와 터치 이벤트 리스너 제거
         document.removeEventListener("keydown", handleCarRacingKey);
+        document.removeEventListener("touchstart", handleCarRacingTouch);
 
         // 점수 저장
         saveGameScore("car-racing", gameState.distance, {
@@ -10488,6 +10542,276 @@
         }
       }
 
+      // 터치 이벤트 핸들러
+      function handleCarRacingTouch(e) {
+        if (!gameState.gameRunning) return;
+
+        e.preventDefault();
+
+        const touch = e.touches[0];
+        const gameArea = document.querySelector(".relative.bg-gray-800");
+        if (!gameArea) return;
+
+        const rect = gameArea.getBoundingClientRect();
+        const touchX = touch.clientX - rect.left;
+        const gameWidth = rect.width;
+
+        // 화면을 3등분하여 터치 위치에 따라 자동차 이동
+        if (touchX < gameWidth / 3 && gameState.carPosition > 0) {
+          gameState.carPosition--;
+        } else if (touchX > (gameWidth * 2) / 3 && gameState.carPosition < 2) {
+          gameState.carPosition++;
+        }
+      }
+
+      // 자동차 이동 함수들
+      function moveCarLeft() {
+        if (!gameState.gameRunning) return;
+        if (gameState.carPosition > 0) {
+          gameState.carPosition--;
+        }
+      }
+
+      function moveCarRight() {
+        if (!gameState.gameRunning) return;
+        if (gameState.carPosition < 2) {
+          gameState.carPosition++;
+        }
+      }
+
+      // 공 튀기기 게임
+      function startBallBounceGame() {
+        currentGame = "ball-bounce";
+        gameState = {
+          score: 0,
+          ballX: 200,
+          ballY: 100,
+          ballVx: 3,
+          ballVy: -4,
+          paddleX: 150,
+          paddleWidth: 100,
+          gameRunning: false,
+          lives: 3,
+          level: 1,
+          ballSize: 20,
+          paddleSpeed: 8,
+        };
+
+        showGameScreen();
+        updateBallBounceUI();
+
+        // 키보드와 터치 이벤트 리스너 추가
+        document.addEventListener("keydown", handleBallBounceKey);
+        document.addEventListener("mousemove", handleBallBounceMouse);
+        document.addEventListener("touchmove", handleBallBounceTouch);
+      }
+
+      function updateBallBounceUI() {
+        const content = document.getElementById("game-content");
+        const {
+          score,
+          lives,
+          level,
+          ballX,
+          ballY,
+          paddleX,
+          paddleWidth,
+          gameRunning,
+        } = gameState;
+
+        content.innerHTML = `
+          <div class="mb-4">
+            <h4 class="text-lg font-bold text-purple-700 mb-2">⚽ 공 튀기기</h4>
+            <p class="text-sm text-gray-600">공이 바닥에 떨어지지 않도록 패들을 움직이세요!</p>
+            <div class="flex justify-between text-sm text-gray-600 mt-2">
+              <span>점수: ${score}</span>
+              <span>생명: ${lives}</span>
+              <span>레벨: ${level}</span>
+            </div>
+          </div>
+          
+          <div class="relative bg-gradient-to-b from-blue-400 to-blue-600 h-80 rounded-lg overflow-hidden border-2 border-gray-600">
+            <!-- 공 -->
+            <div id="ball" class="absolute w-5 h-5 bg-yellow-400 rounded-full shadow-lg transition-all duration-75" 
+                 style="left: ${ballX}px; top: ${ballY}px;">
+              <div class="w-full h-full bg-gradient-to-br from-yellow-300 to-yellow-500 rounded-full"></div>
+            </div>
+            
+            <!-- 패들 -->
+            <div id="paddle" class="absolute bottom-4 bg-gradient-to-r from-green-500 to-green-600 rounded-lg shadow-lg transition-all duration-75" 
+                 style="left: ${paddleX}px; width: ${paddleWidth}px; height: 12px;"></div>
+            
+            ${
+              !gameRunning
+                ? `
+              <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
+                <div class="text-center text-white">
+                  <div class="text-2xl mb-2">⚽</div>
+                  <p class="text-lg font-bold mb-2">준비되면 시작 버튼을 누르세요!</p>
+                  <p class="text-sm opacity-75">마우스나 터치로 패들 조작</p>
+                </div>
+              </div>
+            `
+                : ""
+            }
+          </div>
+          
+          <div class="mt-4 text-center">
+            <button id="start-ball-btn" class="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 transition-colors">
+              ${gameRunning ? "게임 중..." : "시작!"}
+            </button>
+          </div>
+        `;
+
+        // 이벤트 리스너 추가
+        document
+          .getElementById("start-ball-btn")
+          ?.addEventListener("click", startBallGame);
+      }
+
+      function startBallGame() {
+        if (gameState.gameRunning) return;
+
+        gameState.gameRunning = true;
+        gameState.ballX = 200;
+        gameState.ballY = 100;
+        gameState.ballVx = 3;
+        gameState.ballVy = -4;
+
+        updateBallBounceUI();
+        gameState.gameLoop = setInterval(ballGameLoop, 16); // 60fps
+      }
+
+      function ballGameLoop() {
+        if (!gameState.gameRunning) return;
+
+        // 공 위치 업데이트
+        gameState.ballX += gameState.ballVx;
+        gameState.ballY += gameState.ballVy;
+
+        // 벽 충돌 검사
+        if (gameState.ballX <= 0 || gameState.ballX >= 380) {
+          gameState.ballVx = -gameState.ballVx;
+        }
+        if (gameState.ballY <= 0) {
+          gameState.ballVy = -gameState.ballVy;
+        }
+
+        // 바닥 충돌 검사
+        if (gameState.ballY >= 300) {
+          gameState.lives--;
+          if (gameState.lives <= 0) {
+            endBallGame();
+            return;
+          }
+
+          // 공 리셋
+          gameState.ballX = 200;
+          gameState.ballY = 100;
+          gameState.ballVx = 3;
+          gameState.ballVy = -4;
+        }
+
+        // 패들 충돌 검사
+        if (
+          gameState.ballY >= 280 &&
+          gameState.ballX >= gameState.paddleX &&
+          gameState.ballX <= gameState.paddleX + gameState.paddleWidth
+        ) {
+          gameState.ballVy = -Math.abs(gameState.ballVy);
+          gameState.score += 10;
+
+          // 속도 증가
+          gameState.ballVx *= 1.02;
+          gameState.ballVy *= 1.02;
+
+          // 레벨 업
+          if (gameState.score % 100 === 0) {
+            gameState.level++;
+            gameState.paddleWidth = Math.max(60, gameState.paddleWidth - 5);
+          }
+        }
+
+        updateBallBounceUI();
+      }
+
+      function endBallGame() {
+        gameState.gameRunning = false;
+        clearInterval(gameState.gameLoop);
+
+        // 이벤트 리스너 제거
+        document.removeEventListener("keydown", handleBallBounceKey);
+        document.removeEventListener("mousemove", handleBallBounceMouse);
+        document.removeEventListener("touchmove", handleBallBounceTouch);
+
+        // 점수 저장
+        saveGameScore("ball-bounce", gameState.score, {
+          score: gameState.score,
+          level: gameState.level,
+          lives: gameState.lives,
+        });
+
+        // 결과 화면 표시
+        const content = document.getElementById("game-content");
+        content.innerHTML = `
+          <div class="text-center py-8">
+            <div class="text-6xl mb-4">🏆</div>
+            <h4 class="text-xl font-bold text-purple-700 mb-2">게임 종료!</h4>
+            <p class="text-lg text-gray-700 mb-2">최종 점수: <span class="font-bold text-purple-600">${gameState.score}점</span></p>
+            <p class="text-sm text-gray-600 mb-4">도달 레벨: ${gameState.level}</p>
+            <button id="restart-ball-game" class="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 transition-colors">
+              다시 플레이
+            </button>
+          </div>
+        `;
+
+        document
+          .getElementById("restart-ball-game")
+          ?.addEventListener("click", () => {
+            startBallBounceGame();
+          });
+      }
+
+      function handleBallBounceKey(e) {
+        if (!gameState.gameRunning) return;
+
+        if (e.key === "ArrowLeft" && gameState.paddleX > 0) {
+          gameState.paddleX -= gameState.paddleSpeed;
+        } else if (e.key === "ArrowRight" && gameState.paddleX < 300) {
+          gameState.paddleX += gameState.paddleSpeed;
+        }
+      }
+
+      function handleBallBounceMouse(e) {
+        if (!gameState.gameRunning) return;
+
+        const gameArea = document.querySelector(".relative.bg-gradient-to-b");
+        if (!gameArea) return;
+
+        const rect = gameArea.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        gameState.paddleX = Math.max(
+          0,
+          Math.min(300, mouseX - gameState.paddleWidth / 2)
+        );
+      }
+
+      function handleBallBounceTouch(e) {
+        if (!gameState.gameRunning) return;
+
+        e.preventDefault();
+        const touch = e.touches[0];
+        const gameArea = document.querySelector(".relative.bg-gradient-to-b");
+        if (!gameArea) return;
+
+        const rect = gameArea.getBoundingClientRect();
+        const touchX = touch.clientX - rect.left;
+        gameState.paddleX = Math.max(
+          0,
+          Math.min(300, touchX - gameState.paddleWidth / 2)
+        );
+      }
+
       // 게임 점수 데이터 로드
       function loadGameScores() {
         if (!currentUser) return;
@@ -10529,6 +10853,10 @@
           ?.addEventListener("click", startCarRacingGame);
 
         document
+          .getElementById("ball-bounce-btn")
+          ?.addEventListener("click", startBallBounceGame);
+
+        document
           .getElementById("game-back-btn")
           ?.addEventListener("click", showGameSelection);
         document
@@ -10537,6 +10865,7 @@
             if (currentGame === "number-guess") startNumberGuessGame();
             else if (currentGame === "color-memory") startColorMemoryGame();
             else if (currentGame === "car-racing") startCarRacingGame();
+            else if (currentGame === "ball-bounce") startBallBounceGame();
           });
 
         // 탭 버튼 이벤트 리스너
