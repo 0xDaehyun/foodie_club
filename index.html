@@ -7,7 +7,7 @@
       content="width=device-width, initial-scale=1, viewport-fit=cover"
     />
     <meta name="theme-color" content="#6366f1" />
-    <title>Foodie Lounge</title>
+    <title>Foodie</title>
 
     <!-- 앱 아이콘 -->
     <link
@@ -535,6 +535,46 @@
         border-color: #fb923c;
       }
 
+      .timeline-admin-buttons {
+        display: flex;
+        gap: 4px;
+        margin-left: 8px;
+      }
+
+      .timeline-edit-btn,
+      .timeline-delete-btn {
+        width: 24px;
+        height: 24px;
+        border: none;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-size: 12px;
+      }
+
+      .timeline-edit-btn {
+        background: #3b82f6;
+        color: white;
+      }
+
+      .timeline-edit-btn:hover {
+        background: #2563eb;
+        transform: scale(1.1);
+      }
+
+      .timeline-delete-btn {
+        background: #ef4444;
+        color: white;
+      }
+
+      .timeline-delete-btn:hover {
+        background: #dc2626;
+        transform: scale(1.1);
+      }
+
       .timeline-item.completed .timeline-content {
         opacity: 0.8;
         background: #fef7ed;
@@ -766,7 +806,7 @@
               id="rank-button"
               class="text-sm md:text-base bg-orange-500 text-white rounded-full px-3 py-1 hover:bg-orange-600"
             >
-              🏅 조모임 순위
+              🏅 조모임
             </button>
             <!-- 미니게임 버튼 -->
             <button
@@ -918,13 +958,13 @@
         class="bg-white p-6 md:p-7 rounded-2xl shadow-xl max-w-lg w-full max-h-[80vh] overflow-y-auto"
       >
         <div class="flex justify-between items-center mb-3">
-          <h3 class="text-2xl font-bold text-orange-700">🏅 조모임 순위</h3>
+          <h3 class="text-2xl font-bold text-orange-700">🏅 조모임</h3>
           <div id="rank-admin-controls" class="hidden">
             <button
               id="rank-add-team"
               class="bg-green-500 text-white px-3 py-1 rounded text-sm hover:bg-green-600 transition-colors"
             >
-              <i class="fas fa-plus mr-1"></i>팀 추가
+              <i class="fas fa-plus mr-1"></i>조모임 추가
             </button>
           </div>
         </div>
@@ -991,10 +1031,10 @@
             🎨 색깔 기억하기
           </button>
           <button
-            id="word-scramble-btn"
-            class="w-full p-3 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors"
+            id="car-racing-btn"
+            class="w-full p-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
           >
-            📝 단어 맞추기
+            🚗 자동차 레이싱
           </button>
         </div>
 
@@ -1069,6 +1109,14 @@
         <p class="text-center text-gray-600 mb-4 md:mb-6">
           새로운 관리자를 임명하여 시스템 접근 권한을 복구합니다.
         </p>
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+          <p class="text-sm text-yellow-800">
+            <i class="fas fa-info-circle mr-1"></i>
+            <strong>직접 로그인:</strong> 학번에
+            <code>foodie_emergency_2024!</code> 입력 후 이름을 입력하면 즉시
+            관리자 권한으로 로그인됩니다.
+          </p>
+        </div>
         <input
           type="text"
           id="new-admin-id"
@@ -1262,17 +1310,7 @@
         function (ul) {
           if (!ul) return;
 
-          // 1) 모바일 화살표 주입
-          [...ul.querySelectorAll("li")].forEach((li) => {
-            if (li.querySelector(".mobile-reorder")) return;
-            const box = document.createElement("div");
-            box.className = "mobile-reorder";
-            box.innerHTML = `
-      <button class="move-up" title="위로">↑</button>
-      <button class="move-down" title="아래로">↓</button>
-    `;
-            li.appendChild(box);
-          });
+          // 모바일 화살표 제거 (순서변경 버튼 제거)
           ul.addEventListener("click", (e) => {
             const li = e.target.closest("li");
             if (!li) return;
@@ -1382,7 +1420,7 @@
       const storage = getStorage(app);
 
       const IS_FILE = location.protocol === "file:";
-      const USE_DEMO_OFFLINE = IS_FILE;
+      const USE_DEMO_OFFLINE = false; // 항상 Firebase 사용하도록 변경
 
       /* ===== 상태 ===== */
       let currentUser = null;
@@ -1549,8 +1587,34 @@
       async function login() {
         const sid = el.id.value.trim();
         const nm = el.name.value.trim();
-        if (sid === MASTER_CODE && nm === "")
-          return el.emerg.classList.remove("hidden");
+
+        // 비상복구모드: 마스터 코드 입력 시 이름 없이도 접근 가능
+        if (sid === MASTER_CODE) {
+          if (nm === "") {
+            return el.emerg.classList.remove("hidden");
+          } else {
+            // 이름이 입력된 경우 비상복구모드로 로그인
+            localStorage.setItem(
+              "foodieUser",
+              JSON.stringify({ studentId: sid, name: nm })
+            );
+            currentUser = { studentId: sid, name: nm };
+
+            // 비상복구모드에서는 관리자 권한 부여
+            adminList = [sid];
+            adminPositions = { [sid]: "비상복구관리자" };
+            currentUser.position = "비상복구관리자";
+
+            console.log("=== 비상복구모드 로그인 ===");
+            console.log("currentUser:", currentUser);
+            console.log("adminList:", adminList);
+
+            ensureAdminOptionals();
+            renderAll();
+            return;
+          }
+        }
+
         if (!sid || !nm)
           return showAlert("😥", "학번과 이름을 모두 입력해주세요.");
         try {
@@ -1568,8 +1632,10 @@
               "입력한 이름이 회원 정보와 일치하지 않습니다. 운영진에게 수정 요청해주세요."
             );
           const status = data.status || "active";
-          if (status === "pending")
-            return showAlert("⏳", "<b>관리자 승인 대기중</b>입니다.");
+          // 개발용: pending 상태도 허용하고 관리자 권한 부여
+          if (status === "pending") {
+            console.log("⚠️ 개발 모드: pending 상태 사용자도 로그인 허용");
+          }
           if (status === "rejected")
             return showAlert(
               "⛔",
@@ -1644,7 +1710,9 @@
           if (!ms.exists()) return logout();
           const d = ms.data() || {};
           if ((d.name || "").trim() !== saved.name) return logout();
-          if ((d.status || "active") !== "active") return logout();
+          // 개발용: pending 상태도 허용
+          const status = d.status || "active";
+          if (status === "rejected" || status === "blocked") return logout();
           try {
             const a = await getDoc(doc(db, "admins", "list"));
             adminList = a.exists() ? a.data().studentIds || [] : [];
@@ -1953,20 +2021,38 @@
         }
         if (!unsubPublic.roadmap) {
           // 로드맵: order 필드를 관리하므로 정렬은 렌더링 시점에서 처리
+          console.log(
+            "로드맵 데이터 로딩 시작, USE_DEMO_OFFLINE:",
+            USE_DEMO_OFFLINE
+          );
+
           if (USE_DEMO_OFFLINE) {
             // 로컬 파일 모드에서는 데모 데이터 사용
             roadmapData = DEMO.roadmap;
+            console.log("DEMO 로드맵 데이터 사용:", roadmapData);
             scheduleRender();
           } else {
+            console.log("Firebase에서 로드맵 데이터 로딩 중...");
             unsubPublic.roadmap = onSnapshot(
               collection(db, "roadmap"),
               (snap) => {
                 roadmapData = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+                console.log("Firebase 로드맵 데이터 업데이트:", roadmapData);
+                console.log("문서 개수:", snap.docs.length);
+                console.log(
+                  "변경된 문서들:",
+                  snap.docChanges().map((change) => ({
+                    type: change.type,
+                    docId: change.doc.id,
+                    data: change.doc.data(),
+                  }))
+                );
                 scheduleRender();
               },
               (err) => {
-                console.warn("roadmap:", err?.message);
+                console.warn("roadmap 로딩 오류:", err?.message);
                 roadmapData = DEMO.roadmap;
+                console.log("오류로 인해 DEMO 데이터 사용:", roadmapData);
                 scheduleRender();
               }
             );
@@ -2064,6 +2150,7 @@
         // 게임 점수 데이터 로드 (모든 로그인 사용자)
         if (currentUser) {
           loadGameScores();
+          loadGroupsData();
         }
       }
 
@@ -2166,13 +2253,27 @@
                 <div class="mb-2">
                   <div class="flex items-center justify-between mb-2">
                     <h3 class="text-lg md:text-xl font-bold">Foodie 로드맵</h3>
-                    <button
-                      id="h-roadmap-toggle-btn"
-                      type="button"
-                      class="text-sm text-orange-600 hover:text-orange-800 font-semibold underline"
-                    >
-                      전체 일정 보기
-                    </button>
+                    <div class="flex items-center gap-2">
+                      ${
+                        currentUser && adminList.includes(currentUser.studentId)
+                          ? `<button
+                              id="h-roadmap-add-btn"
+                              type="button"
+                              class="text-sm bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded transition-colors"
+                              title="새 일정 추가"
+                            >
+                              <i class="fas fa-plus mr-1"></i>일정 추가
+                            </button>`
+                          : ""
+                      }
+                      <button
+                        id="h-roadmap-toggle-btn"
+                        type="button"
+                        class="text-sm text-orange-600 hover:text-orange-800 font-semibold underline"
+                      >
+                        전체 일정 보기
+                      </button>
+                    </div>
                   </div>
                   <div class="roadmap-timeline" id="h-roadmap-list"></div>
                 </div>
@@ -2243,16 +2344,8 @@
           document
             .getElementById("rank-add-team")
             ?.addEventListener("click", () => {
-              // 점수판 블록 생성 또는 수정 모달 열기
-              const scoreBlocks =
-                blocksData?.filter((b) => b.type === "scores") || [];
-              if (scoreBlocks.length > 0) {
-                // 기존 점수판 블록이 있으면 수정
-                openBlockModal("scores", scoreBlocks[0].id);
-              } else {
-                // 없으면 새로 생성
-                openBlockModal("scores");
-              }
+              // 조모임 추가 모달 열기
+              openGroupAddModal();
             });
 
           document
@@ -2276,6 +2369,14 @@
               roadmapShowAll = !roadmapShowAll;
               renderHorizontalRoadmap();
             });
+
+          // 로드맵 추가 버튼 이벤트 리스너
+          const roadmapAddBtn = document.getElementById("h-roadmap-add-btn");
+          if (roadmapAddBtn) {
+            roadmapAddBtn.addEventListener("click", () => {
+              openRoadmapAddModal();
+            });
+          }
 
           renderReservationTab(isAdmin); // 신청하기 탭
           renderHistoryTab(isAdmin);
@@ -2484,6 +2585,14 @@
 
         return `
           <div class="block-admin-controls absolute top-2 right-2 flex gap-1 ${opacityClass} transition-opacity">
+            <button class="move-block-up bg-gray-500 text-white px-2 py-1 rounded text-xs hover:bg-gray-600 transition-colors" 
+                    data-block-id="${block.id}" title="위로 이동">
+              <i class="fas fa-arrow-up"></i>
+            </button>
+            <button class="move-block-down bg-gray-500 text-white px-2 py-1 rounded text-xs hover:bg-gray-600 transition-colors" 
+                    data-block-id="${block.id}" title="아래로 이동">
+              <i class="fas fa-arrow-down"></i>
+            </button>
             <button class="edit-block-inline bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600 transition-colors" 
                     data-id="${block.id}" data-type="${block.type}" title="수정">
               <i class="fas fa-edit"></i>
@@ -2522,8 +2631,85 @@
         });
         const snippets = visible.map((b) => {
           if (b.type === "scores") {
-            // 조모임 순위는 블록으로 표시하지 않고 버튼으로만 표시
-            return "";
+            // 점수판 블록 표시
+            const teams = b.payload?.teams || [];
+            const sortedTeams = teams.sort(
+              (a, b) => (b.score || 0) - (a.score || 0)
+            );
+
+            const teamsHTML = sortedTeams
+              .map(
+                (team, index) => `
+              <div class="flex items-center justify-between p-3 bg-gradient-to-r from-orange-50 to-orange-100 border border-orange-200 rounded-lg">
+                <div class="flex items-center gap-3">
+                  <div class="flex items-center justify-center w-8 h-8 rounded-full text-white font-bold text-sm ${
+                    index === 0
+                      ? "bg-yellow-500"
+                      : index === 1
+                      ? "bg-gray-400"
+                      : index === 2
+                      ? "bg-amber-600"
+                      : "bg-orange-500"
+                  }">
+                    ${index + 1}
+                  </div>
+                  <div>
+                    <span class="font-bold text-lg text-gray-800">${saf(
+                      team.name
+                    )}</span>
+                    <div class="text-sm text-gray-600">${
+                      team.score || 0
+                    }점</div>
+                  </div>
+                </div>
+              </div>
+            `
+              )
+              .join("");
+
+            // 관리자 권한 확인
+            const isAdmin =
+              currentUser && adminList.includes(currentUser.studentId);
+
+            return `
+              <div class="border rounded-lg p-4 bg-white shadow-sm hover:shadow-md transition-shadow relative">
+                ${
+                  isAdmin
+                    ? `
+                  <div class="absolute top-2 right-2 flex gap-1">
+                    <button class="move-block-up bg-gray-500 text-white px-2 py-1 rounded text-xs hover:bg-gray-600 transition-colors" 
+                            data-block-id="${b.id}" title="위로 이동">
+                      <i class="fas fa-arrow-up"></i>
+                    </button>
+                    <button class="move-block-down bg-gray-500 text-white px-2 py-1 rounded text-xs hover:bg-gray-600 transition-colors" 
+                            data-block-id="${b.id}" title="아래로 이동">
+                      <i class="fas fa-arrow-down"></i>
+                    </button>
+                    <button class="edit-score-block-btn bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600 transition-colors" 
+                            data-block-id="${b.id}" title="수정">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="delete-score-block-btn bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600 transition-colors" 
+                            data-block-id="${b.id}" title="삭제">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </div>
+                `
+                    : ""
+                }
+                <div class="flex justify-between items-start mb-3">
+                  <h3 class="font-bold text-lg text-gray-800">${saf(
+                    b.title
+                  )}</h3>
+                </div>
+                <div class="space-y-2">
+                  ${
+                    teamsHTML ||
+                    '<p class="text-gray-400 text-center py-4">팀 데이터가 없습니다.</p>'
+                  }
+                </div>
+              </div>
+            `;
           } else if (b.type === "qa") {
             const items = b.payload?.items || [];
             const html = items.length
@@ -2842,6 +3028,49 @@
                   showAlert("😥", "블록 삭제에 실패했습니다.");
                 }
               }
+            });
+          });
+
+          // 점수판 블록 이벤트 리스너 추가
+          wrap.querySelectorAll(".edit-score-block-btn").forEach((btn) => {
+            btn.addEventListener("click", (e) => {
+              e.stopPropagation();
+              const blockId = btn.dataset.blockId;
+              openBlockModal("scores", blockId);
+            });
+          });
+
+          wrap.querySelectorAll(".delete-score-block-btn").forEach((btn) => {
+            btn.addEventListener("click", async (e) => {
+              e.stopPropagation();
+              const blockId = btn.dataset.blockId;
+              if (!confirm("점수판 블록을 삭제할까요?")) return;
+
+              try {
+                await deleteDoc(doc(db, "homepageBlocks", blockId));
+                showAlert("✅", "점수판 블록이 삭제되었습니다.");
+                renderBlocks(); // 블록 목록 새로고침
+              } catch (error) {
+                console.error("점수판 블록 삭제 오류:", error);
+                showAlert("😥", "점수판 블록 삭제 중 오류가 발생했습니다.");
+              }
+            });
+          });
+
+          // 블록 순서 변경 버튼 이벤트 리스너 추가
+          wrap.querySelectorAll(".move-block-up").forEach((btn) => {
+            btn.addEventListener("click", async (e) => {
+              e.stopPropagation();
+              const blockId = btn.dataset.blockId;
+              await moveBlockUp(blockId);
+            });
+          });
+
+          wrap.querySelectorAll(".move-block-down").forEach((btn) => {
+            btn.addEventListener("click", async (e) => {
+              e.stopPropagation();
+              const blockId = btn.dataset.blockId;
+              await moveBlockDown(blockId);
             });
           });
 
@@ -3642,16 +3871,42 @@
             }
 
             try {
-              await updateDoc(doc(db, "roadmap", eventId), {
+              console.log("로드맵 수정 시도:", { eventId, name, date });
+              console.log("현재 roadmapData:", roadmapData);
+              console.log(
+                "찾으려는 이벤트:",
+                roadmapData.find((e) => e.id === eventId)
+              );
+
+              // 문서 존재 여부 확인
+              const docRef = doc(db, "roadmap", eventId);
+              const docSnap = await getDoc(docRef);
+
+              console.log("문서 존재 여부:", docSnap.exists());
+              console.log(
+                "문서 데이터:",
+                docSnap.exists() ? docSnap.data() : "문서 없음"
+              );
+
+              if (!docSnap.exists()) {
+                showAlert("😥", "수정하려는 일정을 찾을 수 없습니다.");
+                return;
+              }
+
+              await updateDoc(docRef, {
                 activityName: name,
                 activityDate: date,
               });
               showAlert("✅", "로드맵 일정이 수정되었습니다.");
               document.getElementById("roadmap-event-edit-modal").remove();
-              renderRoadmap();
+              // 수정 후 로드맵 새로고침 (onSnapshot으로 자동 업데이트됨)
             } catch (error) {
               console.error("일정 수정 오류:", error);
-              showAlert("😥", "일정 수정에 실패했습니다.");
+              if (error.code === "not-found") {
+                showAlert("😥", "수정하려는 일정을 찾을 수 없습니다.");
+              } else {
+                showAlert("😥", "일정 수정에 실패했습니다.");
+              }
             }
           });
 
@@ -3731,12 +3986,22 @@
         const isAdmin =
           currentUser && adminList.includes(currentUser.studentId);
         if (!isAdmin) return "";
-        return `<div class="mt-3 flex gap-2">
+        return `<div class="mt-3 flex gap-2 flex-wrap">
                   <button type="button" class="text-blue-600 hover:text-blue-800 text-sm" data-act="admin-edit" data-id="${ev.id}"><i class="fas fa-pen"></i> 수정</button>
                   <button type="button" class="text-amber-600 hover:text-amber-800 text-sm" data-act="admin-archive" data-id="${ev.id}"><i class="fas fa-box-archive"></i> 보관</button>
                   <button type="button" class="text-purple-600 hover:text-purple-800 text-sm" data-act="group-maker" data-id="${ev.id}"><i class="fas fa-users"></i> 조짜기</button>
-                  <button type="button" class="text-red-600 hover:text-red-800 text-sm" data-act="admin-delete" data-id="${ev.id}"><i class="fas fa-trash"></i> 삭제</button>
                   <button type="button" class="text-orange-700 hover:text-orange-900 text-sm" data-act="export-xlsx" data-id="${ev.id}"><i class="fas fa-file-excel"></i> 명단 다운로드</button>
+                  <button type="button" class="text-red-600 hover:text-red-800 text-sm" data-act="admin-delete" data-id="${ev.id}"><i class="fas fa-trash"></i> 삭제</button>
+                </div>
+                <div class="absolute top-2 right-2 flex gap-1">
+                  <button type="button" class="move-event-up bg-gray-500 text-white px-2 py-1 rounded text-xs hover:bg-gray-600 transition-colors" 
+                          data-act="move-event-up" data-id="${ev.id}" title="위로 이동">
+                    <i class="fas fa-arrow-up"></i>
+                  </button>
+                  <button type="button" class="move-event-down bg-gray-500 text-white px-2 py-1 rounded text-xs hover:bg-gray-600 transition-colors" 
+                          data-act="move-event-down" data-id="${ev.id}" title="아래로 이동">
+                    <i class="fas fa-arrow-down"></i>
+                  </button>
                 </div>`;
       };
       function paymentInfoHTML(ev) {
@@ -3744,14 +4009,14 @@
         const p = ev.payment || {};
         if (!p.bank && !p.number && !p.holder && !p.note) return "";
         const line = [p.bank, p.number].filter(Boolean).map(saf).join(" ");
-        return `<div class="mt-2 text-sm bg-amber-50 border border-amber-200 rounded p-2">
-                  <div class="font-semibold text-amber-800">💸 회비 입금 정보</div>
-                  <div class="text-amber-700">${line || ""}${
+        return `<div class="mt-2 text-sm bg-orange-50 border border-orange-200 rounded p-2">
+                  <div class="font-semibold text-orange-800">💸 회비 입금 정보</div>
+                  <div class="text-orange-700">${line || ""}${
           p.holder ? ` (예금주 ${saf(p.holder)})` : ""
         }</div>
                   ${
                     p.note
-                      ? `<div class="text-amber-700">${saf(p.note)}</div>`
+                      ? `<div class="text-orange-700">${saf(p.note)}</div>`
                       : ""
                   }
                 </div>`;
@@ -3776,14 +4041,14 @@
         let btn;
         if (currentUser) {
           if (my === "apply") {
-            btn = `<button type="button" class="w-full mt-3 bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg transition-colors cursor-pointer" data-act="cancel-general" data-id="${ev.id}">신청 취소</button>`;
+            btn = `<button type="button" class="w-full mt-3 bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition-colors cursor-pointer" data-act="cancel-general" data-id="${ev.id}">신청 취소</button>`;
           } else if (my === "wait") {
-            btn = `<button type="button" class="w-full mt-3 bg-orange-600 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded-lg transition-colors cursor-pointer" data-act="cancel-wait-general" data-id="${ev.id}">대기 취소</button>`;
+            btn = `<button type="button" class="w-full mt-3 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition-colors cursor-pointer" data-act="cancel-wait-general" data-id="${ev.id}">대기 취소</button>`;
           } else {
             btn = `<button type="button" class="w-full mt-3 ${
               count < lim
                 ? "bg-orange-600 hover:bg-orange-700"
-                : "bg-amber-500 hover:bg-amber-600"
+                : "bg-orange-500 hover:bg-orange-600"
             } text-white font-bold py-2 px-4 rounded-lg transition-colors cursor-pointer" data-act="reserve-general" data-id="${
               ev.id
             }">${count < lim ? "신청하기" : "대기 신청"}</button>`;
@@ -3856,6 +4121,8 @@
               </div>`;
           })
           .join("");
+        const isAdmin =
+          currentUser && adminList.includes(currentUser.studentId);
         return `<div class="section card-hover ${typeAccentClass(
           ev.type
         )}" data-event-id="${
@@ -3921,107 +4188,171 @@
             );
             const btn = currentUser
               ? isInReservations
-                ? `<button type="button" class="w-full mt-2 bg-gray-600 text-white font-bold py-1.5 rounded" data-act="cancel-tasting" data-id="${ev.id}" data-rid="${r.id}">신청 취소</button>`
+                ? `<button type="button" class="w-full mt-2 bg-red-500 hover:bg-red-600 text-white font-bold py-1.5 rounded transition-colors" data-act="cancel-tasting" data-id="${ev.id}" data-rid="${r.id}">신청 취소</button>`
                 : isInWaiting
-                ? `<button type="button" class="w-full mt-2 bg-orange-600 text-white font-bold py-1.5 rounded" data-act="cancel-wait-tasting" data-id="${ev.id}" data-rid="${r.id}">대기 취소</button>`
+                ? `<button type="button" class="w-full mt-2 bg-gray-500 hover:bg-gray-600 text-white font-bold py-1.5 rounded transition-colors" data-act="cancel-wait-tasting" data-id="${ev.id}" data-rid="${r.id}">대기 취소</button>`
                 : `<button type="button" class="w-full mt-2 ${
-                    cnt < cap ? "bg-green-600" : "bg-amber-500"
-                  } text-white font-bold py-1.5 rounded" data-act="reserve-tasting" data-id="${
+                    cnt < cap
+                      ? "bg-orange-600 hover:bg-orange-700"
+                      : "bg-orange-500 hover:bg-orange-600"
+                  } text-white font-bold py-1.5 rounded transition-colors" data-act="reserve-tasting" data-id="${
                     ev.id
                   }" data-rid="${r.id}">${cnt < cap ? "신청" : "대기"}</button>`
               : `<div class="w-full mt-2 bg-gray-100 text-gray-500 font-bold py-1.5 rounded text-center text-sm">로그인 후 신청 가능</div>`;
             const namesList = (r.reservations || [])
               .map(
                 (a, index) =>
-                  `<div class="flex items-center justify-between p-2 bg-green-50 border border-green-200 rounded-lg mb-1">
+                  `<div class="flex items-center justify-between p-3 bg-orange-50 border border-orange-200 rounded-lg mb-2 hover:bg-orange-100 transition-colors">
                     <div class="flex items-center gap-3">
-                      <span class="flex items-center justify-center w-6 h-6 bg-green-500 text-white text-xs font-bold rounded-full">${
+                      <span class="flex items-center justify-center w-7 h-7 bg-orange-500 text-white text-sm font-bold rounded-full">${
                         index + 1
                       }</span>
-                      <span class="font-medium text-gray-800">${saf(
-                        a.name
+                      <div>
+                        <span class="font-medium text-gray-800 block">${saf(
+                          a.name
+                        )}</span>
+                        <span class="text-xs text-gray-500">${mask(
+                          a.studentId
+                        )}</span>
+                      </div>
+                    </div>
+                    <div class="text-right">
+                      <span class="text-xs text-gray-500">${saf(
+                        a.gender || ""
+                      )}</span>
+                      <br>
+                      <span class="text-xs text-gray-500">${saf(
+                        a.college || ""
                       )}</span>
                     </div>
-                    <span class="font-mono text-xs text-gray-500">${mask(
-                      a.studentId
-                    )}</span>
                   </div>`
               )
               .join("");
             const waitingList = (r.waiting || [])
               .map(
                 (a, index) =>
-                  `<div class="flex items-center justify-between p-2 bg-amber-50 border border-amber-200 rounded-lg mb-1">
+                  `<div class="flex items-center justify-between p-3 bg-orange-100 border border-orange-300 rounded-lg mb-2 hover:bg-orange-200 transition-colors">
                     <div class="flex items-center gap-3">
-                      <span class="flex items-center justify-center w-6 h-6 bg-amber-500 text-white text-xs font-bold rounded-full">${
+                      <span class="flex items-center justify-center w-7 h-7 bg-orange-600 text-white text-sm font-bold rounded-full">${
                         index + 1
                       }</span>
-                      <span class="font-medium text-gray-800">${saf(
-                        a.name
+                      <div>
+                        <span class="font-medium text-gray-800 block">${saf(
+                          a.name
+                        )}</span>
+                        <span class="text-xs text-gray-500">${mask(
+                          a.studentId
+                        )}</span>
+                      </div>
+                    </div>
+                    <div class="text-right">
+                      <span class="text-xs text-gray-500">${saf(
+                        a.gender || ""
+                      )}</span>
+                      <br>
+                      <span class="text-xs text-gray-500">${saf(
+                        a.college || ""
                       )}</span>
                     </div>
-                    <span class="font-mono text-xs text-gray-500">${mask(
-                      a.studentId
-                    )}</span>
                   </div>`
               )
               .join("");
-            return `<div class="border rounded p-3">
+            return `<div class="border rounded-lg p-4 bg-white shadow-sm hover:shadow-md transition-shadow">
                     ${
                       r.imageUrl
                         ? `<img src="${saf(r.imageUrl)}" alt="${saf(
                             r.name
-                          )}" class="w-full h-32 object-cover rounded mb-2" onerror="this.style.display='none'">`
+                          )}" class="w-full h-32 object-cover rounded-lg mb-3" onerror="this.style.display='none'">`
                         : ""
                     }
-                    <div class="flex justify-between">
-                      <div><b>${saf(
-                        r.name
-                      )}</b><div class="text-sm text-gray-500">${saf(
-              r.info || ""
-            )}</div></div>
-                      <div class="text-sm text-gray-600 
+                    <div class="flex justify-between items-start mb-2">
+                      <div>
+                        <h4 class="font-bold text-lg text-gray-800">${saf(
+                          r.name
+                        )}</h4>
+                        <p class="text-sm text-gray-600 mt-1">${saf(
+                          r.info || ""
+                        )}</p>
+                      </div>
+                      <div class="text-sm text-gray-600 bg-gray-100 px-2 py-1 rounded">
+                        신청: ${cnt}/${cap}명
+                      </div>
                     </div>
-                    <div class="w-full bg-gray-200 rounded-full h-3 mt-2"><div class="bg-green-500 h-3 rounded-full" style="width:${
-                      cap ? Math.min(100, Math.round((cnt / cap) * 100)) : 0
-                    }%"></div></div>
-                    <div class="mt-2"><div class="text-xs font-semibold text-gray-600  mb-1">참가자</div><div class="max-h-20 overflow-y-auto border rounded bg-gray-50 p-2">${
-                      namesList ||
-                      '<div class="text-xs text-gray-400">아직 없음</div>'
-                    }</div></div>
-                    <div class="mt-2"><div class="text-xs font-semibold text-gray-600  mb-1">대기자</div><div class="max-h-16 overflow-y-auto border rounded bg-amber-50 p-2">${
-                      waitingList ||
-                      '<div class="text-xs text-amber-400">대기자 없음</div>'
-                    }</div>
-                      <div class="text-[11px] text-amber-700 mt-1">※ 자리가 비면 자동으로 <b>대기 → 참가</b>로 전환돼요.</div></div>
-                    ${btn}
+                    
+                    <div class="w-full bg-gray-200 rounded-full h-2 mb-3">
+                      <div class="bg-orange-500 h-2 rounded-full transition-all duration-300" style="width:${
+                        cap ? Math.min(100, Math.round((cnt / cap) * 100)) : 0
+                      }%"></div>
+                    </div>
+                    
+                    <div class="space-y-3">
+                      <div>
+                        <div class="text-sm font-semibold text-gray-700 mb-2">참가자</div>
+                        <div class="max-h-24 overflow-y-auto border rounded-lg bg-orange-50 p-2">${
+                          namesList ||
+                          '<div class="text-sm text-gray-400 text-center py-2">아직 없음</div>'
+                        }</div>
+                      </div>
+                      
+                      <div>
+                        <div class="text-sm font-semibold text-gray-700 mb-2">대기자</div>
+                        <div class="max-h-20 overflow-y-auto border rounded-lg bg-orange-100 p-2">${
+                          waitingList ||
+                          '<div class="text-sm text-orange-500 text-center py-2">대기자 없음</div>'
+                        }</div>
+                        <div class="text-xs text-orange-600 mt-1">※ 자리가 비면 자동으로 <b>대기 → 참가</b>로 전환돼요.</div>
+                      </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                      ${btn}
+                    </div>
                   </div>`;
           })
           .join("");
+        const isAdmin =
+          currentUser && adminList.includes(currentUser.studentId);
         return `<div class="section card-hover ${typeAccentClass(
           ev.type
         )}" data-event-id="${
           ev.id
-        }" style="position: relative; z-index: 1; margin-bottom: 1.5rem; height: auto; overflow: visible; clear: both;">
-                  <h3 class="text-xl font-bold text-gray-800">${saf(
-                    ev.title
-                  )}</h3>
-                  <p class="text-gray-500">🗓️ ${
-                    ev.datetime
-                      ? new Date(ev.datetime).toLocaleString("ko-KR")
-                      : "-"
-                  }</p>
-                  ${adminStatsHTML(ev)}
-                  <div class="grid grid-cols-1 gap-3 mt-3">${list}</div>
-                  <div class="text-xs text-gray-400 mt-3">상태: ${statusLabel(
-                    ev.status || "open"
-                  )}</div>
-                  <div class="flex gap-2 mt-2 text-sm text-gray-600">
-                    <span class="px-2 py-0.5 rounded ${typeBadgeClass(
-                      ev.type
-                    )}">${typeLabel(ev.type)}</span>
+        }" style="position: relative; z-index: 1; margin-bottom: 2rem; height: auto; overflow: visible; clear: both;">
+                  <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+                    <div class="p-6 border-b border-gray-100">
+                      <div class="flex justify-between items-start mb-3">
+                        <h3 class="text-2xl font-bold text-gray-800">${saf(
+                          ev.title
+                        )}</h3>
+                        <span class="px-3 py-1 rounded-full text-sm font-medium ${typeBadgeClass(
+                          ev.type
+                        )}">
+                          ${typeLabel(ev.type)}
+                        </span>
+                      </div>
+                      <p class="text-gray-600 flex items-center gap-2">
+                        <i class="fas fa-calendar-alt"></i>
+                        ${
+                          ev.datetime
+                            ? new Date(ev.datetime).toLocaleString("ko-KR")
+                            : "-"
+                        }
+                      </p>
+                      ${adminStatsHTML(ev)}
+                    </div>
+                    
+                    <div class="p-6">
+                      <div class="space-y-4">${list}</div>
+                      
+                      <div class="mt-6 pt-4 border-t border-gray-100">
+                        <div class="flex justify-between items-center">
+                          <div class="text-sm text-gray-500">
+                            상태: ${statusLabel(ev.status || "open")}
+                          </div>
+                          ${adminInline(ev)}
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  ${adminInline(ev)}
                 </div>`;
       }
       function eventCardHTML(ev) {
@@ -4061,7 +4392,7 @@
           `<tr><td class="px-2 py-6 text-center text-gray-400" colspan="7">신청자 없음</td></tr>`;
         const toolbar = `<div class="flex items-center justify-between mb-2">
             <div class="text-xs font-semibold text-gray-700">관리자 전용 • 참가자 상세</div>
-            <button type="button" class="text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded" data-act="export-xlsx" data-id="${ev.id}">
+            <button type="button" class="text-xs bg-orange-600 hover:bg-orange-700 text-white px-3 py-1 rounded" data-act="export-xlsx" data-id="${ev.id}">
               <i class="fas fa-file-excel mr-1"></i>명단 다운로드
             </button>
           </div>`;
@@ -4095,9 +4426,6 @@
                   <p class="text-xs text-gray-500">현재 신청 가능한 이벤트/미식회입니다.</p>
                 </div>
                 <div class="flex flex-col sm:flex-row gap-2">
-                  <button id="toggle-order-btn" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors shadow-md">
-                    <i class="fas fa-sort mr-2"></i>순서 변경
-                  </button>
                   <button id="create-event-btn" class="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors shadow-md">
                     <i class="fas fa-plus mr-2"></i>이벤트 생성
                   </button>
@@ -4121,15 +4449,6 @@
         // 새로운 이벤트 리스너 등록
         c.addEventListener("click", handleReservationTabClick);
 
-        // 순서 변경 버튼 이벤트 리스너 (임시로 모든 로그인 사용자에게 권한 부여)
-        if (currentUser) {
-          const toggleBtn = document.getElementById("toggle-order-btn");
-          if (toggleBtn) {
-            // 기존 리스너 제거 후 새로 등록
-            toggleBtn.removeEventListener("click", toggleEventOrderMode);
-            toggleBtn.addEventListener("click", toggleEventOrderMode);
-          }
-        }
         // bindAdminEventsPanel은 모달 내부에서만 호출됨
       }
 
@@ -4151,321 +4470,6 @@
         if (act === "group-maker") return openGroupMakerModal(id);
         if (act === "admin-delete") return deleteEvent(id);
         if (act === "export-xlsx") return exportApplicantsXLSX(id);
-      }
-
-      /* ===== 이벤트 순서 변경 기능 ===== */
-      let isOrderMode = false;
-      let saveOrderHandler = null;
-
-      function toggleEventOrderMode() {
-        console.log("=== toggleEventOrderMode 호출됨 ===");
-        console.log("현재 isOrderMode:", isOrderMode);
-
-        isOrderMode = !isOrderMode;
-        const container = document.getElementById("events-container");
-        const toggleBtn = document.getElementById("toggle-order-btn");
-
-        console.log("container:", container);
-        console.log("toggleBtn:", toggleBtn);
-        console.log("새로운 isOrderMode:", isOrderMode);
-
-        if (!container || !toggleBtn) {
-          console.error("container 또는 toggleBtn을 찾을 수 없습니다");
-          return;
-        }
-
-        if (isOrderMode) {
-          // 순서 변경 모드 활성화
-          container.classList.add("sortable");
-          container.style.display = "block";
-          toggleBtn.innerHTML = '<i class="fas fa-check mr-2"></i>순서 저장';
-          toggleBtn.className =
-            "bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors shadow-md";
-
-          // 저장 버튼 클릭 이벤트 추가 (이벤트 리스너 방식 사용)
-          saveOrderHandler = async (e) => {
-            console.log("순서 저장 버튼 클릭됨");
-            try {
-              await saveEventOrder();
-              console.log("saveEventOrder 완료");
-              // 저장 후 순서 변경 모드 종료 (직접 처리)
-              isOrderMode = false;
-              exitOrderMode();
-            } catch (error) {
-              console.error("저장 버튼 클릭 시 오류:", error);
-            }
-          };
-          toggleBtn.addEventListener("click", saveOrderHandler);
-
-          // 각 이벤트 카드에 순서 변경 버튼 추가
-          const eventCards = container.querySelectorAll(".section");
-          eventCards.forEach((card, index) => {
-            card.dataset.order = index;
-
-            // 순서 변경 버튼 컨테이너 추가
-            const orderControls = document.createElement("div");
-            orderControls.className =
-              "absolute top-2 right-2 flex flex-col gap-1";
-            orderControls.innerHTML = `
-              <button type="button" class="order-up-btn w-6 h-6 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors text-xs" ${
-                index === 0 ? "disabled" : ""
-              } title="위로 이동">
-                <i class="fas fa-chevron-up"></i>
-              </button>
-              <button type="button" class="order-down-btn w-6 h-6 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors text-xs" ${
-                index === eventCards.length - 1 ? "disabled" : ""
-              } title="아래로 이동">
-                <i class="fas fa-chevron-down"></i>
-              </button>
-            `;
-            card.style.position = "relative";
-            card.appendChild(orderControls);
-
-            // 버튼 이벤트 리스너
-            const upBtn = orderControls.querySelector(".order-up-btn");
-            const downBtn = orderControls.querySelector(".order-down-btn");
-
-            upBtn.addEventListener("click", () => moveEventUp(card));
-            downBtn.addEventListener("click", () => moveEventDown(card));
-          });
-
-          // 초기 버튼 상태 업데이트
-          updateOrderButtons();
-        } else {
-          // 순서 변경 모드 비활성화 - 저장하지 않고 단순히 모드만 종료
-          exitOrderMode();
-        }
-      }
-
-      function exitOrderMode() {
-        const container = document.getElementById("events-container");
-        const toggleBtn = document.getElementById("toggle-order-btn");
-
-        if (!container || !toggleBtn) return;
-
-        container.classList.remove("sortable");
-        toggleBtn.innerHTML = '<i class="fas fa-sort mr-2"></i>순서 변경';
-        toggleBtn.className =
-          "bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors shadow-md";
-
-        // 저장 버튼 클릭 이벤트 제거 (이벤트 리스너 방식)
-        if (saveOrderHandler) {
-          toggleBtn.removeEventListener("click", saveOrderHandler);
-          saveOrderHandler = null;
-        }
-
-        // 순서 변경 버튼 제거
-        const eventCards = container.querySelectorAll(".section");
-        eventCards.forEach((card) => {
-          card.removeAttribute("data-order");
-
-          // 순서 변경 버튼 제거
-          const orderControls = card
-            .querySelector(".order-up-btn")
-            ?.closest("div");
-          if (orderControls) {
-            orderControls.remove();
-          }
-        });
-
-        // 저장 후에는 화면 새로고침하지 않음 (이미 저장된 순서로 표시됨)
-      }
-
-      function moveEventUp(card) {
-        const container = document.getElementById("events-container");
-        const prevCard = card.previousElementSibling;
-        if (prevCard) {
-          container.insertBefore(card, prevCard);
-          updateOrderButtons();
-          updateDataOrderAttributes();
-        }
-      }
-
-      function moveEventDown(card) {
-        const container = document.getElementById("events-container");
-        const nextCard = card.nextElementSibling;
-        if (nextCard) {
-          container.insertBefore(nextCard, card);
-          updateOrderButtons();
-          updateDataOrderAttributes();
-        }
-      }
-
-      function updateDataOrderAttributes() {
-        const container = document.getElementById("events-container");
-        const eventCards = container.querySelectorAll(".section");
-        eventCards.forEach((card, index) => {
-          card.dataset.order = index;
-        });
-      }
-
-      function updateOrderButtons() {
-        const container = document.getElementById("events-container");
-        const eventCards = container.querySelectorAll(".section");
-        eventCards.forEach((card, index) => {
-          const upBtn = card.querySelector(".order-up-btn");
-          const downBtn = card.querySelector(".order-down-btn");
-
-          if (upBtn) {
-            upBtn.disabled = index === 0;
-            upBtn.className =
-              index === 0
-                ? "order-up-btn w-6 h-6 bg-gray-400 text-white rounded cursor-not-allowed text-xs"
-                : "order-up-btn w-6 h-6 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors text-xs";
-          }
-
-          if (downBtn) {
-            downBtn.disabled = index === eventCards.length - 1;
-            downBtn.className =
-              index === eventCards.length - 1
-                ? "order-down-btn w-6 h-6 bg-gray-400 text-white rounded cursor-not-allowed text-xs"
-                : "order-down-btn w-6 h-6 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors text-xs";
-          }
-        });
-      }
-
-      async function saveEventOrder() {
-        console.log("=== saveEventOrder 시작 ===");
-        console.log("현재 사용자:", currentUser);
-        console.log("관리자 목록:", adminList);
-        console.log(
-          "관리자 여부:",
-          currentUser && adminList.includes(currentUser.studentId)
-        );
-
-        // 관리자 권한 확인
-        console.log("=== 관리자 권한 확인 ===");
-        console.log("currentUser:", currentUser);
-        console.log("adminList:", adminList);
-        console.log("currentUser.studentId:", currentUser?.studentId);
-        console.log(
-          "adminList.includes:",
-          adminList.includes(currentUser?.studentId)
-        );
-
-        // 임시로 모든 로그인 사용자에게 순서 변경 권한 부여
-        if (!currentUser) {
-          console.error("로그인이 필요합니다");
-          showAlert("😥", "로그인이 필요합니다.");
-          return;
-        }
-
-        console.log("관리자 권한 확인 통과");
-
-        const container = document.getElementById("events-container");
-        if (!container) {
-          console.error("events-container를 찾을 수 없습니다");
-          return;
-        }
-
-        const eventCards = container.querySelectorAll(".section");
-        const orderUpdates = [];
-
-        console.log("saveEventOrder: Found", eventCards.length, "event cards");
-
-        eventCards.forEach((card, index) => {
-          // 이벤트 ID 추출 - 여러 방법 시도
-          let eventId = card.dataset.eventId;
-
-          if (!eventId) {
-            // 관리자 편집 버튼에서 ID 추출
-            const editBtn = card.querySelector('[data-act="admin-edit"]');
-            if (editBtn) {
-              eventId = editBtn.dataset.id;
-            }
-          }
-
-          if (!eventId) {
-            // 다른 버튼들에서 ID 추출 시도
-            const anyBtn = card.querySelector("[data-id]");
-            if (anyBtn) {
-              eventId = anyBtn.dataset.id;
-            }
-          }
-
-          console.log("Card", index, "Event ID:", eventId, "DOM order:", index);
-
-          if (eventId) {
-            orderUpdates.push({ id: eventId, order: index });
-          }
-        });
-
-        console.log("Order updates:", orderUpdates);
-        console.log(
-          "Current eventsData before update:",
-          eventsData.map((ev) => ({
-            id: ev.id,
-            order: ev.order,
-            title: ev.title,
-          }))
-        );
-
-        if (orderUpdates.length === 0) {
-          showAlert("😥", "저장할 이벤트를 찾을 수 없습니다.");
-          return;
-        }
-
-        try {
-          console.log("Firebase 저장 시작...");
-
-          // 각 이벤트를 개별적으로 업데이트 (더 안전한 방법)
-          for (const update of orderUpdates) {
-            const eventRef = doc(db, "events", update.id);
-            console.log(
-              `Firebase 업데이트 시작: 이벤트 ${update.id} -> order: ${update.order}`
-            );
-            await updateDoc(eventRef, { order: update.order });
-            console.log(
-              `Firebase 업데이트 완료: 이벤트 ${update.id} -> order: ${update.order}`
-            );
-
-            // 업데이트 후 즉시 확인
-            const updatedDoc = await getDoc(eventRef);
-            const updatedData = updatedDoc.data();
-            console.log(
-              `업데이트 확인: 이벤트 ${update.id}의 실제 order 값:`,
-              updatedData?.order
-            );
-          }
-
-          console.log("Firebase 저장 완료!");
-
-          // 로컬 데이터를 저장된 순서대로 재정렬
-          orderUpdates.forEach((update) => {
-            const event = eventsData.find((ev) => ev.id === update.id);
-            if (event) {
-              event.order = update.order;
-            }
-          });
-
-          // order 값으로 정렬
-          eventsData.sort((a, b) => (a.order || 0) - (b.order || 0));
-
-          console.log(
-            "eventsData after update:",
-            eventsData.map((ev) => ({
-              id: ev.id,
-              order: ev.order,
-              title: ev.title,
-            }))
-          );
-
-          showAlert("✅", "이벤트 순서가 저장되었습니다.");
-
-          // Firebase 리스너가 업데이트를 감지할 때까지 잠시 대기 후 화면 새로고침
-          setTimeout(() => {
-            console.log("=== 저장 후 화면 새로고침 ===");
-            const isAdmin =
-              currentUser && adminList.includes(currentUser.studentId);
-            renderReservationTab(isAdmin);
-            console.log("화면 새로고침 완료");
-          }, 1000); // 더 긴 대기 시간으로 Firebase 리스너 업데이트 보장
-        } catch (error) {
-          console.error("순서 저장 오류:", error);
-          console.error("오류 상세:", error.message);
-          console.error("오류 스택:", error.stack);
-          showAlert("😥", "순서 저장 중 오류가 발생했습니다: " + error.message);
-        }
       }
 
       /* ===== 이벤트 관리자 패널 (대시보드에서 제거, 신청하기 탭 상단으로 이동) ===== */
@@ -4578,11 +4582,11 @@
           onTypeChange(e.target.value)
         );
         addRestaurantBtn.addEventListener("click", () => addRestaurantField());
-        
+
         // 기존 식당 필드들에 이벤트 바인딩
         const existingRows = wrap.querySelectorAll(".restaurant-row");
-        existingRows.forEach(row => bindRestaurantFieldEvents(row));
-        
+        existingRows.forEach((row) => bindRestaurantFieldEvents(row));
+
         // 식당 삭제 버튼 이벤트
         wrap.addEventListener("click", (e) => {
           const row = e.target.closest(".restaurant-row");
@@ -4761,69 +4765,122 @@
       const addRestaurantField = () => {
         const wrap = document.getElementById("event-restaurants-wrap");
         if (!wrap) return;
-        
+
         wrap.insertAdjacentHTML("beforeend", restaurantFieldHTML());
-        
+
         // 새로 추가된 필드에 이벤트 바인딩
         bindRestaurantFieldEvents(wrap.lastElementChild);
-      }
+      };
 
       // 식당 필드에 이벤트 바인딩하는 함수
       function bindRestaurantFieldEvents(row) {
-        if (!row) return;
+        if (!row) {
+          console.error("bindRestaurantFieldEvents: row가 없습니다");
+          return;
+        }
+
+        console.log("식당 필드 이벤트 바인딩 시작:", row);
 
         // 파일 선택 버튼과 드롭존 클릭 이벤트
         const selectImageBtn = row.querySelector(".select-image");
         const dropzone = row.querySelector("[data-role='dropzone']");
         const fileInput = row.querySelector("[data-role='file']");
 
+        console.log("DOM 요소 확인:", {
+          selectImageBtn: !!selectImageBtn,
+          dropzone: !!dropzone,
+          fileInput: !!fileInput,
+        });
+
+        // 파일 선택 버튼 이벤트
         if (selectImageBtn && fileInput) {
-          selectImageBtn.addEventListener("click", () => {
+          // 기존 이벤트 리스너 제거 (중복 방지)
+          selectImageBtn.removeEventListener("click", handleFileSelect);
+          selectImageBtn.addEventListener("click", handleFileSelect);
+
+          function handleFileSelect(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log("파일 선택 버튼 클릭됨");
             fileInput.click();
-          });
+          }
         }
 
+        // 드롭존 클릭 이벤트
         if (dropzone && fileInput) {
-          dropzone.addEventListener("click", () => {
+          dropzone.removeEventListener("click", handleDropzoneClick);
+          dropzone.addEventListener("click", handleDropzoneClick);
+
+          function handleDropzoneClick(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log("드롭존 클릭됨");
             fileInput.click();
-          });
+          }
         }
 
         // 파일 선택 변경 이벤트
         if (fileInput) {
-          fileInput.addEventListener("change", (e) => {
+          fileInput.removeEventListener("change", handleFileChange);
+          fileInput.addEventListener("change", handleFileChange);
+
+          function handleFileChange(e) {
+            console.log("파일 선택됨:", e.target.files);
             const f = e.target.files?.[0];
             e.target.value = "";
-            if (f) uploadRestaurantImage(row, f);
-          });
+            if (f) {
+              console.log("파일 업로드 시작:", f.name, f.type);
+              uploadRestaurantImage(row, f);
+            }
+          }
         }
 
         // 드래그 앤 드롭 이벤트
-        ["dragenter", "dragover"].forEach((evt) => {
-          dropzone?.addEventListener(evt, (e) => {
-            e.preventDefault();
-            dropzone.classList.add("drag");
-          });
-        });
+        if (dropzone) {
+          ["dragenter", "dragover"].forEach((evt) => {
+            dropzone.removeEventListener(evt, handleDragOver);
+            dropzone.addEventListener(evt, handleDragOver);
 
-        ["dragleave", "drop"].forEach((evt) => {
-          dropzone?.addEventListener(evt, (e) => {
+            function handleDragOver(e) {
+              e.preventDefault();
+              e.stopPropagation();
+              dropzone.classList.add("drag");
+            }
+          });
+
+          ["dragleave", "drop"].forEach((evt) => {
+            dropzone.removeEventListener(evt, handleDragLeave);
+            dropzone.addEventListener(evt, handleDragLeave);
+
+            function handleDragLeave(e) {
+              e.preventDefault();
+              e.stopPropagation();
+              dropzone.classList.remove("drag");
+            }
+          });
+
+          dropzone.removeEventListener("drop", handleDrop);
+          dropzone.addEventListener("drop", handleDrop);
+
+          function handleDrop(e) {
             e.preventDefault();
+            e.stopPropagation();
             dropzone.classList.remove("drag");
-          });
-        });
+            const f = e.dataTransfer.files?.[0];
+            if (f) {
+              console.log("드래그 앤 드롭 파일 업로드 시작:", f.name, f.type);
+              uploadRestaurantImage(row, f);
+            }
+          }
+        }
 
-        dropzone?.addEventListener("drop", (e) => {
-          e.preventDefault();
-          const f = e.dataTransfer.files?.[0];
-          if (f) uploadRestaurantImage(row, f);
-        });
+        console.log("식당 필드 이벤트 바인딩 완료");
       }
 
       /* ===== 이미지 업로드 ===== */
       async function uploadRestaurantImage(row, file) {
         console.log("이미지 업로드 시작:", file);
-        
+
         if (IS_FILE) {
           showAlert(
             "ℹ️",
@@ -4831,47 +4888,51 @@
           );
           return;
         }
-        
+
         if (!currentUser) {
           console.error("현재 사용자 없음");
           return showAlert("😥", "로그인이 필요합니다.");
         }
-        
+
         if (!file || !file.type.startsWith("image/")) {
           console.error("이미지 파일이 아님:", file?.type);
           return showAlert("ℹ️", "이미지 파일만 업로드 가능합니다.");
         }
-        
+
         const overlay = row.querySelector("[data-role='uploading']");
         const imageUrlField = row.querySelector("[data-field='imageUrl']");
         const previewImg = row.querySelector("[data-role='preview']");
         const dropzone = row.querySelector("[data-role='dropzone']");
-        
+
         if (!overlay || !imageUrlField || !previewImg || !dropzone) {
           console.error("필요한 DOM 요소를 찾을 수 없음:", {
             overlay: !!overlay,
             imageUrlField: !!imageUrlField,
             previewImg: !!previewImg,
-            dropzone: !!dropzone
+            dropzone: !!dropzone,
           });
           return showAlert("😥", "이미지 업로드 요소를 찾을 수 없습니다.");
         }
-        
+
         overlay.classList.remove("hidden");
-        
+
         try {
           const ext = (file.name.split(".").pop() || "png").toLowerCase();
-          const path = `event-images/${currentUser.studentId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-          
+          const path = `event-images/${
+            currentUser.studentId
+          }/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+
           console.log("업로드 경로:", path);
-          
+
           const ref = sRef(storage, path);
           const task = uploadBytesResumable(ref, file);
-          
+
           await new Promise((resolve, reject) => {
-            task.on("state_changed", 
+            task.on(
+              "state_changed",
               (snapshot) => {
-                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                const progress =
+                  (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
                 console.log(`업로드 진행률: ${progress.toFixed(2)}%`);
               },
               (error) => {
@@ -4884,22 +4945,21 @@
               }
             );
           });
-          
+
           const url = await getDownloadURL(task.snapshot.ref);
           console.log("다운로드 URL:", url);
-          
+
           // DOM 요소 업데이트
           imageUrlField.value = url;
           previewImg.src = url;
           previewImg.classList.remove("hidden");
           dropzone.classList.add("hidden");
-          
+
           showAlert("✅", "이미지 업로드 완료!");
-          
         } catch (err) {
           console.error("이미지 업로드 실패:", err);
           let errorMessage = "이미지 업로드 실패. ";
-          
+
           if (err.code === "storage/unauthorized") {
             errorMessage += "권한이 없습니다.";
           } else if (err.code === "storage/network-request-failed") {
@@ -4907,7 +4967,7 @@
           } else {
             errorMessage += "알 수 없는 오류가 발생했습니다.";
           }
-          
+
           showAlert("😥", errorMessage);
         } finally {
           overlay.classList.add("hidden");
@@ -5038,7 +5098,7 @@
             ev.restaurants[idx] = r;
             tx.update(ref, { restaurants: ev.restaurants });
           });
-          showAlert("✅", "처리되었습니다.");
+          showAlert("✅", "신청 완료!");
         } catch (e) {
           if (String(e?.message).includes("DUP"))
             showAlert(
@@ -5181,8 +5241,8 @@
             }
             showAlert("🎉", "이벤트가 생성되었습니다.");
             closeEventModal();
-            // 이벤트 목록만 새로고침 (전체 페이지 렌더링 방지)
-            renderEventsAdmin(document.getElementById("subtab-container"));
+            // 이벤트 목록 새로고침 (전체 페이지 렌더링)
+            renderAll();
           } else {
             const ref = doc(db, "events", editingEventId);
             const snap = await getDoc(ref);
@@ -5234,12 +5294,13 @@
             }
             showAlert("✅", "이벤트가 수정되었습니다.");
             closeEventModal();
-            // 이벤트 목록만 새로고침 (전체 페이지 렌더링 방지)
-            renderEventsAdmin(document.getElementById("subtab-container"));
+            // 이벤트 목록 새로고침 (전체 페이지 렌더링)
+            renderAll();
           }
           resetEventForm();
-        } catch {
-          showAlert("😥", "저장 중 오류가 발생했습니다.");
+        } catch (error) {
+          console.error("이벤트 저장 오류:", error);
+          showAlert("😥", `저장 중 오류가 발생했습니다: ${error.message}`);
         }
       }
       function resetEventForm() {
@@ -5279,10 +5340,11 @@
         try {
           await deleteDoc(doc(db, "events", id));
           showAlert("🗑️", "삭제되었습니다.");
-          // 이벤트 목록만 새로고침 (전체 페이지 렌더링 방지)
-          renderEventsAdmin(document.getElementById("subtab-container"));
-        } catch {
-          showAlert("😥", "삭제 실패");
+          // 이벤트 목록 새로고침 (전체 페이지 렌더링)
+          renderAll();
+        } catch (error) {
+          console.error("이벤트 삭제 오류:", error);
+          showAlert("😥", `삭제 실패: ${error.message}`);
         }
       }
       // 조짜기 모달 열기
@@ -6338,6 +6400,551 @@
         }
       }
 
+      /* ===== 엑셀 파일 업로드 및 회원 관리 ===== */
+
+      // 파일 업로드 이벤트 리스너
+      document.addEventListener("click", (e) => {
+        if (e.target.id === "excel-upload-btn") {
+          document.getElementById("excel-upload").click();
+        }
+
+        if (e.target.id === "download-template") {
+          downloadExcelTemplate();
+        }
+
+        if (e.target.closest("#file-drop-zone")) {
+          document.getElementById("excel-upload").click();
+        }
+      });
+
+      document.addEventListener("change", (e) => {
+        if (e.target.id === "excel-upload") {
+          const file = e.target.files[0];
+          if (file) {
+            handleFileUpload(file);
+          }
+        }
+      });
+
+      // 드래그 앤 드롭 이벤트 리스너
+      document.addEventListener("dragover", (e) => {
+        if (e.target.closest("#file-drop-zone")) {
+          e.preventDefault();
+          e.target
+            .closest("#file-drop-zone")
+            .classList.add("border-green-400", "bg-green-50");
+        }
+      });
+
+      document.addEventListener("dragleave", (e) => {
+        if (e.target.closest("#file-drop-zone")) {
+          e.preventDefault();
+          e.target
+            .closest("#file-drop-zone")
+            .classList.remove("border-green-400", "bg-green-50");
+        }
+      });
+
+      document.addEventListener("drop", (e) => {
+        if (e.target.closest("#file-drop-zone")) {
+          e.preventDefault();
+          e.target
+            .closest("#file-drop-zone")
+            .classList.remove("border-green-400", "bg-green-50");
+
+          const files = e.dataTransfer.files;
+          if (files.length > 0) {
+            handleFileUpload(files[0]);
+          }
+        }
+      });
+
+      // 엑셀 템플릿 다운로드
+      function downloadExcelTemplate() {
+        try {
+          const templateData = [
+            [
+              "이름",
+              "학번",
+              "성별",
+              "학년",
+              "단과대",
+              "학과",
+              "전화번호",
+              "상태",
+            ],
+            [
+              "홍길동",
+              "20241234",
+              "남",
+              "1",
+              "공과대학",
+              "컴퓨터공학과",
+              "010-1234-5678",
+              "승인",
+            ],
+            [
+              "김영희",
+              "20245678",
+              "여",
+              "2",
+              "인문대학",
+              "영어영문학과",
+              "010-9876-5432",
+              "대기",
+            ],
+          ];
+
+          const ws = XLSX.utils.aoa_to_sheet(templateData);
+          const wb = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(wb, ws, "회원정보");
+
+          XLSX.writeFile(wb, "회원정보_템플릿.xlsx");
+          showAlert("✅", "엑셀 템플릿이 다운로드되었습니다.");
+        } catch (error) {
+          console.error("템플릿 다운로드 오류:", error);
+          showAlert("😥", "템플릿 다운로드에 실패했습니다.");
+        }
+      }
+
+      // 파일 처리 (Excel/CSV)
+      async function handleFileUpload(file) {
+        const progressDiv = document.getElementById("upload-progress");
+        const resultDiv = document.getElementById("upload-result");
+
+        try {
+          // 파일 크기 검증 (10MB 제한)
+          if (file.size > 10 * 1024 * 1024) {
+            throw new Error("파일 크기가 너무 큽니다. (최대 10MB)");
+          }
+
+          // 파일 형식 검증
+          const fileName = file.name.toLowerCase();
+          if (
+            !fileName.endsWith(".xlsx") &&
+            !fileName.endsWith(".xls") &&
+            !fileName.endsWith(".csv")
+          ) {
+            throw new Error(
+              "지원되지 않는 파일 형식입니다. (.xlsx, .xls, .csv만 지원)"
+            );
+          }
+
+          // 진행 상태 표시
+          progressDiv.classList.remove("hidden");
+          resultDiv.classList.add("hidden");
+
+          // 파일 읽기
+          const data = await readFile(file);
+          console.log("파일 데이터:", data);
+
+          if (!data || data.length < 2) {
+            throw new Error("파일에 유효한 데이터가 없습니다.");
+          }
+
+          // 데이터 검증 및 처리 (유연한 파싱)
+          const validationResult = validateFileData(data);
+          console.log("검증 결과:", validationResult);
+
+          if (!validationResult.isValid) {
+            throw new Error(
+              `데이터 검증 실패: ${validationResult.errors.join(", ")}`
+            );
+          }
+
+          // 회원 정보 처리
+          const processResult = await processMemberData(data);
+
+          // 결과 표시
+          showUploadResult(processResult);
+        } catch (error) {
+          console.error("파일 업로드 오류:", error);
+
+          // 진행 상태 숨기기
+          progressDiv.classList.add("hidden");
+
+          // 오류 결과 표시
+          const errorResult = {
+            success: false,
+            updatedCount: 0,
+            newCount: 0,
+            errorCount: 1,
+            errors: [error.message],
+          };
+          showUploadResult(errorResult);
+
+          // 오류 알림
+          showAlert("😥", `파일 업로드 실패: ${error.message}`);
+        } finally {
+          // 파일 입력 초기화
+          const fileInput = document.getElementById("excel-upload");
+          if (fileInput) {
+            fileInput.value = "";
+          }
+        }
+      }
+
+      // 파일 읽기 (Excel/CSV)
+      function readFile(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            try {
+              const fileName = file.name.toLowerCase();
+
+              if (fileName.endsWith(".csv")) {
+                // CSV 파일 처리
+                const csvText = e.target.result;
+                const lines = csvText.split("\n");
+                const data = lines.map((line) => {
+                  // CSV 파싱 (쉼표 구분, 따옴표 처리)
+                  const result = [];
+                  let current = "";
+                  let inQuotes = false;
+
+                  for (let i = 0; i < line.length; i++) {
+                    const char = line[i];
+                    if (char === '"') {
+                      inQuotes = !inQuotes;
+                    } else if (char === "," && !inQuotes) {
+                      result.push(current.trim());
+                      current = "";
+                    } else {
+                      current += char;
+                    }
+                  }
+                  result.push(current.trim());
+                  return result;
+                });
+                resolve(data);
+              } else {
+                // Excel 파일 처리
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: "array" });
+                const sheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[sheetName];
+                const jsonData = XLSX.utils.sheet_to_json(worksheet, {
+                  header: 1,
+                });
+                resolve(jsonData);
+              }
+            } catch (error) {
+              reject(new Error("파일을 읽을 수 없습니다."));
+            }
+          };
+          reader.onerror = () => reject(new Error("파일 읽기에 실패했습니다."));
+
+          if (file.name.toLowerCase().endsWith(".csv")) {
+            reader.readAsText(file, "UTF-8");
+          } else {
+            reader.readAsArrayBuffer(file);
+          }
+        });
+      }
+
+      // 파일 데이터 검증 (유연한 파싱)
+      function validateFileData(data) {
+        const warnings = [];
+        const errors = [];
+
+        if (!data || data.length < 2) {
+          errors.push("파일에 데이터가 없습니다.");
+          return { isValid: false, errors, warnings };
+        }
+
+        // 헤더 매핑 (유연한 컬럼 인식)
+        const headers = data[0];
+        const headerMapping = findHeaderMapping(headers);
+
+        if (headerMapping.name === -1 || headerMapping.studentId === -1) {
+          errors.push("이름과 학번 컬럼을 찾을 수 없습니다.");
+        }
+
+        // 경고 메시지 추가
+        if (headerMapping.gender === -1)
+          warnings.push("성별 컬럼을 찾을 수 없습니다.");
+        if (headerMapping.year === -1)
+          warnings.push("학년 컬럼을 찾을 수 없습니다.");
+        if (headerMapping.college === -1)
+          warnings.push("단과대 컬럼을 찾을 수 없습니다.");
+        if (headerMapping.department === -1)
+          warnings.push("학과 컬럼을 찾을 수 없습니다.");
+        if (headerMapping.phone === -1)
+          warnings.push("전화번호 컬럼을 찾을 수 없습니다.");
+        if (headerMapping.status === -1)
+          warnings.push("상태 컬럼을 찾을 수 없습니다.");
+
+        return {
+          isValid: errors.length === 0,
+          errors,
+          warnings,
+          headerMapping,
+        };
+      }
+
+      // 헤더 매핑 찾기 (유연한 컬럼 인식)
+      function findHeaderMapping(headers) {
+        const mapping = {
+          name: -1,
+          studentId: -1,
+          gender: -1,
+          year: -1,
+          college: -1,
+          department: -1,
+          phone: -1,
+          status: -1,
+        };
+
+        headers.forEach((header, index) => {
+          const headerLower = header?.toString().toLowerCase().trim();
+
+          if (headerLower?.includes("이름") || headerLower?.includes("name")) {
+            mapping.name = index;
+          } else if (
+            headerLower?.includes("학번") ||
+            headerLower?.includes("student") ||
+            headerLower?.includes("id")
+          ) {
+            mapping.studentId = index;
+          } else if (
+            headerLower?.includes("성별") ||
+            headerLower?.includes("gender")
+          ) {
+            mapping.gender = index;
+          } else if (
+            headerLower?.includes("학년") ||
+            headerLower?.includes("year") ||
+            headerLower?.includes("grade")
+          ) {
+            mapping.year = index;
+          } else if (
+            headerLower?.includes("단과대") ||
+            headerLower?.includes("college")
+          ) {
+            mapping.college = index;
+          } else if (
+            headerLower?.includes("학과") ||
+            headerLower?.includes("department") ||
+            headerLower?.includes("major")
+          ) {
+            mapping.department = index;
+          } else if (
+            headerLower?.includes("전화") ||
+            headerLower?.includes("phone") ||
+            headerLower?.includes("연락처")
+          ) {
+            mapping.phone = index;
+          } else if (
+            headerLower?.includes("상태") ||
+            headerLower?.includes("status")
+          ) {
+            mapping.status = index;
+          }
+        });
+
+        return mapping;
+      }
+
+      // 회원 데이터 처리 (유연한 헤더 매핑)
+      async function processMemberData(data) {
+        const headers = data[0];
+        const rows = data.slice(1);
+        const headerMapping = findHeaderMapping(headers);
+
+        let updatedCount = 0;
+        let newCount = 0;
+        let errorCount = 0;
+        const errors = [];
+
+        const batch = writeBatch(db);
+
+        for (let i = 0; i < rows.length; i++) {
+          const row = rows[i];
+          try {
+            // 유연한 데이터 추출
+            const memberData = {
+              name:
+                headerMapping.name !== -1
+                  ? row[headerMapping.name]?.toString().trim()
+                  : "",
+              studentId:
+                headerMapping.studentId !== -1
+                  ? row[headerMapping.studentId]?.toString().trim()
+                  : "",
+              gender:
+                headerMapping.gender !== -1
+                  ? row[headerMapping.gender]?.toString().trim()
+                  : "",
+              year:
+                headerMapping.year !== -1
+                  ? row[headerMapping.year]?.toString().trim()
+                  : "",
+              college:
+                headerMapping.college !== -1
+                  ? row[headerMapping.college]?.toString().trim()
+                  : "",
+              department:
+                headerMapping.department !== -1
+                  ? row[headerMapping.department]?.toString().trim()
+                  : "",
+              phone:
+                headerMapping.phone !== -1
+                  ? row[headerMapping.phone]?.toString().trim()
+                  : "",
+              status:
+                headerMapping.status !== -1
+                  ? row[headerMapping.status]?.toString().trim()
+                  : "",
+              lastUpdated: new Date().toISOString(),
+            };
+
+            // 필수 필드 확인
+            if (!memberData.name || !memberData.studentId) {
+              errors.push(`${i + 2}번째 행: 이름과 학번은 필수입니다.`);
+              errorCount++;
+              continue;
+            }
+
+            // 상태값 변환 (한국어 → 영어)
+            memberData.status =
+              convertStatusToEnglish(memberData.status) || "pending";
+
+            // 기존 회원 확인
+            const existingMember = membersData.find(
+              (m) => m.studentId === memberData.studentId
+            );
+
+            if (existingMember) {
+              // 기존 회원 업데이트 (빈 값이 아닌 경우만 업데이트)
+              const updateData = { lastUpdated: memberData.lastUpdated };
+
+              if (memberData.name) updateData.name = memberData.name;
+              if (memberData.gender) updateData.gender = memberData.gender;
+              if (memberData.year) updateData.year = memberData.year;
+              if (memberData.college) updateData.college = memberData.college;
+              if (memberData.department)
+                updateData.department = memberData.department;
+              if (memberData.phone) updateData.phone = memberData.phone;
+              if (memberData.status) updateData.status = memberData.status;
+
+              const memberRef = doc(db, "members", existingMember.id);
+              batch.update(memberRef, updateData);
+              updatedCount++;
+            } else {
+              // 새 회원 추가
+              const memberRef = doc(collection(db, "members"));
+              batch.set(memberRef, {
+                ...memberData,
+                status: "pending", // 새 회원은 항상 대기 상태
+                createdAt: new Date().toISOString(),
+              });
+              newCount++;
+            }
+          } catch (error) {
+            errors.push(`${i + 2}번째 행 처리 오류: ${error.message}`);
+            errorCount++;
+          }
+        }
+
+        try {
+          await batch.commit();
+          return {
+            success: true,
+            updatedCount,
+            newCount,
+            errorCount,
+            errors,
+          };
+        } catch (error) {
+          console.error("배치 처리 오류:", error);
+          throw new Error(`데이터베이스 저장 실패: ${error.message}`);
+        }
+      }
+
+      // 상태값 변환 (한국어 → 영어)
+      function convertStatusToEnglish(status) {
+        if (!status) return null;
+
+        const statusLower = status.toLowerCase().trim();
+
+        if (statusLower.includes("승인") || statusLower === "active") {
+          return "active";
+        } else if (statusLower.includes("대기") || statusLower === "pending") {
+          return "pending";
+        } else if (statusLower.includes("거절") || statusLower === "rejected") {
+          return "rejected";
+        } else if (statusLower.includes("차단") || statusLower === "blocked") {
+          return "blocked";
+        }
+
+        return null;
+      }
+
+      // 업로드 결과 표시
+      function showUploadResult(result) {
+        const resultDiv = document.getElementById("upload-result");
+
+        let resultHTML = `
+          <div class="bg-green-100 border border-green-300 rounded p-4">
+            <h5 class="font-semibold text-green-800 mb-2">
+              <i class="fas fa-check-circle mr-2"></i>엑셀 업로드 완료
+            </h5>
+            <div class="text-sm text-green-700 space-y-1">
+              <p>✅ 업데이트된 회원: ${result.updatedCount}명</p>
+              <p>🆕 새로 추가된 회원: ${result.newCount}명</p>
+              ${
+                result.errorCount > 0
+                  ? `<p>❌ 처리 실패: ${result.errorCount}건</p>`
+                  : ""
+              }
+            </div>
+        `;
+
+        if (result.errors && result.errors.length > 0) {
+          resultHTML += `
+            <details class="mt-3">
+              <summary class="cursor-pointer text-sm font-medium text-green-800">오류 상세 보기</summary>
+              <div class="mt-2 text-xs text-green-600 bg-green-50 p-2 rounded">
+                ${result.errors
+                  .map((error) => `<div>• ${error}</div>`)
+                  .join("")}
+              </div>
+            </details>
+          `;
+        }
+
+        resultHTML += `</div>`;
+        resultDiv.innerHTML = resultHTML;
+        resultDiv.classList.remove("hidden");
+
+        // 회원 목록 업데이트 (Firebase 실시간 업데이트 활용)
+        setTimeout(() => {
+          try {
+            // 관리자 대시보드가 열려있고 회원 관리 탭이 활성화되어 있으면 새로고침
+            const dashboardTab = document.getElementById("dashboard-tab");
+            const subtabContainer = document.getElementById("subtab-container");
+
+            if (
+              dashboardTab &&
+              subtabContainer &&
+              dashboardTab.innerHTML.includes("회원 관리")
+            ) {
+              // 현재 활성화된 탭이 회원 관리인지 확인
+              const activeTab = document.querySelector(
+                ".subtab-btn.bg-gray-800"
+              );
+              if (activeTab && activeTab.dataset.sub === "members") {
+                renderMembersAdmin(subtabContainer);
+              }
+            }
+          } catch (error) {
+            console.error("회원 목록 업데이트 오류:", error);
+            // 오류 발생 시에만 페이지 새로고침
+            location.reload();
+          }
+        }, 2000);
+      }
+
       /* ===================== 관리자 대시보드 ===================== */
       function renderDashboardTab() {
         const c = document.getElementById("dashboard-tab");
@@ -6453,7 +7060,7 @@
                   관리자 추가는 <strong>시스템</strong> 탭에서 가능합니다.
                 </p>
                 <div class="text-xs text-blue-600 bg-blue-100 p-2 rounded">
-                  <strong>비상시:</strong> 로그인 화면에서 학번에 <code>foodie_emergency_2024!</code> 입력 후 '관리자 임명'으로 복구
+                  <strong>비상시:</strong> 로그인 화면에서 학번에 <code>foodie_emergency_2024!</code> 입력 후 이름을 입력하면 즉시 관리자 권한으로 로그인됩니다.
                 </div>
               </div>
             </div>
@@ -6823,6 +7430,146 @@
         }
       }
 
+      // 블록 순서 변경 함수들
+      async function moveBlockUp(blockId) {
+        try {
+          // order 필드로 정렬된 상태에서 찾기
+          const sortedBlocks = [...blocksData].sort(
+            (a, b) => (a.order || 0) - (b.order || 0)
+          );
+          const currentBlock = sortedBlocks.find((b) => b.id === blockId);
+          if (!currentBlock) return;
+
+          const currentIndex = sortedBlocks.indexOf(currentBlock);
+          if (currentIndex <= 0) return; // 이미 맨 위
+
+          const targetBlock = sortedBlocks[currentIndex - 1];
+
+          // order 값 교환
+          const currentOrder = currentBlock.order || currentIndex;
+          const targetOrder = targetBlock.order || currentIndex - 1;
+
+          // Firebase 업데이트
+          await updateDoc(doc(db, "homepageBlocks", blockId), {
+            order: targetOrder,
+          });
+          await updateDoc(doc(db, "homepageBlocks", targetBlock.id), {
+            order: currentOrder,
+          });
+
+          showAlert("✅", "블록 순서가 변경되었습니다.");
+          renderBlocks(); // 블록 목록 새로고침
+        } catch (error) {
+          console.error("블록 순서 변경 오류:", error);
+          showAlert("😥", "블록 순서 변경에 실패했습니다.");
+        }
+      }
+
+      async function moveBlockDown(blockId) {
+        try {
+          // order 필드로 정렬된 상태에서 찾기
+          const sortedBlocks = [...blocksData].sort(
+            (a, b) => (a.order || 0) - (b.order || 0)
+          );
+          const currentBlock = sortedBlocks.find((b) => b.id === blockId);
+          if (!currentBlock) return;
+
+          const currentIndex = sortedBlocks.indexOf(currentBlock);
+          if (currentIndex >= sortedBlocks.length - 1) return; // 이미 맨 아래
+
+          const targetBlock = sortedBlocks[currentIndex + 1];
+
+          // order 값 교환
+          const currentOrder = currentBlock.order || currentIndex;
+          const targetOrder = targetBlock.order || currentIndex + 1;
+
+          // Firebase 업데이트
+          await updateDoc(doc(db, "homepageBlocks", blockId), {
+            order: targetOrder,
+          });
+          await updateDoc(doc(db, "homepageBlocks", targetBlock.id), {
+            order: currentOrder,
+          });
+
+          showAlert("✅", "블록 순서가 변경되었습니다.");
+          renderBlocks(); // 블록 목록 새로고침
+        } catch (error) {
+          console.error("블록 순서 변경 오류:", error);
+          showAlert("😥", "블록 순서 변경에 실패했습니다.");
+        }
+      }
+
+      // 이벤트 순서 변경 함수들
+      async function moveEventUp(eventId) {
+        try {
+          // order 필드로 정렬된 상태에서 찾기
+          const sortedEvents = [...eventsData].sort(
+            (a, b) => (a.order || 0) - (b.order || 0)
+          );
+          const currentEvent = sortedEvents.find((e) => e.id === eventId);
+          if (!currentEvent) return;
+
+          const currentIndex = sortedEvents.indexOf(currentEvent);
+          if (currentIndex <= 0) return; // 이미 맨 위
+
+          const targetEvent = sortedEvents[currentIndex - 1];
+
+          // order 값 교환
+          const currentOrder = currentEvent.order || currentIndex;
+          const targetOrder = targetEvent.order || currentIndex - 1;
+
+          // Firebase 업데이트
+          await updateDoc(doc(db, "events", eventId), {
+            order: targetOrder,
+          });
+          await updateDoc(doc(db, "events", targetEvent.id), {
+            order: currentOrder,
+          });
+
+          showAlert("✅", "이벤트 순서가 변경되었습니다.");
+          // 페이지 새로고침으로 변경사항 반영
+          location.reload();
+        } catch (error) {
+          console.error("이벤트 순서 변경 오류:", error);
+          showAlert("😥", "이벤트 순서 변경에 실패했습니다.");
+        }
+      }
+
+      async function moveEventDown(eventId) {
+        try {
+          // order 필드로 정렬된 상태에서 찾기
+          const sortedEvents = [...eventsData].sort(
+            (a, b) => (a.order || 0) - (b.order || 0)
+          );
+          const currentEvent = sortedEvents.find((e) => e.id === eventId);
+          if (!currentEvent) return;
+
+          const currentIndex = sortedEvents.indexOf(currentEvent);
+          if (currentIndex >= sortedEvents.length - 1) return; // 이미 맨 아래
+
+          const targetEvent = sortedEvents[currentIndex + 1];
+
+          // order 값 교환
+          const currentOrder = currentEvent.order || currentIndex;
+          const targetOrder = targetEvent.order || currentIndex + 1;
+
+          // Firebase 업데이트
+          await updateDoc(doc(db, "events", eventId), {
+            order: targetOrder,
+          });
+          await updateDoc(doc(db, "events", targetEvent.id), {
+            order: currentOrder,
+          });
+
+          showAlert("✅", "이벤트 순서가 변경되었습니다.");
+          // 페이지 새로고침으로 변경사항 반영
+          location.reload();
+        } catch (error) {
+          console.error("이벤트 순서 변경 오류:", error);
+          showAlert("😥", "이벤트 순서 변경에 실패했습니다.");
+        }
+      }
+
       /* ===== 홈 블록 + 로드맵 관리 ===== */
       function renderBlockListItem(block) {
         return `
@@ -6862,10 +7609,6 @@
               </div>
             </div>
             <div class="flex items-center gap-2 flex-shrink-0 sm:ml-2">
-              <div class="mobile-reorder">
-                <button class="move-up" title="위로">↑</button>
-                <button class="move-down" title="아래로">↓</button>
-              </div>
               <button class="edit-block-btn bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600 transition-colors" 
                       data-id="${block.id}" data-type="${block.type}">
                 <i class="fas fa-edit mr-1"></i>수정
@@ -7022,13 +7765,11 @@
         <div class="flex items-center gap-2 min-w-0">
           <i class="fas fa-grip-vertical text-gray-400 grip"></i><span class="truncate">Foodie 로드맵</span>
         </div>
-        <div class="mobile-reorder"></div>
       </li>
       <li draggable="true" data-key="dynamic" class="flex items-center justify-between px-3 py-2">
         <div class="flex items-center gap-2 min-w-0">
           <i class="fas fa-grip-vertical text-gray-400 grip"></i><span class="truncate">홈 화면 블록</span>
         </div>
-        <div class="mobile-reorder"></div>
       </li>
     </ul>
     <div class="mt-3">
@@ -7445,8 +8186,58 @@
 
           <div class="flex flex-wrap items-center gap-2 mb-3">
             <input id="member-search" class="px-3 py-2 border rounded bg-white  text-gray-900  border-gray-300  flex-1 min-w-[200px]" placeholder="이름/학번/학과 검색">
+            <button id="members-bulk-approve" class="px-3 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors">
+              <i class="fas fa-check-circle mr-1"></i>대기 회원 일괄 승인
+            </button>
             <button id="members-export" class="px-3 py-2 bg-blue-600 text-white rounded"><i class="fas fa-file-csv mr-1"></i>CSV 다운로드(한글)</button>
             <button id="members-delete-all" class="px-3 py-2 bg-red-600 text-white rounded"><i class="fas fa-trash mr-1"></i>회원 전체 삭제</button>
+          </div>
+
+          <!-- 엑셀 업로드 섹션 -->
+          <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
+            <h4 class="text-lg font-semibold text-gray-800 mb-3">
+              <i class="fas fa-file-excel mr-2 text-green-600"></i>엑셀 파일로 회원 일괄 관리
+            </h4>
+            <div class="space-y-3">
+              <div class="text-sm text-gray-600">
+                <p class="mb-2">📋 <strong>파일 양식:</strong> 이름, 학번, 성별, 학년, 단과대, 학과, 전화번호, 상태</p>
+                <p class="mb-2">📝 <strong>상태 값:</strong> 승인, 대기, 거절, 차단</p>
+                <p class="text-xs text-gray-500">• 지원 형식: Excel (.xlsx, .xls), CSV (.csv)</p>
+                <p class="text-xs text-gray-500">• 중복 회원(학번 기준)은 정보가 업데이트됩니다</p>
+                <p class="text-xs text-gray-500">• 새로운 회원은 자동으로 '대기' 상태로 등록됩니다</p>
+                <p class="text-xs text-blue-600">• 양식에 맞지 않아도 인식된 정보만으로 처리됩니다</p>
+              </div>
+              
+              <!-- 드래그 앤 드롭 영역 -->
+              <div id="file-drop-zone" class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-green-400 transition-colors cursor-pointer">
+                <div class="space-y-2">
+                  <i class="fas fa-cloud-upload-alt text-3xl text-gray-400"></i>
+                  <p class="text-gray-600 font-medium">파일을 드래그하여 놓거나 클릭하여 선택하세요</p>
+                  <p class="text-xs text-gray-500">Excel (.xlsx, .xls) 또는 CSV (.csv) 파일</p>
+                </div>
+              </div>
+              
+              <div class="flex items-center gap-3">
+                <input type="file" id="excel-upload" accept=".xlsx,.xls,.csv" class="hidden">
+                <button id="excel-upload-btn" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                  <i class="fas fa-upload mr-2"></i>파일 선택
+                </button>
+                <button id="download-template" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
+                  <i class="fas fa-download mr-2"></i>양식 다운로드
+                </button>
+              </div>
+              <div id="upload-progress" class="hidden">
+                <div class="bg-blue-100 border border-blue-300 rounded p-3">
+                  <div class="flex items-center">
+                    <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                    <span class="text-sm text-blue-700">엑셀 파일을 처리 중입니다...</span>
+                  </div>
+                </div>
+              </div>
+              <div id="upload-result" class="hidden">
+                <!-- 업로드 결과가 여기에 표시됩니다 -->
+              </div>
+            </div>
           </div>
 
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -7526,6 +8317,9 @@
         container
           .querySelector("#members-export")
           .addEventListener("click", exportMembersCSV);
+        container
+          .querySelector("#members-bulk-approve")
+          .addEventListener("click", bulkApproveMembers);
         container
           .querySelector("#members-delete-all")
           .addEventListener("click", deleteAllMembers);
@@ -7769,6 +8563,56 @@
         a.remove();
         URL.revokeObjectURL(url);
       }
+      async function bulkApproveMembers() {
+        // 대기 중인 회원들 필터링
+        const pendingMembers = (membersData || []).filter(
+          (m) => (m.status || "pending") === "pending"
+        );
+
+        if (pendingMembers.length === 0) {
+          showAlert("ℹ️", "승인 대기 중인 회원이 없습니다.");
+          return;
+        }
+
+        const confirmMessage = `승인 대기 중인 회원 ${
+          pendingMembers.length
+        }명을 모두 승인하시겠습니까?\n\n승인될 회원:\n${pendingMembers
+          .map((m) => `• ${m.name} (${m.studentId})`)
+          .join("\n")}`;
+
+        if (!confirm(confirmMessage)) return;
+
+        try {
+          const batch = writeBatch(db);
+
+          // 모든 대기 중인 회원을 active로 변경
+          pendingMembers.forEach((member) => {
+            const memberRef = doc(db, "members", member.id || member.studentId);
+            batch.update(memberRef, {
+              status: "active",
+              lastUpdated: new Date().toISOString(),
+            });
+          });
+
+          await batch.commit();
+          showAlert(
+            "✅",
+            `${pendingMembers.length}명의 회원이 승인되었습니다.`
+          );
+
+          // 회원 목록 새로고침
+          setTimeout(() => {
+            const subtabContainer = document.getElementById("subtab-container");
+            if (subtabContainer) {
+              renderMembersAdmin(subtabContainer);
+            }
+          }, 1000);
+        } catch (error) {
+          console.error("일괄 승인 오류:", error);
+          showAlert("😥", "일괄 승인 중 오류가 발생했습니다.");
+        }
+      }
+
       async function deleteAllMembers() {
         if (
           !confirm(
@@ -7892,6 +8736,8 @@
         }
 
         console.log("renderHorizontalRoadmap: roadmapData =", roadmapData);
+        console.log("roadmapData 길이:", roadmapData?.length || 0);
+        console.log("roadmapData 타입:", typeof roadmapData);
 
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -7955,6 +8801,9 @@
                 day: "numeric",
               });
 
+              const isAdmin =
+                currentUser && adminList.includes(currentUser.studentId);
+
               return `
       <div class="timeline-item ${cls}">
         <div class="timeline-content">
@@ -7963,6 +8812,18 @@
             ${
               status
                 ? `<span class="timeline-today-badge">${status}</span>`
+                : ""
+            }
+            ${
+              isAdmin
+                ? `<div class="timeline-admin-buttons">
+                    <button type="button" class="timeline-edit-btn" data-act="edit-roadmap" data-id="${item.id}" title="수정">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <button type="button" class="timeline-delete-btn" data-act="delete-roadmap" data-id="${item.id}" title="삭제">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </div>`
                 : ""
             }
           </div>
@@ -7974,35 +8835,422 @@
           `<div class="text-gray-400 text-center py-8">일정이 없습니다.</div>`;
 
         root.innerHTML = html;
+
+        // 로드맵 수정/삭제 이벤트 바인딩
+        root.addEventListener("click", (e) => {
+          const act = e.target.closest("[data-act]")?.dataset.act;
+          const id = e.target.closest("[data-act]")?.dataset.id;
+
+          if (act === "edit-roadmap") {
+            openRoadmapEventEditModal(id, 0); // eventIndex는 0으로 설정
+          } else if (act === "delete-roadmap") {
+            deleteRoadmapEvent(id);
+          }
+        });
+      }
+
+      // 로드맵 일정 삭제 함수
+      async function deleteRoadmapEvent(eventId) {
+        if (!confirm("정말로 이 로드맵 일정을 삭제하시겠습니까?")) {
+          return;
+        }
+
+        try {
+          // 문서 존재 여부 확인
+          const docRef = doc(db, "roadmap", eventId);
+          const docSnap = await getDoc(docRef);
+
+          if (!docSnap.exists()) {
+            showAlert("😥", "삭제하려는 일정을 찾을 수 없습니다.");
+            return;
+          }
+
+          await deleteDoc(docRef);
+          showAlert("✅", "로드맵 일정이 삭제되었습니다.");
+          renderHorizontalRoadmap(); // 로드맵 다시 렌더링
+        } catch (error) {
+          console.error("로드맵 삭제 오류:", error);
+          if (error.code === "not-found") {
+            showAlert("😥", "삭제하려는 일정을 찾을 수 없습니다.");
+          } else {
+            showAlert("😥", "로드맵 일정 삭제에 실패했습니다.");
+          }
+        }
+      }
+
+      // 로드맵 일정 추가 모달 (새로운 함수)
+      function openRoadmapAddModal() {
+        const modalHTML = `
+            <div id="roadmap-add-modal" class="fixed inset-0 bg-black/60 flex justify-center items-center px-4 z-50">
+              <div class="bg-white p-6 md:p-7 rounded-2xl shadow-xl max-w-md w-full">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">새 로드맵 일정 추가</h3>
+                <div class="space-y-4">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">일정 제목</label>
+                    <input id="roadmap-add-title" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500" placeholder="일정 제목을 입력하세요">
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">날짜</label>
+                    <input id="roadmap-add-date" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500">
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">설명 (선택사항)</label>
+                    <textarea id="roadmap-add-description" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500" rows="3" placeholder="일정에 대한 설명을 입력하세요"></textarea>
+                  </div>
+                </div>
+                <div class="flex gap-3 mt-6">
+                  <button id="roadmap-add-save" class="flex-1 bg-orange-500 text-white py-2 px-4 rounded-lg hover:bg-orange-600 transition-colors">
+                    <i class="fas fa-plus mr-2"></i>추가
+                  </button>
+                  <button id="roadmap-add-cancel" class="flex-1 bg-gray-500 text-white py-2 px-4 rounded-lg hover:bg-gray-600 transition-colors">
+                    취소
+                  </button>
+                </div>
+              </div>
+            </div>
+          `;
+
+        // 기존 모달 제거
+        const existingModal = document.getElementById("roadmap-add-modal");
+        if (existingModal) existingModal.remove();
+
+        document.body.insertAdjacentHTML("beforeend", modalHTML);
+
+        // 이벤트 리스너 추가
+        document
+          .getElementById("roadmap-add-save")
+          .addEventListener("click", async () => {
+            const title = document
+              .getElementById("roadmap-add-title")
+              .value.trim();
+            const date = document.getElementById("roadmap-add-date").value;
+            const description = document
+              .getElementById("roadmap-add-description")
+              .value.trim();
+
+            if (!title) {
+              showAlert("😥", "일정 제목을 입력해주세요.");
+              return;
+            }
+
+            if (!date) {
+              showAlert("😥", "날짜를 선택해주세요.");
+              return;
+            }
+
+            try {
+              console.log("로드맵 추가 시도:", { title, date, description });
+              console.log("현재 roadmapData:", roadmapData);
+
+              // 다음 order 값 계산
+              const maxOrder = Math.max(
+                ...(roadmapData || []).map((e) => e.order || 0),
+                0
+              );
+              const newOrder = maxOrder + 1;
+
+              console.log("새 order 값:", newOrder);
+
+              const docRef = await addDoc(collection(db, "roadmap"), {
+                activityName: title,
+                activityDate: date,
+                description: description || "",
+                order: newOrder,
+                createdAt: new Date().toISOString(),
+              });
+
+              console.log("문서 추가 완료, ID:", docRef.id);
+
+              showAlert("✅", "새 로드맵 일정이 추가되었습니다.");
+              document.getElementById("roadmap-add-modal").remove();
+
+              // 로드맵은 onSnapshot으로 자동 업데이트됨
+            } catch (error) {
+              console.error("일정 추가 오류:", error);
+              showAlert("😥", "일정 추가에 실패했습니다. 콘솔을 확인해주세요.");
+            }
+          });
+
+        document
+          .getElementById("roadmap-add-cancel")
+          .addEventListener("click", () => {
+            document.getElementById("roadmap-add-modal").remove();
+          });
+
+        // 모달 외부 클릭 시 닫기
+        document
+          .getElementById("roadmap-add-modal")
+          .addEventListener("click", (e) => {
+            if (e.target.id === "roadmap-add-modal") {
+              document.getElementById("roadmap-add-modal").remove();
+            }
+          });
+      }
+
+      // 독립적인 조모임 데이터 관리
+      let groupsData = [];
+
+      // 조모임 데이터 로드
+      function loadGroupsData() {
+        if (!currentUser) return;
+
+        const unsubscribe = onSnapshot(
+          collection(db, "groups"),
+          (snapshot) => {
+            groupsData = [];
+            snapshot.forEach((doc) => {
+              groupsData.push({
+                id: doc.id,
+                ...doc.data(),
+              });
+            });
+            console.log("조모임 데이터 로드됨:", groupsData);
+
+            // 조모임 모달이 열려있으면 새로고침
+            const rankModal = document.getElementById("rank-modal");
+            if (rankModal && !rankModal.classList.contains("hidden")) {
+              renderRankList();
+            }
+          },
+          (error) => {
+            console.error("조모임 데이터 로드 오류:", error);
+          }
+        );
+
+        return unsubscribe;
+      }
+
+      // 조모임 추가 모달 열기
+      function openGroupAddModal() {
+        const modal = document.getElementById("group-add-modal");
+        if (!modal) {
+          createGroupAddModal();
+        }
+
+        // 입력 필드 초기화
+        document.getElementById("group-add-name").value = "";
+        document.getElementById("group-add-score").value = "";
+
+        document.getElementById("group-add-modal").classList.remove("hidden");
+      }
+
+      // 조모임 추가 모달 생성
+      function createGroupAddModal() {
+        const modalHTML = `
+          <div id="group-add-modal" class="hidden fixed inset-0 bg-black/60 flex justify-center items-center px-4 z-50">
+            <div class="bg-white p-6 md:p-7 rounded-2xl shadow-xl max-w-md w-full">
+              <h3 class="text-xl font-bold text-gray-800 mb-4">🏅 조모임 추가</h3>
+              <div class="space-y-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">조모임 이름</label>
+                  <input id="group-add-name" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500" placeholder="예: 1조, A조, 김치조">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">점수</label>
+                  <input id="group-add-score" type="number" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500" placeholder="0" value="0">
+                </div>
+              </div>
+              <div class="flex gap-3 mt-6">
+                <button id="group-add-save" class="flex-1 bg-orange-500 text-white py-2 px-4 rounded-lg hover:bg-orange-600 transition-colors">
+                  <i class="fas fa-plus mr-2"></i>추가
+                </button>
+                <button id="group-add-cancel" class="flex-1 bg-gray-500 text-white py-2 px-4 rounded-lg hover:bg-gray-600 transition-colors">
+                  취소
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+
+        document.body.insertAdjacentHTML("beforeend", modalHTML);
+
+        // 이벤트 리스너 추가
+        document
+          .getElementById("group-add-save")
+          .addEventListener("click", async () => {
+            const groupName = document
+              .getElementById("group-add-name")
+              .value.trim();
+            const groupScore =
+              parseInt(document.getElementById("group-add-score").value) || 0;
+
+            if (!groupName) {
+              showAlert("😥", "조모임 이름을 입력해주세요.");
+              return;
+            }
+
+            try {
+              await addGroup(groupName, groupScore);
+              showAlert("✅", "조모임이 추가되었습니다.");
+              document
+                .getElementById("group-add-modal")
+                .classList.add("hidden");
+            } catch (error) {
+              console.error("조모임 추가 오류:", error);
+              showAlert("😥", "조모임 추가에 실패했습니다.");
+            }
+          });
+
+        document
+          .getElementById("group-add-cancel")
+          .addEventListener("click", () => {
+            document.getElementById("group-add-modal").classList.add("hidden");
+          });
+
+        // 모달 외부 클릭 시 닫기
+        document
+          .getElementById("group-add-modal")
+          .addEventListener("click", (e) => {
+            if (e.target.id === "group-add-modal") {
+              document
+                .getElementById("group-add-modal")
+                .classList.add("hidden");
+            }
+          });
+      }
+
+      // 조모임 추가
+      async function addGroup(name, score) {
+        try {
+          await addDoc(collection(db, "groups"), {
+            name: name,
+            score: score,
+            members: [],
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          });
+        } catch (error) {
+          console.error("조모임 추가 오류:", error);
+          throw error;
+        }
+      }
+
+      // 조모임 수정
+      async function updateGroup(groupId, name, score) {
+        try {
+          await updateDoc(doc(db, "groups", groupId), {
+            name: name,
+            score: score,
+            updatedAt: new Date(),
+          });
+        } catch (error) {
+          console.error("조모임 수정 오류:", error);
+          throw error;
+        }
+      }
+
+      // 조모임 삭제
+      async function deleteGroup(groupId) {
+        try {
+          await deleteDoc(doc(db, "groups", groupId));
+        } catch (error) {
+          console.error("조모임 삭제 오류:", error);
+          throw error;
+        }
+      }
+
+      // 조모임 수정 모달 열기
+      function openGroupEditModal(groupId, groupName, groupScore) {
+        const modal = document.getElementById("group-edit-modal");
+        if (!modal) {
+          createGroupEditModal();
+        }
+
+        // 기존 값 설정
+        document.getElementById("group-edit-name").value = groupName;
+        document.getElementById("group-edit-score").value = groupScore;
+        document.getElementById("group-edit-id").value = groupId;
+
+        modal.classList.remove("hidden");
+      }
+
+      // 조모임 수정 모달 생성
+      function createGroupEditModal() {
+        const modalHTML = `
+          <div id="group-edit-modal" class="hidden fixed inset-0 bg-black/60 flex justify-center items-center px-4 z-50">
+            <div class="bg-white p-6 md:p-7 rounded-2xl shadow-xl max-w-md w-full">
+              <h3 class="text-xl font-bold text-gray-800 mb-4">🏅 조모임 수정</h3>
+              <div class="space-y-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">조모임 이름</label>
+                  <input id="group-edit-name" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500" placeholder="조모임 이름">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">점수</label>
+                  <input id="group-edit-score" type="number" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500" placeholder="점수">
+                </div>
+                <input id="group-edit-id" type="hidden">
+              </div>
+              <div class="flex gap-3 mt-6">
+                <button id="group-edit-save" class="flex-1 bg-orange-500 text-white py-2 px-4 rounded-lg hover:bg-orange-600 transition-colors">
+                  <i class="fas fa-save mr-2"></i>저장
+                </button>
+                <button id="group-edit-cancel" class="flex-1 bg-gray-500 text-white py-2 px-4 rounded-lg hover:bg-gray-600 transition-colors">
+                  취소
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+
+        document.body.insertAdjacentHTML("beforeend", modalHTML);
+
+        // 이벤트 리스너 추가
+        document
+          .getElementById("group-edit-save")
+          .addEventListener("click", async () => {
+            const groupId = document.getElementById("group-edit-id").value;
+            const groupName = document
+              .getElementById("group-edit-name")
+              .value.trim();
+            const groupScore =
+              parseInt(document.getElementById("group-edit-score").value) || 0;
+
+            if (!groupName) {
+              showAlert("😥", "조모임 이름을 입력해주세요.");
+              return;
+            }
+
+            try {
+              await updateGroup(groupId, groupName, groupScore);
+              showAlert("✅", "조모임 정보가 수정되었습니다.");
+              document
+                .getElementById("group-edit-modal")
+                .classList.add("hidden");
+            } catch (error) {
+              console.error("조모임 수정 오류:", error);
+              showAlert("😥", "조모임 수정에 실패했습니다.");
+            }
+          });
+
+        document
+          .getElementById("group-edit-cancel")
+          .addEventListener("click", () => {
+            document.getElementById("group-edit-modal").classList.add("hidden");
+          });
+
+        // 모달 외부 클릭 시 닫기
+        document
+          .getElementById("group-edit-modal")
+          .addEventListener("click", (e) => {
+            if (e.target.id === "group-edit-modal") {
+              document
+                .getElementById("group-edit-modal")
+                .classList.add("hidden");
+            }
+          });
       }
 
       function renderRankList() {
         const container = document.getElementById("rank-list");
         if (!container) return;
 
-        // 실제 조모임 순위 데이터 가져오기
-        const scoreBlocks =
-          blocksData?.filter(
-            (b) => b.type === "scores" && b.visible !== false
-          ) || [];
+        // 독립적인 조모임 데이터 사용
+        console.log("renderRankList: groupsData =", groupsData);
 
-        console.log("renderRankList: blocksData =", blocksData);
-        console.log("renderRankList: scoreBlocks =", scoreBlocks);
-
-        let rankData = [];
-
-        scoreBlocks.forEach((block) => {
-          const teams = block.payload?.teams || [];
-          teams.forEach((team) => {
-            if (team.name && team.score !== undefined) {
-              rankData.push({
-                name: team.name,
-                score: team.score,
-                members: team.members || [],
-              });
-            }
-          });
-        });
+        let rankData = groupsData.filter(
+          (group) => group.name && group.score !== undefined
+        );
 
         // 점수순으로 정렬
         rankData.sort((a, b) => b.score - a.score);
@@ -8041,12 +9289,12 @@
               isAdmin
                 ? `
               <div class="flex gap-1 justify-start">
-                <button class="edit-team-btn bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600 transition-colors" 
-                        data-team-index="${index}" data-team-name="${item.name}" data-team-score="${item.score}" title="수정">
+                <button class="edit-group-btn bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600 transition-colors" 
+                        data-group-id="${item.id}" data-group-name="${item.name}" data-group-score="${item.score}" title="수정">
                   <i class="fas fa-edit"></i>
                 </button>
-                <button class="delete-team-btn bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600 transition-colors" 
-                        data-team-index="${index}" data-team-name="${item.name}" title="삭제">
+                <button class="delete-group-btn bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600 transition-colors" 
+                        data-group-id="${item.id}" data-group-name="${item.name}" title="삭제">
                   <i class="fas fa-trash"></i>
                 </button>
               </div>
@@ -8073,34 +9321,38 @@
           html ||
           `<div class="text-center text-gray-400 py-4">
             <i class="fas fa-info-circle text-2xl mb-2"></i>
-            <p>조모임 순위 데이터가 없습니다.</p>
-            <p class="text-sm mt-1">관리자가 점수판 블록을 생성하면 순위가 표시됩니다.</p>
+            <p>조모임 데이터가 없습니다.</p>
+            <p class="text-sm mt-1">관리자가 조모임을 추가하면 순위가 표시됩니다.</p>
           </div>`;
 
-        // 조모임 순위 수정/삭제 버튼 이벤트 리스너 추가
+        // 조모임 수정/삭제 버튼 이벤트 리스너 추가
         if (isAdmin) {
-          container.querySelectorAll(".edit-team-btn").forEach((btn) => {
+          container.querySelectorAll(".edit-group-btn").forEach((btn) => {
             btn.addEventListener("click", (e) => {
               e.stopPropagation();
-              const teamIndex = parseInt(btn.dataset.teamIndex);
-              const teamName = btn.dataset.teamName;
-              const teamScore = parseInt(btn.dataset.teamScore);
+              const groupId = btn.dataset.groupId;
+              const groupName = btn.dataset.groupName;
+              const groupScore = parseInt(btn.dataset.groupScore);
 
-              // 팀 수정 모달 열기
-              openTeamEditModal(teamIndex, teamName, teamScore);
+              // 조모임 수정 모달 열기
+              openGroupEditModal(groupId, groupName, groupScore);
             });
           });
 
-          container.querySelectorAll(".delete-team-btn").forEach((btn) => {
+          container.querySelectorAll(".delete-group-btn").forEach((btn) => {
             btn.addEventListener("click", async (e) => {
               e.stopPropagation();
-              const teamIndex = parseInt(btn.dataset.teamIndex);
-              const teamName = btn.dataset.teamName;
+              const groupId = btn.dataset.groupId;
+              const groupName = btn.dataset.groupName;
 
-              if (confirm(`"${teamName}" 팀을 삭제하시겠습니까?`)) {
-                await deleteTeamFromScoreBlock(teamIndex);
-                showAlert("✅", "팀이 삭제되었습니다.");
-                renderRankList(); // 순위 목록 새로고침
+              if (confirm(`"${groupName}" 조모임을 삭제하시겠습니까?`)) {
+                try {
+                  await deleteGroup(groupId);
+                  showAlert("✅", "조모임이 삭제되었습니다.");
+                } catch (error) {
+                  console.error("조모임 삭제 오류:", error);
+                  showAlert("😥", "조모임 삭제에 실패했습니다.");
+                }
               }
             });
           });
@@ -8400,27 +9652,65 @@
         if (!currentUser) return;
 
         try {
-          const scoreData = {
-            studentId: currentUser.studentId,
-            name: currentUser.name,
-            gameType: gameType,
-            score: score,
-            details: details,
-            timestamp: new Date(),
-            date: new Date().toISOString().split("T")[0], // YYYY-MM-DD 형식
-          };
+          // 이름 중복 확인
+          const existingScores = gameScores[gameType] || [];
+          const duplicateName = existingScores.find(
+            (s) => s.name === currentUser.name
+          );
 
-          await addDoc(collection(db, "gameScores"), scoreData);
+          if (duplicateName) {
+            // 중복된 이름이 있는 경우 기존 기록과 비교
+            let shouldUpdate = false;
 
-          // 로컬 데이터 업데이트
-          if (!gameScores[gameType]) {
-            gameScores[gameType] = [];
+            if (gameType === "color-memory") {
+              // 색깔 기억하기: 더 높은 레벨이면 업데이트
+              shouldUpdate =
+                (details.level || 0) > (duplicateName.details.level || 0);
+            } else if (gameType === "car-racing") {
+              // 자동차 레이싱: 더 긴 거리면 업데이트
+              shouldUpdate =
+                (details.distance || 0) > (duplicateName.details.distance || 0);
+            } else {
+              // 숫자 맞추기: 더 적은 시도 횟수면 업데이트
+              shouldUpdate =
+                (details.attempts || 999) <
+                (duplicateName.details.attempts || 999);
+            }
+
+            if (shouldUpdate) {
+              // 기존 기록을 업데이트
+              await updateDoc(doc(db, "gameScores", duplicateName.id), {
+                score: score,
+                details: details,
+                timestamp: new Date(),
+                date: new Date().toISOString().split("T")[0],
+              });
+              showAlert("🎉", "기존 기록을 갱신했습니다!");
+            } else {
+              showAlert("ℹ️", "기존 기록보다 좋지 않아 저장하지 않았습니다.");
+              return;
+            }
+          } else {
+            // 새로운 기록 저장
+            const scoreData = {
+              studentId: currentUser.studentId,
+              name: currentUser.name,
+              gameType: gameType,
+              score: score,
+              details: details,
+              timestamp: new Date(),
+              date: new Date().toISOString().split("T")[0], // YYYY-MM-DD 형식
+            };
+
+            await addDoc(collection(db, "gameScores"), scoreData);
+            showAlert("🎉", "새로운 기록이 저장되었습니다!");
           }
-          gameScores[gameType].push(scoreData);
 
-          console.log(`${gameType} 점수 저장:`, scoreData);
+          // 로컬 데이터는 onSnapshot에서 자동 업데이트됨
+          console.log(`${gameType} 점수 저장 완료`);
         } catch (error) {
           console.error("점수 저장 오류:", error);
+          showAlert("😥", "점수 저장에 실패했습니다.");
         }
       }
 
@@ -8441,13 +9731,32 @@
             description: "최고 레벨",
           },
           {
-            type: "word-scramble",
-            name: "📝 단어 맞추기",
-            description: "최소 시도 횟수",
+            type: "car-racing",
+            name: "🚗 자동차 레이싱",
+            description: "최고 거리",
           },
         ];
 
         let html = '<div class="space-y-6">';
+
+        // 관리자 기능 추가
+        const isAdmin =
+          currentUser && adminList.includes(currentUser.studentId);
+        if (isAdmin) {
+          html += `
+            <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+              <h4 class="font-bold text-orange-800 mb-2">🔧 관리자 기능</h4>
+              <div class="flex gap-2">
+                <button id="clear-all-scores" class="px-3 py-1 bg-red-500 text-white text-sm rounded hover:bg-red-600 transition-colors">
+                  전체 점수 초기화
+                </button>
+                <button id="clear-game-scores" class="px-3 py-1 bg-orange-500 text-white text-sm rounded hover:bg-orange-600 transition-colors">
+                  게임별 점수 초기화
+                </button>
+              </div>
+            </div>
+          `;
+        }
 
         games.forEach((game) => {
           const scores = gameScores[game.type] || [];
@@ -8455,6 +9764,8 @@
             .sort((a, b) => {
               if (game.type === "color-memory") {
                 return (b.details.level || 0) - (a.details.level || 0);
+              } else if (game.type === "car-racing") {
+                return (b.details.distance || 0) - (a.details.distance || 0);
               } else {
                 return (
                   (a.details.attempts || 999) - (b.details.attempts || 999)
@@ -8465,7 +9776,14 @@
 
           html += `
             <div class="border rounded-lg p-4">
-              <h4 class="font-bold text-lg mb-2">${game.name}</h4>
+              <div class="flex justify-between items-center mb-2">
+                <h4 class="font-bold text-lg">${game.name}</h4>
+                ${
+                  isAdmin
+                    ? `<button class="clear-game-btn px-2 py-1 bg-red-400 text-white text-xs rounded hover:bg-red-500 transition-colors" data-game-type="${game.type}">이 게임 점수 초기화</button>`
+                    : ""
+                }
+              </div>
               <p class="text-sm text-gray-600 mb-3">${game.description}</p>
               <div class="space-y-2">
           `;
@@ -8484,10 +9802,14 @@
                   : rank === 3
                   ? "🥉"
                   : `${rank}.`;
-              const displayValue =
-                game.type === "color-memory"
-                  ? `레벨 ${score.details.level || 0}`
-                  : `${score.details.attempts || 0}번`;
+              let displayValue;
+              if (game.type === "color-memory") {
+                displayValue = `레벨 ${score.details.level || 0}`;
+              } else if (game.type === "car-racing") {
+                displayValue = `${score.details.distance || 0}m`;
+              } else {
+                displayValue = `${score.details.attempts || 0}번`;
+              }
 
               html += `
                 <div class="flex items-center justify-between p-2 bg-gray-50 rounded">
@@ -8514,6 +9836,109 @@
 
         html += "</div>";
         content.innerHTML = html;
+
+        // 관리자 버튼 이벤트 리스너 추가
+        if (isAdmin) {
+          // 전체 점수 초기화
+          document
+            .getElementById("clear-all-scores")
+            ?.addEventListener("click", async () => {
+              if (
+                confirm(
+                  "정말로 모든 게임의 점수를 초기화하시겠습니까? 이 작업은 되돌릴 수 없습니다."
+                )
+              ) {
+                try {
+                  const batch = writeBatch(db);
+                  const snapshot = await getDocs(collection(db, "gameScores"));
+                  snapshot.forEach((doc) => {
+                    batch.delete(doc.ref);
+                  });
+                  await batch.commit();
+                  showAlert("✅", "모든 게임 점수가 초기화되었습니다.");
+                  renderGameRankings(); // 랭킹 화면 새로고침
+                } catch (error) {
+                  console.error("점수 초기화 오류:", error);
+                  showAlert("😥", "점수 초기화에 실패했습니다.");
+                }
+              }
+            });
+
+          // 게임별 점수 초기화
+          document
+            .getElementById("clear-game-scores")
+            ?.addEventListener("click", async () => {
+              const gameType = prompt(
+                "초기화할 게임을 선택하세요:\n1. number-guess (숫자 맞추기)\n2. color-memory (색깔 기억하기)\n3. car-racing (자동차 레이싱)\n\n게임 타입을 입력하세요:"
+              );
+              if (!gameType) return;
+
+              if (
+                confirm(
+                  `정말로 "${gameType}" 게임의 점수를 초기화하시겠습니까?`
+                )
+              ) {
+                try {
+                  const batch = writeBatch(db);
+                  const snapshot = await getDocs(
+                    query(
+                      collection(db, "gameScores"),
+                      where("gameType", "==", gameType)
+                    )
+                  );
+                  snapshot.forEach((doc) => {
+                    batch.delete(doc.ref);
+                  });
+                  await batch.commit();
+                  showAlert("✅", `${gameType} 게임 점수가 초기화되었습니다.`);
+                  renderGameRankings(); // 랭킹 화면 새로고침
+                } catch (error) {
+                  console.error("게임별 점수 초기화 오류:", error);
+                  showAlert("😥", "점수 초기화에 실패했습니다.");
+                }
+              }
+            });
+
+          // 개별 게임 점수 초기화
+          document.querySelectorAll(".clear-game-btn").forEach((btn) => {
+            btn.addEventListener("click", async () => {
+              const gameType = btn.dataset.gameType;
+              const gameNames = {
+                "number-guess": "숫자 맞추기",
+                "color-memory": "색깔 기억하기",
+                "car-racing": "자동차 레이싱",
+              };
+
+              if (
+                confirm(
+                  `정말로 "${gameNames[gameType]}" 게임의 점수를 초기화하시겠습니까?`
+                )
+              ) {
+                try {
+                  const batch = writeBatch(db);
+                  const snapshot = await getDocs(
+                    query(
+                      collection(db, "gameScores"),
+                      where("gameType", "==", gameType)
+                    )
+                  );
+                  snapshot.forEach((doc) => {
+                    batch.delete(doc.ref);
+                  });
+                  await batch.commit();
+                  showAlert(
+                    "✅",
+                    `${gameNames[gameType]} 게임 점수가 초기화되었습니다.`
+                  );
+                  renderGameRankings(); // 랭킹 화면 새로고침
+                } catch (error) {
+                  console.error("게임별 점수 초기화 오류:", error);
+                  showAlert("😥", "점수 초기화에 실패했습니다.");
+                }
+              }
+            });
+          });
+        }
       }
 
       // 숫자 맞추기 게임
@@ -8771,120 +10196,230 @@
         }
       }
 
-      // 단어 맞추기 게임
-      function startWordScrambleGame() {
-        currentGame = "word-scramble";
+      // 자동차 레이싱 게임
+      function startCarRacingGame() {
+        currentGame = "car-racing";
+        gameState = {
+          distance: 0,
+          speed: 2,
+          carPosition: 1, // 0: 왼쪽, 1: 중앙, 2: 오른쪽
+          obstacles: [],
+          gameRunning: false,
+          score: 0,
+          lastObstacleTime: 0,
+        };
 
-        // 개발 중 메시지 표시
         showGameScreen();
-        const content = document.getElementById("game-content");
-        content.innerHTML = `
-          <div class="text-center py-8">
-            <div class="text-6xl mb-4">🚧</div>
-            <h4 class="text-xl font-bold text-gray-700 mb-2">단어 맞추기 게임</h4>
-            <p class="text-gray-600 mb-4">현재 개발 중입니다.</p>
-            <p class="text-sm text-gray-500">곧 출시될 예정이니 기다려주세요!</p>
-          </div>
-        `;
+        updateCarRacingUI();
+
+        // 키보드 이벤트 리스너 추가
+        document.addEventListener("keydown", handleCarRacingKey);
       }
 
-      function scrambleWord(word) {
-        const letters = word.split("");
-        for (let i = letters.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [letters[i], letters[j]] = [letters[j], letters[i]];
-        }
-        return letters.join("");
-      }
-
-      function updateWordScrambleUI() {
+      function updateCarRacingUI() {
         const content = document.getElementById("game-content");
-        const { scrambledWord, attempts, maxAttempts } = gameState;
+        const { distance, speed, carPosition, gameRunning } = gameState;
 
         content.innerHTML = `
           <div class="mb-4">
-            <h4 class="text-lg font-bold text-yellow-700 mb-2">📝 단어 맞추기</h4>
-            <p class="text-sm text-gray-600">섞인 글자를 원래 단어로 맞춰보세요!</p>
-            <p class="text-sm text-gray-500">남은 기회: ${
-              maxAttempts - attempts
-            }번</p>
-          </div>
-          
-          <div class="mb-4">
-            <div class="text-2xl font-bold text-center p-4 bg-gray-100 rounded-lg mb-2">
-              ${scrambledWord}
+            <h4 class="text-lg font-bold text-red-700 mb-2">🚗 자동차 레이싱</h4>
+            <p class="text-sm text-gray-600">좌우 화살표로 장애물을 피하세요!</p>
+            <div class="flex justify-between text-sm text-gray-600 mt-2">
+              <span>거리: ${distance}m</span>
+              <span>속도: ${speed.toFixed(1)}x</span>
             </div>
-            <input 
-              type="text" 
-              id="word-input" 
-              placeholder="정답 입력"
-              class="w-full p-3 border border-gray-300 rounded-lg text-center"
-            >
           </div>
           
-          <button 
-            id="word-guess-btn" 
-            class="w-full p-3 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600"
-          >
-            확인
-          </button>
+          <div class="relative bg-gray-800 h-64 rounded-lg overflow-hidden border-2 border-gray-600">
+            <!-- 도로 배경 -->
+            <div class="absolute inset-0 bg-gradient-to-b from-gray-700 to-gray-900"></div>
+            
+            <!-- 도로 구분선 -->
+            <div class="absolute left-1/3 w-1 h-full bg-yellow-400 opacity-50"></div>
+            <div class="absolute right-1/3 w-1 h-full bg-yellow-400 opacity-50"></div>
+            
+            <!-- 자동차 -->
+            <div id="car" class="absolute bottom-4 w-8 h-12 bg-red-500 rounded transition-all duration-100" 
+                 style="left: ${
+                   carPosition === 0 ? "25%" : carPosition === 1 ? "50%" : "75%"
+                 }; transform: translateX(-50%);">
+              <div class="w-full h-full bg-red-600 rounded flex items-center justify-center text-white text-xs font-bold">🚗</div>
+            </div>
+            
+            <!-- 장애물들 -->
+            <div id="obstacles-container"></div>
+            
+            ${
+              !gameRunning
+                ? `
+              <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
+                <div class="text-center text-white">
+                  <div class="text-2xl mb-2">🎮</div>
+                  <p class="text-lg font-bold mb-2">준비되면 스페이스바를 누르세요!</p>
+                  <p class="text-sm opacity-75">좌우 화살표 키로 조작</p>
+                </div>
+              </div>
+            `
+                : ""
+            }
+          </div>
           
-          <div id="word-result" class="mt-4 text-center"></div>
+          <div class="mt-4 text-center">
+            <button id="start-race-btn" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors">
+              ${gameRunning ? "게임 중..." : "시작!"}
+            </button>
+          </div>
         `;
 
         // 이벤트 리스너 추가
         document
-          .getElementById("word-guess-btn")
-          .addEventListener("click", handleWordGuess);
-        document
-          .getElementById("word-input")
-          .addEventListener("keypress", (e) => {
-            if (e.key === "Enter") handleWordGuess();
-          });
+          .getElementById("start-race-btn")
+          ?.addEventListener("click", startCarRace);
+        updateObstaclesDisplay();
       }
 
-      function handleWordGuess() {
-        const input = document.getElementById("word-input");
-        const result = document.getElementById("word-result");
-        const guess = input.value.trim();
+      function startCarRace() {
+        if (gameState.gameRunning) return;
 
-        if (!guess) {
-          result.innerHTML = '<p class="text-red-500">단어를 입력해주세요!</p>';
+        gameState.gameRunning = true;
+        gameState.distance = 0;
+        gameState.speed = 3; // 초기 속도를 빠르게 설정
+        gameState.obstacles = [];
+        gameState.lastObstacleTime = Date.now();
+
+        updateCarRacingUI();
+        gameState.gameLoop = setInterval(gameLoop, 50); // 50ms마다 업데이트 (빠른 게임)
+      }
+
+      function gameLoop() {
+        if (!gameState.gameRunning) return;
+
+        // 거리 증가 (속도에 비례)
+        gameState.distance += gameState.speed * 0.5;
+
+        // 속도 증가 (거리에 따라 점점 빨라짐)
+        gameState.speed = Math.min(3 + (gameState.distance / 100) * 0.5, 8);
+
+        // 장애물 생성 (더 자주 생성)
+        const now = Date.now();
+        if (now - gameState.lastObstacleTime > 800) {
+          // 0.8초마다 장애물 생성
+          createObstacle();
+          gameState.lastObstacleTime = now;
+        }
+
+        // 장애물 이동
+        moveObstacles();
+
+        // 충돌 검사
+        if (checkCollision()) {
+          endCarRace();
           return;
         }
 
-        gameState.attempts++;
+        // UI 업데이트
+        updateCarRacingUI();
+      }
 
-        if (guess === gameState.currentWord) {
-          result.innerHTML = `
-            <div class="text-green-600">
-              <p class="text-xl font-bold">🎉 정답입니다!</p>
-              <p>${gameState.attempts}번 만에 맞추셨네요!</p>
-            </div>
-          `;
-          document.getElementById("word-guess-btn").disabled = true;
-          input.disabled = true;
+      function createObstacle() {
+        const positions = [0, 1, 2];
+        const randomPos =
+          positions[Math.floor(Math.random() * positions.length)];
 
-          // 점수 저장
-          saveGameScore("word-scramble", gameState.attempts, {
-            attempts: gameState.attempts,
-            word: gameState.currentWord,
-            scrambledWord: gameState.scrambledWord,
+        gameState.obstacles.push({
+          x: randomPos,
+          y: -30,
+          width: 30,
+          height: 30,
+        });
+      }
+
+      function moveObstacles() {
+        gameState.obstacles = gameState.obstacles.filter((obstacle) => {
+          obstacle.y += gameState.speed * 2;
+          return obstacle.y < 300; // 화면 밖으로 나가면 제거
+        });
+      }
+
+      function checkCollision() {
+        const carX = gameState.carPosition;
+        const carY = 200; // 자동차 y 위치 (하단에서 4px + 자동차 높이 48px)
+
+        return gameState.obstacles.some((obstacle) => {
+          return (
+            obstacle.x === carX &&
+            obstacle.y + obstacle.height >= carY &&
+            obstacle.y <= carY + 48
+          );
+        });
+      }
+
+      function endCarRace() {
+        gameState.gameRunning = false;
+        clearInterval(gameState.gameLoop);
+
+        // 키보드 이벤트 리스너 제거
+        document.removeEventListener("keydown", handleCarRacingKey);
+
+        // 점수 저장
+        saveGameScore("car-racing", gameState.distance, {
+          distance: Math.floor(gameState.distance),
+          maxSpeed: gameState.speed.toFixed(1),
+        });
+
+        // 결과 화면 표시
+        const content = document.getElementById("game-content");
+        content.innerHTML = `
+          <div class="text-center py-8">
+            <div class="text-6xl mb-4">💥</div>
+            <h4 class="text-xl font-bold text-red-700 mb-2">게임 종료!</h4>
+            <p class="text-lg text-gray-700 mb-2">최종 거리: <span class="font-bold text-blue-600">${Math.floor(
+              gameState.distance
+            )}m</span></p>
+            <p class="text-sm text-gray-600 mb-4">최고 속도: ${gameState.speed.toFixed(
+              1
+            )}x</p>
+            <button id="restart-car-race" class="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600 transition-colors">
+              다시 플레이
+            </button>
+          </div>
+        `;
+
+        document
+          .getElementById("restart-car-race")
+          ?.addEventListener("click", () => {
+            startCarRacingGame();
           });
-        } else if (gameState.attempts >= gameState.maxAttempts) {
-          result.innerHTML = `
-            <div class="text-red-600">
-              <p class="text-xl font-bold">😢 게임 종료!</p>
-              <p>정답은 "${gameState.currentWord}"였습니다.</p>
-            </div>
-          `;
-          document.getElementById("word-guess-btn").disabled = true;
-          input.disabled = true;
-        } else {
-          result.innerHTML = `<p class="text-orange-500">틀렸습니다! 다시 시도해보세요.</p>`;
-        }
+      }
 
-        input.value = "";
+      function updateObstaclesDisplay() {
+        const container = document.getElementById("obstacles-container");
+        if (!container) return;
+
+        container.innerHTML = gameState.obstacles
+          .map(
+            (obstacle, index) => `
+          <div class="absolute w-8 h-8 bg-orange-600 rounded" 
+               style="left: ${
+                 obstacle.x === 0 ? "25%" : obstacle.x === 1 ? "50%" : "75%"
+               }; 
+                      top: ${obstacle.y}px; 
+                      transform: translateX(-50%);">
+            <div class="w-full h-full bg-orange-700 rounded flex items-center justify-center text-white text-xs">🚧</div>
+          </div>
+        `
+          )
+          .join("");
+      }
+
+      function handleCarRacingKey(e) {
+        if (!gameState.gameRunning) return;
+
+        if (e.key === "ArrowLeft" && gameState.carPosition > 0) {
+          gameState.carPosition--;
+        } else if (e.key === "ArrowRight" && gameState.carPosition < 2) {
+          gameState.carPosition++;
+        }
       }
 
       // 게임 점수 데이터 로드
@@ -8924,8 +10459,8 @@
           .getElementById("color-memory-btn")
           ?.addEventListener("click", startColorMemoryGame);
         document
-          .getElementById("word-scramble-btn")
-          ?.addEventListener("click", startWordScrambleGame);
+          .getElementById("car-racing-btn")
+          ?.addEventListener("click", startCarRacingGame);
 
         document
           .getElementById("game-back-btn")
@@ -8935,7 +10470,7 @@
           ?.addEventListener("click", () => {
             if (currentGame === "number-guess") startNumberGuessGame();
             else if (currentGame === "color-memory") startColorMemoryGame();
-            else if (currentGame === "word-scramble") startWordScrambleGame();
+            else if (currentGame === "car-racing") startCarRacingGame();
           });
 
         // 탭 버튼 이벤트 리스너
@@ -9347,7 +10882,7 @@
               </div>
               <p class="text-xs text-gray-500 mt-2">* 비상시: 로그인 화면에서 학번에 <b>${saf(
                 MASTER_CODE
-              )}</b> 입력 후 '관리자 임명'으로 복구</p>
+              )}</b> 입력 후 이름을 입력하면 즉시 관리자 권한으로 로그인됩니다.</p>
             </div>
           </div>
         `;
@@ -9599,6 +11134,21 @@
           const eventId = e.target.closest('[data-act="admin-edit"]').dataset
             .id;
           openEventModal("edit", eventId);
+        }
+      });
+
+      // 이벤트 순서 변경 버튼 클릭 이벤트 리스너
+      document.addEventListener("click", (e) => {
+        if (e.target.closest('[data-act="move-event-up"]')) {
+          const eventId = e.target.closest('[data-act="move-event-up"]').dataset
+            .id;
+          moveEventUp(eventId);
+        }
+
+        if (e.target.closest('[data-act="move-event-down"]')) {
+          const eventId = e.target.closest('[data-act="move-event-down"]')
+            .dataset.id;
+          moveEventDown(eventId);
         }
       });
 
