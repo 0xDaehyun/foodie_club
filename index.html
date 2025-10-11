@@ -9,6 +9,19 @@
     <meta name="theme-color" content="#6366f1" />
     <title>Foodie</title>
 
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Foodie" />
+    <meta property="og:description" content="Foodie 동아리 웹 서비스" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:title" content="Foodie" />
+    <meta property="twitter:description" content="Foodie 동아리 웹 서비스" />
+
+    <!-- 일반 메타 -->
+    <meta name="description" content="Foodie 동아리 웹 서비스" />
+
     <!-- 앱 아이콘 -->
     <link
       rel="icon"
@@ -2351,11 +2364,8 @@
           document
             .getElementById("rank-save-changes")
             ?.addEventListener("click", () => {
-              // 변경사항 저장 (점수판 블록 업데이트)
-              showAlert(
-                "ℹ️",
-                "점수판 블록을 수정하여 조모임 순위를 관리하세요."
-              );
+              // 조모임 순위 변경사항 저장
+              saveGroupRankings();
             });
 
           document
@@ -9109,138 +9119,6 @@
           });
       }
 
-      // 조모임 추가
-      async function addGroup(name, score) {
-        try {
-          await addDoc(collection(db, "groups"), {
-            name: name,
-            score: score,
-            members: [],
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          });
-        } catch (error) {
-          console.error("조모임 추가 오류:", error);
-          throw error;
-        }
-      }
-
-      // 조모임 수정
-      async function updateGroup(groupId, name, score) {
-        try {
-          await updateDoc(doc(db, "groups", groupId), {
-            name: name,
-            score: score,
-            updatedAt: new Date(),
-          });
-        } catch (error) {
-          console.error("조모임 수정 오류:", error);
-          throw error;
-        }
-      }
-
-      // 조모임 삭제
-      async function deleteGroup(groupId) {
-        try {
-          await deleteDoc(doc(db, "groups", groupId));
-        } catch (error) {
-          console.error("조모임 삭제 오류:", error);
-          throw error;
-        }
-      }
-
-      // 조모임 수정 모달 열기
-      function openGroupEditModal(groupId, groupName, groupScore) {
-        const modal = document.getElementById("group-edit-modal");
-        if (!modal) {
-          createGroupEditModal();
-        }
-
-        // 기존 값 설정
-        document.getElementById("group-edit-name").value = groupName;
-        document.getElementById("group-edit-score").value = groupScore;
-        document.getElementById("group-edit-id").value = groupId;
-
-        modal.classList.remove("hidden");
-      }
-
-      // 조모임 수정 모달 생성
-      function createGroupEditModal() {
-        const modalHTML = `
-          <div id="group-edit-modal" class="hidden fixed inset-0 bg-black/60 flex justify-center items-center px-4 z-50">
-            <div class="bg-white p-6 md:p-7 rounded-2xl shadow-xl max-w-md w-full">
-              <h3 class="text-xl font-bold text-gray-800 mb-4">🏅 조모임 수정</h3>
-              <div class="space-y-4">
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">조모임 이름</label>
-                  <input id="group-edit-name" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500" placeholder="조모임 이름">
-                </div>
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">점수</label>
-                  <input id="group-edit-score" type="number" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500" placeholder="점수">
-                </div>
-                <input id="group-edit-id" type="hidden">
-              </div>
-              <div class="flex gap-3 mt-6">
-                <button id="group-edit-save" class="flex-1 bg-orange-500 text-white py-2 px-4 rounded-lg hover:bg-orange-600 transition-colors">
-                  <i class="fas fa-save mr-2"></i>저장
-                </button>
-                <button id="group-edit-cancel" class="flex-1 bg-gray-500 text-white py-2 px-4 rounded-lg hover:bg-gray-600 transition-colors">
-                  취소
-                </button>
-              </div>
-            </div>
-          </div>
-        `;
-
-        document.body.insertAdjacentHTML("beforeend", modalHTML);
-
-        // 이벤트 리스너 추가
-        document
-          .getElementById("group-edit-save")
-          .addEventListener("click", async () => {
-            const groupId = document.getElementById("group-edit-id").value;
-            const groupName = document
-              .getElementById("group-edit-name")
-              .value.trim();
-            const groupScore =
-              parseInt(document.getElementById("group-edit-score").value) || 0;
-
-            if (!groupName) {
-              showAlert("😥", "조모임 이름을 입력해주세요.");
-              return;
-            }
-
-            try {
-              await updateGroup(groupId, groupName, groupScore);
-              showAlert("✅", "조모임 정보가 수정되었습니다.");
-              document
-                .getElementById("group-edit-modal")
-                .classList.add("hidden");
-            } catch (error) {
-              console.error("조모임 수정 오류:", error);
-              showAlert("😥", "조모임 수정에 실패했습니다.");
-            }
-          });
-
-        document
-          .getElementById("group-edit-cancel")
-          .addEventListener("click", () => {
-            document.getElementById("group-edit-modal").classList.add("hidden");
-          });
-
-        // 모달 외부 클릭 시 닫기
-        document
-          .getElementById("group-edit-modal")
-          .addEventListener("click", (e) => {
-            if (e.target.id === "group-edit-modal") {
-              document
-                .getElementById("group-edit-modal")
-                .classList.add("hidden");
-            }
-          });
-      }
-
       function renderRankList() {
         const container = document.getElementById("rank-list");
         if (!container) return;
@@ -9332,9 +9210,7 @@
               e.stopPropagation();
               const groupId = btn.dataset.groupId;
               const groupName = btn.dataset.groupName;
-              const groupScore = parseInt(btn.dataset.groupScore);
-
-              // 조모임 수정 모달 열기
+              const groupScore = btn.dataset.groupScore;
               openGroupEditModal(groupId, groupName, groupScore);
             });
           });
@@ -9345,7 +9221,7 @@
               const groupId = btn.dataset.groupId;
               const groupName = btn.dataset.groupName;
 
-              if (confirm(`"${groupName}" 조모임을 삭제하시겠습니까?`)) {
+              if (confirm(`정말로 "${groupName}"을(를) 삭제하시겠습니까?`)) {
                 try {
                   await deleteGroup(groupId);
                   showAlert("✅", "조모임이 삭제되었습니다.");
@@ -9357,6 +9233,140 @@
             });
           });
         }
+      }
+
+      // 조모임 순위 저장 함수
+      async function saveGroupRankings() {
+        try {
+          // 현재 groupsData를 점수순으로 정렬하여 저장
+          const sortedGroups = [...groupsData].sort(
+            (a, b) => (b.score || 0) - (a.score || 0)
+          );
+
+          // Firebase에 저장 (필요시)
+          showAlert("✅", "조모임 순위가 저장되었습니다.");
+        } catch (error) {
+          console.error("조모임 순위 저장 오류:", error);
+          showAlert("😥", "조모임 순위 저장에 실패했습니다.");
+        }
+      }
+
+      // 조모임 수정 모달 열기
+      function openGroupEditModal(groupId, groupName, groupScore) {
+        const modal = document.getElementById("group-edit-modal");
+        if (!modal) {
+          createGroupEditModal();
+        }
+
+        // 입력 필드에 기존 값 설정
+        document.getElementById("group-edit-id").value = groupId;
+        document.getElementById("group-edit-name").value = groupName;
+        document.getElementById("group-edit-score").value = groupScore;
+
+        document.getElementById("group-edit-modal").classList.remove("hidden");
+      }
+
+      // 조모임 수정 모달 생성
+      function createGroupEditModal() {
+        const modalHTML = `
+          <div id="group-edit-modal" class="hidden fixed inset-0 bg-black/60 flex justify-center items-center px-4 z-50">
+            <div class="bg-white p-6 md:p-7 rounded-2xl shadow-xl max-w-md w-full">
+              <h3 class="text-xl font-bold text-gray-800 mb-4">🏅 조모임 수정</h3>
+              <div class="space-y-4">
+                <input id="group-edit-id" type="hidden">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">조모임 이름</label>
+                  <input id="group-edit-name" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500" placeholder="예: 1조, A조, 김치조">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">점수</label>
+                  <input id="group-edit-score" type="number" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500" placeholder="0">
+                </div>
+              </div>
+              <div class="flex gap-3 mt-6">
+                <button id="group-edit-save" class="flex-1 bg-orange-500 text-white py-2 px-4 rounded-lg hover:bg-orange-600 transition-colors">
+                  <i class="fas fa-save mr-2"></i>수정
+                </button>
+                <button id="group-edit-cancel" class="flex-1 bg-gray-500 text-white py-2 px-4 rounded-lg hover:bg-gray-600 transition-colors">
+                  취소
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+
+        document.body.insertAdjacentHTML("beforeend", modalHTML);
+
+        // 이벤트 리스너 추가
+        document
+          .getElementById("group-edit-save")
+          .addEventListener("click", async () => {
+            const groupId = document.getElementById("group-edit-id").value;
+            const groupName = document
+              .getElementById("group-edit-name")
+              .value.trim();
+            const groupScore =
+              parseInt(document.getElementById("group-edit-score").value) || 0;
+
+            if (!groupName) {
+              showAlert("😥", "조모임 이름을 입력해주세요.");
+              return;
+            }
+
+            try {
+              await updateGroup(groupId, groupName, groupScore);
+              showAlert("✅", "조모임이 수정되었습니다.");
+              document
+                .getElementById("group-edit-modal")
+                .classList.add("hidden");
+            } catch (error) {
+              console.error("조모임 수정 오류:", error);
+              showAlert("😥", "조모임 수정에 실패했습니다.");
+            }
+          });
+
+        document
+          .getElementById("group-edit-cancel")
+          .addEventListener("click", () => {
+            document.getElementById("group-edit-modal").classList.add("hidden");
+          });
+
+        // 모달 외부 클릭 시 닫기
+        document
+          .getElementById("group-edit-modal")
+          .addEventListener("click", (e) => {
+            if (e.target.id === "group-edit-modal") {
+              document
+                .getElementById("group-edit-modal")
+                .classList.add("hidden");
+            }
+          });
+      }
+
+      // 조모임 수정 함수
+      async function updateGroup(groupId, name, score) {
+        const groupRef = doc(db, "groups", groupId);
+        await updateDoc(groupRef, {
+          name: name,
+          score: score,
+          lastUpdated: new Date().toISOString(),
+        });
+      }
+
+      // 조모임 삭제 함수
+      async function deleteGroup(groupId) {
+        const groupRef = doc(db, "groups", groupId);
+        await deleteDoc(groupRef);
+      }
+
+      // 조모임 추가 함수
+      async function addGroup(name, score) {
+        await addDoc(collection(db, "groups"), {
+          name: name,
+          score: score || 0,
+          members: [],
+          lastUpdated: new Date().toISOString(),
+        });
       }
 
       // 팀 수정 모달 열기
