@@ -9763,7 +9763,6 @@
               });
               showAlert("🎉", "기존 기록을 갱신했습니다!");
             } else {
-              showAlert("ℹ️", "기존 기록보다 좋지 않아 저장하지 않았습니다.");
               return;
             }
           } else {
@@ -10588,13 +10587,15 @@
           ballY: 100,
           ballVx: 3,
           ballVy: -4,
-          paddleX: 150,
-          paddleWidth: 100,
+          paddleX: 160,
+          paddleWidth: 80,
           gameRunning: false,
           lives: 3,
           level: 1,
           ballSize: 20,
           paddleSpeed: 8,
+          touchStartX: null,
+          paddleStartX: null,
         };
 
         showGameScreen();
@@ -10603,7 +10604,8 @@
         // 키보드와 터치 이벤트 리스너 추가
         document.addEventListener("keydown", handleBallBounceKey);
         document.addEventListener("mousemove", handleBallBounceMouse);
-        document.addEventListener("touchmove", handleBallBounceTouch);
+        document.addEventListener("touchstart", handleBallBounceTouchStart);
+        document.addEventListener("touchmove", handleBallBounceTouchMove);
       }
 
       function updateBallBounceUI() {
@@ -10630,7 +10632,7 @@
             </div>
           </div>
           
-          <div class="relative bg-gradient-to-b from-blue-400 to-blue-600 h-80 rounded-lg overflow-hidden border-2 border-gray-600">
+          <div class="relative bg-gradient-to-b from-blue-400 to-blue-600 rounded-lg overflow-hidden border-2 border-gray-600 mx-auto" style="width: 400px; max-width: 100%; height: 320px;">
             <!-- 공 -->
             <div id="ball" class="absolute w-5 h-5 bg-yellow-400 rounded-full shadow-lg transition-all duration-75" 
                  style="left: ${ballX}px; top: ${ballY}px;">
@@ -10689,16 +10691,22 @@
         gameState.ballX += gameState.ballVx;
         gameState.ballY += gameState.ballVy;
 
-        // 벽 충돌 검사
-        if (gameState.ballX <= 0 || gameState.ballX >= 380) {
+        // 벽 충돌 검사 (공의 크기 고려)
+        const ballSize = gameState.ballSize;
+        if (gameState.ballX <= ballSize / 2) {
+          gameState.ballX = ballSize / 2;
+          gameState.ballVx = -gameState.ballVx;
+        } else if (gameState.ballX >= 400 - ballSize / 2) {
+          gameState.ballX = 400 - ballSize / 2;
           gameState.ballVx = -gameState.ballVx;
         }
-        if (gameState.ballY <= 0) {
+        if (gameState.ballY <= ballSize / 2) {
+          gameState.ballY = ballSize / 2;
           gameState.ballVy = -gameState.ballVy;
         }
 
         // 바닥 충돌 검사
-        if (gameState.ballY >= 300) {
+        if (gameState.ballY >= 320 - ballSize / 2) {
           gameState.lives--;
           if (gameState.lives <= 0) {
             endBallGame();
@@ -10712,13 +10720,15 @@
           gameState.ballVy = -4;
         }
 
-        // 패들 충돌 검사
+        // 패들 충돌 검사 (더 정확한 충돌 감지)
         if (
-          gameState.ballY >= 280 &&
+          gameState.ballY >= 300 &&
           gameState.ballX >= gameState.paddleX &&
-          gameState.ballX <= gameState.paddleX + gameState.paddleWidth
+          gameState.ballX <= gameState.paddleX + gameState.paddleWidth &&
+          gameState.ballVy > 0 // 공이 아래로 떨어지고 있을 때만
         ) {
-          gameState.ballVy = -Math.abs(gameState.ballVy);
+          gameState.ballY = 300; // 공을 패들 위에 정확히 위치
+          gameState.ballVy = -Math.abs(gameState.ballVy); // 즉시 위로 반사
           gameState.score += 10;
 
           // 속도 증가
@@ -10728,7 +10738,7 @@
           // 레벨 업
           if (gameState.score % 100 === 0) {
             gameState.level++;
-            gameState.paddleWidth = Math.max(60, gameState.paddleWidth - 5);
+            gameState.paddleWidth = Math.max(50, gameState.paddleWidth - 5);
           }
         }
 
@@ -10742,7 +10752,8 @@
         // 이벤트 리스너 제거
         document.removeEventListener("keydown", handleBallBounceKey);
         document.removeEventListener("mousemove", handleBallBounceMouse);
-        document.removeEventListener("touchmove", handleBallBounceTouch);
+        document.removeEventListener("touchstart", handleBallBounceTouchStart);
+        document.removeEventListener("touchmove", handleBallBounceTouchMove);
 
         // 점수 저장
         saveGameScore("ball-bounce", gameState.score, {
@@ -10796,7 +10807,8 @@
         );
       }
 
-      function handleBallBounceTouch(e) {
+      // 터치 시작 시 초기 위치 저장
+      function handleBallBounceTouchStart(e) {
         if (!gameState.gameRunning) return;
 
         e.preventDefault();
@@ -10806,10 +10818,33 @@
 
         const rect = gameArea.getBoundingClientRect();
         const touchX = touch.clientX - rect.left;
-        gameState.paddleX = Math.max(
-          0,
-          Math.min(300, touchX - gameState.paddleWidth / 2)
-        );
+
+        // 터치 시작 시 초기 위치와 패들 위치 저장
+        gameState.touchStartX = touchX;
+        gameState.paddleStartX = gameState.paddleX;
+      }
+
+      // 터치 이동 시 드래그한 만큼만 패들 이동
+      function handleBallBounceTouchMove(e) {
+        if (!gameState.gameRunning) return;
+
+        e.preventDefault();
+        const touch = e.touches[0];
+        const gameArea = document.querySelector(".relative.bg-gradient-to-b");
+        if (!gameArea) return;
+
+        const rect = gameArea.getBoundingClientRect();
+        const touchX = touch.clientX - rect.left;
+
+        // 드래그한 거리 계산
+        const dragDistance = touchX - (gameState.touchStartX || touchX);
+
+        // 초기 패들 위치에서 드래그한 만큼만 이동
+        const newPaddleX =
+          (gameState.paddleStartX || gameState.paddleX) + dragDistance;
+
+        // 경계 내에서만 이동
+        gameState.paddleX = Math.max(0, Math.min(300, newPaddleX));
       }
 
       // 게임 점수 데이터 로드
