@@ -245,7 +245,7 @@
 
 <div align="center">
   <p>🍽️ <strong>맛있는 식사를 통해 소통하고 성장하는 Foodie와 함께하세요!</strong> 🍽️</p>
-  <p>Made with ❤️ by Foodie Development Team</p>
+  <p>Made by Foodie 2025 회장 이대현🧑🏻‍💻</p>
 </div>
 
 ---
