@@ -1,0 +1,257 @@
+:root {
+  --safe-top: env(safe-area-inset-top);
+  --safe-bottom: env(safe-area-inset-bottom);
+}
+html,
+body {
+  height: 100%;
+}
+body {
+  font-family: "Noto Sans KR", sans-serif;
+  padding-top: var(--safe-top);
+}
+.gradient-bg {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+.card-hover {
+  transition: 0.3s;
+}
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+.foodie-loader {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 60px;
+}
+
+.loading-dots {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: #f97316;
+  animation: dot-pulse 1s infinite ease-in-out;
+}
+
+.dot:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes dot-pulse {
+  0%,
+  100% {
+    transform: scale(0.5);
+    opacity: 0.3;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+}
+.tab-btn.active {
+  color: #fff;
+  background: #4a5568;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+.tab-content {
+  display: none;
+}
+.tab-content.active {
+  display: block;
+}
+.accordion-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.5s, padding 0.5s;
+  padding: 0 1.5rem;
+}
+.accordion-item.active .accordion-content {
+  max-height: 1000px;
+  padding: 1.5rem;
+}
+.accordion-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.accordion-header .fa-chevron-down {
+  flex: 0 0 auto;
+  transition: transform 0.5s;
+}
+.accordion-item.active .accordion-header .fa-chevron-down {
+  transform: rotate(180deg);
+}
+.roadmap-item {
+  position: relative;
+  padding-left: 30px;
+  padding-bottom: 1.25rem;
+}
+.roadmap-item:not(:last-child) {
+  padding-bottom: 2rem;
+}
+.roadmap-item:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  left: 7px;
+  top: 16px;
+  width: 2px;
+  height: 100%;
+  background: #e2e8f0;
+}
+.roadmap-item.completed:not(:last-child)::before {
+  background: #6366f1;
+}
+.roadmap-item::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 4px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  border: 3px solid #e2e8f0;
+}
+.roadmap-item.completed::after {
+  border-color: #6366f1;
+  background: #6366f1;
+}
+.roadmap-item.today::after {
+  border-color: #f59e0b;
+  background: #f59e0b;
+}
+.table-sticky th {
+  position: sticky;
+  top: 0;
+  background: #f8fafc;
+  z-index: 1;
+}
+input,
+select,
+textarea {
+  font-size: 16px !important;
+}
+.btn-lg {
+  padding: 0.8rem 1rem;
+  border-radius: 0.65rem;
+  font-weight: 700;
+}
+.input-lg {
+  padding: 0.85rem 1rem;
+  border-radius: 0.65rem;
+}
+.section {
+  background: #fff;
+  border-radius: 1.25rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.06);
+  padding: 1rem;
+  position: relative;
+  z-index: 1;
+  margin-bottom: 2rem;
+  overflow: visible;
+}
+@media (min-width: 768px) {
+  .section {
+    padding: 1.5rem;
+  }
+}
+
+/* 이벤트 컨테이너 겹침 방지 */
+#events-container {
+  position: relative;
+  z-index: 0;
+  overflow: visible;
+}
+
+#events-container .section {
+  position: relative;
+  z-index: 1;
+  margin-bottom: 2rem;
+  overflow: visible;
+}
+.thumb {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+}
+.dz {
+  width: 64px;
+  height: 64px;
+  border: 2px dashed #c7d2fe;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: #4f46e5;
+  cursor: pointer;
+  background: #eef2ff;
+}
+.dz.drag {
+  border-color: #6366f1;
+  background: #e0e7ff;
+}
+.dz-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  border-radius: 0.5rem;
+}
+#presence-pop {
+  position: absolute;
+  transform: translateY(8px);
+}
+.subtab-btn.active {
+  background: #111827;
+  color: #fff;
+}
+.sortable li {
+  user-select: none;
+}
+.dragging {
+  opacity: 0.5;
+  transform: rotate(5deg);
+}
+.badge {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+}
+/* 타입별 카드 상단 보더 */
+.accent-tasting {
+  border-top: 4px solid #a78bfa;
+} /* purple-400 */
+.accent-general {
+  border-top: 4px solid #34d399;
+} /* emerald-400 */
+.accent-mt {
+  border-top: 4px solid #60a5fa;
+} /* blue-400 */
+.accent-assembly {
+  border-top: 4px solid #f472b6;
+} /* pink-400 */

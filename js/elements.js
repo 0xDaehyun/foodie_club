@@ -1,0 +1,30 @@
+export const el = {
+  loading: document.getElementById("loading-screen"),
+  pre: document.getElementById("pre-login-info"),
+  main: document.getElementById("main-content"),
+  id: document.getElementById("studentId"),
+  name: document.getElementById("studentName"),
+  alert: document.getElementById("alert-modal"),
+  alertIcon: document.getElementById("modal-icon"),
+  alertMsg: document.getElementById("alert-message"),
+
+  emerg: document.getElementById("emergency-modal"),
+  signupBanner: document.getElementById("signup-banner"),
+  signupBtn: document.getElementById("signup-button"),
+  signupModal: document.getElementById("signup-modal"),
+  duesBox: document.getElementById("dues-box"),
+  duesBoxContent: document.getElementById("dues-box-content"),
+  duesModal: document.getElementById("dues-modal"),
+  duesModalBody: document.getElementById("dues-modal-body"),
+
+  presenceBadge: document.getElementById("presence-badge"),
+  presenceCount: document.getElementById("presence-count"),
+  presencePop: document.getElementById("presence-pop"),
+  presenceList: document.getElementById("presence-list"),
+
+  blockEditor: document.getElementById("block-editor"),
+  blockEditorTitle: document.getElementById("block-editor-title"),
+  blockEditorBody: document.getElementById("block-editor-body"),
+  blockEditorSave: document.getElementById("block-editor-save"),
+  blockEditorCancel: document.getElementById("block-editor-cancel"),
+};
