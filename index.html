@@ -755,9 +755,9 @@
         font-weight: 500;
         cursor: pointer;
         transition: all 0.2s ease;
-        overflow: hidden;
-        white-space: nowrap;
-        line-height: 1.2;
+        overflow: visible;
+        white-space: normal;
+        line-height: 1.3;
         margin-bottom: 0.125rem;
         width: 100%;
         max-width: 100%;
@@ -767,6 +767,7 @@
         /* 글자 크기 자동 조정을 위한 설정 */
         font-size: clamp(0.625rem, 2.5vw, 0.75rem);
         transform-origin: center;
+        text-align: center;
       }
 
       .calendar-event:hover {
@@ -3818,25 +3819,25 @@
           if (b.type === "announcement") {
             // 공지사항 블록 표시
             return `
-              <div class="border rounded-lg p-4 bg-gradient-to-r from-blue-50 to-indigo-50 shadow-sm hover:shadow-md transition-shadow relative">
-                <div class="flex items-start gap-3">
+              <div class="border rounded-lg p-3 md:p-4 bg-gradient-to-r from-blue-50 to-indigo-50 shadow-sm hover:shadow-md transition-shadow relative">
+                <div class="flex flex-col sm:flex-row items-start gap-3">
                   <div class="flex-shrink-0">
                     <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
                       <i class="fas fa-bullhorn text-white"></i>
                     </div>
                   </div>
-                  <div class="flex-1">
-                    <div class="flex items-center gap-2 mb-2">
-                      <h3 class="font-bold text-lg text-blue-800">${saf(
+                  <div class="flex-1 min-w-0 w-full">
+                    <div class="flex flex-wrap items-center gap-2 mb-2">
+                      <h3 class="font-bold text-base md:text-lg text-blue-800 break-words">${saf(
                         b.title
                       )}</h3>
                       ${
                         b.isAuto
-                          ? '<span class="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs">자동</span>'
+                          ? '<span class="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs flex-shrink-0">자동</span>'
                           : ""
                       }
                     </div>
-                    <div class="text-gray-700 whitespace-pre-wrap">${saf(
+                    <div class="text-sm md:text-base text-gray-700 whitespace-pre-wrap break-words">${saf(
                       b.content
                     )}</div>
                     <div class="text-xs text-gray-500 mt-2">
@@ -3873,17 +3874,17 @@
               );
 
               return `
-                <div class="border rounded-lg p-4 bg-white shadow-sm hover:shadow-md transition-shadow relative">
-                  <div class="flex items-center gap-2 mb-3">
-                    <div class="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
+                <div class="border rounded-lg p-3 md:p-4 bg-white shadow-sm hover:shadow-md transition-shadow relative">
+                  <div class="flex flex-wrap items-center gap-2 mb-3">
+                    <div class="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center flex-shrink-0">
                       <i class="fas fa-calendar-alt text-white text-sm"></i>
                     </div>
-                    <h3 class="font-bold text-lg text-gray-800">${saf(
+                    <h3 class="font-bold text-base md:text-lg text-gray-800 break-words flex-1 min-w-0">${saf(
                       b.title
                     )}</h3>
                     ${
                       b.isAuto
-                        ? '<span class="bg-gray-100 text-gray-700 px-2 py-1 rounded-full text-xs">자동</span>'
+                        ? '<span class="bg-gray-100 text-gray-700 px-2 py-1 rounded-full text-xs flex-shrink-0">자동</span>'
                         : ""
                     }
                   </div>
@@ -3904,9 +3905,9 @@
             const teamsHTML = sortedTeams
               .map(
                 (team, index) => `
-              <div class="flex items-center justify-between p-3 bg-gradient-to-r from-orange-50 to-orange-100 border border-orange-200 rounded-lg">
-                <div class="flex items-center gap-3">
-                  <div class="flex items-center justify-center w-8 h-8 rounded-full text-white font-bold text-sm ${
+              <div class="flex items-center justify-between p-2 md:p-3 bg-gradient-to-r from-orange-50 to-orange-100 border border-orange-200 rounded-lg">
+                <div class="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
+                  <div class="flex items-center justify-center w-7 h-7 md:w-8 md:h-8 rounded-full text-white font-bold text-xs md:text-sm flex-shrink-0 ${
                     index === 0
                       ? "bg-yellow-500"
                       : index === 1
@@ -3917,11 +3918,11 @@
                   }">
                     ${index + 1}
                   </div>
-                  <div>
-                    <span class="font-bold text-lg text-gray-800">${saf(
+                  <div class="flex-1 min-w-0">
+                    <span class="font-bold text-base md:text-lg text-gray-800 break-words block">${saf(
                       team.name
                     )}</span>
-                    <div class="text-sm text-gray-600">${
+                    <div class="text-xs md:text-sm text-gray-600">${
                       team.score || 0
                     }점</div>
                   </div>
@@ -3936,11 +3937,11 @@
               currentUser && adminList.includes(currentUser.studentId);
 
             return `
-              <div class="border rounded-lg p-4 bg-white shadow-sm hover:shadow-md transition-shadow relative">
+              <div class="border rounded-lg p-3 md:p-4 bg-white shadow-sm hover:shadow-md transition-shadow relative">
                 ${
                   isAdmin
                     ? `
-                  <div class="absolute top-2 right-2 flex gap-1">
+                  <div class="absolute top-2 right-2 flex gap-1 flex-wrap">
                     <button class="move-block-up score-block-move-up bg-gray-500 text-white px-2 py-1 rounded text-xs hover:bg-gray-600 transition-colors" 
                             data-block-id="${b.id}" title="위로 이동">
                       <i class="fas fa-arrow-up"></i>
@@ -3961,15 +3962,15 @@
                 `
                     : ""
                 }
-                <div class="flex justify-between items-start mb-3">
-                  <h3 class="font-bold text-lg text-gray-800">${saf(
+                <div class="flex justify-between items-start mb-3 pr-0 md:pr-0">
+                  <h3 class="font-bold text-base md:text-lg text-gray-800 break-words pr-20">${saf(
                     b.title
                   )}</h3>
                 </div>
                 <div class="space-y-2">
                   ${
                     teamsHTML ||
-                    '<p class="text-gray-400 text-center py-4">팀 데이터가 없습니다.</p>'
+                    '<p class="text-gray-400 text-center py-4 text-sm">팀 데이터가 없습니다.</p>'
                   }
                 </div>
               </div>
@@ -3980,23 +3981,23 @@
               ? items
                   .map(
                     (it) =>
-                      `<div class="border rounded p-4 bg-white hover:bg-gray-50 transition-colors">
-                        <div class="font-semibold text-gray-800 mb-2 whitespace-pre-wrap">Q. ${saf(
+                      `<div class="border rounded p-3 md:p-4 bg-white hover:bg-gray-50 transition-colors">
+                        <div class="font-semibold text-sm md:text-base text-gray-800 mb-2 whitespace-pre-wrap break-words">Q. ${saf(
                           it.q || "-"
                         )}</div>
-                        <div class="text-gray-600 mt-2 pl-4 whitespace-pre-wrap leading-relaxed">A. ${saf(
+                        <div class="text-sm md:text-base text-gray-600 mt-2 pl-3 md:pl-4 whitespace-pre-wrap leading-relaxed break-words">A. ${saf(
                           it.a || "-"
                         )}</div>
                       </div>`
                   )
                   .join("")
-              : `<div class="text-gray-400">질문이 없습니다.</div>`;
+              : `<div class="text-gray-400 text-sm">질문이 없습니다.</div>`;
             return `<div class="accordion-item section relative" data-block="${
               b.id
             }">
                       ${getBlockAdminButtons(b)}
-                      <div class="accordion-header cursor-pointer p-4 md:p-6">
-                        <h3 class="text-lg md:text-xl font-bold text-gray-700"><i class="fas fa-question-circle mr-2 text-orange-500"></i>${saf(
+                      <div class="accordion-header cursor-pointer p-3 md:p-4 lg:p-6">
+                        <h3 class="text-base md:text-lg lg:text-xl font-bold text-gray-700 break-words pr-8"><i class="fas fa-question-circle mr-2 text-orange-500"></i>${saf(
                           b.title || "Q&A"
                         )}</h3>
                         <i class="fas fa-chevron-down text-gray-500"></i>
@@ -4009,16 +4010,16 @@
               b.id
             }">
                       ${getBlockAdminButtons(b)}
-                      <div class="accordion-header cursor-pointer flex items-center justify-between py-3 px-1 hover:bg-gray-50 transition-colors">
-                        <h3 class="text-lg md:text-xl font-bold text-gray-700 flex items-center">
-                          <i class="fas fa-bullhorn mr-2 text-orange-500"></i>${saf(
+                      <div class="accordion-header cursor-pointer flex items-center justify-between py-3 px-2 md:px-3 hover:bg-gray-50 transition-colors">
+                        <h3 class="text-base md:text-lg lg:text-xl font-bold text-gray-700 flex items-center break-words flex-1 min-w-0 pr-2">
+                          <i class="fas fa-bullhorn mr-2 text-orange-500 flex-shrink-0"></i><span class="break-words">${saf(
                             b.title || "공지"
-                          )}
+                          )}</span>
                         </h3>
-                        <i class="fas fa-chevron-down accordion-icon transition-transform duration-300 text-gray-400"></i>
+                        <i class="fas fa-chevron-down accordion-icon transition-transform duration-300 text-gray-400 flex-shrink-0"></i>
                       </div>
                       <div class="accordion-content">
-                        <div class="prose prose-sm max-w-none text-gray-700 whitespace-pre-wrap px-1 pb-3">${
+                        <div class="prose prose-sm max-w-none text-sm md:text-base text-gray-700 whitespace-pre-wrap break-words px-2 md:px-3 pb-3">${
                           content || "내용이 없습니다."
                         }</div>
                       </div>
@@ -4055,18 +4056,18 @@
               b.id
             }">
                       ${getBlockAdminButtons(b)}
-                      <div class="accordion-header cursor-pointer p-4 md:p-6">
+                      <div class="accordion-header cursor-pointer p-3 md:p-4 lg:p-6">
                         <div class="flex flex-col gap-2">
                           <div class="flex items-center justify-between w-full">
-                            <h3 class="text-lg md:text-xl font-bold text-gray-700"><i class="fas fa-map-signs mr-2 text-orange-500"></i>${saf(
+                            <h3 class="text-base md:text-lg lg:text-xl font-bold text-gray-700 break-words flex-1 min-w-0 pr-2"><i class="fas fa-map-signs mr-2 text-orange-500 flex-shrink-0"></i><span class="break-words">${saf(
                               b.title || "로드맵"
-                            )}</h3>
-                            <i class="fas fa-chevron-down text-gray-500"></i>
+                            )}</span></h3>
+                            <i class="fas fa-chevron-down text-gray-500 flex-shrink-0"></i>
                           </div>
                           ${
                             isAdminForRoadmap
                               ? `
-                            <div class="flex gap-1 justify-start">
+                            <div class="flex gap-1 justify-start flex-wrap">
                               <button class="add-roadmap-item bg-green-500 text-white px-2 py-1 rounded text-xs hover:bg-green-600 transition-colors" 
                                       data-block-id="${b.id}" title="새 일정 추가">
                                 <i class="fas fa-plus mr-1"></i>일정 추가
@@ -4095,8 +4096,8 @@
                                       : "날짜 미정";
 
                                     return `
-                                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                                      <div class="flex items-center justify-between mb-2">
+                                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 md:p-4">
+                                      <div class="flex items-center justify-between mb-2 gap-2">
                                         <div class="flex items-center">
                                           <i class="fas fa-calendar-alt text-blue-500 mr-2"></i>
                                           <span class="font-semibold text-blue-800">${saf(
@@ -4211,19 +4212,19 @@
         // 관리자용 새 블록 생성 버튼 추가
         let finalSnippets = snippets;
         if (isAdmin) {
-          // 새 블록 추가 박스를 맨 앞에 배치
+          // 새 공지 추가 박스를 맨 앞에 배치
           const addBlockPlaceholder = `
             <div class="add-block-placeholder border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-orange-400 hover:bg-orange-50 transition-colors cursor-pointer group" 
                  data-position="1" data-act="add-new-block">
               <div class="flex flex-col items-center justify-center space-y-2">
                 <i class="fas fa-plus-circle text-2xl text-gray-400 group-hover:text-orange-500"></i>
-                <span class="text-sm text-gray-500 group-hover:text-orange-600">새 블록 추가</span>
+                <span class="text-sm text-gray-500 group-hover:text-orange-600">새 공지 추가</span>
               </div>
             </div>
           `;
 
           if (snippets.length > 0) {
-            // 기존 블록이 있으면 새 블록 추가 박스를 맨 앞에 배치
+            // 기존 블록이 있으면 새 공지 추가 박스를 맨 앞에 배치
             finalSnippets = [addBlockPlaceholder, ...snippets];
           } else {
             // 블록이 없을 때 첫 번째 블록 생성 버튼
@@ -4233,7 +4234,7 @@
                    data-position="1" data-act="add-new-block">
                 <div class="flex flex-col items-center justify-center space-y-4">
                   <i class="fas fa-plus-circle text-4xl text-gray-400 group-hover:text-orange-500"></i>
-                  <span class="text-lg text-gray-500 group-hover:text-orange-600">첫 번째 블록을 추가하세요</span>
+                  <span class="text-lg text-gray-500 group-hover:text-orange-600">첫 번째 공지를 추가하세요</span>
                 </div>
               </div>
               `,
@@ -10355,7 +10356,7 @@
               
               <div class="flex flex-col sm:flex-row gap-3 mb-4">
                 <button id="add-new-block" class="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors btn-text">
-                  <i class="fas fa-plus mr-2"></i>새 블록 생성
+                  <i class="fas fa-plus mr-2"></i>새 공지 추가
                 </button>
               </div>
               
@@ -11343,7 +11344,7 @@
           return;
         }
 
-        // 관리자 여부 확인
+        // 관리자 및 운영진 여부 확인
         const isUserAdmin =
           currentUser && adminList.includes(currentUser.studentId);
 
@@ -11479,7 +11480,7 @@
               <div class="flex items-center gap-2 mb-3">
                 <i class="fas fa-list-ul text-blue-600"></i>
                 <h4 class="font-bold text-gray-800">신청자 명단</h4>
-                <span class="text-xs text-blue-600">(관리자 전용)</span>
+                <span class="text-xs text-blue-600">(관리자·운영진 전용)</span>
               </div>
               ${
                 ev.type === "tasting" && restaurantName
@@ -11737,15 +11738,15 @@
 
         c.innerHTML = `
           <div class="section mb-6">
-            <div class="flex items-center justify-between">
-              <div>
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+              <div class="flex-1">
                 <h2 class="text-2xl font-bold mb-2 text-gray-800 flex items-center gap-2">
                   <i class="fas fa-history text-orange-500"></i>
                   활동 기록
                 </h2>
                 <p class="text-sm text-gray-600">참가한 이벤트 ${participatedEvents.length}개 • 평가를 남겨 동아리 활동을 더욱 풍성하게 만들어보세요!</p>
               </div>
-              <div class="text-right">
+              <div class="flex-shrink-0">
                 <div class="inline-flex items-center gap-2 bg-orange-50 px-4 py-2 rounded-lg">
                   <i class="fas fa-trophy text-orange-500"></i>
                   <span class="font-bold text-orange-700">${participatedEvents.length}개 참여</span>
@@ -11940,18 +11941,24 @@
             }
 
             const title = event.activityName || event.title || "일정 없음";
-            // 텍스트 길이에 따라 동적 클래스 적용
-            const textLength = title.length;
-            let sizeClass = "";
-            if (textLength > 10) {
-              sizeClass = "text-xs";
-            } else if (textLength > 6) {
-              sizeClass = "text-sm";
-            }
 
-            calendarHTML += `<div class="${eventClass} ${sizeClass}" title="${saf(
-              title
-            )}" data-event-id="${event.id}">${saf(title)}</div>`;
+            // 4글자마다 줄바꿈 처리 (이모티콘 포함)
+            const wrappedTitle = title.match(/.{1,4}/g)?.join("<br>") || title;
+
+            // HTML 엔티티 변환 (XSS 방지)
+            const escapedTitle = title.replace(
+              /[&<>"']/g,
+              (m) =>
+                ({
+                  "&": "&amp;",
+                  "<": "&lt;",
+                  ">": "&gt;",
+                  '"': "&quot;",
+                  "'": "&#39;",
+                }[m])
+            );
+
+            calendarHTML += `<div class="${eventClass}" title="${escapedTitle}" data-event-id="${event.id}">${wrappedTitle}</div>`;
           });
 
           calendarHTML += "</div>";
@@ -15879,7 +15886,7 @@
           }, 100);
         } else {
           // 생성 모드
-          title.textContent = "새 블록 생성";
+          title.textContent = "새 공지 추가";
           content.innerHTML = generateBlockTypeSelector();
         }
 
