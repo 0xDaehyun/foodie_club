@@ -937,6 +937,8 @@
       #subtab-container *,
       .member-card,
       .member-card *,
+      .footer-selectable,
+      .footer-selectable *,
       input,
       textarea,
       select {
@@ -1809,7 +1811,7 @@
 
     <div id="logout-container" class="text-center py-2"></div>
 
-    <footer class="text-center py-4 text-gray-500 text-sm">
+    <footer class="text-center py-4 text-gray-500 text-sm footer-selectable">
       <p>개발자🧑🏻‍💻: Foodie 2025 회장 이대현</p>
       <p>연락처📨: leedaehyun11@naver.com</p>
     </footer>
@@ -2083,7 +2085,8 @@
           <input
             id="signupPhone"
             type="text"
-            placeholder="전화번호(- 없이 입력 권장)"
+            placeholder="000-0000-0000"
+            maxlength="13"
             class="input-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 sm:col-span-2"
           />
         </div>
@@ -2357,6 +2360,32 @@
       let editingBlockId_qa = null;
       let editingBlockId_scores = null;
 
+      /* ===== 권한 관리 함수 ===== */
+      function isAdmin() {
+        return currentUser && adminList.includes(currentUser.studentId);
+      }
+
+      function isStaff() {
+        if (!currentUser) return false;
+        const position = adminPositions[currentUser.studentId];
+        return position === "운영진";
+      }
+
+      function isFullAdmin() {
+        if (!currentUser) return false;
+        const position = adminPositions[currentUser.studentId];
+        return (
+          position &&
+          ["회장", "부회장", "총무", "기획부장", "홍보부장", "개발자"].includes(
+            position
+          )
+        );
+      }
+
+      function isAdminOrStaff() {
+        return isAdmin() || isStaff();
+      }
+
       /* ===== DOM refs & helpers ===== */
       const el = {
         loading: document.getElementById("loading-screen"),
@@ -2452,7 +2481,8 @@
           : t === "assembly"
           ? "accent-assembly"
           : "accent-general"; /* general */
-      const statusLabel = (s) => ({ open: "공개", archived: "숨김" }[s] || s);
+      const statusLabel = (s) =>
+        ({ open: "공개", archived: "숨김", closed: "마감됨" }[s] || s);
       const saf = (x) =>
         window.DOMPurify
           ? DOMPurify.sanitize(String(x ?? ""))
@@ -3306,6 +3336,26 @@
             .addEventListener("click", () =>
               el.signupModal.classList.add("hidden")
             );
+          // 전화번호 자동 포맷
+          document
+            .getElementById("signupPhone")
+            .addEventListener("input", (e) => {
+              let value = e.target.value.replace(/[^0-9]/g, ""); // 숫자만 추출
+              if (value.length > 11) value = value.slice(0, 11); // 최대 11자리
+
+              // 000-0000-0000 형식으로 변환
+              if (value.length > 7) {
+                e.target.value = `${value.slice(0, 3)}-${value.slice(
+                  3,
+                  7
+                )}-${value.slice(7)}`;
+              } else if (value.length > 3) {
+                e.target.value = `${value.slice(0, 3)}-${value.slice(3)}`;
+              } else {
+                e.target.value = value;
+              }
+            });
+
           document
             .getElementById("signup-confirm-button")
             .addEventListener("click", () => confirmSignup(false));
@@ -3698,14 +3748,14 @@
           currentUser && adminList.includes(currentUser.studentId);
         if (!isAdmin) return "";
 
-        // 공지 블록은 항상 버튼 표시 (모바일 대응)
+        // 공지 블록과 Q&A 블록은 항상 버튼 표시 (모바일 대응)
         const opacityClass =
-          block.type === "notice"
+          block.type === "notice" || block.type === "qa"
             ? "opacity-100"
             : "opacity-0 group-hover:opacity-100";
 
         return `
-          <div class="block-admin-controls absolute top-2 right-2 flex gap-1 ${opacityClass} transition-opacity">
+          <div class="block-admin-controls absolute top-2 right-2 flex gap-1 ${opacityClass} transition-opacity z-10">
             <button class="move-block-up bg-gray-500 text-white px-2 py-1 rounded text-xs hover:bg-gray-600 transition-colors" 
                     data-block-id="${block.id}" title="위로 이동">
               <i class="fas fa-arrow-up"></i>
@@ -3930,11 +3980,14 @@
               ? items
                   .map(
                     (it) =>
-                      `<div class="border rounded p-3"><div class="font-semibold text-gray-800">Q. ${saf(
-                        it.q || "-"
-                      )}</div><div class="text-gray-600  mt-1 whitespace-pre-wrap">A. ${saf(
-                        it.a || "-"
-                      )}</div></div>`
+                      `<div class="border rounded p-4 bg-white hover:bg-gray-50 transition-colors">
+                        <div class="font-semibold text-gray-800 mb-2 whitespace-pre-wrap">Q. ${saf(
+                          it.q || "-"
+                        )}</div>
+                        <div class="text-gray-600 mt-2 pl-4 whitespace-pre-wrap leading-relaxed">A. ${saf(
+                          it.a || "-"
+                        )}</div>
+                      </div>`
                   )
                   .join("")
               : `<div class="text-gray-400">질문이 없습니다.</div>`;
@@ -5242,9 +5295,7 @@
         return { total, genderPct, colleges };
       }
       function adminStatsHTML(ev) {
-        const isAdmin =
-          currentUser && adminList.includes(currentUser.studentId);
-        if (!isAdmin) return "";
+        if (!isFullAdmin()) return "";
         const st = computeEventStats(ev);
         const gLine =
           st.total > 0
@@ -5264,12 +5315,10 @@
                </div>`;
       }
       const adminInline = (ev) => {
-        const isAdmin =
-          currentUser && adminList.includes(currentUser.studentId);
-        if (!isAdmin) return "";
+        if (!isFullAdmin()) return "";
         return `<div class="mt-3 flex gap-2 flex-wrap">
                   <button type="button" class="text-blue-600 hover:text-blue-800 text-sm" data-act="admin-edit" data-id="${ev.id}"><i class="fas fa-pen"></i> 수정</button>
-                  <button type="button" class="text-amber-600 hover:text-amber-800 text-sm" data-act="admin-archive" data-id="${ev.id}"><i class="fas fa-box-archive"></i> 보관</button>
+                  <button type="button" class="text-red-600 hover:text-red-800 text-sm font-semibold" data-act="admin-close" data-id="${ev.id}"><i class="fas fa-door-closed"></i> 신청 마감</button>
                   <button type="button" class="text-purple-600 hover:text-purple-800 text-sm" data-act="group-maker" data-id="${ev.id}"><i class="fas fa-users"></i> 조짜기</button>
                   <button type="button" class="text-orange-700 hover:text-orange-900 text-sm" data-act="export-xlsx" data-id="${ev.id}"><i class="fas fa-file-excel"></i> 명단 다운로드</button>
                   <button type="button" class="text-red-600 hover:text-red-800 text-sm" data-act="admin-delete" data-id="${ev.id}"><i class="fas fa-trash"></i> 삭제</button>
@@ -5397,14 +5446,43 @@
                   <h3 class="text-xl font-bold text-gray-800">${saf(
                     ev.title
                   )}</h3>
-                  <p class="text-gray-500">🗓️ ${
-                    ev.datetime
-                      ? new Date(ev.datetime).toLocaleString("ko-KR")
-                      : "-"
-                  }</p>
+                  <div class="mt-2 space-y-1">
+                    <div class="flex items-center gap-2">
+                      <div class="bg-orange-100 text-orange-800 px-3 py-1.5 rounded-lg flex items-center gap-2 flex-1">
+                        <i class="fas fa-calendar-check text-orange-600"></i>
+                        <span class="text-sm font-medium">이벤트 실시일</span>
+                      </div>
+                      <p class="text-gray-700 font-semibold text-sm flex-1">${
+                        ev.datetime
+                          ? new Date(ev.datetime).toLocaleString("ko-KR", {
+                              month: "long",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })
+                          : "-"
+                      }</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <div class="bg-red-100 text-red-800 px-3 py-1.5 rounded-lg flex items-center gap-2 flex-1">
+                        <i class="fas fa-clock text-red-600"></i>
+                        <span class="text-sm font-medium">신청 마감일</span>
+                      </div>
+                      <p class="text-red-700 font-semibold text-sm flex-1">${
+                        ev.deadline
+                          ? new Date(ev.deadline).toLocaleString("ko-KR", {
+                              month: "long",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })
+                          : "미설정"
+                      }</p>
+                    </div>
+                  </div>
                   ${paymentInfoHTML(ev)}
                   ${
-                    currentUser && adminList.includes(currentUser.studentId)
+                    isFullAdmin()
                       ? `
                   <div class="mt-3">
                     <div class="w-full bg-gray-200 rounded-full h-4"><div class="bg-orange-500 h-4 rounded-full" style="width:${
@@ -5630,14 +5708,40 @@
                           ${typeLabel(ev.type)}
                         </span>
                       </div>
-                      <p class="text-sm text-gray-600 flex items-center gap-2">
-                        <i class="fas fa-calendar-alt"></i>
-                        ${
-                          ev.datetime
-                            ? new Date(ev.datetime).toLocaleString("ko-KR")
-                            : "-"
-                        }
-                      </p>
+                      <div class="space-y-1">
+                        <div class="flex items-center gap-2">
+                          <div class="bg-orange-100 text-orange-800 px-3 py-1.5 rounded-lg flex items-center gap-2 flex-1">
+                            <i class="fas fa-calendar-check text-orange-600"></i>
+                            <span class="text-sm font-medium">이벤트 실시일</span>
+                          </div>
+                          <p class="text-gray-700 font-semibold text-sm flex-1">${
+                            ev.datetime
+                              ? new Date(ev.datetime).toLocaleString("ko-KR", {
+                                  month: "long",
+                                  day: "numeric",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })
+                              : "-"
+                          }</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                          <div class="bg-red-100 text-red-800 px-3 py-1.5 rounded-lg flex items-center gap-2 flex-1">
+                            <i class="fas fa-clock text-red-600"></i>
+                            <span class="text-sm font-medium">신청 마감일</span>
+                          </div>
+                          <p class="text-red-700 font-semibold text-sm flex-1">${
+                            ev.deadline
+                              ? new Date(ev.deadline).toLocaleString("ko-KR", {
+                                  month: "long",
+                                  day: "numeric",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })
+                              : "미설정"
+                          }</p>
+                        </div>
+                      </div>
                   ${adminStatsHTML(ev)}
                     </div>
                     
@@ -5705,7 +5809,9 @@
         const c = document.getElementById("reservation-tab");
         if (!c) return;
 
-        const activeEvents = eventsData.filter((e) => e.status !== "archived");
+        const activeEvents = eventsData.filter(
+          (e) => e.status !== "archived" && e.status !== "closed"
+        );
         const listHTML =
           activeEvents.length === 0
             ? `<div class="text-center py-12"><i class="fas fa-calendar-xmark text-4xl text-gray-300"></i><p class="mt-3 text-gray-500">진행 중인 이벤트/미식회가 없습니다.</p></div>`
@@ -5726,11 +5832,20 @@
                   <h2 class="text-2xl font-bold mb-1 text-gray-800">진행 중 목록</h2>
                   <p class="text-xs text-gray-500">현재 신청 가능한 이벤트/미식회입니다.</p>
                 </div>
+                ${
+                  isFullAdmin()
+                    ? `
                 <div class="flex flex-col sm:flex-row gap-2">
                   <button id="create-event-btn" class="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors shadow-md">
-                    <i class="fas fa-plus mr-2"></i>이벤트 생성
+                    <i class="fas fa-cog mr-2"></i>이벤트 관리
+                  </button>
+                  <button id="auto-close-btn" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors shadow-md">
+                    <i class="fas fa-clock mr-2"></i>자동 마감 실행
                   </button>
                 </div>
+                `
+                    : ""
+                }
               </div>
             </div>
           `
@@ -5766,8 +5881,17 @@
         if (act === "reserve-tasting") return reserveTasting(id, rid);
         if (act === "cancel-tasting") return cancelTasting(id, rid);
         if (act === "cancel-wait-tasting") return cancelWaitTasting(id, rid);
-        if (act === "admin-edit") return loadEventToForm(id);
+        if (act === "admin-edit") {
+          if (!isFullAdmin()) {
+            showAlert("🔒", "관리자만 이벤트를 수정할 수 있습니다.");
+            return;
+          }
+          return openEventModal("edit", id);
+        }
+        if (act === "admin-close") return closeEvent(id);
+        if (act === "admin-reopen") return reopenEvent(id);
         if (act === "admin-archive") return archiveEvent(id);
+        if (act === "admin-unpost") return unpostEvent(id);
         if (act === "group-maker") return openGroupMakerModal(id);
         if (act === "admin-delete") return deleteEvent(id);
         if (act === "export-xlsx") return exportApplicantsXLSX(id);
@@ -5820,10 +5944,18 @@
               <div>
                 <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
                   <i class="fas fa-calendar-alt text-orange-500"></i>
-                  언제 진행하나요? <span class="text-red-500">*</span>
+                  이벤트 실시일 (언제 진행하나요?) <span class="text-red-500">*</span>
                 </label>
                 <input id="event-datetime" type="datetime-local" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all text-base" required>
-                <p class="text-xs text-gray-500 mt-1 pl-6">📅 날짜와 시간을 모두 선택해주세요</p>
+                <p class="text-xs text-gray-500 mt-1 pl-6">📅 이벤트가 실제로 진행되는 날짜와 시간</p>
+              </div>
+              <div>
+                <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                  <i class="fas fa-clock text-orange-500"></i>
+                  신청 마감일 (언제까지 신청받나요?) <span class="text-red-500">*</span>
+                </label>
+                <input id="event-deadline" type="datetime-local" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all text-base" required>
+                <p class="text-xs text-gray-500 mt-1 pl-6">⏰ 이 시간 이후로는 신청할 수 없어요</p>
               </div>
               <div>
                 <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
@@ -6245,23 +6377,34 @@
         </div>`;
       }
       function onTypeChange(type) {
-        document
-          .getElementById("tasting-fields")
-          .classList.toggle("hidden", type !== "tasting");
-        document
-          .getElementById("payment-fields")
-          .classList.toggle("hidden", !(type === "mt" || type === "assembly"));
+        const tastingFields = document.getElementById("tasting-fields");
+        const paymentFields = document.getElementById("payment-fields");
+
+        if (!tastingFields || !paymentFields) {
+          console.warn("onTypeChange: 필수 DOM 요소를 찾을 수 없습니다.");
+          return;
+        }
+
+        tastingFields.classList.toggle("hidden", type !== "tasting");
+        paymentFields.classList.toggle(
+          "hidden",
+          !(type === "mt" || type === "assembly")
+        );
+
         if (type === "mt" || type === "assembly") {
           const d = duesSettings || {};
-          if (!document.getElementById("pay-bank").value)
-            document.getElementById("pay-bank").value = d.bank || "";
-          if (!document.getElementById("pay-number").value)
-            document.getElementById("pay-number").value = d.number || "";
-          if (!document.getElementById("pay-holder").value)
-            document.getElementById("pay-holder").value = d.holder || "";
-          if (!document.getElementById("pay-note").value)
-            document.getElementById("pay-note").value =
+          const payBank = document.getElementById("pay-bank");
+          const payNumber = document.getElementById("pay-number");
+          const payHolder = document.getElementById("pay-holder");
+          const payNote = document.getElementById("pay-note");
+
+          if (payBank && !payBank.value) payBank.value = d.bank || "";
+          if (payNumber && !payNumber.value) payNumber.value = d.number || "";
+          if (payHolder && !payHolder.value) payHolder.value = d.holder || "";
+          if (payNote && !payNote.value) {
+            payNote.value =
               (d.amount ? `회비 ${formatKRW(d.amount)} ` : "") + (d.note || "");
+          }
         }
       }
       function adminEventsListHTML() {
@@ -6284,16 +6427,34 @@
               <span class="text-xs ml-2 px-2 py-0.5 rounded ${
                 ev.status === "open"
                   ? "bg-green-100 text-green-700"
+                  : ev.autoClosedAt
+                  ? "bg-orange-100 text-orange-700"
                   : "bg-gray-200 text-gray-700"
-              }">${statusLabel(ev.status || "open")}</span>
+              }" ${
+              ev.autoClosedAt
+                ? `title="자동 마감됨: ${new Date(
+                    ev.autoClosedAt
+                  ).toLocaleString("ko-KR")}"`
+                : ""
+            }>${
+              ev.autoClosedAt ? "자동 마감" : statusLabel(ev.status || "open")
+            }</span>
             </div>
             <div class="flex gap-2">
               <button type="button" class="text-blue-600 hover:text-blue-800" data-act="admin-edit" data-id="${
                 ev.id
               }" title="수정"><i class="fas fa-pen"></i></button>
+              ${
+                ev.status === "closed"
+                  ? `<button type="button" class="text-green-600 hover:text-green-800 font-semibold" data-act="admin-reopen" data-id="${ev.id}" title="다시 열기"><i class="fas fa-door-open"></i></button>`
+                  : `<button type="button" class="text-red-600 hover:text-red-800" data-act="admin-close" data-id="${ev.id}" title="신청 마감"><i class="fas fa-door-closed"></i></button>`
+              }
               <button type="button" class="text-amber-600 hover:text-amber-800" data-act="admin-archive" data-id="${
                 ev.id
               }" title="보관(숨김)"><i class="fas fa-box-archive"></i></button>
+              <button type="button" class="text-indigo-600 hover:text-indigo-800" data-act="admin-unpost" data-id="${
+                ev.id
+              }" title="글 내리기"><i class="fas fa-arrow-down"></i></button>
               <button type="button" class="text-purple-600 hover:text-purple-800" data-act="group-maker" data-id="${
                 ev.id
               }" title="조짜기"><i class="fas fa-users"></i></button>
@@ -6586,6 +6747,18 @@
       }
       async function cancelGeneral(id) {
         if (!currentUser) return;
+
+        // 로딩 상태 표시
+        const button = document.querySelector(
+          `button[data-act="cancel-general"][data-id="${id}"]`
+        );
+        const originalText = button ? button.innerHTML : "";
+        if (button) {
+          button.disabled = true;
+          button.innerHTML =
+            '<i class="fas fa-spinner fa-spin mr-2"></i>취소 중...';
+        }
+
         try {
           await runTransaction(db, async (tx) => {
             const ref = doc(db, "events", id);
@@ -6608,10 +6781,27 @@
           showAlert("🗑️", "신청 취소됨");
         } catch {
           showAlert("😥", "취소 실패");
+        } finally {
+          if (button) {
+            button.disabled = false;
+            button.innerHTML = originalText;
+          }
         }
       }
       async function cancelWaitGeneral(id) {
         if (!currentUser) return showAlert("😥", "로그인이 필요합니다.");
+
+        // 로딩 상태 표시
+        const button = document.querySelector(
+          `button[data-act="cancel-wait-general"][data-id="${id}"]`
+        );
+        const originalText = button ? button.innerHTML : "";
+        if (button) {
+          button.disabled = true;
+          button.innerHTML =
+            '<i class="fas fa-spinner fa-spin mr-2"></i>취소 중...';
+        }
+
         try {
           await runTransaction(db, async (tx) => {
             const ref = doc(db, "events", id);
@@ -6626,6 +6816,11 @@
           showAlert("🗑️", "대기 취소됨");
         } catch {
           showAlert("😥", "취소 실패");
+        } finally {
+          if (button) {
+            button.disabled = false;
+            button.innerHTML = originalText;
+          }
         }
       }
       async function reserveTasting(id, rid) {
@@ -6689,6 +6884,18 @@
       }
       async function cancelTasting(id, rid) {
         if (!currentUser) return;
+
+        // 로딩 상태 표시
+        const button = document.querySelector(
+          `button[data-act="cancel-tasting"][data-id="${id}"][data-rid="${rid}"]`
+        );
+        const originalText = button ? button.innerHTML : "";
+        if (button) {
+          button.disabled = true;
+          button.innerHTML =
+            '<i class="fas fa-spinner fa-spin mr-2"></i>취소 중...';
+        }
+
         try {
           await runTransaction(db, async (tx) => {
             const ref = doc(db, "events", id);
@@ -6716,10 +6923,27 @@
           showAlert("🗑️", "취소되었습니다.");
         } catch {
           showAlert("😥", "취소 실패");
+        } finally {
+          if (button) {
+            button.disabled = false;
+            button.innerHTML = originalText;
+          }
         }
       }
       async function cancelWaitTasting(id, rid) {
         if (!currentUser) return showAlert("😥", "로그인이 필요합니다.");
+
+        // 로딩 상태 표시
+        const button = document.querySelector(
+          `button[data-act="cancel-wait-tasting"][data-id="${id}"][data-rid="${rid}"]`
+        );
+        const originalText = button ? button.innerHTML : "";
+        if (button) {
+          button.disabled = true;
+          button.innerHTML =
+            '<i class="fas fa-spinner fa-spin mr-2"></i>취소 중...';
+        }
+
         try {
           await runTransaction(db, async (tx) => {
             const ref = doc(db, "events", id);
@@ -6739,6 +6963,11 @@
           showAlert("🗑️", "대기 취소됨");
         } catch {
           showAlert("😥", "취소 실패");
+        } finally {
+          if (button) {
+            button.disabled = false;
+            button.innerHTML = originalText;
+          }
         }
       }
 
@@ -6895,11 +7124,15 @@
         const type = document.getElementById("event-type").value;
         const title = document.getElementById("event-title").value.trim();
         const datetime = document.getElementById("event-datetime").value;
+        const deadline = document.getElementById("event-deadline").value;
         const limit =
           parseInt(document.getElementById("event-limit").value, 10) || 0;
         const status = document.getElementById("event-status").value;
-        if (!type || !title || !datetime || !limit)
-          return showAlert("😥", "타입/제목/일시/정원을 모두 입력해주세요.");
+        if (!type || !title || !datetime || !deadline || !limit)
+          return showAlert(
+            "😥",
+            "타입/제목/실시일/마감일/정원을 모두 입력해주세요."
+          );
 
         let payment = null;
         if (type === "mt" || type === "assembly") {
@@ -6949,6 +7182,7 @@
                 type,
                 title,
                 datetime,
+                deadline,
                 limit,
                 status,
                 restaurants,
@@ -6958,6 +7192,7 @@
                 type,
                 title,
                 datetime,
+                deadline,
                 limit,
                 status,
                 applicants: [],
@@ -7031,12 +7266,20 @@
                 type,
                 title,
                 datetime,
+                deadline,
                 limit,
                 status,
                 restaurants,
               });
             } else {
-              const payload = { type, title, datetime, limit, status };
+              const payload = {
+                type,
+                title,
+                datetime,
+                deadline,
+                limit,
+                status,
+              };
               if (payment) payload.payment = payment;
               await updateDoc(ref, payload);
             }
@@ -7058,6 +7301,7 @@
         [
           "event-title",
           "event-datetime",
+          "event-deadline",
           "event-limit",
           "pay-bank",
           "pay-number",
@@ -7074,6 +7318,121 @@
         const wrap = document.getElementById("event-restaurants-wrap");
         if (wrap) wrap.innerHTML = restaurantFieldHTML();
       }
+      async function closeEvent(id) {
+        if (
+          !confirm(
+            "이벤트 신청을 마감하시겠습니까?\n\n마감된 이벤트는:\n• 신청 탭에서 사라집니다\n• 활동 탭에서 참가자들이 볼 수 있습니다\n• 평점을 매길 수 있게 됩니다"
+          )
+        ) {
+          return;
+        }
+        try {
+          await updateDoc(doc(db, "events", id), {
+            status: "closed",
+            deadline: null, // 마감일 정보 초기화
+            closedAt: new Date().toISOString(),
+          });
+          showAlert(
+            "✅",
+            "이벤트가 마감되었습니다. 활동 탭에서 확인할 수 있습니다."
+          );
+        } catch {
+          showAlert("😥", "마감 처리 실패");
+        }
+      }
+      async function reopenEvent(id) {
+        if (
+          !confirm(
+            "마감된 이벤트를 다시 열어 신청을 받으시겠습니까?\n\n• 신청 탭에 다시 표시됩니다\n• 회원들이 다시 신청할 수 있게 됩니다"
+          )
+        ) {
+          return;
+        }
+        try {
+          await updateDoc(doc(db, "events", id), {
+            status: "open",
+            reopenedAt: new Date().toISOString(),
+          });
+          showAlert(
+            "✅",
+            "이벤트가 다시 열렸습니다. 신청 탭에서 확인할 수 있습니다."
+          );
+        } catch {
+          showAlert("😥", "다시 열기 실패");
+        }
+      }
+
+      async function unpostEvent(id) {
+        if (
+          !confirm(
+            "이 이벤트의 공지사항을 내리시겠습니까?\n\n• 관련 공지사항이 숨겨집니다\n• 회원들이 공지사항을 볼 수 없게 됩니다"
+          )
+        ) {
+          return;
+        }
+        try {
+          // 이벤트 정보 가져오기
+          const eventDoc = await getDoc(doc(db, "events", id));
+          if (!eventDoc.exists()) {
+            showAlert("😥", "이벤트를 찾을 수 없습니다.");
+            return;
+          }
+
+          const eventData = eventDoc.data();
+          const eventTitle = eventData.title;
+          let foundAnnouncement = false;
+
+          // 1. scheduledPosts 컬렉션에서 해당 이벤트와 관련된 예약된 글 찾기
+          const scheduledPostsSnapshot = await getDocs(
+            collection(db, "scheduledPosts")
+          );
+          for (const postDoc of scheduledPostsSnapshot.docs) {
+            const postData = postDoc.data();
+            if (
+              postData.eventTitle === eventTitle &&
+              postData.status !== "cancelled"
+            ) {
+              // 예약된 글을 취소 상태로 변경
+              await updateDoc(doc(db, "scheduledPosts", postDoc.id), {
+                status: "cancelled",
+                cancelledAt: new Date().toISOString(),
+                cancelledBy: currentUser?.studentId || "unknown",
+              });
+              foundAnnouncement = true;
+            }
+          }
+
+          // 2. 공지사항 블록에서 해당 이벤트와 관련된 공지사항 찾기
+          const blocksSnapshot = await getDocs(collection(db, "blocks"));
+          for (const blockDoc of blocksSnapshot.docs) {
+            const blockData = blockDoc.data();
+            if (
+              blockData.type === "announcement" &&
+              blockData.payload &&
+              blockData.payload.content &&
+              blockData.payload.content.includes(eventTitle) &&
+              blockData.visible !== false
+            ) {
+              // 공지사항 블록을 숨김 처리
+              await updateDoc(doc(db, "blocks", blockDoc.id), {
+                visible: false,
+                unpostedAt: new Date().toISOString(),
+                unpostedBy: currentUser?.studentId || "unknown",
+              });
+              foundAnnouncement = true;
+            }
+          }
+
+          if (foundAnnouncement) {
+            showAlert("✅", "공지사항이 내려졌습니다.");
+          } else {
+            showAlert("ℹ️", "이 이벤트와 관련된 공지사항을 찾을 수 없습니다.");
+          }
+        } catch (error) {
+          console.error("글 내리기 실패:", error);
+          showAlert("😥", "글 내리기 실패");
+        }
+      }
       async function archiveEvent(id) {
         try {
           await updateDoc(doc(db, "events", id), { status: "archived" });
@@ -7081,6 +7440,136 @@
         } catch {
           showAlert("😥", "보관 처리 실패");
         }
+      }
+
+      async function confirmActivity(id) {
+        if (
+          !confirm(
+            "이 활동을 확정하시겠습니까?\n\n• 참가자들에게 확정 알림이 전송됩니다\n• 활동이 정상적으로 완료된 것으로 기록됩니다"
+          )
+        ) {
+          return;
+        }
+        try {
+          await updateDoc(doc(db, "events", id), {
+            activityStatus: "confirmed",
+            confirmedAt: new Date().toISOString(),
+            confirmedBy: currentUser?.studentId || "unknown",
+          });
+          showAlert("✅", "활동이 확정되었습니다.");
+        } catch (error) {
+          console.error("활동 확정 실패:", error);
+          showAlert("😥", "활동 확정 실패");
+        }
+      }
+
+      async function cancelActivity(id) {
+        if (
+          !confirm(
+            "이 활동을 취소하시겠습니까?\n\n• 참가자들에게 취소 알림이 전송됩니다\n• 환불 등의 후속 조치가 필요할 수 있습니다"
+          )
+        ) {
+          return;
+        }
+        try {
+          await updateDoc(doc(db, "events", id), {
+            activityStatus: "cancelled",
+            cancelledAt: new Date().toISOString(),
+            cancelledBy: currentUser?.studentId || "unknown",
+          });
+          showAlert("❌", "활동이 취소되었습니다.");
+        } catch (error) {
+          console.error("활동 취소 실패:", error);
+          showAlert("😥", "활동 취소 실패");
+        }
+      }
+
+      // 자동 신청 마감 기능
+      async function autoCloseExpiredEvents() {
+        try {
+          const now = new Date();
+          const eventsSnapshot = await getDocs(collection(db, "events"));
+
+          const expiredEvents = [];
+
+          for (const eventDoc of eventsSnapshot.docs) {
+            const eventData = eventDoc.data();
+
+            // 이미 마감된 이벤트는 제외
+            if (
+              eventData.status === "closed" ||
+              eventData.status === "archived"
+            ) {
+              continue;
+            }
+
+            // 마감일이 설정되어 있고, 현재 시간이 마감일을 지났으면 마감 처리
+            if (eventData.deadline) {
+              const deadline = new Date(eventData.deadline);
+              if (deadline < now) {
+                expiredEvents.push({
+                  id: eventDoc.id,
+                  title: eventData.title,
+                  deadline: eventData.deadline,
+                });
+              }
+            }
+          }
+
+          // 마감일이 지난 이벤트들을 자동 마감 처리
+          for (const event of expiredEvents) {
+            await updateDoc(doc(db, "events", event.id), {
+              status: "closed",
+              deadline: null, // 마감일 정보 초기화
+              autoClosedAt: new Date().toISOString(),
+              autoClosedReason: "deadline_expired",
+            });
+
+            console.log(
+              `자동 마감 처리: ${event.title} (마감일: ${new Date(
+                event.deadline
+              ).toLocaleString("ko-KR")})`
+            );
+          }
+
+          if (expiredEvents.length > 0) {
+            console.log(
+              `총 ${expiredEvents.length}개의 이벤트가 자동 마감 처리되었습니다.`
+            );
+            // 관리자에게 알림 (선택사항)
+            if (isFullAdmin()) {
+              showAlert(
+                "⏰",
+                `${expiredEvents.length}개의 이벤트가 마감일 도과로 자동 마감되었습니다.`
+              );
+            }
+          }
+        } catch (error) {
+          console.error("자동 마감 처리 실패:", error);
+        }
+      }
+
+      // 자동 마감 스케줄러 설정
+      function setupAutoCloseScheduler() {
+        // 페이지 로드 시 즉시 실행
+        autoCloseExpiredEvents();
+
+        // 1분마다 체크 (실시간성 확보)
+        setInterval(autoCloseExpiredEvents, 60 * 1000);
+
+        // 매 시간 정각에 체크 (정확성 확보)
+        const now = new Date();
+        const minutesUntilNextHour = 60 - now.getMinutes();
+        const secondsUntilNextHour =
+          minutesUntilNextHour * 60 - now.getSeconds();
+
+        setTimeout(() => {
+          autoCloseExpiredEvents();
+          // 이후 매 시간마다 실행
+          setInterval(autoCloseExpiredEvents, 60 * 60 * 1000);
+        }, secondsUntilNextHour * 1000);
+
+        console.log("자동 신청 마감 스케줄러가 설정되었습니다.");
       }
       async function deleteEvent(id) {
         if (!confirm("정말로 삭제하시겠어요? 이 작업은 되돌릴 수 없습니다."))
@@ -10810,23 +11299,60 @@
         const c = document.getElementById("history-tab");
         if (!c) return;
 
-        // 참가한 이벤트 목록 가져오기 (완료된 이벤트 중)
+        // 참가한 이벤트 목록 가져오기 (마감된 이벤트 또는 완료된 이벤트)
         const participatedEvents = eventsData.filter((ev) => {
+          if (!currentUser) return false;
+
+          // 신청자 목록에서 현재 사용자 확인
+          const isApplicant = ev.applicants?.some(
+            (a) => a.studentId === currentUser.studentId
+          );
+
+          // 미식회의 경우 각 식당별 예약자 확인
+          let isRestaurantApplicant = false;
+          if (ev.type === "tasting" && ev.restaurants) {
+            isRestaurantApplicant = ev.restaurants.some((r) =>
+              r.reservations?.some(
+                (res) => res.studentId === currentUser.studentId
+              )
+            );
+          }
+
+          const isParticipant = isApplicant || isRestaurantApplicant;
+
+          // 마감된 이벤트 또는 이미 지난 이벤트
+          const isClosed = ev.status === "closed";
           const eventDate = new Date(ev.datetime);
           const today = new Date();
-          return (
-            eventDate < today && ev.applicants?.includes(currentUser.studentId)
-          );
+          const isPastEvent = eventDate < today;
+
+          return isParticipant && (isClosed || isPastEvent);
         });
 
         if (participatedEvents.length === 0) {
-          c.innerHTML = `<div class="section text-center text-gray-500">
-            <i class="fas fa-calendar-check text-3xl text-orange-400"></i>
-            <p class="mt-2">아직 참가한 이벤트가 없습니다.</p>
-            <p class="text-sm mt-1">이벤트에 참가한 후 평가를 남겨보세요!</p>
+          c.innerHTML = `<div class="section text-center py-12">
+            <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-orange-100 mb-4">
+              <i class="fas fa-calendar-check text-4xl text-orange-400"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-800 mb-2">아직 참가한 활동이 없습니다</h3>
+            <p class="text-gray-500 mb-4">이벤트에 참가하고 즐거운 경험을 남겨보세요!</p>
+            <button onclick="switchMainTab('reservation')" class="bg-orange-500 text-white px-6 py-2 rounded-lg hover:bg-orange-600 transition-colors font-medium">
+              <i class="fas fa-plus mr-2"></i>이벤트 둘러보기
+            </button>
           </div>`;
           return;
         }
+
+        // 관리자 여부 확인
+        const isUserAdmin =
+          currentUser && adminList.includes(currentUser.studentId);
+
+        // 학번 마스킹 함수
+        const maskStudentId = (studentId) => {
+          if (!studentId) return "";
+          if (studentId.length <= 4) return studentId;
+          return studentId.substring(0, 4) + "****";
+        };
 
         const eventCards = participatedEvents
           .map((ev) => {
@@ -10835,58 +11361,399 @@
               (r) => r.studentId === currentUser.studentId
             );
 
-            return `<div class="section card-hover">
-            <div class="flex items-center justify-between mb-3">
-              <h3 class="text-lg font-bold text-gray-800">${saf(
-                ev.title || "(제목 없음)"
-              )}</h3>
-              <span class="text-sm text-gray-500">${eventDate}</span>
-            </div>
-            <div class="text-sm text-orange-700 mb-3">
-              ${typeLabel(ev.type)} • ${ev.applicants?.length || 0}명 참가
+            // 이벤트 상태 확인
+            const isClosed = ev.status === "closed";
+            const eventDateTime = new Date(ev.datetime);
+            const today = new Date();
+            const isPastEvent = eventDateTime < today;
+
+            // 미식회인 경우 신청한 식당 이름과 인원수 찾기
+            let restaurantName = "";
+            let restaurantParticipants = 0;
+            if (ev.type === "tasting" && ev.restaurants && currentUser) {
+              for (const restaurant of ev.restaurants) {
+                if (
+                  restaurant.reservations?.some(
+                    (res) => res.studentId === currentUser.studentId
+                  )
+                ) {
+                  restaurantName = restaurant.name;
+                  restaurantParticipants = restaurant.reservations?.length || 0;
+                  break;
+                }
+              }
+            }
+
+            // 사용자가 신청한 정보 찾기
+            const userApplicant = ev.applicants?.find(
+              (a) => a.studentId === currentUser.studentId
+            );
+            const userRestaurantReservation = ev.restaurants
+              ?.find((r) =>
+                r.reservations?.some(
+                  (res) => res.studentId === currentUser.studentId
+                )
+              )
+              ?.reservations?.find(
+                (res) => res.studentId === currentUser.studentId
+              );
+
+            // 참가 인원 계산 (미식회는 식당 인원, 일반 이벤트는 전체 인원)
+            const participantCount =
+              ev.type === "tasting" && restaurantName
+                ? restaurantParticipants
+                : ev.applicants?.length || 0;
+
+            return `<div class="section relative overflow-hidden" style="border-left: 4px solid #f97316;">
+            <!-- 헤더 -->
+            <div class="flex items-start justify-between mb-4">
+              <div class="flex-1">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${typeBadgeClass(
+                    ev.type
+                  )}">
+                    ${typeLabel(ev.type)}
+                  </span>
+                  ${
+                    isClosed
+                      ? '<span class="bg-green-100 text-green-800 px-2.5 py-0.5 rounded-full text-xs font-medium"><i class="fas fa-check-circle mr-1"></i>확정</span>'
+                      : ""
+                  }
+                  ${
+                    ev.activityStatus === "confirmed"
+                      ? '<span class="bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full text-xs font-medium"><i class="fas fa-thumbs-up mr-1"></i>활동 완료</span>'
+                      : ""
+                  }
+                  ${
+                    ev.activityStatus === "cancelled"
+                      ? '<span class="bg-red-100 text-red-800 px-2.5 py-0.5 rounded-full text-xs font-medium"><i class="fas fa-ban mr-1"></i>활동 취소</span>'
+                      : ""
+                  }
+                </div>
+                <h3 class="text-xl font-bold text-gray-800 mb-1">${saf(
+                  ev.title || "(제목 없음)"
+                )}</h3>
+              </div>
             </div>
             
+            <!-- 이벤트 상세 정보 -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+              <div class="flex items-center gap-2 text-sm">
+                <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-orange-100">
+                  <i class="fas fa-calendar text-orange-600"></i>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-500">이벤트 일시</p>
+                  <p class="font-semibold text-gray-800">${new Date(
+                    ev.datetime
+                  ).toLocaleString("ko-KR", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}</p>
+                </div>
+              </div>
+              
+              <div class="flex items-center gap-2 text-sm">
+                <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-100">
+                  <i class="fas fa-users text-blue-600"></i>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-500">${
+                    ev.type === "tasting" && restaurantName
+                      ? "신청 식당 인원"
+                      : "참가 인원"
+                  }</p>
+                  <p class="font-semibold text-gray-800">${participantCount}명</p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- 관리자용 신청자 목록 -->
+            ${
+              isUserAdmin
+                ? `
+            <div class="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div class="flex items-center gap-2 mb-3">
+                <i class="fas fa-list-ul text-blue-600"></i>
+                <h4 class="font-bold text-gray-800">신청자 명단</h4>
+                <span class="text-xs text-blue-600">(관리자 전용)</span>
+              </div>
+              ${
+                ev.type === "tasting" && restaurantName
+                  ? `
+                <!-- 미식회: 신청한 식당의 예약자 목록 -->
+                <div class="space-y-1">
+                  ${
+                    ev.restaurants
+                      ?.find((r) => r.name === restaurantName)
+                      ?.reservations?.map(
+                        (res, idx) => `
+                    <div class="flex items-center justify-between bg-white rounded px-3 py-2 text-sm">
+                      <div class="flex items-center gap-2">
+                        <span class="text-gray-500">${idx + 1}.</span>
+                        <span class="font-medium text-gray-800">${saf(
+                          res.name
+                        )}</span>
+                      </div>
+                      <span class="font-mono text-xs text-gray-600">${maskStudentId(
+                        res.studentId
+                      )}</span>
+                    </div>
+                  `
+                      )
+                      .join("") ||
+                    '<p class="text-sm text-gray-500">신청자가 없습니다.</p>'
+                  }
+                </div>
+              `
+                  : `
+                <!-- 일반 이벤트: 전체 신청자 목록 -->
+                <div class="space-y-1">
+                  ${
+                    ev.applicants
+                      ?.map(
+                        (app, idx) => `
+                    <div class="flex items-center justify-between bg-white rounded px-3 py-2 text-sm">
+                      <div class="flex items-center gap-2">
+                        <span class="text-gray-500">${idx + 1}.</span>
+                        <span class="font-medium text-gray-800">${saf(
+                          app.name
+                        )}</span>
+                      </div>
+                      <span class="font-mono text-xs text-gray-600">${maskStudentId(
+                        app.studentId
+                      )}</span>
+                    </div>
+                  `
+                      )
+                      .join("") ||
+                    '<p class="text-sm text-gray-500">신청자가 없습니다.</p>'
+                  }
+                </div>
+              `
+              }
+            </div>
+            `
+                : ""
+            }
+            
+            <!-- 내 신청 정보 (강조) -->
+            ${
+              userApplicant || restaurantName
+                ? `
+            <div class="bg-gradient-to-r from-orange-50 to-amber-50 border-2 border-orange-200 rounded-xl p-4 mb-4">
+              <div class="flex items-center gap-2 mb-3">
+                <i class="fas fa-user-check text-orange-600"></i>
+                <h4 class="font-bold text-gray-800">내 신청 정보</h4>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                ${
+                  restaurantName
+                    ? `
+                <div class="flex items-center gap-2">
+                  <i class="fas fa-utensils text-orange-500 w-4"></i>
+                  <span class="text-gray-600">신청 식당:</span>
+                  <span class="font-bold text-orange-700">${saf(
+                    restaurantName
+                  )}</span>
+                </div>
+                `
+                    : ""
+                }
+                ${
+                  userApplicant
+                    ? `
+                <div class="flex items-center gap-2">
+                  <i class="fas fa-clock text-orange-500 w-4"></i>
+                  <span class="text-gray-600">신청일:</span>
+                  <span class="font-semibold text-gray-700">${new Date(
+                    userApplicant.timestamp
+                  ).toLocaleDateString("ko-KR")}</span>
+                </div>
+                `
+                    : ""
+                }
+                ${
+                  userRestaurantReservation
+                    ? `
+                <div class="flex items-center gap-2">
+                  <i class="fas fa-clock text-orange-500 w-4"></i>
+                  <span class="text-gray-600">신청일:</span>
+                  <span class="font-semibold text-gray-700">${new Date(
+                    userRestaurantReservation.timestamp
+                  ).toLocaleDateString("ko-KR")}</span>
+                </div>
+                `
+                    : ""
+                }
+              </div>
+            </div>
+            `
+                : ""
+            }
+            
+            <!-- 평가 섹션 -->
             ${
               hasReview
                 ? `
-              <div class="bg-green-50 border border-green-200 rounded-lg p-3 mb-3">
-                <div class="flex items-center gap-2 mb-2">
-                  <span class="text-sm font-medium text-green-800">내 평가</span>
-                  <div class="flex">
+              <div class="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-4 mb-4">
+                <div class="flex items-center justify-between mb-3">
+                  <div class="flex items-center gap-2">
+                    <i class="fas fa-star text-yellow-500"></i>
+                    <span class="font-bold text-gray-800">내 평가</span>
+                  </div>
+                  <div class="flex items-center gap-1">
                     ${Array.from(
                       { length: 5 },
                       (_, i) =>
-                        `<i class="fas fa-star text-xs ${
+                        `<i class="fas fa-star ${
                           i < hasReview.rating
                             ? "text-yellow-400"
                             : "text-gray-300"
                         }"></i>`
                     ).join("")}
+                    <span class="ml-2 font-bold text-gray-700">${
+                      hasReview.rating
+                    }.0</span>
                   </div>
                 </div>
-                <p class="text-sm text-gray-700">${saf(
-                  hasReview.comment || ""
-                )}</p>
+                ${
+                  hasReview.comment
+                    ? `
+                <div class="bg-white/50 rounded-lg p-3 border border-green-100">
+                  <p class="text-sm text-gray-700 leading-relaxed">${saf(
+                    hasReview.comment
+                  )}</p>
+                </div>
+                `
+                    : ""
+                }
+                <div class="mt-3 text-xs text-gray-500 flex items-center gap-1">
+                  <i class="fas fa-clock"></i>
+                  <span>${new Date(hasReview.timestamp).toLocaleString(
+                    "ko-KR"
+                  )}</span>
+                </div>
               </div>
             `
                 : ""
             }
             
-            <button type="button" class="w-full bg-orange-500 text-white py-2 px-4 rounded-lg hover:bg-orange-600 transition-colors" 
-                    data-act="write-review" data-id="${ev.id}">
-              <i class="fas fa-edit mr-2"></i>
-              ${hasReview ? "평가 수정" : "평가 작성"}
-            </button>
+            <!-- 액션 버튼 -->
+            <div class="flex gap-2">
+              ${
+                isPastEvent || isClosed
+                  ? `
+              <button type="button" class="flex-1 ${
+                hasReview
+                  ? "bg-gray-600 hover:bg-gray-700"
+                  : "bg-orange-500 hover:bg-orange-600"
+              } text-white py-3 px-4 rounded-lg transition-colors font-medium shadow-md" 
+                      data-act="write-review" data-id="${ev.id}">
+                <i class="fas ${
+                  hasReview ? "fa-edit" : "fa-pen-to-square"
+                } mr-2"></i>
+                ${hasReview ? "평가 수정" : "평가 작성"}
+              </button>
+              `
+                  : `
+              <div class="flex-1 bg-gray-100 text-gray-500 py-3 px-4 rounded-lg text-center font-medium">
+                <i class="fas fa-lock mr-2"></i>
+                활동 종료 후 평가 가능
+              </div>
+              `
+              }
+            </div>
+            
+            ${
+              isFullAdmin()
+                ? `
+            <div class="mt-3 pt-3 border-t border-gray-200">
+              <div class="flex gap-2 flex-wrap">
+                <button type="button" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded text-sm transition-colors" 
+                        data-act="admin-edit" data-id="${
+                          ev.id
+                        }" title="이벤트 수정">
+                  <i class="fas fa-pen mr-1"></i>수정
+                </button>
+                ${
+                  isClosed
+                    ? `
+                <button type="button" class="bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded text-sm transition-colors" 
+                        data-act="admin-reopen" data-id="${ev.id}" title="다시 열기">
+                  <i class="fas fa-door-open mr-1"></i>다시 열기
+                </button>
+                `
+                    : `
+                <button type="button" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded text-sm transition-colors" 
+                        data-act="admin-close" data-id="${ev.id}" title="신청 마감">
+                  <i class="fas fa-door-closed mr-1"></i>신청 마감
+                </button>
+                `
+                }
+                <button type="button" class="bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1.5 rounded text-sm transition-colors" 
+                        data-act="admin-unpost" data-id="${
+                          ev.id
+                        }" title="글 내리기">
+                  <i class="fas fa-arrow-down mr-1"></i>글 내리기
+                </button>
+                <button type="button" class="bg-purple-500 hover:bg-purple-600 text-white px-3 py-1.5 rounded text-sm transition-colors" 
+                        data-act="group-maker" data-id="${
+                          ev.id
+                        }" title="조짜기">
+                  <i class="fas fa-users mr-1"></i>조짜기
+                </button>
+                <button type="button" class="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1.5 rounded text-sm transition-colors" 
+                        data-act="export-xlsx" data-id="${
+                          ev.id
+                        }" title="명단 다운로드">
+                  <i class="fas fa-file-excel mr-1"></i>명단
+                </button>
+                ${
+                  isPastEvent || isClosed
+                    ? `
+                <button type="button" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded text-sm transition-colors" 
+                        data-act="admin-confirm-activity" data-id="${ev.id}" title="활동 확정">
+                  <i class="fas fa-check-circle mr-1"></i>활동 확정
+                </button>
+                <button type="button" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded text-sm transition-colors" 
+                        data-act="admin-cancel-activity" data-id="${ev.id}" title="활동 취소">
+                  <i class="fas fa-times-circle mr-1"></i>활동 취소
+                </button>
+                `
+                    : ""
+                }
+              </div>
+            </div>
+            `
+                : ""
+            }
           </div>`;
           })
           .join("");
 
         c.innerHTML = `
-          <div class="section mb-4">
-            <h2 class="text-2xl font-bold mb-2 text-gray-800">활동 기록</h2>
-            <p class="text-sm text-gray-600">참가한 이벤트에 대한 평가와 후기를 남겨보세요.</p>
+          <div class="section mb-6">
+            <div class="flex items-center justify-between">
+              <div>
+                <h2 class="text-2xl font-bold mb-2 text-gray-800 flex items-center gap-2">
+                  <i class="fas fa-history text-orange-500"></i>
+                  활동 기록
+                </h2>
+                <p class="text-sm text-gray-600">참가한 이벤트 ${participatedEvents.length}개 • 평가를 남겨 동아리 활동을 더욱 풍성하게 만들어보세요!</p>
+              </div>
+              <div class="text-right">
+                <div class="inline-flex items-center gap-2 bg-orange-50 px-4 py-2 rounded-lg">
+                  <i class="fas fa-trophy text-orange-500"></i>
+                  <span class="font-bold text-orange-700">${participatedEvents.length}개 참여</span>
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">${eventCards}</div>
+          <div class="space-y-4">${eventCards}</div>
         `;
 
         // 평가 작성 이벤트 바인딩
@@ -10955,32 +11822,6 @@
       }
 
       // 달력 생성 함수
-      // 운영진/관리자 권한 체크 함수
-      function isAdminOrStaff() {
-        if (!currentUser) return false;
-        const adminPositions = {
-          12345678: "개발자",
-          202013136: "총무",
-          202018357: "기타",
-          202114029: "부회장",
-          202327942: "회장",
-          202416596: "홍보부장",
-          202419743: "기획부장",
-        };
-        const userPosition = adminPositions[currentUser.studentId];
-        return (
-          userPosition &&
-          (userPosition === "운영진" ||
-            [
-              "회장",
-              "부회장",
-              "총무",
-              "기획부장",
-              "홍보부장",
-              "개발자",
-            ].includes(userPosition))
-        );
-      }
 
       function generateCalendar(
         year,
@@ -14610,15 +15451,18 @@
         if (mode === "create") {
           title.textContent = "이벤트·미식회 생성";
           content.innerHTML = adminEventsPanelHTML();
+          modal.classList.remove("hidden");
           bindAdminEventsPanel();
         } else if (mode === "edit" && eventId) {
           title.textContent = "이벤트·미식회 수정";
           content.innerHTML = adminEventsPanelHTML();
-          loadEventToForm(eventId);
+          modal.classList.remove("hidden");
           bindAdminEventsPanel();
+          // DOM이 렌더링된 후 폼 로드
+          setTimeout(() => {
+            loadEventToForm(eventId);
+          }, 0);
         }
-
-        modal.classList.remove("hidden");
       }
 
       function closeEventModal() {
@@ -14630,7 +15474,17 @@
       // 이벤트 모달 이벤트 바인딩
       document.addEventListener("click", (e) => {
         if (e.target.id === "create-event-btn") {
+          if (!isFullAdmin()) {
+            showAlert("🔒", "관리자만 이벤트를 관리할 수 있습니다.");
+            return;
+          }
           openEventModal("create");
+        } else if (e.target.id === "auto-close-btn") {
+          if (!isFullAdmin()) {
+            showAlert("🔒", "관리자만 자동 마감을 실행할 수 있습니다.");
+            return;
+          }
+          autoCloseExpiredEvents();
         } else if (
           e.target.id === "event-modal-close" ||
           e.target.closest("#event-modal-close")
@@ -14644,14 +15498,97 @@
         }
       });
 
-      // 이벤트 수정 버튼 클릭 시 모달 열기
+      // 이벤트 액션 클릭 핸들러
       document.addEventListener("click", (e) => {
-        if (e.target.closest('[data-act="admin-edit"]')) {
-          const eventId = e.target.closest('[data-act="admin-edit"]').dataset
-            .id;
-          openEventModal("edit", eventId);
-        }
+        const actionButton = e.target.closest("[data-act]");
+        if (!actionButton) return;
+
+        const act = actionButton.dataset.act;
+        const id = actionButton.dataset.id;
+        const rid = actionButton.dataset.rid;
+
+        onEventActionClick(act, id, rid);
       });
+
+      function onEventActionClick(act, id, rid) {
+        if (act === "reserve-general") return reserveGeneral(id);
+        if (act === "cancel-general") return cancelGeneral(id);
+        if (act === "cancel-wait-general") return cancelWaitGeneral(id);
+        if (act === "reserve-tasting") return reserveTasting(id, rid);
+        if (act === "cancel-tasting") return cancelTasting(id, rid);
+        if (act === "cancel-wait-tasting") return cancelWaitTasting(id, rid);
+        if (act === "admin-edit") {
+          if (!isFullAdmin()) {
+            showAlert("🔒", "관리자만 이벤트를 수정할 수 있습니다.");
+            return;
+          }
+          return openEventModal("edit", id);
+        }
+        if (act === "admin-close") {
+          if (!isFullAdmin()) {
+            showAlert("🔒", "관리자만 이벤트를 관리할 수 있습니다.");
+            return;
+          }
+          return closeEvent(id);
+        }
+        if (act === "admin-reopen") {
+          if (!isFullAdmin()) {
+            showAlert("🔒", "관리자만 이벤트를 관리할 수 있습니다.");
+            return;
+          }
+          return reopenEvent(id);
+        }
+        if (act === "admin-archive") {
+          if (!isFullAdmin()) {
+            showAlert("🔒", "관리자만 이벤트를 관리할 수 있습니다.");
+            return;
+          }
+          return archiveEvent(id);
+        }
+        if (act === "admin-unpost") {
+          if (!isFullAdmin()) {
+            showAlert("🔒", "관리자만 이벤트를 관리할 수 있습니다.");
+            return;
+          }
+          return unpostEvent(id);
+        }
+        if (act === "group-maker") {
+          if (!isFullAdmin()) {
+            showAlert("🔒", "관리자만 이벤트를 관리할 수 있습니다.");
+            return;
+          }
+          return openGroupMakerModal(id);
+        }
+        if (act === "admin-delete") {
+          if (!isFullAdmin()) {
+            showAlert("🔒", "관리자만 이벤트를 관리할 수 있습니다.");
+            return;
+          }
+          return deleteEvent(id);
+        }
+        if (act === "export-xlsx") {
+          if (!isFullAdmin()) {
+            showAlert("🔒", "관리자만 명단을 다운로드할 수 있습니다.");
+            return;
+          }
+          return exportApplicantsXLSX(id);
+        }
+        if (act === "write-review") return openReviewModal(id);
+        if (act === "admin-confirm-activity") {
+          if (!isFullAdmin()) {
+            showAlert("🔒", "관리자만 활동을 관리할 수 있습니다.");
+            return;
+          }
+          return confirmActivity(id);
+        }
+        if (act === "admin-cancel-activity") {
+          if (!isFullAdmin()) {
+            showAlert("🔒", "관리자만 활동을 관리할 수 있습니다.");
+            return;
+          }
+          return cancelActivity(id);
+        }
+      }
 
       // 이벤트 순서 변경 버튼 클릭 이벤트 리스너
       document.addEventListener("click", (e) => {
@@ -14679,12 +15616,14 @@
         const eventType = document.getElementById("event-type");
         const eventTitle = document.getElementById("event-title");
         const eventDatetime = document.getElementById("event-datetime");
+        const eventDeadline = document.getElementById("event-deadline");
         const eventLimit = document.getElementById("event-limit");
         const eventStatus = document.getElementById("event-status");
 
         if (eventType) eventType.value = event.type || "tasting";
         if (eventTitle) eventTitle.value = event.title || "";
         if (eventDatetime) eventDatetime.value = event.datetime || "";
+        if (eventDeadline) eventDeadline.value = event.deadline || "";
         if (eventLimit) eventLimit.value = event.limit || "";
         if (eventStatus) eventStatus.value = event.status || "open";
 
@@ -15443,16 +16382,24 @@
         container.insertAdjacentHTML(
           "beforeend",
           `
-          <div class="qa-row grid grid-cols-1 md:grid-cols-5 gap-2">
-            <input data-q class="px-3 py-2 border rounded bg-white text-gray-900 border-gray-300 md:col-span-2" placeholder="질문" value="${saf(
-              q
-            )}">
-            <input data-a class="px-3 py-2 border rounded bg-white text-gray-900 border-gray-300 md:col-span-3" placeholder="답변" value="${saf(
-              a
-            )}">
-            <button type="button" class="remove-qa text-red-600 text-sm" onclick="this.closest('.qa-row').remove()">
-              <i class="fas fa-trash"></i>
-            </button>
+          <div class="qa-row border rounded-lg p-4 bg-gray-50 mb-3">
+            <div class="mb-3">
+              <label class="block text-sm font-medium text-gray-700 mb-1">질문</label>
+              <textarea data-q class="w-full px-3 py-2 border rounded bg-white text-gray-900 border-gray-300 min-h-[80px] resize-y" placeholder="질문을 입력하세요&#10;줄바꿈(Enter)으로 문단을 나눌 수 있습니다">${saf(
+                q
+              )}</textarea>
+            </div>
+            <div class="mb-3">
+              <label class="block text-sm font-medium text-gray-700 mb-1">답변</label>
+              <textarea data-a class="w-full px-3 py-2 border rounded bg-white text-gray-900 border-gray-300 min-h-[120px] resize-y" placeholder="답변을 입력하세요&#10;줄바꿈(Enter)으로 문단을 나눌 수 있습니다">${saf(
+                a
+              )}</textarea>
+            </div>
+            <div class="flex justify-end">
+              <button type="button" class="remove-qa bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 transition-colors" onclick="this.closest('.qa-row').remove()">
+                <i class="fas fa-trash mr-1"></i>삭제
+              </button>
+            </div>
           </div>
         `
         );
@@ -15517,6 +16464,9 @@
           closeBlockModal();
         }
       });
+
+      // 자동 마감 스케줄러 초기화
+      setupAutoCloseScheduler();
 
       // ===================== (끝) =====================
     </script>
