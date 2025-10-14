@@ -4933,8 +4933,8 @@
             itemsToShow = [...latestCompleted, ...upcoming];
           }
         }
-        // 관리자 권한 확인 (임시로 모든 로그인 사용자에게 버튼 표시)
-        const isAdminForRoadmap = currentUser;
+        // 관리자 권한 확인 - 운영진 제외, 임원진만 가능
+        const isAdminForRoadmap = isFullAdmin();
 
         console.log("로드맵 관리자 권한 확인:", {
           currentUser: currentUser?.name,
@@ -12487,10 +12487,8 @@
           }
         }
 
-        // 관리자용 새 일정 추가 블록 (항상 맨 앞에 표시)
-        const isAdmin =
-          currentUser && adminList.includes(currentUser.studentId);
-        const adminPlaceholder = isAdmin
+        // 관리자용 새 일정 추가 블록 - 운영진 제외, 임원진만 가능
+        const adminPlaceholder = isFullAdmin()
           ? `
           <div class="timeline-item admin-placeholder" data-act="add-roadmap">
             <div class="timeline-content">
@@ -12547,9 +12545,6 @@
                   day: "numeric",
                 });
 
-                const isAdmin =
-                  currentUser && adminList.includes(currentUser.studentId);
-
                 // 제목 처리 (제목이 없는 경우 기본값 사용)
                 const title = item.activityName || item.title || "일정 없음";
 
@@ -12559,7 +12554,7 @@
           <div class="schedule-block-date">${formattedDate}</div>
           <div class="schedule-block-title">${saf(title)}</div>
           ${
-            isAdmin
+            isFullAdmin()
               ? `<div class="schedule-block-actions">
                   <button type="button" class="schedule-action-btn schedule-edit-btn" data-act="edit-roadmap" data-id="${item.id}" title="수정">
                     <i class="fas fa-edit"></i>
@@ -12609,26 +12604,13 @@
                 // 제목 처리 (제목이 없는 경우 기본값 사용)
                 const title = item.activityName || item.title || "일정 없음";
 
-                // 관리자 권한 확인
-                const adminPositions = {
-                  12345678: "개발자",
-                  202013136: "총무",
-                  202018357: "기타",
-                  202114029: "부회장",
-                  202327942: "회장",
-                  202416596: "홍보부장",
-                  202419743: "기획부장",
-                };
-                const isAdmin =
-                  currentUser && adminPositions[currentUser.studentId];
-
                 return `
           <div class="schedule-block ${blockClass}">
             <div class="schedule-block-content">
               <div class="schedule-block-date">${formattedDate}</div>
               <div class="schedule-block-title">${saf(title)}</div>
               ${
-                isAdmin
+                isFullAdmin()
                   ? `<div class="schedule-block-actions">
                       <button type="button" class="schedule-action-btn schedule-edit-btn" data-act="edit-roadmap" data-id="${item.id}" title="수정">
                         <i class="fas fa-edit"></i>
@@ -12648,25 +12630,12 @@
               .join("");
 
             // 달력 형태로 전체 일정 표시
-            // 관리자 권한 확인
-            const adminPositions = {
-              12345678: "개발자",
-              202013136: "총무",
-              202018357: "기타",
-              202114029: "부회장",
-              202327942: "회장",
-              202416596: "홍보부장",
-              202419743: "기획부장",
-            };
-            const isAdmin =
-              currentUser && adminPositions[currentUser.studentId];
-
             const calendarHTML = generateCalendar(
               currentCalendarYear,
               currentCalendarMonth,
               sorted,
               true, // 다운로드 버튼 표시
-              !!isAdmin // 관리자 권한 전달
+              isFullAdmin() // 관리자 권한 전달 - 운영진 제외
             );
             accordionContent.innerHTML = calendarHTML;
 
