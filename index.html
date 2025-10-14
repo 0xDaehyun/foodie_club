@@ -13,7 +13,7 @@
     <meta property="og:type" content="website" />
     <meta property="og:title" content="Foodie" />
     <meta property="og:description" content="Foodie 동아리 웹 서비스" />
-    <meta property="og:image" content="./icons/icon-512.png" />
+    <meta property="og:image" content="./icons/icon-512-new.png" />
     <meta property="og:image:width" content="512" />
     <meta property="og:image:height" content="512" />
     <meta property="og:url" content="" />
@@ -22,7 +22,7 @@
     <meta property="twitter:card" content="summary_large_image" />
     <meta property="twitter:title" content="Foodie" />
     <meta property="twitter:description" content="Foodie 동아리 웹 서비스" />
-    <meta property="twitter:image" content="./icons/icon-512.png" />
+    <meta property="twitter:image" content="./icons/icon-512-new.png" />
 
     <!-- 일반 메타 -->
     <meta name="description" content="Foodie 동아리 웹 서비스" />
@@ -800,6 +800,20 @@
         font-size: 0.6875rem;
       }
 
+      /* 운영진 전용 일정 스타일 (파란색) */
+      .calendar-event.admin-only {
+        background: linear-gradient(135deg, #3b82f6, #1d4ed8) !important;
+        color: white !important;
+        border: 1px solid #1e40af !important;
+        font-weight: 500;
+      }
+
+      .calendar-event.admin-only:hover {
+        background: linear-gradient(135deg, #2563eb, #1e40af) !important;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+      }
+
       /* 달력 반응형 */
       @media (max-width: 768px) {
         .calendar-container {
@@ -889,6 +903,62 @@
         .calendar-event.text-sm {
           font-size: 0.5625rem;
         }
+
+        /* 모바일 운영진 전용 일정 스타일 */
+        .calendar-event.admin-only {
+          background: linear-gradient(135deg, #3b82f6, #1d4ed8) !important;
+          color: white !important;
+          border: 1px solid #1e40af !important;
+          font-weight: 500;
+        }
+      }
+
+      /* 화면 깜빡거림 방지를 위한 부드러운 전환 효과 */
+      .smooth-transition {
+        transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+      }
+
+      .content-loading {
+        opacity: 0.7;
+        pointer-events: none;
+      }
+
+      .content-loaded {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      /* 관리자 패널 및 특정 영역에서 텍스트 복사 허용 */
+      #dashboard-overlay,
+      #dashboard-overlay *,
+      .admin-panel,
+      .admin-panel *,
+      #subtab-container,
+      #subtab-container *,
+      .member-card,
+      .member-card *,
+      input,
+      textarea,
+      select {
+        -webkit-user-select: text !important;
+        -khtml-user-select: text !important;
+        -moz-user-select: text !important;
+        -ms-user-select: text !important;
+        user-select: text !important;
+      }
+
+      /* 버튼과 아이콘은 여전히 선택 불가 */
+      button,
+      button *,
+      .fa,
+      .fas,
+      .far,
+      .fab {
+        -webkit-user-select: none !important;
+        -khtml-user-select: none !important;
+        -moz-user-select: none !important;
+        -ms-user-select: none !important;
+        user-select: none !important;
       }
 
       /* 로고 이미지 배경색 변경 */
@@ -2253,6 +2323,10 @@
       let deletedDefaultPositions = [];
       const MASTER_CODE = "foodie_emergency_2024!";
 
+      // 관리자 대시보드 현재 탭 상태 저장
+      let currentDashboardTab = "members"; // 기본값: 회원 탭
+      let currentMainTab = "reservation"; // 메인 탭 상태 저장
+
       // settings
       let signupSettings = { open: false, start: "", end: "" };
       let duesSettings = {
@@ -2406,7 +2480,28 @@
         __renderQueued = true;
         requestAnimationFrame(() => {
           __renderQueued = false;
-          renderAll();
+
+          // 현재 관리자 대시보드가 열려있는 경우, 해당 탭만 업데이트
+          if (
+            currentMainTab === "dashboard" &&
+            currentUser &&
+            adminList.includes(currentUser.studentId)
+          ) {
+            const subtabContainer = document.getElementById("subtab-container");
+            if (subtabContainer && currentDashboardTab) {
+              // 현재 열려있는 대시보드 서브탭만 다시 렌더링
+              if (currentDashboardTab === "members") {
+                renderMembersAdmin(subtabContainer);
+              } else {
+                // 다른 탭들은 전체 렌더링 필요
+                renderAll();
+              }
+            } else {
+              renderAll();
+            }
+          } else {
+            renderAll();
+          }
         });
       };
 
@@ -3393,7 +3488,7 @@
             .getElementById("h-roadmap-toggle-btn")
             .addEventListener("click", () => {
               roadmapShowAll = !roadmapShowAll;
-              renderHorizontalRoadmap();
+              smoothRender("h-roadmap-list", renderHorizontalRoadmap);
             });
 
           // 로드맵 추가 버튼 이벤트 리스너
@@ -3408,6 +3503,14 @@
           renderHistoryTab(isAdmin);
           renderSuggestionsTab(isAdmin);
           if (isAdmin) renderDashboardTab(); // 이벤트 관리 탭 제거됨(요청사항 4)
+
+          // 저장된 탭으로 복원
+          if (currentMainTab && currentMainTab !== "reservation") {
+            setTimeout(() => {
+              showTab(currentMainTab);
+            }, 50);
+          }
+
           // DOM이 완전히 렌더링된 후 로드맵 렌더링
           setTimeout(() => {
             updateLoadingProgress(4, "잘 먹겠습니다!");
@@ -3463,6 +3566,7 @@
         }
       }
       const showTab = (name) => {
+        currentMainTab = name; // 현재 탭 저장
         document
           .querySelectorAll(".tab-content")
           .forEach((t) => t.classList.remove("active"));
@@ -3695,8 +3799,15 @@
           } else if (b.type === "schedule") {
             // 일정 블록 표시 (로그아웃 전용)
             if (!isLoggedIn && roadmapData && roadmapData.length > 0) {
-              // 날짜순으로 정렬
-              const sorted = [...roadmapData].sort((a, b) => {
+              // 운영진 전용 일정 필터링 후 날짜순으로 정렬
+              const filteredData = roadmapData.filter((item) => {
+                if (!item || typeof item !== "object" || !item.id) return false;
+                // 로그아웃 상태에서는 운영진 전용 일정 숨김
+                if (item.isAdminOnly) return false;
+                return true;
+              });
+
+              const sorted = [...filteredData].sort((a, b) => {
                 const dateA = parseDate(a.activityDate);
                 const dateB = parseDate(b.activityDate);
                 return dateA - dateB;
@@ -4129,7 +4240,7 @@
                 try {
                   await deleteDoc(doc(db, "homepageBlocks", blockId));
                   showAlert("✅", "블록이 삭제되었습니다.");
-                  renderBlocks(); // 블록 목록 새로고침
+                  smoothRender("dynamic-blocks", renderBlocks); // 블록 목록 새로고침
                 } catch (error) {
                   console.error("블록 삭제 오류:", error);
                   showAlert("😥", "블록 삭제에 실패했습니다.");
@@ -4175,7 +4286,7 @@
               try {
                 await deleteDoc(doc(db, "homepageBlocks", blockId));
                 showAlert("✅", "점수판 블록이 삭제되었습니다.");
-                renderBlocks(); // 블록 목록 새로고침
+                smoothRender("dynamic-blocks", renderBlocks); // 블록 목록 새로고침
               } catch (error) {
                 console.error("점수판 블록 삭제 오류:", error);
                 showAlert("😥", "점수판 블록 삭제 중 오류가 발생했습니다.");
@@ -4352,7 +4463,7 @@
             );
             showAlert("✅", "로드맵 일정이 수정되었습니다.");
             document.getElementById("roadmap-item-edit-modal").remove();
-            renderBlocks(); // 블록 목록 새로고침
+            smoothRender("dynamic-blocks", renderBlocks); // 블록 목록 새로고침
           });
 
         document
@@ -4978,6 +5089,13 @@
                     event.activityDate
                   }">
                 </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">설명</label>
+                  <textarea id="roadmap-event-edit-description" rows="5" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500" placeholder="일정 설명을 입력하세요&#10;줄바꿈이 가능합니다">${saf(
+                    event.description || ""
+                  )}</textarea>
+                  <p class="text-xs text-gray-500 mt-1">💡 Enter 키로 줄바꿈이 가능합니다</p>
+                </div>
                 <input id="roadmap-event-edit-id" type="hidden" value="${eventId}">
               </div>
               <div class="flex gap-3 mt-6">
@@ -5013,6 +5131,9 @@
             const date = document.getElementById(
               "roadmap-event-edit-date"
             ).value;
+            const description = document.getElementById(
+              "roadmap-event-edit-description"
+            ).value;
 
             if (!name) {
               showAlert("😥", "일정 제목을 입력해주세요.");
@@ -5025,7 +5146,12 @@
             }
 
             try {
-              console.log("로드맵 수정 시도:", { eventId, name, date });
+              console.log("로드맵 수정 시도:", {
+                eventId,
+                name,
+                date,
+                description,
+              });
               console.log("현재 roadmapData:", roadmapData);
               console.log(
                 "찾으려는 이벤트:",
@@ -5050,6 +5176,7 @@
               await updateDoc(docRef, {
                 activityName: name,
                 activityDate: date,
+                description: description,
               });
               showAlert("✅", "로드맵 일정이 수정되었습니다.");
               document.getElementById("roadmap-event-edit-modal").remove();
@@ -5176,6 +5303,20 @@
                 </div>`;
       }
 
+      // 신청 취소 안내 문구 (공통)
+      const getCancelNotice = () => `
+        <div class="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <div class="flex items-start gap-2">
+            <i class="fas fa-info-circle text-blue-500 mt-0.5"></i>
+            <div class="text-xs text-blue-800">
+              <p class="font-semibold mb-1">📌 취소 안내</p>
+              <p>• 신청 취소를 원하시면 <strong>마감 시간 전</strong>에 신청 취소 버튼을 눌러주세요.</p>
+              <p class="mt-1">• 마감 이후 취소를 원하시면 <strong>운영진에게 문의</strong>해주세요.</p>
+            </div>
+          </div>
+        </div>
+      `;
+
       function generalCardHTML(ev) {
         const count = (ev.applicants || []).length,
           lim = ev.limit || 0;
@@ -5202,10 +5343,16 @@
             btn = `<button type="button" class="w-full mt-3 ${
               count < lim
                 ? "bg-orange-600 hover:bg-orange-700"
-                : "bg-orange-500 hover:bg-orange-600"
-            } text-white font-bold py-2 px-4 rounded-lg transition-colors cursor-pointer" data-act="reserve-general" data-id="${
+                : "bg-red-600 hover:bg-red-700"
+            } text-white font-bold py-2 px-4 rounded-lg transition-colors cursor-pointer flex items-center justify-center gap-2" data-act="reserve-general" data-id="${
               ev.id
-            }">${count < lim ? "신청하기" : "대기 신청"}</button>`;
+            }">
+              ${
+                count < lim
+                  ? '<i class="fas fa-check"></i><span>신청하기</span>'
+                  : '<i class="fas fa-clock"></i><span>신청 마감 / 대기하기</span>'
+              }
+            </button>`;
           }
         } else {
           btn = `<div class="w-full mt-3 bg-gray-100 text-gray-500 font-bold py-2 rounded text-center">로그인 후 신청 가능</div>`;
@@ -5270,6 +5417,7 @@
                   }
                   ${adminStatsHTML(ev)}
                   ${btn}
+                  ${getCancelNotice()}
                   ${
                     currentUser && adminList.includes(currentUser.studentId)
                       ? `
@@ -5342,12 +5490,14 @@
                 : `<button type="button" class="w-full ${
                     cnt < cap
                       ? "bg-orange-600 hover:bg-orange-700 shadow-orange-200"
-                      : "bg-orange-500 hover:bg-orange-600 shadow-orange-200"
+                      : "bg-red-600 hover:bg-red-700 shadow-red-200"
                   } text-white font-bold py-2 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-2" data-act="reserve-tasting" data-id="${
                     ev.id
                   }" data-rid="${r.id}">
                     <i class="fas ${cnt < cap ? "fa-check" : "fa-clock"}"></i>
-                    <span>${cnt < cap ? "신청하기" : "대기하기"}</span>
+                    <span>${
+                      cnt < cap ? "신청하기" : "신청 마감 / 대기하기"
+                    }</span>
                   </button>`
               : `<div class="w-full bg-gray-100 text-gray-500 font-bold py-2 px-4 rounded-lg text-center flex items-center justify-center gap-2">
                   <i class="fas fa-lock"></i>
@@ -5456,6 +5606,7 @@
                     
                     <div class="w-full">
                     ${btn}
+                    ${getCancelNotice()}
                     </div>
                   </div>`;
           })
@@ -5625,116 +5776,222 @@
       /* ===== 이벤트 관리자 패널 (대시보드에서 제거, 신청하기 탭 상단으로 이동) ===== */
       function adminEventsPanelHTML() {
         return `<div class="section">
-          <h3 class="text-2xl font-bold text-gray-800 mb-1">이벤트·미식회 생성</h3>
-          <p class="text-xs text-gray-500 mb-4">유형을 선택하고 제목/일시/정원 등을 입력한 후 저장하세요. 미식회는 식당(게이트)을 1개 이상 추가해야 합니다.</p>
-          <div class="space-y-3 mb-3">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">이벤트 유형</label>
-              <select id="event-type" class="w-full px-3 py-2 border rounded bg-white text-gray-900 border-gray-300" title="이벤트 유형을 선택하세요">
-              <option value="tasting">미식회</option>
-              <option value="general">일반 이벤트</option>
-              <option value="mt">MT</option>
-              <option value="assembly">총회</option>
+          <!-- 헤더 -->
+          <div class="bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl p-4 mb-6">
+            <h3 class="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-2">
+              <i class="fas fa-calendar-plus text-orange-600"></i>
+              새 이벤트 만들기
+            </h3>
+            <p class="text-sm text-gray-600">
+              <i class="fas fa-info-circle text-orange-500 mr-1"></i>
+              순서대로 입력하시면 쉽게 이벤트를 만들 수 있어요!
+            </p>
+          </div>
+
+          <!-- Step 1: 이벤트 유형 -->
+          <div class="bg-white border-2 border-orange-200 rounded-xl p-5 mb-4">
+            <div class="flex items-center gap-2 mb-3">
+              <span class="bg-orange-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">1</span>
+              <h4 class="text-lg font-bold text-gray-800">어떤 종류의 이벤트인가요?</h4>
+            </div>
+            <select id="event-type" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg bg-white text-gray-900 hover:border-orange-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all text-base font-medium">
+              <option value="tasting">🍽️ 미식회 (여러 식당 중 선택)</option>
+              <option value="general">📌 일반 이벤트 (단일 활동)</option>
+              <option value="mt">🏕️ MT (회비 입금 필요)</option>
+              <option value="assembly">👥 총회 (회비 입금 필요)</option>
             </select>
+            <p class="text-xs text-gray-500 mt-2 pl-10">💡 미식회는 여러 식당을 추가할 수 있어요</p>
           </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">제목</label>
-              <input id="event-title" type="text" placeholder="이벤트 제목을 입력하세요" class="w-full px-3 py-2 border rounded bg-white text-gray-900 border-gray-300" title="이벤트 제목을 입력하세요">
+
+          <!-- Step 2: 기본 정보 -->
+          <div class="bg-white border-2 border-orange-200 rounded-xl p-5 mb-4">
+            <div class="flex items-center gap-2 mb-4">
+              <span class="bg-orange-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">2</span>
+              <h4 class="text-lg font-bold text-gray-800">이벤트 기본 정보</h4>
             </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">일시</label>
-              <input id="event-datetime" type="datetime-local" class="w-full px-3 py-2 border rounded bg-white text-gray-900 border-gray-300" title="이벤트 일시를 입력하세요">
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                  <i class="fas fa-heading text-orange-500"></i>
+                  이벤트 제목 <span class="text-red-500">*</span>
+                </label>
+                <input id="event-title" type="text" placeholder="예: 푸디 가을 미식회, 가을 MT" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all text-base" required>
+              </div>
+              <div>
+                <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                  <i class="fas fa-calendar-alt text-orange-500"></i>
+                  언제 진행하나요? <span class="text-red-500">*</span>
+                </label>
+                <input id="event-datetime" type="datetime-local" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all text-base" required>
+                <p class="text-xs text-gray-500 mt-1 pl-6">📅 날짜와 시간을 모두 선택해주세요</p>
+              </div>
+              <div>
+                <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                  <i class="fas fa-users text-orange-500"></i>
+                  최대 몇 명까지 참가할 수 있나요? <span class="text-red-500">*</span>
+                </label>
+                <input id="event-limit" type="number" min="1" placeholder="예: 30" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all text-base" required>
+                <p class="text-xs text-gray-500 mt-1 pl-6">👥 정원을 초과하면 대기 신청으로 넘어갑니다</p>
+              </div>
             </div>
           </div>
-          <div class="space-y-3 mb-1">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">정원</label>
-              <input id="event-limit" type="number" min="1" placeholder="참가 가능한 최대 인원 수" class="w-full px-3 py-2 border rounded bg-white text-gray-900 border-gray-300" title="참가 가능한 최대 인원 수">
+
+          <!-- Step 3: 공개 설정 및 알림 -->
+          <div class="bg-white border-2 border-orange-200 rounded-xl p-5 mb-4">
+            <div class="flex items-center gap-2 mb-4">
+              <span class="bg-orange-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">3</span>
+              <h4 class="text-lg font-bold text-gray-800">공개 설정 및 알림</h4>
             </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">공개 설정</label>
-              <div class="flex bg-gray-100 rounded-lg p-1 w-fit">
-                <button type="button" id="status-open" class="px-3 py-1 text-sm font-medium rounded-md transition-colors bg-white text-orange-600 shadow-sm">
-                  공개
-                </button>
-                <button type="button" id="status-hidden" class="px-3 py-1 text-sm font-medium rounded-md transition-colors text-gray-600 hover:text-gray-800">
-                  숨김
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                  <i class="fas fa-eye text-orange-500"></i>
+                  회원들에게 보여줄까요?
+                </label>
+                <div class="flex bg-gray-100 rounded-lg p-1.5 w-fit gap-1">
+                  <button type="button" id="status-open" class="px-4 py-2 text-sm font-bold rounded-lg transition-all bg-white text-orange-600 shadow-sm flex items-center gap-2">
+                    <i class="fas fa-globe"></i>공개
+                  </button>
+                  <button type="button" id="status-hidden" class="px-4 py-2 text-sm font-bold rounded-lg transition-all text-gray-600 hover:text-gray-800 hover:bg-white/50 flex items-center gap-2">
+                    <i class="fas fa-eye-slash"></i>숨김
+                  </button>
+                </div>
+                <input type="hidden" id="event-status" value="open">
+                <p class="text-xs text-gray-500 mt-2 pl-6">🔒 "숨김"으로 설정하면 관리자만 볼 수 있어요</p>
+              </div>
+              <div>
+                <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                  <i class="fas fa-bell text-orange-500"></i>
+                  자동 알림 설정
+                </label>
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
+                  <div class="flex items-start gap-2">
+                    <input type="checkbox" id="enable-auto-post" class="mt-1 w-4 h-4 rounded border-gray-300 text-orange-600 focus:ring-orange-500" checked>
+                    <label for="enable-auto-post" class="text-sm font-medium text-gray-700 flex-1">
+                      자동으로 알림 글 올리기
+                      <p class="text-xs text-gray-500 font-normal mt-1">이벤트 하루 전에 회원들에게 알림을 보내요</p>
+                    </label>
+                  </div>
+                </div>
+                <div id="post-time-container" class="space-y-3 pl-6">
+                  <div class="flex items-center gap-3">
+                    <input type="radio" id="post-time-auto" name="post-time-type" value="auto" class="w-4 h-4 text-orange-600 focus:ring-orange-500" checked>
+                    <label for="post-time-auto" class="text-sm text-gray-700 flex items-center gap-2">
+                      <i class="fas fa-clock text-gray-400"></i>
+                      <span>이벤트 24시간 전 자동</span>
+                      <span class="bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs font-semibold">추천</span>
+                    </label>
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <input type="radio" id="post-time-custom" name="post-time-type" value="custom" class="w-4 h-4 text-orange-600 focus:ring-orange-500">
+                    <label for="post-time-custom" class="text-sm text-gray-700 flex items-center gap-2">
+                      <i class="fas fa-calendar-check text-gray-400"></i>
+                      <span>직접 지정하기</span>
+                    </label>
+                  </div>
+                  <div class="pl-8">
+                    <input id="post-datetime" type="datetime-local" class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg text-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-200" disabled>
+                  </div>
+                </div>
+                <button type="button" id="test-announcement-btn" class="mt-3 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2 text-sm font-medium">
+                  <i class="fas fa-flask"></i>
+                  테스트 알림 미리보기
                 </button>
               </div>
-              <input type="hidden" id="event-status" value="open">
-              <p class="text-xs text-gray-600 mt-1">* "숨김"은 사용자 목록에서 보이지 않습니다.</p>
             </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">알림 게시일시</label>
-              <div class="flex items-center gap-2 mb-2">
-                <input type="checkbox" id="enable-auto-post" class="rounded border-gray-300 text-orange-600 focus:ring-orange-500" checked>
-                <label for="enable-auto-post" class="text-sm text-gray-700">자동 알림 게시 사용</label>
+          </div>
+
+          <!-- Step 4: 회비 입금 정보 (MT/총회만) -->
+          <div id="payment-fields" class="hidden">
+            <div class="bg-white border-2 border-orange-200 rounded-xl p-5 mb-4">
+              <div class="flex items-center gap-2 mb-4">
+                <span class="bg-orange-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">4</span>
+                <h4 class="text-lg font-bold text-gray-800">💰 회비 입금 정보</h4>
               </div>
-              <div id="post-time-container" class="space-y-2">
-                <div class="flex items-center gap-2">
-                  <input type="radio" id="post-time-auto" name="post-time-type" value="auto" class="rounded border-gray-300 text-orange-600 focus:ring-orange-500" checked>
-                  <label for="post-time-auto" class="text-sm text-gray-700">이벤트 24시간 전 자동</label>
+              <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+                <p class="text-xs text-yellow-800 flex items-center gap-2">
+                  <i class="fas fa-lightbulb"></i>
+                  시스템 설정의 계좌 정보가 자동으로 불러와집니다. 필요시 수정하세요.
+                </p>
+              </div>
+              <div class="space-y-4">
+                <div>
+                  <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                    <i class="fas fa-landmark text-orange-500"></i>
+                    은행명
+                  </label>
+                  <input id="pay-bank" type="text" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all text-base" placeholder="예: 국민은행, 신한은행">
                 </div>
-                <div class="flex items-center gap-2">
-                  <input type="radio" id="post-time-custom" name="post-time-type" value="custom" class="rounded border-gray-300 text-orange-600 focus:ring-orange-500">
-                  <label for="post-time-custom" class="text-sm text-gray-700">직접 설정</label>
-                  <input id="post-datetime" type="datetime-local" class="px-3 py-2 border rounded bg-white text-gray-900 border-gray-300 text-sm" disabled>
+                <div>
+                  <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                    <i class="fas fa-credit-card text-orange-500"></i>
+                    계좌번호
+                  </label>
+                  <input id="pay-number" type="text" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all text-base" placeholder="000-000-000000">
+                </div>
+                <div>
+                  <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                    <i class="fas fa-user text-orange-500"></i>
+                    예금주
+                  </label>
+                  <input id="pay-holder" type="text" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all text-base" placeholder="홍길동">
+                </div>
+                <div>
+                  <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                    <i class="fas fa-comment-dots text-orange-500"></i>
+                    입금 안내 (선택사항)
+                  </label>
+                  <input id="pay-note" type="text" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all text-base" placeholder="예: 입금 시 이름 꼭 적어주세요">
                 </div>
               </div>
-              <p class="text-xs text-gray-600 mt-1">* 이벤트 관련 알림 글이 자동으로 올라갑니다.</p>
-              <button type="button" id="test-announcement-btn" class="mt-2 text-xs bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition-colors">
-                <i class="fas fa-flask mr-1"></i>테스트 알림 게시
+            </div>
+          </div>
+
+          <!-- Step 4/5: 식당 관리 (미식회만) -->
+          <div id="tasting-fields">
+            <div class="bg-white border-2 border-orange-200 rounded-xl p-5 mb-4">
+              <div class="flex items-center gap-2 mb-4">
+                <span class="bg-orange-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">4</span>
+                <h4 class="text-lg font-bold text-gray-800">🍽️ 식당 추가하기</h4>
+              </div>
+              <div class="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
+                <p class="text-xs text-green-800 flex items-center gap-2">
+                  <i class="fas fa-check-circle"></i>
+                  미식회는 최소 1개 이상의 식당을 추가해야 해요!
+                </p>
+              </div>
+              <div id="event-restaurants-wrap" class="space-y-3 mb-4">${restaurantFieldHTML()}</div>
+              <button id="add-restaurant-btn" type="button" class="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold py-3 px-4 rounded-lg transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2">
+                <i class="fas fa-plus-circle text-lg"></i>
+                <span>식당 추가하기</span>
               </button>
             </div>
           </div>
 
-          <div id="payment-fields" class="hidden mt-2">
-            <h4 class="font-semibold text-orange-700 mb-1">회비 입금 정보 (MT/총회)</h4>
-            <p class="text-xs text-gray-600 mb-2">관리자 설정의 회비/계좌 정보를 기본으로 불러옵니다. 필요 시 수정하세요.</p>
-            <div class="space-y-3">
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">은행명</label>
-                <input id="pay-bank" type="text" class="w-full px-3 py-2 border rounded bg-white text-gray-900 border-gray-300" placeholder="예: 국민은행, 신한은행">
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">계좌번호</label>
-                <input id="pay-number" type="text" class="w-full px-3 py-2 border rounded bg-white text-gray-900 border-gray-300" placeholder="계좌번호를 입력하세요">
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">예금주</label>
-                <input id="pay-holder" type="text" class="w-full px-3 py-2 border rounded bg-white text-gray-900 border-gray-300" placeholder="예금주명을 입력하세요">
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">안내 문구 (선택)</label>
-                <input id="pay-note" type="text" class="w-full px-3 py-2 border rounded bg-white text-gray-900 border-gray-300" placeholder="입금 시 참고사항을 입력하세요">
-              </div>
-            </div>
-          </div>
-
-          <div id="tasting-fields" class="mt-3">
-            <h4 class="font-semibold text-orange-700 mb-1">식당(게이트) 관리</h4>
-            <p class="text-xs text-gray-600  mb-2">각 식당에 대한 이름/정보/정원을 입력하고, 이미지는 파일 선택 또는 드래그&드롭으로 업로드하세요.</p>
-            <div id="event-restaurants-wrap" class="space-y-2">${restaurantFieldHTML()}</div>
-            <button id="add-restaurant-btn" type="button" class="mt-2 text-xs bg-white  border border-orange-300  text-orange-700  px-3 py-1 rounded hover:bg-orange-50 
-              <i class="fas fa-plus mr-1"></i>식당 추가
-            </button>
-          </div>
-
+          <!-- 저장 버튼 -->
           <div class="flex gap-3 mt-6">
-            <button id="save-event-btn" type="button" class="flex-1 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold py-3 px-6 rounded-xl hover:from-orange-600 hover:to-orange-700 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center gap-2">
-              <i class="fas fa-save"></i>
-              <span>이벤트 생성</span>
+            <button id="save-event-btn" type="button" class="flex-1 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold py-4 px-6 rounded-xl hover:from-orange-600 hover:to-orange-700 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center gap-3 text-lg">
+              <i class="fas fa-check-circle text-xl"></i>
+              <span>이벤트 만들기 완료!</span>
             </button>
-            <button id="reset-event-btn" type="button" class="flex-1 bg-gradient-to-r from-gray-500 to-gray-600 text-white font-bold py-3 px-6 rounded-xl hover:from-gray-600 hover:to-gray-700 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center gap-2">
-              <i class="fas fa-undo"></i>
-              <span>초기화</span>
+            <button id="reset-event-btn" type="button" class="flex-none bg-gradient-to-r from-gray-500 to-gray-600 text-white font-bold py-4 px-6 rounded-xl hover:from-gray-600 hover:to-gray-700 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center gap-2">
+              <i class="fas fa-redo"></i>
+              <span>다시 작성</span>
             </button>
           </div>
 
-          <hr class="my-4">
-          <h4 class="font-semibold text-gray-700 mb-1">현재 이벤트</h4>
-          <p class="text-xs text-gray-600  mb-2">아래 목록에서 수정/보관/재게시/삭제가 가능합니다.</p>
-          <div class="space-y-2">${adminEventsListHTML()}</div>
+          <!-- 현재 이벤트 목록 -->
+          <div class="mt-8 pt-6 border-t-2 border-gray-200">
+            <div class="flex items-center gap-2 mb-4">
+              <i class="fas fa-list text-gray-600 text-xl"></i>
+              <h4 class="text-xl font-bold text-gray-800">생성된 이벤트 목록</h4>
+            </div>
+            <p class="text-sm text-gray-600 mb-4">
+              <i class="fas fa-info-circle text-blue-500 mr-1"></i>
+              만들어진 이벤트를 수정하거나 삭제할 수 있어요
+            </p>
+            <div class="space-y-3">${adminEventsListHTML()}</div>
+          </div>
         </div>`;
       }
       function bindAdminEventsPanel() {
@@ -5899,72 +6156,91 @@
       }
       function restaurantFieldHTML(n = "", i = "", c = "", url = "", id = "") {
         const rid = id || `res_${Math.random().toString(36).slice(2, 9)}`;
-        return `<div class="restaurant-row border rounded-lg p-4 mb-4 bg-gray-50" data-id="${rid}">
+        return `<div class="restaurant-row bg-gradient-to-br from-white to-orange-50 border-2 border-orange-300 rounded-xl p-5 relative" data-id="${rid}">
+          <!-- 삭제 버튼 (우측 상단) -->
+          <button type="button" class="remove-restaurant absolute top-3 right-3 bg-red-500 hover:bg-red-600 text-white w-8 h-8 rounded-full transition-all shadow-md hover:shadow-lg flex items-center justify-center" title="이 식당 삭제">
+            <i class="fas fa-trash text-sm"></i>
+          </button>
+
           <div class="space-y-4">
             <!-- 이미지 업로드 영역 -->
-            <div class="flex justify-center">
-              <div class="relative w-32 h-32">
-              <img src="${saf(
-                url || ""
-              )}" class="thumb w-full h-full object-cover rounded-lg border ${
+            <div>
+              <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                <i class="fas fa-camera text-orange-500"></i>
+                식당 사진 (선택사항)
+              </label>
+              <div class="flex justify-center">
+                <div class="relative w-40 h-40">
+                  <img src="${saf(
+                    url || ""
+                  )}" class="thumb w-full h-full object-cover rounded-xl border-2 border-orange-200 ${
           url ? "" : "hidden"
         }" data-role="preview" alt="식당 이미지">
-              <div class="dz w-full h-full border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center text-gray-500 text-sm cursor-pointer hover:border-indigo-400 hover:text-indigo-500 transition-colors ${
-                url ? "hidden" : ""
-              }" data-role="dropzone">
-                <div class="text-center">
-                  <i class="fas fa-image text-2xl mb-1"></i>
-                    <div>이미지 업로드</div>
+                  <div class="dz w-full h-full border-2 border-dashed border-orange-300 rounded-xl flex items-center justify-center text-gray-500 cursor-pointer hover:border-orange-500 hover:bg-orange-50 transition-all ${
+                    url ? "hidden" : ""
+                  }" data-role="dropzone">
+                    <div class="text-center p-4">
+                      <i class="fas fa-cloud-upload-alt text-3xl mb-2 text-orange-400"></i>
+                      <div class="text-sm font-medium">사진 끌어놓기</div>
+                      <div class="text-xs text-gray-400 mt-1">또는 클릭하여 선택</div>
+                    </div>
+                  </div>
+                  <div class="dz-overlay hidden absolute inset-0 bg-black/50 rounded-xl flex items-center justify-center text-white" data-role="uploading">
+                    <div class="text-center">
+                      <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                      <div class="text-sm">업로드중…</div>
+                    </div>
+                  </div>
+                  <input type="file" accept="image/*" class="hidden" data-role="file">
                 </div>
               </div>
-              <div class="dz-overlay hidden absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center text-white" data-role="uploading">
-                <div class="text-center">
-                  <i class="fas fa-spinner fa-spin text-xl mb-2"></i>
-                  <div>업로드중…</div>
-                </div>
+              <div class="flex items-center gap-2 mt-2">
+                <button type="button" class="select-image flex-1 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2">
+                  <i class="fas fa-folder-open"></i>
+                  파일에서 선택
+                </button>
               </div>
-              <input type="file" accept="image/*" class="hidden" data-role="file">
+              <div class="mt-2">
+                <input data-field="imageUrl" type="text" value="${saf(
+                  url
+                )}" placeholder="또는 이미지 URL 주소를 붙여넣으세요" class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg text-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-200">
               </div>
             </div>
             
             <!-- 입력 필드들 -->
-            <div class="space-y-3">
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">식당 이름</label>
-                  <input data-field="name" type="text" value="${saf(
-                    n
-                  )}" placeholder="식당 이름을 입력하세요" class="w-full px-3 py-2 border rounded-md bg-white text-gray-900 border-gray-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
-                </div>
-              
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">정원</label>
-                  <input data-field="capacity" type="number" min="1" value="${saf(
-                    c
-                  )}" placeholder="이 식당의 정원 수" class="w-full px-3 py-2 border rounded-md bg-white text-gray-900 border-gray-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                  <i class="fas fa-utensils text-orange-500"></i>
+                  식당 이름 <span class="text-red-500">*</span>
+                </label>
+                <input data-field="name" type="text" value="${saf(
+                  n
+                )}" placeholder="예: 스시 맛집, 파스타 레스토랑" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all text-base" required>
               </div>
               
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">식당 상세 정보</label>
-                <textarea data-field="info" rows="3" placeholder="식당의 위치, 메뉴, 특징 등을 자세히 설명해주세요" class="w-full px-3 py-2 border rounded-md bg-white text-gray-900 border-gray-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 resize-none">${saf(
-                  i
-                )}</textarea>
+                <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                  <i class="fas fa-users text-orange-500"></i>
+                  이 식당의 정원 <span class="text-red-500">*</span>
+                </label>
+                <input data-field="capacity" type="number" min="1" value="${saf(
+                  c
+                )}" placeholder="예: 10" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all text-base" required>
+                <p class="text-xs text-gray-500 mt-1 pl-6">👥 이 식당에 몇 명까지 갈 수 있나요?</p>
               </div>
               
-              <div class="space-y-2">
-                <label class="block text-sm font-medium text-gray-700 mb-1">이미지</label>
-                <button type="button" class="select-image w-full bg-orange-100 text-orange-700 border border-orange-300 px-3 py-2 rounded-md text-sm hover:bg-orange-200 transition-colors">
-                  <i class="fas fa-upload mr-1"></i>파일 선택
-                </button>
-                <div class="text-center text-gray-500 text-xs">또는</div>
-                <input data-field="imageUrl" type="text" value="${saf(
-                  url
-                )}" placeholder="이미지 URL을 입력하세요" class="w-full px-3 py-2 border rounded-md bg-white text-gray-900 border-gray-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-sm">
+              <div>
+                <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                  <i class="fas fa-info-circle text-orange-500"></i>
+                  식당 상세 정보
+                </label>
+                <textarea data-field="info" rows="4" placeholder="식당의 위치, 메뉴, 가격, 특징 등을 알려주세요&#10;예: 신촌역 3번 출구 &#10;메뉴: 파스타, 리조또&#10;가격: 1만원대" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all text-base resize-none">${saf(
+                  i
+                )}</textarea>
+                <p class="text-xs text-gray-500 mt-1 pl-6">📝 Enter 키로 줄바꿈이 가능해요</p>
               </div>
             </div>
-            
-            <button type="button" class="remove-restaurant text-red-600 hover:text-red-800 p-2 hover:bg-red-50 rounded-md transition-colors" title="식당 삭제">
-              <i class="fas fa-trash"></i>
-            </button>
           </div>
         </div>`;
       }
@@ -8474,7 +8750,7 @@
               <i class="fas fa-users mr-1"></i>회원
             </button>
             <button class="subtab-btn px-3 py-1.5 rounded bg-gray-200" data-sub="positions">
-              <i class="fas fa-user-tie mr-1"></i>직책 관리
+              <i class="fas fa-user-tie mr-1"></i>임원 관리
             </button>
             <button class="subtab-btn px-3 py-1.5 rounded bg-gray-200" data-sub="homeblocks">
               <i class="fas fa-house-chimney mr-1"></i>홈 블록·로드맵
@@ -8496,9 +8772,19 @@
             x.classList.remove("bg-gray-800", "text-white")
           );
           b.classList.add("bg-gray-800", "text-white");
+          currentDashboardTab = b.dataset.sub; // 현재 탭 저장
           showSubtab(b.dataset.sub);
         });
-        showSubtab("homeblocks"); // 기본 탭
+
+        // 저장된 탭으로 복원, 기본값은 "회원" 탭
+        const initialTab = currentDashboardTab || "members";
+        const initialBtn = c.querySelector(
+          `.subtab-btn[data-sub="${initialTab}"]`
+        );
+        if (initialBtn) {
+          initialBtn.classList.add("bg-gray-800", "text-white");
+        }
+        showSubtab(initialTab);
       }
       function showSubtab(name) {
         const cont = document.getElementById("subtab-container");
@@ -8547,7 +8833,7 @@
               <h3 class="text-xl font-bold text-gray-800 mb-2">관리자 직책 관리</h3>
               <div class="p-8 text-center">
                 <i class="fas fa-lock text-4xl text-gray-400 mb-4"></i>
-                <p class="text-gray-600 mb-2">직책 관리는 회장과 부회장만 가능합니다.</p>
+                <p class="text-gray-600 mb-2">임원 관리는 회장과 부회장만 가능합니다.</p>
                 <p class="text-sm text-gray-500">현재 권한: ${
                   currentUser?.position || "일반 회원"
                 }</p>
@@ -8566,7 +8852,9 @@
             <p class="text-xs text-gray-600 mb-4">관리자들에게 직책을 부여하고 관리할 수 있습니다.</p>
             
             <div class="mb-4">
-              <h4 class="font-semibold text-gray-700 mb-2">현재 관리자 목록</h4>
+              <h4 class="font-semibold text-gray-700 mb-2">현재 관리자 목록 <span class="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs ml-2">${
+                adminList.length
+              }명</span></h4>
               <div id="admin-positions-list" class="space-y-2">
                 ${renderAdminPositionsList()}
               </div>
@@ -8678,6 +8966,7 @@
           "총무",
           "기획부장",
           "홍보부장",
+          "운영진",
         ];
         const allPositions = [
           ...defaultPositions,
@@ -8707,10 +8996,11 @@
           "총무",
           "기획부장",
           "홍보부장",
+          "운영진",
         ];
 
-        // 삭제 불가능한 직책들 (회장과 부회장만)
-        const undeletablePositions = ["회장", "부회장"];
+        // 삭제 불가능한 직책들 (회장, 부회장, 운영진)
+        const undeletablePositions = ["회장", "부회장", "운영진"];
 
         // 삭제된 기본 직책들을 제외한 기본 직책들
         const activeDefaultPositions = defaultPositions.filter(
@@ -8788,6 +9078,7 @@
           "총무",
           "기획부장",
           "홍보부장",
+          "운영진",
         ];
         const allPositions = [...defaultPositions, ...customDefaultPositions];
 
@@ -8961,7 +9252,7 @@
             // 자동 일정 블록은 실제로는 순서를 변경할 수 없지만,
             // UI에서는 다른 로그아웃 블록들과 함께 순서를 변경할 수 있도록 허용
             showAlert("ℹ️", "자동 일정 블록의 순서가 변경되었습니다.");
-            renderBlocks(); // 블록 다시 렌더링
+            smoothRender("dynamic-blocks", renderBlocks); // 블록 다시 렌더링
             return;
           }
 
@@ -9033,7 +9324,7 @@
           console.log("Firebase 업데이트 완료");
 
           showAlert("✅", "블록 순서가 변경되었습니다.");
-          renderBlocks(); // 블록 목록 새로고침
+          smoothRender("dynamic-blocks", renderBlocks); // 블록 목록 새로고침
         } catch (error) {
           console.error("블록 순서 변경 오류:", error);
           showAlert("😥", "블록 순서 변경에 실패했습니다.");
@@ -9052,7 +9343,7 @@
             // 자동 일정 블록은 실제로는 순서를 변경할 수 없지만,
             // UI에서는 다른 로그아웃 블록들과 함께 순서를 변경할 수 있도록 허용
             showAlert("ℹ️", "자동 일정 블록의 순서가 변경되었습니다.");
-            renderBlocks(); // 블록 다시 렌더링
+            smoothRender("dynamic-blocks", renderBlocks); // 블록 다시 렌더링
             return;
           }
 
@@ -9124,7 +9415,7 @@
           console.log("Firebase 업데이트 완료");
 
           showAlert("✅", "블록 순서가 변경되었습니다.");
-          renderBlocks(); // 블록 목록 새로고침
+          smoothRender("dynamic-blocks", renderBlocks); // 블록 목록 새로고침
         } catch (error) {
           console.error("블록 순서 변경 오류:", error);
           showAlert("😥", "블록 순서 변경에 실패했습니다.");
@@ -9204,7 +9495,7 @@
 
           showAlert("✅", "이벤트 순서가 변경되었습니다.");
           // 이벤트 목록 새로고침
-          renderAll();
+          smoothRender("main-content", renderAll);
         } catch (error) {
           console.error("이벤트 순서 변경 오류:", error);
           showAlert("😥", "이벤트 순서 변경에 실패했습니다.");
@@ -9283,7 +9574,7 @@
 
           showAlert("✅", "이벤트 순서가 변경되었습니다.");
           // 이벤트 목록 새로고침
-          renderAll();
+          smoothRender("main-content", renderAll);
         } catch (error) {
           console.error("이벤트 순서 변경 오류:", error);
           showAlert("😥", "이벤트 순서 변경에 실패했습니다.");
@@ -9990,7 +10281,9 @@
 
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <div>
-              <h4 class="font-semibold text-amber-700 mb-2">승인 필요(대기/거절/차단)</h4>
+              <h4 class="font-semibold text-amber-700 mb-2">승인 필요(대기/거절/차단) <span class="bg-amber-100 text-amber-800 px-2 py-1 rounded-full text-xs ml-2">${
+                pendingSet.length
+              }명</span></h4>
               <div class="overflow-auto border rounded">
                 <table class="min-w-full text-sm">
                   <thead class="bg-gray-50">
@@ -10016,7 +10309,9 @@
             </div>
 
             <div>
-              <h4 class="font-semibold text-emerald-700 mb-2">활동중(승인됨)</h4>
+              <h4 class="font-semibold text-emerald-700 mb-2">활동중(승인됨) <span class="bg-emerald-100 text-emerald-800 px-2 py-1 rounded-full text-xs ml-2">${
+                activeSet.length
+              }명</span></h4>
               <div class="overflow-auto border rounded">
                 <table class="min-w-full text-sm">
                   <thead class="bg-gray-50">
@@ -10099,15 +10394,23 @@
 
         return filtered
           .map((m) => {
+            // 관리자 여부 확인
+            const isAdmin = adminList.includes(m.studentId);
+            const adminBtn = isAdmin
+              ? `<span class="text-xs text-purple-600 font-semibold"><i class="fas fa-crown mr-1"></i>관리자</span>`
+              : `<button class="text-purple-700 hover:text-purple-900 text-xs" data-act="make-admin" data-id="${m.studentId}"><i class="fas fa-user-shield mr-1"></i>관리자 추가</button>`;
+
             const actionBtns = isPendingGroup
               ? `<button class="text-emerald-700 hover:text-emerald-900 text-xs" data-act="approve" data-id="${m.studentId}"><i class="fas fa-check mr-1"></i>승인</button>
                <button class="text-amber-700 hover:text-amber-900 text-xs" data-act="reject" data-id="${m.studentId}"><i class="fas fa-xmark mr-1"></i>거절</button>
                <button class="text-gray-700 hover:text-black text-xs" data-act="block" data-id="${m.studentId}"><i class="fas fa-ban mr-1"></i>차단</button>
                <button class="text-blue-700 hover:text-blue-900 text-xs" data-act="edit" data-id="${m.studentId}"><i class="fas fa-pen mr-1"></i>수정</button>
-               <button class="text-red-700 hover:text-red-900 text-xs" data-act="delete" data-id="${m.studentId}"><i class="fas fa-trash mr-1"></i>삭제</button>`
+               <button class="text-red-700 hover:text-red-900 text-xs" data-act="delete" data-id="${m.studentId}"><i class="fas fa-trash mr-1"></i>삭제</button>
+               ${adminBtn}`
               : `<button class="text-gray-700 hover:text-black text-xs" data-act="block" data-id="${m.studentId}"><i class="fas fa-ban mr-1"></i>차단</button>
                <button class="text-blue-700 hover:text-blue-900 text-xs" data-act="edit" data-id="${m.studentId}"><i class="fas fa-pen mr-1"></i>수정</button>
-               <button class="text-red-700 hover:text-red-900 text-xs" data-act="delete" data-id="${m.studentId}"><i class="fas fa-trash mr-1"></i>삭제</button>`;
+               <button class="text-red-700 hover:text-red-900 text-xs" data-act="delete" data-id="${m.studentId}"><i class="fas fa-trash mr-1"></i>삭제</button>
+               ${adminBtn}`;
 
             return `<tr class="border-t">
             <td class="px-3 py-2 whitespace-nowrap">${saf(m.name || "")}</td>
@@ -10141,6 +10444,7 @@
         if (act === "block") return updateMemberStatus(sid, "blocked");
         if (act === "delete") return deleteMember(sid);
         if (act === "edit") return openMemberEditModal(sid);
+        if (act === "make-admin") return makeAdminFromMember(sid);
       }
       async function approveMember(sid) {
         try {
@@ -10166,6 +10470,128 @@
         } catch {
           showAlert("😥", "삭제 실패");
         }
+      }
+
+      async function makeAdminFromMember(sid) {
+        // 회원 정보 가져오기
+        const member = membersData.find((m) => m.studentId === sid);
+        if (!member) {
+          showAlert("😥", "회원 정보를 찾을 수 없습니다.");
+          return;
+        }
+
+        // 이미 관리자인 경우
+        if (adminList.includes(sid)) {
+          showAlert("ℹ️", "이미 관리자입니다.");
+          return;
+        }
+
+        // 직책 목록 가져오기
+        const defaultPositions = [
+          "회장",
+          "부회장",
+          "총무",
+          "기획부장",
+          "홍보부장",
+          "운영진",
+        ];
+        const allPositions = [
+          ...defaultPositions,
+          ...customDefaultPositions,
+        ].filter((pos) => !deletedDefaultPositions.includes(pos));
+
+        // 직책 선택 모달 생성
+        const modal = document.createElement("div");
+        modal.className =
+          "fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50";
+        modal.innerHTML = `
+          <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="text-lg font-bold text-gray-800">
+                <i class="fas fa-user-shield mr-2 text-purple-600"></i>관리자로 추가
+              </h3>
+              <button onclick="this.closest('.fixed').remove()" class="text-gray-500 hover:text-gray-700">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+            
+            <div class="mb-4">
+              <p class="text-sm text-gray-600 mb-2">
+                <strong>${
+                  member.name
+                }</strong> (${sid}) 님을 관리자로 추가합니다.
+              </p>
+            </div>
+            
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-gray-700 mb-2">직책 선택</label>
+              <select id="admin-position-select" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500">
+                <option value="">직책을 선택하세요</option>
+                ${allPositions
+                  .map((pos) => `<option value="${pos}">${pos}</option>`)
+                  .join("")}
+              </select>
+            </div>
+            
+            <div class="flex gap-2 justify-end">
+              <button 
+                onclick="this.closest('.fixed').remove()" 
+                class="px-4 py-2 text-gray-600 hover:text-gray-800"
+              >
+                취소
+              </button>
+              <button 
+                id="confirm-make-admin" 
+                class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
+              >
+                <i class="fas fa-user-shield mr-2"></i>관리자 추가
+              </button>
+            </div>
+          </div>
+        `;
+
+        document.body.appendChild(modal);
+
+        // 확인 버튼 이벤트
+        modal
+          .querySelector("#confirm-make-admin")
+          .addEventListener("click", async () => {
+            const position = modal.querySelector(
+              "#admin-position-select"
+            ).value;
+
+            if (!position) {
+              showAlert("😥", "직책을 선택해주세요.");
+              return;
+            }
+
+            try {
+              // 관리자 목록에 추가
+              const newAdminList = [...adminList, sid];
+              const newAdminPositions = { ...adminPositions, [sid]: position };
+
+              await setDoc(doc(db, "admins", "list"), {
+                studentIds: newAdminList,
+                positions: newAdminPositions,
+              });
+
+              showAlert(
+                "✅",
+                `${member.name} 님이 ${position} 관리자로 추가되었습니다!`
+              );
+              modal.remove();
+
+              // 회원 목록 새로고침
+              const subtabContainer =
+                document.getElementById("subtab-container");
+              if (subtabContainer) {
+                renderMembersAdmin(subtabContainer);
+              }
+            } catch (error) {
+              console.error("관리자 추가 오류:", error);
+              showAlert("😥", "관리자 추가에 실패했습니다.");
+            }
+          });
       }
       function openMemberEditModal(sid) {
         const m = membersData.find((x) => (x.studentId || x.id) === sid) || {};
@@ -10498,7 +10924,64 @@
         return `${year}-${month}-${day}`;
       }
 
+      // 깜빡거림 방지를 위한 부드러운 렌더링 함수
+      function smoothRender(
+        containerId,
+        renderFunction,
+        loadingText = "로딩 중..."
+      ) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+
+        // 1. 로딩 상태 표시
+        container.classList.add("content-loading", "smooth-transition");
+
+        // 2. requestAnimationFrame을 사용하여 부드러운 전환
+        requestAnimationFrame(() => {
+          // 3. 새로운 콘텐츠 렌더링
+          renderFunction();
+
+          // 4. 짧은 지연 후 로딩 상태 해제
+          setTimeout(() => {
+            container.classList.remove("content-loading");
+            container.classList.add("content-loaded");
+
+            // 5. 전환 완료 후 클래스 정리
+            setTimeout(() => {
+              container.classList.remove("smooth-transition", "content-loaded");
+            }, 200);
+          }, 50);
+        });
+      }
+
       // 달력 생성 함수
+      // 운영진/관리자 권한 체크 함수
+      function isAdminOrStaff() {
+        if (!currentUser) return false;
+        const adminPositions = {
+          12345678: "개발자",
+          202013136: "총무",
+          202018357: "기타",
+          202114029: "부회장",
+          202327942: "회장",
+          202416596: "홍보부장",
+          202419743: "기획부장",
+        };
+        const userPosition = adminPositions[currentUser.studentId];
+        return (
+          userPosition &&
+          (userPosition === "운영진" ||
+            [
+              "회장",
+              "부회장",
+              "총무",
+              "기획부장",
+              "홍보부장",
+              "개발자",
+            ].includes(userPosition))
+        );
+      }
+
       function generateCalendar(
         year,
         month,
@@ -10569,11 +11052,18 @@
           const currentDay = String(currentDate.getDate()).padStart(2, "0");
           const dateStr = `${currentYear}-${currentMonth}-${currentDay}`;
 
-          // 해당 날짜의 이벤트들 찾기
+          // 해당 날짜의 이벤트들 찾기 (권한에 따라 필터링)
           const dayEvents = events.filter((event) => {
             const eventDate = event.activityDate;
             if (!eventDate) return false;
-            return eventDate === dateStr;
+            if (eventDate !== dateStr) return false;
+
+            // 운영진 전용 일정인 경우 권한 체크
+            if (event.isAdminOnly && !isAdminOrStaff()) {
+              return false;
+            }
+
+            return true;
           });
 
           let dayClass = "calendar-day";
@@ -10596,6 +11086,11 @@
           dayEvents.forEach((event) => {
             const eventDate = parseDate(event.activityDate);
             let eventClass = "calendar-event";
+
+            // 운영진 전용 일정인 경우 파란색 클래스 추가
+            if (event.isAdminOnly) {
+              eventClass += " admin-only";
+            }
 
             if (eventDate < today) {
               eventClass += " completed";
@@ -10831,10 +11326,24 @@
                 <label class="block text-sm font-medium text-gray-700 mb-1">설명</label>
                 <textarea 
                   id="calendar-event-description" 
-                  rows="3" 
+                  rows="5" 
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                  placeholder="일정 설명을 입력하세요"
+                  placeholder="일정 설명을 입력하세요&#10;줄바꿈이 가능합니다"
                 ></textarea>
+                <p class="text-xs text-gray-500 mt-1">💡 Enter 키로 줄바꿈이 가능합니다</p>
+              </div>
+              
+              <div class="mb-4">
+                <label class="flex items-center">
+                  <input 
+                    id="calendar-event-admin-only" 
+                    type="checkbox" 
+                    class="mr-2 text-blue-600 focus:ring-blue-500"
+                  >
+                  <span class="text-sm font-medium text-gray-700">운영진 전용 일정</span>
+                  <span class="ml-1 text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded">파란색으로 표시</span>
+                </label>
+                <p class="text-xs text-gray-500 mt-1">체크하면 운영진과 관리자만 볼 수 있는 일정이 됩니다.</p>
               </div>
               
               <div class="flex gap-2 justify-end">
@@ -10869,6 +11378,9 @@
             const eventDescription = modal.querySelector(
               "#calendar-event-description"
             ).value;
+            const isAdminOnly = modal.querySelector(
+              "#calendar-event-admin-only"
+            ).checked;
 
             if (!eventName.trim()) {
               showAlert("😥", "일정명을 입력해주세요.");
@@ -10888,11 +11400,12 @@
                 description: eventDescription || "",
                 order: maxOrder + 1,
                 createdAt: new Date().toISOString(),
+                isAdminOnly: isAdminOnly, // 운영진 전용 일정 플래그
               });
 
               showAlert("✅", "일정이 추가되었습니다!");
               modal.remove();
-              renderHorizontalRoadmap(); // 달력 다시 렌더링
+              smoothRender("h-roadmap-list", renderHorizontalRoadmap); // 달력 다시 렌더링
             } catch (error) {
               console.error("일정 추가 실패:", error);
               showAlert("😥", "일정 추가에 실패했습니다.");
@@ -10994,9 +11507,16 @@
         today.setHours(0, 0, 0, 0);
 
         // order → 날짜 순 (기본적인 데이터 검증만)
-        const validRoadmapData = (roadmapData || []).filter(
-          (item) => item && typeof item === "object" && item.id // ID만 있으면 표시 (제목이나 날짜가 없어도)
-        );
+        const validRoadmapData = (roadmapData || []).filter((item) => {
+          if (!item || typeof item !== "object" || !item.id) return false;
+
+          // 운영진 전용 일정인 경우 권한 체크
+          if (item.isAdminOnly && !isAdminOrStaff()) {
+            return false;
+          }
+
+          return true;
+        });
 
         // 간단히 보기 모드에서는 날짜순으로만 정렬 (order 무시)
         const sorted = [...validRoadmapData].sort((a, b) => {
@@ -11364,7 +11884,7 @@
                       ? `
                     <div class="bg-gray-50 rounded-lg p-4">
                       <h5 class="font-medium text-gray-700 mb-2">상세 설명</h5>
-                      <p class="text-gray-600 text-sm">${saf(
+                      <p class="text-gray-600 text-sm whitespace-pre-wrap">${saf(
                         event.description
                       )}</p>
                     </div>
