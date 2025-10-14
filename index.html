@@ -4236,7 +4236,8 @@
 
         // 관리자용 새 블록 생성 버튼 추가
         let finalSnippets = snippets;
-        if (isAdmin) {
+        // 운영진은 블록 추가 불가, 임원진만 가능
+        if (isFullAdmin()) {
           // 새 공지 추가 박스를 맨 앞에 배치
           const addBlockPlaceholder = `
             <div class="add-block-placeholder border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-orange-400 hover:bg-orange-50 transition-colors cursor-pointer group" 
@@ -10372,6 +10373,22 @@
           }
         };
 
+        // 운영진은 블록 관리 패널 접근 불가
+        if (!isFullAdmin()) {
+          container.innerHTML = `
+            <div class="section">
+              <div class="p-8 text-center">
+                <i class="fas fa-lock text-4xl text-gray-400 mb-4"></i>
+                <p class="text-gray-600 mb-2">블록 관리는 임원진만 가능합니다.</p>
+                <p class="text-sm text-gray-500">현재 권한: ${
+                  currentUser?.position || "일반 회원"
+                }</p>
+              </div>
+            </div>
+          `;
+          return;
+        }
+
         container.innerHTML = `
           <div class="grid grid-cols-1 gap-4">
             <!-- 블록 관리 -->
@@ -12383,13 +12400,8 @@
         const validRoadmapData = (roadmapData || []).filter((item) => {
           if (!item || typeof item !== "object" || !item.id) return false;
 
-          // 운영진은 isAdminOnly 일정만 표시
-          if (isStaff()) {
-            return item.isAdminOnly === true;
-          }
-
-          // 임원진 이상: 운영진 전용 일정 포함 모두 표시
-          if (isFullAdmin()) {
+          // 관리자(운영진 포함)는 모든 일정 표시
+          if (isAdminOrStaff()) {
             return true;
           }
 
