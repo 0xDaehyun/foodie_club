@@ -2717,14 +2717,32 @@
         if (!sid || !nm)
           return showAlert("😥", "학번과 이름을 모두 입력해주세요.");
         try {
+          console.log("=== 로그인 시도 ===");
+          console.log("입력 학번:", sid);
+          console.log("입력 이름:", nm);
+          
           const mref = doc(db, "members", sid);
           const ms = await getDoc(mref);
+          
+          console.log("Firebase 조회 결과:", {
+            exists: ms.exists(),
+            data: ms.exists() ? ms.data() : null
+          });
+          
           if (!ms.exists())
             return showAlert(
               "⛔",
               "등록된 회원이 아닙니다. 회원가입 기간에 <b>회원가입</b> 버튼으로 가입해주세요."
             );
           const data = ms.data() || {};
+          
+          console.log("회원 데이터:", data);
+          console.log("이름 비교:", {
+            입력이름: nm,
+            저장된이름: (data.name || "").trim(),
+            일치여부: (data.name || "").trim() === nm
+          });
+          
           if ((data.name || "").trim() !== nm)
             return showAlert(
               "🙅‍♂️",
@@ -3539,13 +3557,15 @@
             .getElementById("h-roadmap-toggle-btn")
             .addEventListener("click", () => {
               roadmapShowAll = !roadmapShowAll;
-              
+
               // 셰브론 아이콘 애니메이션
               const chevron = document.getElementById("h-roadmap-chevron");
               if (chevron) {
-                chevron.style.transform = roadmapShowAll ? "rotate(180deg)" : "rotate(0deg)";
+                chevron.style.transform = roadmapShowAll
+                  ? "rotate(180deg)"
+                  : "rotate(0deg)";
               }
-              
+
               smoothRender("h-roadmap-list", renderHorizontalRoadmap);
             });
 
@@ -12629,10 +12649,11 @@
               !!isAdmin // 관리자 권한 전달
             );
             accordionContent.innerHTML = calendarHTML;
-            
+
             // 아코디언 애니메이션으로 열기
             setTimeout(() => {
-              accordionContent.style.maxHeight = accordionContent.scrollHeight + "px";
+              accordionContent.style.maxHeight =
+                accordionContent.scrollHeight + "px";
               accordionContent.style.opacity = "1";
             }, 10);
           } else {
