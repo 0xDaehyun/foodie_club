@@ -2720,29 +2720,29 @@
           console.log("=== 로그인 시도 ===");
           console.log("입력 학번:", sid);
           console.log("입력 이름:", nm);
-          
+
           const mref = doc(db, "members", sid);
           const ms = await getDoc(mref);
-          
+
           console.log("Firebase 조회 결과:", {
             exists: ms.exists(),
-            data: ms.exists() ? ms.data() : null
+            data: ms.exists() ? ms.data() : null,
           });
-          
+
           if (!ms.exists())
             return showAlert(
               "⛔",
               "등록된 회원이 아닙니다. 회원가입 기간에 <b>회원가입</b> 버튼으로 가입해주세요."
             );
           const data = ms.data() || {};
-          
+
           console.log("회원 데이터:", data);
           console.log("이름 비교:", {
             입력이름: nm,
             저장된이름: (data.name || "").trim(),
-            일치여부: (data.name || "").trim() === nm
+            일치여부: (data.name || "").trim() === nm,
           });
-          
+
           if ((data.name || "").trim() !== nm)
             return showAlert(
               "🙅‍♂️",
@@ -3476,7 +3476,7 @@
                 <span>문의</span>
               </button>
               <button type="button" data-tab="dashboard" class="tab-btn flex-1 py-2 px-3 sm:px-4 rounded-md font-semibold text-gray-700 transition-all duration-200 hover:bg-white hover:shadow-sm ${
-                isAdmin ? "" : "hidden"
+                isFullAdmin() ? "" : "hidden"
               }">
                 <i class="fas fa-crown mr-2"></i>
                 <span>관리자</span>
@@ -3580,7 +3580,7 @@
           renderReservationTab(isAdmin); // 신청하기 탭
           renderHistoryTab(isAdmin);
           renderSuggestionsTab(isAdmin);
-          if (isAdmin) renderDashboardTab(); // 이벤트 관리 탭 제거됨(요청사항 4)
+          if (isFullAdmin()) renderDashboardTab(); // 운영진 제외, 임원진만 접근 가능
 
           // 저장된 탭으로 복원
           if (currentMainTab && currentMainTab !== "reservation") {
@@ -3772,9 +3772,8 @@
 
       // 관리자용 블록 수정/삭제 버튼 생성
       function getBlockAdminButtons(block) {
-        const isAdmin =
-          currentUser && adminList.includes(currentUser.studentId);
-        if (!isAdmin) return "";
+        // 운영진은 블록 관리 불가
+        if (!isFullAdmin()) return "";
 
         // 공지 블록과 Q&A 블록은 항상 버튼 표시 (모바일 대응)
         const opacityClass =
@@ -3959,14 +3958,13 @@
               )
               .join("");
 
-            // 관리자 권한 확인
-            const isAdmin =
-              currentUser && adminList.includes(currentUser.studentId);
+            // 관리자 권한 확인 - 운영진 제외
+            const isAdminForBlocks = isFullAdmin();
 
             return `
               <div class="border rounded-lg p-3 md:p-4 bg-white shadow-sm hover:shadow-md transition-shadow relative">
                 ${
-                  isAdmin
+                  isAdminForBlocks
                     ? `
                   <div class="absolute top-2 right-2 flex gap-1 flex-wrap">
                     <button class="move-block-up score-block-move-up bg-gray-500 text-white px-2 py-1 rounded text-xs hover:bg-gray-600 transition-colors" 
@@ -12385,8 +12383,18 @@
         const validRoadmapData = (roadmapData || []).filter((item) => {
           if (!item || typeof item !== "object" || !item.id) return false;
 
-          // 운영진 전용 일정인 경우 권한 체크
-          if (item.isAdminOnly && !isAdminOrStaff()) {
+          // 운영진은 isAdminOnly 일정만 표시
+          if (isStaff()) {
+            return item.isAdminOnly === true;
+          }
+
+          // 임원진 이상: 운영진 전용 일정 포함 모두 표시
+          if (isFullAdmin()) {
+            return true;
+          }
+
+          // 일반 회원: 운영진 전용 일정 제외
+          if (item.isAdminOnly) {
             return false;
           }
 
