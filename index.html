@@ -3438,7 +3438,7 @@
                   </div>
                   </div>
                   <div class="schedule-blocks-container" id="h-roadmap-list"></div>
-                  <div class="roadmap-accordion-content hidden" id="h-roadmap-full-list">
+                  <div class="roadmap-accordion-content" id="h-roadmap-full-list" style="max-height: 0; overflow: hidden; transition: max-height 0.4s ease-in-out, opacity 0.3s ease-in-out; opacity: 0;">
                     <!-- 전체 일정이 여기에 표시됩니다 -->
                   </div>
                 </div>
@@ -3539,6 +3539,13 @@
             .getElementById("h-roadmap-toggle-btn")
             .addEventListener("click", () => {
               roadmapShowAll = !roadmapShowAll;
+              
+              // 셰브론 아이콘 애니메이션
+              const chevron = document.getElementById("h-roadmap-chevron");
+              if (chevron) {
+                chevron.style.transform = roadmapShowAll ? "rotate(180deg)" : "rotate(0deg)";
+              }
+              
               smoothRender("h-roadmap-list", renderHorizontalRoadmap);
             });
 
@@ -12622,11 +12629,16 @@
               !!isAdmin // 관리자 권한 전달
             );
             accordionContent.innerHTML = calendarHTML;
-            accordionContent.classList.remove("hidden");
-            accordionContent.classList.add("expanded");
+            
+            // 아코디언 애니메이션으로 열기
+            setTimeout(() => {
+              accordionContent.style.maxHeight = accordionContent.scrollHeight + "px";
+              accordionContent.style.opacity = "1";
+            }, 10);
           } else {
-            accordionContent.classList.add("hidden");
-            accordionContent.classList.remove("expanded");
+            // 아코디언 애니메이션으로 닫기
+            accordionContent.style.maxHeight = "0";
+            accordionContent.style.opacity = "0";
           }
         }
 
