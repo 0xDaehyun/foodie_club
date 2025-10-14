@@ -188,16 +188,15 @@
 
 ## 👥 팀원
 
-### 🎯 **개발팀**
+### 🎯 **개발자: 회장 이대현**
 
-- **회장 이대현** - 총괄 개발 및 기획
-- **개발자** - 백엔드 및 데이터베이스 설계
-- **기획부장** - UI/UX 디자인 및 기획
-- **홍보부장** - 콘텐츠 및 마케팅
+-  총괄 개발 및 기획
+-  데이터베이스 설계
+-  UI/UX 디자인 및 기획
+-  콘텐츠 및 마케팅
 
 ### 🙏 **특별 감사**
 
-- 전북대학교 Foodie 동아리 모든 회원들
 - 베타 테스터 및 피드백 제공자들
 
 ---
@@ -212,21 +211,9 @@
 
 ### 🌟 **장기 계획**
 
-- [ ] AI 기반 맛집 추천 시스템
+- [ ] 페이먼트 시스템 연결 후 결제 시스템 구현
 - [ ] 소셜 로그인 연동
 - [ ] 다국어 지원
-
----
-
-## 🤝 기여하기
-
-프로젝트에 기여하고 싶으시다면:
-
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
 
 ---
 
@@ -234,7 +221,7 @@
 
 - **이메일**: leedaehyun11@naver.com
 - **GitHub Issues**: [Issues 페이지](https://github.com/your-username/foodie-website/issues)
-- **동아리 연락처**: 전북대학교 Foodie 동아리
+- **동아리 연락처**: 전북대학교 Foodie 동아리 인스타그램
 
 ---
 
@@ -246,7 +233,7 @@
 
 <div align="center">
   <p>🍽️ <strong>맛있는 식사를 통해 소통하고 성장하는 Foodie와 함께하세요!</strong> 🍽️</p>
-  <p>Made with ❤️ by Foodie Development Team</p>
+  <p>Made by Foodie 2025 회장 이대현🧑🏻‍💻</p>
 </div>
 
 ---
