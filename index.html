@@ -3586,8 +3586,8 @@
                 <span class="text-sm sm:text-base md:text-lg">내 활동</span>
               </button>
               <button type="button" data-tab="roadmap" class="tab-btn flex-1 py-3 sm:py-4 px-3 sm:px-4 md:px-6 rounded-xl font-bold transition-all duration-300 ease-out whitespace-nowrap">
-                <i class="fas fa-map-marked-alt mr-1 sm:mr-2 text-sm sm:text-base md:text-lg"></i>
-                <span class="text-sm sm:text-base md:text-lg">로드맵</span>
+                <i class="fas fa-utensils mr-1 sm:mr-2 text-sm sm:text-base md:text-lg"></i>
+                <span class="text-sm sm:text-base md:text-lg">미식회</span>
               </button>
               <button type="button" data-tab="dashboard" class="tab-btn flex-1 py-3 sm:py-4 px-3 sm:px-4 md:px-6 rounded-xl font-bold transition-all duration-300 ease-out whitespace-nowrap ${
                 isFullAdmin() ? "" : "hidden"
@@ -11711,6 +11711,61 @@
               </div>
             </div>
             
+            <!-- 내 신청 정보 (강조) -->
+            ${
+              userApplicant || restaurantName
+                ? `
+            <div class="bg-gradient-to-r from-orange-50 to-amber-50 border-2 border-orange-200 rounded-xl p-4 mb-4">
+              <div class="flex items-center gap-2 mb-3">
+                <i class="fas fa-user-check text-orange-600"></i>
+                <h4 class="font-bold text-gray-800">내 신청 정보</h4>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                ${
+                  restaurantName
+                    ? `
+                <div class="flex items-center gap-2">
+                  <i class="fas fa-utensils text-orange-500 w-4"></i>
+                  <span class="text-gray-600">신청 식당:</span>
+                  <span class="font-bold text-orange-700">${saf(
+                    restaurantName
+                  )}</span>
+                </div>
+                `
+                    : ""
+                }
+                ${
+                  userApplicant
+                    ? `
+                <div class="flex items-center gap-2">
+                  <i class="fas fa-clock text-orange-500 w-4"></i>
+                  <span class="text-gray-600">신청일:</span>
+                  <span class="font-semibold text-gray-700">${new Date(
+                    userApplicant.timestamp
+                  ).toLocaleDateString("ko-KR")}</span>
+                </div>
+                `
+                    : ""
+                }
+                ${
+                  userRestaurantReservation
+                    ? `
+                <div class="flex items-center gap-2">
+                  <i class="fas fa-clock text-orange-500 w-4"></i>
+                  <span class="text-gray-600">신청일:</span>
+                  <span class="font-semibold text-gray-700">${new Date(
+                    userRestaurantReservation.timestamp
+                  ).toLocaleDateString("ko-KR")}</span>
+                </div>
+                `
+                    : ""
+                }
+              </div>
+            </div>
+            `
+                : ""
+            }
+            
             <!-- 관리자용 신청자 목록 -->
             ${
               isUserAdmin
@@ -11775,61 +11830,6 @@
                 </div>
               `
               }
-            </div>
-            `
-                : ""
-            }
-            
-            <!-- 내 신청 정보 (강조) -->
-            ${
-              userApplicant || restaurantName
-                ? `
-            <div class="bg-gradient-to-r from-orange-50 to-amber-50 border-2 border-orange-200 rounded-xl p-4 mb-4">
-              <div class="flex items-center gap-2 mb-3">
-                <i class="fas fa-user-check text-orange-600"></i>
-                <h4 class="font-bold text-gray-800">내 신청 정보</h4>
-              </div>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-                ${
-                  restaurantName
-                    ? `
-                <div class="flex items-center gap-2">
-                  <i class="fas fa-utensils text-orange-500 w-4"></i>
-                  <span class="text-gray-600">신청 식당:</span>
-                  <span class="font-bold text-orange-700">${saf(
-                    restaurantName
-                  )}</span>
-                </div>
-                `
-                    : ""
-                }
-                ${
-                  userApplicant
-                    ? `
-                <div class="flex items-center gap-2">
-                  <i class="fas fa-clock text-orange-500 w-4"></i>
-                  <span class="text-gray-600">신청일:</span>
-                  <span class="font-semibold text-gray-700">${new Date(
-                    userApplicant.timestamp
-                  ).toLocaleDateString("ko-KR")}</span>
-                </div>
-                `
-                    : ""
-                }
-                ${
-                  userRestaurantReservation
-                    ? `
-                <div class="flex items-center gap-2">
-                  <i class="fas fa-clock text-orange-500 w-4"></i>
-                  <span class="text-gray-600">신청일:</span>
-                  <span class="font-semibold text-gray-700">${new Date(
-                    userRestaurantReservation.timestamp
-                  ).toLocaleDateString("ko-KR")}</span>
-                </div>
-                `
-                    : ""
-                }
-              </div>
             </div>
             `
                 : ""
@@ -12101,10 +12101,6 @@
           <div class="calendar-container">
             <div class="calendar-header">
               <h3 class="calendar-title">F👀die 달력</h3>
-              <p class="text-xs text-gray-500 text-center mt-1 mb-3">
-                <i class="fas fa-hand-point-right mr-1"></i>
-                달력을 넘겨 일정을 확인해보세요
-              </p>
               <div class="calendar-nav">
                 <button class="calendar-nav-btn calendar-nav-prev" onclick="changeCalendarMonth(-1)">
                   <i class="fas fa-chevron-left"></i>
@@ -12212,10 +12208,16 @@
             </div>
             
             <!-- 안내 메시지 -->
-            <p class="text-xs text-gray-500 text-center mt-3 px-4">
-              <i class="fas fa-mouse-pointer mr-1"></i>
-              일정을 클릭하여 자세한 내용을 확인해보세요
-            </p>
+            <div class="text-center mt-3 px-4 space-y-1">
+              <p class="text-xs text-gray-500">
+                <i class="fas fa-hand-point-right mr-1"></i>
+                달력을 넘겨 일정을 확인해보세요
+              </p>
+              <p class="text-xs text-gray-500">
+                <i class="fas fa-mouse-pointer mr-1"></i>
+                일정을 클릭하여 자세한 내용을 확인해보세요
+              </p>
+            </div>
           </div>
           
           ${
@@ -15429,56 +15431,62 @@
                         <p class="text-xs font-semibold text-gray-700 mb-2">
                           <i class="fas fa-comment-dots mr-1"></i>후기
                         </p>
-                        ${restaurant.reviews
-                          .filter((r) => r.comment && r.comment.trim())
-                          .slice(0, 3)
-                          .map(
-                            (r) => `
-                          <div class="bg-white rounded-lg p-3 border border-orange-100 shadow-sm relative">
-                            <div class="flex items-center justify-between mb-2">
-                              <span class="text-sm font-semibold text-gray-700">
-                                <i class="fas fa-user-circle mr-1 text-orange-500"></i>
-                                익명
-                              </span>
-                              <div class="flex items-center gap-2">
-                                <div class="flex items-center gap-0.5">
-                                  ${renderStars(r.rating || 0)}
+                        <div class="review-list-${restaurant.eventId}-${restaurant.restaurantName.replace(/\s/g, '')}" data-show-all="false">
+                          ${restaurant.reviews
+                            .filter((r) => r.comment && r.comment.trim())
+                            .slice(0, 3)
+                            .map(
+                              (r) => `
+                            <div class="bg-white rounded-lg p-3 border border-orange-100 shadow-sm relative review-item">
+                              <div class="flex items-center justify-between mb-2">
+                                <span class="text-sm font-semibold text-gray-700">
+                                  <i class="fas fa-user-circle mr-1 text-orange-500"></i>
+                                  익명
+                                </span>
+                                <div class="flex items-center gap-2">
+                                  <div class="flex items-center gap-0.5">
+                                    ${renderStars(r.rating || 0)}
+                                  </div>
+                                  ${
+                                    isAdmin
+                                      ? `
+                                    <button 
+                                      class="text-red-500 hover:text-red-700 transition-colors"
+                                      data-action="delete-review"
+                                      data-event-id="${restaurant.eventId}"
+                                      data-student-id="${r.studentId}"
+                                      title="후기 삭제">
+                                      <i class="fas fa-trash text-xs"></i>
+                                    </button>
+                                  `
+                                      : ""
+                                  }
                                 </div>
-                                ${
-                                  isAdmin
-                                    ? `
-                                  <button 
-                                    class="text-red-500 hover:text-red-700 transition-colors"
-                                    data-action="delete-review"
-                                    data-event-id="${restaurant.eventId}"
-                                    data-student-id="${r.studentId}"
-                                    title="후기 삭제">
-                                    <i class="fas fa-trash text-xs"></i>
-                                  </button>
-                                `
-                                    : ""
-                                }
                               </div>
+                              <p class="text-sm text-gray-600 whitespace-pre-wrap">${saf(
+                                r.comment
+                              )}</p>
                             </div>
-                            <p class="text-sm text-gray-600 whitespace-pre-wrap">${saf(
-                              r.comment
-                            )}</p>
-                          </div>
-                        `
-                          )
-                          .join("")}
+                          `
+                            )
+                            .join("")}
+                        </div>
                         ${
                           restaurant.reviews.filter(
                             (r) => r.comment && r.comment.trim()
                           ).length > 3
-                            ? `<p class="text-xs text-gray-500 text-center mt-2">
-                                <i class="fas fa-ellipsis-h mr-1"></i>
+                            ? `<button 
+                                class="w-full text-xs text-orange-600 hover:text-orange-700 font-semibold text-center mt-2 py-2 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors border border-orange-200"
+                                data-action="toggle-reviews"
+                                data-event-id="${restaurant.eventId}"
+                                data-restaurant-name="${restaurant.restaurantName.replace(/\s/g, '')}">
+                                <i class="fas fa-chevron-down mr-1"></i>
                                 외 ${
                                   restaurant.reviews.filter(
                                     (r) => r.comment && r.comment.trim()
                                   ).length - 3
-                                }개 후기 더 있음
-                              </p>`
+                                }개 후기 더 보기
+                              </button>`
                             : ""
                         }
                       </div>
@@ -15623,12 +15631,16 @@
 
         c.innerHTML = `
           <div class="section">
-            <div class="flex items-center justify-between mb-4">
-              <h3 class="text-xl font-bold text-gray-800">
+            <div class="mb-4">
+              <h3 class="text-2xl font-bold text-gray-800 mb-2">
                 <i class="fas fa-utensils mr-2 text-orange-600"></i>
-                미식회 로드맵
+                미식회 후기
               </h3>
-              <div class="text-sm text-gray-600">
+              <p class="text-sm text-gray-600 mb-3">
+                <i class="fas fa-heart mr-1 text-orange-500"></i>
+                Foodie 회원들과 함께했던 미식회, 그들이 남겨준 진솔한 후기입니다
+              </p>
+              <div class="text-sm text-gray-600 bg-orange-50 border border-orange-200 rounded-lg px-3 py-2 inline-block">
                 총 <span class="font-bold text-orange-600">${
                   tastingRestaurants.length
                 }</span>개 식당
@@ -16056,6 +16068,113 @@
             }
           });
         }
+        
+        // 후기 더보기/접기 버튼 이벤트
+        c.addEventListener("click", (e) => {
+          const toggleBtn = e.target.closest("[data-action='toggle-reviews']");
+          if (toggleBtn) {
+            const eventId = toggleBtn.dataset.eventId;
+            const restaurantName = toggleBtn.dataset.restaurantName;
+            const reviewListClass = `review-list-${eventId}-${restaurantName}`;
+            const reviewList = c.querySelector(`.${reviewListClass}`);
+            
+            if (!reviewList) return;
+            
+            const isShowingAll = reviewList.dataset.showAll === "true";
+            
+            // 해당 식당의 모든 후기 가져오기
+            const restaurant = tastingRestaurants.find(
+              r => r.eventId === eventId && r.restaurantName.replace(/\s/g, '') === restaurantName
+            );
+            
+            if (!restaurant) return;
+            
+            const allReviews = restaurant.reviews.filter((r) => r.comment && r.comment.trim());
+            
+            if (isShowingAll) {
+              // 접기 - 3개만 보여주기
+              reviewList.innerHTML = allReviews
+                .slice(0, 3)
+                .map(
+                  (r) => `
+                  <div class="bg-white rounded-lg p-3 border border-orange-100 shadow-sm relative review-item">
+                    <div class="flex items-center justify-between mb-2">
+                      <span class="text-sm font-semibold text-gray-700">
+                        <i class="fas fa-user-circle mr-1 text-orange-500"></i>
+                        익명
+                      </span>
+                      <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-0.5">
+                          ${renderStars(r.rating || 0)}
+                        </div>
+                        ${
+                          isAdmin
+                            ? `
+                          <button 
+                            class="text-red-500 hover:text-red-700 transition-colors"
+                            data-action="delete-review"
+                            data-event-id="${restaurant.eventId}"
+                            data-student-id="${r.studentId}"
+                            title="후기 삭제">
+                            <i class="fas fa-trash text-xs"></i>
+                          </button>
+                        `
+                            : ""
+                        }
+                      </div>
+                    </div>
+                    <p class="text-sm text-gray-600 whitespace-pre-wrap">${saf(
+                      r.comment
+                    )}</p>
+                  </div>
+                `
+                )
+                .join("");
+              reviewList.dataset.showAll = "false";
+              toggleBtn.innerHTML = `<i class="fas fa-chevron-down mr-1"></i>외 ${allReviews.length - 3}개 후기 더 보기`;
+            } else {
+              // 펼치기 - 모든 후기 보여주기
+              reviewList.innerHTML = allReviews
+                .map(
+                  (r) => `
+                  <div class="bg-white rounded-lg p-3 border border-orange-100 shadow-sm relative review-item">
+                    <div class="flex items-center justify-between mb-2">
+                      <span class="text-sm font-semibold text-gray-700">
+                        <i class="fas fa-user-circle mr-1 text-orange-500"></i>
+                        익명
+                      </span>
+                      <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-0.5">
+                          ${renderStars(r.rating || 0)}
+                        </div>
+                        ${
+                          isAdmin
+                            ? `
+                          <button 
+                            class="text-red-500 hover:text-red-700 transition-colors"
+                            data-action="delete-review"
+                            data-event-id="${restaurant.eventId}"
+                            data-student-id="${r.studentId}"
+                            title="후기 삭제">
+                            <i class="fas fa-trash text-xs"></i>
+                          </button>
+                        `
+                            : ""
+                        }
+                      </div>
+                    </div>
+                    <p class="text-sm text-gray-600 whitespace-pre-wrap">${saf(
+                      r.comment
+                    )}</p>
+                  </div>
+                `
+                )
+                .join("");
+              reviewList.dataset.showAll = "true";
+              toggleBtn.innerHTML = `<i class="fas fa-chevron-up mr-1"></i>후기 접기`;
+            }
+          }
+        });
       }
 
       /* ===== 명예의 전당 관리자 ===== */
@@ -16861,19 +16980,29 @@
               <div class="flex gap-1 mb-2" id="rating-stars">
                 ${Array.from(
                   { length: 5 },
-                  (_, i) =>
-                    `<button type="button" class="star-btn text-2xl ${
-                      i < (existingReview?.rating || 0)
-                        ? "text-yellow-400"
-                        : "text-gray-300"
-                    } hover:text-yellow-400 transition-colors" data-rating="${
-                      i + 1
-                    }">
-                    <i class="fas fa-star"></i>
-                   </button>`
+                  (_, i) => {
+                    const fullRating = existingReview?.rating || 0;
+                    const isFullStar = i < Math.floor(fullRating);
+                    const isHalfStar = i === Math.floor(fullRating) && fullRating % 1 === 0.5;
+                    
+                    return `<button type="button" class="star-btn-container relative text-2xl transition-colors" style="width: 1.5rem; height: 1.5rem;">
+                      <i class="fas fa-star absolute left-0 top-0 ${
+                        isFullStar || isHalfStar ? "text-yellow-400" : "text-gray-300"
+                      } star-full" data-rating="${i + 1}" style="cursor: pointer;"></i>
+                      <i class="fas fa-star-half-alt absolute left-0 top-0 ${
+                        isHalfStar ? "text-yellow-400" : "text-gray-300"
+                      } star-half" data-rating="${i + 0.5}" style="cursor: pointer; clip-path: inset(0 50% 0 0);"></i>
+                    </button>`;
+                  }
                 ).join("")}
               </div>
-              <p class="text-xs text-gray-500">별점을 클릭하여 평가하세요</p>
+              <p class="text-xs text-gray-500">
+                별의 왼쪽 반을 클릭하면 0.5점, 오른쪽을 클릭하면 1점이 추가됩니다
+              </p>
+              <div class="text-center mt-2">
+                <span class="text-2xl font-bold text-orange-600" id="current-rating-display">${existingReview?.rating || 0}</span>
+                <span class="text-sm text-gray-600">점</span>
+              </div>
             </div>
             
             <div>
@@ -16896,15 +17025,45 @@
           </div>
         `;
 
-        // 별점 클릭 이벤트
+        // 별점 클릭 이벤트 (0.5점 단위)
         let selectedRating = existingReview?.rating || 0;
-        document.querySelectorAll(".star-btn").forEach((btn, index) => {
-          btn.addEventListener("click", () => {
-            selectedRating = index + 1;
-            document.querySelectorAll(".star-btn").forEach((b, i) => {
-              b.classList.toggle("text-yellow-400", i < selectedRating);
-              b.classList.toggle("text-gray-300", i >= selectedRating);
-            });
+        
+        const updateStarDisplay = (rating) => {
+          const fullStars = Math.floor(rating);
+          const hasHalf = rating % 1 === 0.5;
+          
+          document.querySelectorAll(".star-full").forEach((star, i) => {
+            if (i < fullStars || (i === fullStars && hasHalf)) {
+              star.classList.remove("text-gray-300");
+              star.classList.add("text-yellow-400");
+            } else {
+              star.classList.remove("text-yellow-400");
+              star.classList.add("text-gray-300");
+            }
+          });
+          
+          document.querySelectorAll(".star-half").forEach((star, i) => {
+            if (i === fullStars && hasHalf) {
+              star.classList.remove("text-gray-300");
+              star.classList.add("text-yellow-400");
+            } else {
+              star.classList.remove("text-yellow-400");
+              star.classList.add("text-gray-300");
+            }
+          });
+          
+          // 현재 점수 표시 업데이트
+          const ratingDisplay = document.getElementById("current-rating-display");
+          if (ratingDisplay) {
+            ratingDisplay.textContent = rating.toFixed(1);
+          }
+        };
+        
+        // 별 클릭 이벤트
+        document.querySelectorAll(".star-full, .star-half").forEach((star) => {
+          star.addEventListener("click", () => {
+            selectedRating = parseFloat(star.dataset.rating);
+            updateStarDisplay(selectedRating);
           });
         });
 
