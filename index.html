@@ -2033,18 +2033,18 @@
         <div id="game-screen" class="hidden">
           <div
             id="game-content"
-            class="text-center min-h-[500px] flex flex-col justify-center"
+            class="text-center min-h-[700px] md:min-h-[800px] flex flex-col justify-center"
           ></div>
-          <div class="mt-4 flex gap-2 justify-center">
+          <div class="mt-6 flex gap-3 justify-center">
             <button
               id="game-back-btn"
-              class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+              class="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 text-lg font-semibold"
             >
               뒤로
             </button>
             <button
               id="game-restart-btn"
-              class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+              class="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-lg font-semibold"
             >
               다시하기
             </button>
@@ -14277,11 +14277,11 @@
             <p class="text-sm text-gray-500">레벨: ${gameState.level}/${gameState.maxLevel}</p>
           </div>
           
-          <div class="grid grid-cols-2 gap-4 mb-4">
-            <button class="color-btn w-20 h-20 rounded-lg bg-red-500 hover:bg-red-600" data-color="red"></button>
-            <button class="color-btn w-20 h-20 rounded-lg bg-blue-500 hover:bg-blue-600" data-color="blue"></button>
-            <button class="color-btn w-20 h-20 rounded-lg bg-green-500 hover:bg-green-600" data-color="green"></button>
-            <button class="color-btn w-20 h-20 rounded-lg bg-yellow-500 hover:bg-yellow-600" data-color="yellow"></button>
+          <div class="grid grid-cols-2 gap-6 mb-6">
+            <button class="color-btn w-32 h-32 md:w-40 md:h-40 rounded-xl bg-red-500 hover:bg-red-600 transition-all hover:scale-105" data-color="red"></button>
+            <button class="color-btn w-32 h-32 md:w-40 md:h-40 rounded-xl bg-blue-500 hover:bg-blue-600 transition-all hover:scale-105" data-color="blue"></button>
+            <button class="color-btn w-32 h-32 md:w-40 md:h-40 rounded-xl bg-green-500 hover:bg-green-600 transition-all hover:scale-105" data-color="green"></button>
+            <button class="color-btn w-32 h-32 md:w-40 md:h-40 rounded-xl bg-yellow-500 hover:bg-yellow-600 transition-all hover:scale-105" data-color="yellow"></button>
           </div>
           
           <button 
@@ -14431,7 +14431,7 @@
             </div>
           </div>
           
-          <div class="relative bg-gray-800 h-64 rounded-lg overflow-hidden border-2 border-gray-600">
+          <div class="relative bg-gray-800 h-80 md:h-96 rounded-lg overflow-hidden border-2 border-gray-600">
             <!-- 도로 배경 -->
             <div class="absolute inset-0 bg-gradient-to-b from-gray-700 to-gray-900"></div>
             
@@ -14757,7 +14757,7 @@
             </div>
           </div>
           
-          <div class="relative bg-gradient-to-b from-blue-400 to-blue-600 rounded-lg overflow-hidden border-2 border-gray-600 mx-auto" style="width: 400px; max-width: 100%; height: 320px;">
+          <div class="relative bg-gradient-to-b from-blue-400 to-blue-600 rounded-lg overflow-hidden border-2 border-gray-600 mx-auto" style="width: 500px; max-width: 100%; height: 400px;">
             <!-- 공 -->
             <div id="ball" class="absolute w-5 h-5 bg-yellow-400 rounded-full shadow-lg transition-all duration-75" 
                  style="left: ${ballX}px; top: ${ballY}px;">
@@ -14800,8 +14800,8 @@
         if (gameState.gameRunning) return;
 
         gameState.gameRunning = true;
-        gameState.ballX = 200;
-        gameState.ballY = 100;
+        gameState.ballX = 250;
+        gameState.ballY = 150;
         gameState.ballVx = 3;
         gameState.ballVy = -4;
 
@@ -14821,8 +14821,8 @@
         if (gameState.ballX <= ballSize / 2) {
           gameState.ballX = ballSize / 2;
           gameState.ballVx = Math.abs(gameState.ballVx); // 항상 양수로
-        } else if (gameState.ballX >= 400 - ballSize / 2) {
-          gameState.ballX = 400 - ballSize / 2;
+        } else if (gameState.ballX >= 500 - ballSize / 2) {
+          gameState.ballX = 500 - ballSize / 2;
           gameState.ballVx = -Math.abs(gameState.ballVx); // 항상 음수로
         }
         if (gameState.ballY <= ballSize / 2) {
@@ -14831,7 +14831,7 @@
         }
 
         // 바닥 충돌 검사 (패들 충돌 후에만)
-        if (gameState.ballY >= 320 - ballSize / 2 && gameState.ballVy > 0) {
+        if (gameState.ballY >= 400 - ballSize / 2 && gameState.ballVy > 0) {
           gameState.lives--;
           if (gameState.lives <= 0) {
             endBallGame();
@@ -14839,8 +14839,8 @@
           }
 
           // 공 리셋
-          gameState.ballX = 200;
-          gameState.ballY = 100;
+          gameState.ballX = 250;
+          gameState.ballY = 150;
           gameState.ballVx = 3;
           gameState.ballVy = -4;
         }
