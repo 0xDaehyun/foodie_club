@@ -15216,10 +15216,23 @@
           return stars;
         };
 
+        // 카테고리별 이모티콘 반환 함수
+        const getCategoryEmoji = (category) => {
+          switch(category) {
+            case "한식": return "🍚";
+            case "일식": return "🍣";
+            case "중식": return "🥟";
+            case "양식": return "🍝";
+            case "디저트": return "🍰";
+            default: return "🍽️";
+          }
+        };
+
         // 식당 카드 생성 함수 (미식회용)
         const createRestaurantCard = (restaurant) => {
           const avgRating = calculateAverageRating(restaurant.reviews);
           const reviewCount = restaurant.reviews.length;
+          const categoryEmoji = getCategoryEmoji(restaurant.restaurantCategory);
 
           return `
             <div class="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-all" data-restaurant-id="${
@@ -15258,7 +15271,7 @@
                 <div class="mb-3">
                   <div class="flex items-start justify-between mb-1">
                     <h4 class="text-xl font-bold text-gray-800 flex-1">
-                      <i class="fas fa-utensils text-orange-500 mr-2"></i>
+                      <span class="mr-2 text-2xl">${categoryEmoji}</span>
                       ${saf(restaurant.restaurantName || "(식당 이름 없음)")}
                     </h4>
                     ${
@@ -15782,11 +15795,18 @@
               `;
             } else if (currentCategory !== "all") {
               // 카테고리만 선택되고 검색어가 없을 때 빈 결과 표시
-              const categoryName = currentCategory === "한식" ? "🍚 한식" :
-                                  currentCategory === "일식" ? "🍣 일식" :
-                                  currentCategory === "중식" ? "🥟 중식" :
-                                  currentCategory === "양식" ? "🍝 양식" :
-                                  currentCategory === "디저트" ? "🍰 디저트" : "🍽️ 기타";
+              const categoryName =
+                currentCategory === "한식"
+                  ? "🍚 한식"
+                  : currentCategory === "일식"
+                  ? "🍣 일식"
+                  : currentCategory === "중식"
+                  ? "🥟 중식"
+                  : currentCategory === "양식"
+                  ? "🍝 양식"
+                  : currentCategory === "디저트"
+                  ? "🍰 디저트"
+                  : "🍽️ 기타";
               restaurantCardsContainer.innerHTML = `
                 <div class="col-span-2 text-center py-12 text-gray-400">
                   <i class="fas fa-utensils text-4xl mb-3"></i>
