@@ -6079,16 +6079,20 @@
 
         // 새로운 이벤트 리스너 등록
         c.addEventListener("click", handleReservationTabClick);
-        
+
         // 미식회/이벤트 생성 버튼 이벤트 리스너
         if (isAdmin) {
-          document.getElementById("create-tasting-btn")?.addEventListener("click", () => {
-            openEventModal("create", null, "tasting");
-          });
-          
-          document.getElementById("create-event-btn")?.addEventListener("click", () => {
-            openEventModal("create", null, "general");
-          });
+          document
+            .getElementById("create-tasting-btn")
+            ?.addEventListener("click", () => {
+              openEventModal("create", null, "tasting");
+            });
+
+          document
+            .getElementById("create-event-btn")
+            ?.addEventListener("click", () => {
+              openEventModal("create", null, "general");
+            });
         }
 
         // bindAdminEventsPanel은 모달 내부에서만 호출됨
