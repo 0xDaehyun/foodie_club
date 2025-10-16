@@ -6079,6 +6079,17 @@
 
         // 새로운 이벤트 리스너 등록
         c.addEventListener("click", handleReservationTabClick);
+        
+        // 미식회/이벤트 생성 버튼 이벤트 리스너
+        if (isAdmin) {
+          document.getElementById("create-tasting-btn")?.addEventListener("click", () => {
+            openEventModal("create", null, "tasting");
+          });
+          
+          document.getElementById("create-event-btn")?.addEventListener("click", () => {
+            openEventModal("create", null, "general");
+          });
+        }
 
         // bindAdminEventsPanel은 모달 내부에서만 호출됨
       }
@@ -6113,7 +6124,7 @@
       }
 
       /* ===== 이벤트 관리자 패널 (대시보드에서 제거, 신청하기 탭 상단으로 이동) ===== */
-      function adminEventsPanelHTML() {
+      function adminEventsPanelHTML(defaultType = null) {
         return `<div class="section">
           <!-- 헤더 -->
           <div class="bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl p-4 mb-6">
@@ -6546,49 +6557,6 @@
               <p class="text-xs text-gray-500 mt-1 pl-6">🏷️ 식당의 음식 종류를 선택해주세요</p>
             </div>
 
-            <!-- 이미지 업로드 영역 -->
-            <div>
-              <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                <i class="fas fa-camera text-orange-500"></i>
-                식당 사진 (선택사항)
-              </label>
-              <div class="flex justify-center">
-                <div class="relative w-40 h-40">
-                  <img src="${saf(
-                    url || ""
-                  )}" class="thumb w-full h-full object-cover rounded-xl border-2 border-orange-200 ${
-          url ? "" : "hidden"
-        }" data-role="preview" alt="식당 이미지">
-                  <div class="dz w-full h-full border-2 border-dashed border-orange-300 rounded-xl flex items-center justify-center text-gray-500 cursor-pointer hover:border-orange-500 hover:bg-orange-50 transition-all ${
-                    url ? "hidden" : ""
-                  }" data-role="dropzone">
-                    <div class="text-center p-4">
-                      <i class="fas fa-cloud-upload-alt text-3xl mb-2 text-orange-400"></i>
-                      <div class="text-sm font-medium">사진 끌어놓기</div>
-                      <div class="text-xs text-gray-400 mt-1">또는 클릭하여 선택</div>
-                    </div>
-                  </div>
-                  <div class="dz-overlay hidden absolute inset-0 bg-black/50 rounded-xl flex items-center justify-center text-white" data-role="uploading">
-                    <div class="text-center">
-                      <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
-                      <div class="text-sm">업로드중…</div>
-                    </div>
-                  </div>
-                  <input type="file" accept="image/*" class="hidden" data-role="file">
-                </div>
-              </div>
-              <div class="flex items-center gap-2 mt-2">
-                <button type="button" class="select-image flex-1 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2">
-                  <i class="fas fa-folder-open"></i>
-                  파일에서 선택
-                </button>
-              </div>
-              <div class="mt-2">
-                <input data-field="imageUrl" type="text" value="${saf(
-                  url
-                )}" placeholder="또는 이미지 URL 주소를 붙여넣으세요" class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg text-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-200">
-              </div>
-            </div>
             
             <!-- 입력 필드들 -->
             <div class="space-y-4">
@@ -6727,109 +6695,13 @@
         bindRestaurantFieldEvents(wrap.lastElementChild);
       };
 
-      // 식당 필드에 이벤트 바인딩하는 함수
+      // 식당 필드에 이벤트 바인딩하는 함수 (이미지 업로드 기능 제거됨)
       function bindRestaurantFieldEvents(row) {
         if (!row) {
           console.error("bindRestaurantFieldEvents: row가 없습니다");
           return;
         }
-
-        console.log("식당 필드 이벤트 바인딩 시작:", row);
-
-        // 파일 선택 버튼과 드롭존 클릭 이벤트
-        const selectImageBtn = row.querySelector(".select-image");
-        const dropzone = row.querySelector("[data-role='dropzone']");
-        const fileInput = row.querySelector("[data-role='file']");
-
-        console.log("DOM 요소 확인:", {
-          selectImageBtn: !!selectImageBtn,
-          dropzone: !!dropzone,
-          fileInput: !!fileInput,
-        });
-
-        // 파일 선택 버튼 이벤트
-        if (selectImageBtn && fileInput) {
-          // 기존 이벤트 리스너 제거 (중복 방지)
-          selectImageBtn.removeEventListener("click", handleFileSelect);
-          selectImageBtn.addEventListener("click", handleFileSelect);
-
-          function handleFileSelect(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            console.log("파일 선택 버튼 클릭됨");
-            fileInput.click();
-          }
-        }
-
-        // 드롭존 클릭 이벤트
-        if (dropzone && fileInput) {
-          dropzone.removeEventListener("click", handleDropzoneClick);
-          dropzone.addEventListener("click", handleDropzoneClick);
-
-          function handleDropzoneClick(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            console.log("드롭존 클릭됨");
-            fileInput.click();
-          }
-        }
-
-        // 파일 선택 변경 이벤트
-        if (fileInput) {
-          fileInput.removeEventListener("change", handleFileChange);
-          fileInput.addEventListener("change", handleFileChange);
-
-          function handleFileChange(e) {
-            console.log("파일 선택됨:", e.target.files);
-            const f = e.target.files?.[0];
-            e.target.value = "";
-            if (f) {
-              console.log("파일 업로드 시작:", f.name, f.type);
-              uploadRestaurantImage(row, f);
-            }
-          }
-        }
-
-        // 드래그 앤 드롭 이벤트
-        if (dropzone) {
-          ["dragenter", "dragover"].forEach((evt) => {
-            dropzone.removeEventListener(evt, handleDragOver);
-            dropzone.addEventListener(evt, handleDragOver);
-
-            function handleDragOver(e) {
-              e.preventDefault();
-              e.stopPropagation();
-              dropzone.classList.add("drag");
-            }
-          });
-
-          ["dragleave", "drop"].forEach((evt) => {
-            dropzone.removeEventListener(evt, handleDragLeave);
-            dropzone.addEventListener(evt, handleDragLeave);
-
-            function handleDragLeave(e) {
-              e.preventDefault();
-              e.stopPropagation();
-              dropzone.classList.remove("drag");
-            }
-          });
-
-          dropzone.removeEventListener("drop", handleDrop);
-          dropzone.addEventListener("drop", handleDrop);
-
-          function handleDrop(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            dropzone.classList.remove("drag");
-            const f = e.dataTransfer.files?.[0];
-            if (f) {
-              console.log("드래그 앤 드롭 파일 업로드 시작:", f.name, f.type);
-              uploadRestaurantImage(row, f);
-            }
-          }
-        }
-
-        console.log("식당 필드 이벤트 바인딩 완료");
+        console.log("식당 필드 이벤트 바인딩 완료 (이미지 업로드 제거됨)");
       }
 
       /* ===== 이미지 업로드 ===== */
@@ -7414,10 +7286,7 @@
                   id: row.getAttribute("data-id"),
                   name: row.querySelector("[data-field='name']").value.trim(),
                   info: row.querySelector("[data-field='info']").value.trim(),
-                  imageUrl:
-                    row
-                      .querySelector("[data-field='imageUrl']")
-                      ?.value.trim() || "",
+                  imageUrl: "",
                   capacity:
                     parseInt(
                       row.querySelector("[data-field='capacity']").value,
@@ -13435,7 +13304,8 @@
 
       // 점수 변경 기록 로드 (회장/부회장만)
       function loadGroupScoreHistory() {
-        const isUserAdmin = currentUser && adminList.includes(currentUser.studentId);
+        const isUserAdmin =
+          currentUser && adminList.includes(currentUser.studentId);
         if (!currentUser || !isUserAdmin) return;
 
         const unsubscribe = onSnapshot(
