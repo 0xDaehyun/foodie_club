@@ -1416,18 +1416,18 @@
 
       /* 관리자용 새 일정 추가 블록 스타일 */
       .timeline-item.admin-placeholder .timeline-content {
-        background: #f0fdf4;
-        border: 2px dashed #22c55e;
+        background: #fff7ed;
+        border: 2px dashed #fb923c;
         opacity: 0.9;
         transition: all 0.3s ease;
       }
 
       .timeline-item.admin-placeholder .timeline-content:hover {
-        background: #dcfce7;
-        border-color: #16a34a;
+        background: #fed7aa;
+        border-color: #ea580c;
         opacity: 1;
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(34, 197, 94, 0.15);
+        box-shadow: 0 4px 12px rgba(251, 146, 60, 0.15);
       }
 
       .admin-placeholder-content {
@@ -1438,9 +1438,9 @@
       }
 
       .admin-placeholder-icon {
-        color: #16a34a;
+        color: #ea580c;
         font-size: 20px;
-        background: #dcfce7;
+        background: #fed7aa;
         width: 32px;
         height: 32px;
         border-radius: 50%;
@@ -1451,7 +1451,7 @@
       }
 
       .timeline-item.admin-placeholder:hover .admin-placeholder-icon {
-        background: #bbf7d0;
+        background: #fdba74;
         transform: scale(1.1);
       }
 
@@ -1463,13 +1463,13 @@
 
       .admin-placeholder-title {
         font-weight: 600;
-        color: #15803d;
+        color: #c2410c;
         font-size: 13px;
       }
 
       .admin-placeholder-subtitle {
         font-size: 11px;
-        color: #16a34a;
+        color: #ea580c;
         line-height: 1.3;
       }
 
@@ -4436,13 +4436,13 @@
         if (isFullAdmin()) {
           // 새 공지 추가 박스를 맨 앞에 배치
           const addBlockPlaceholder = `
-            <div class="add-block-placeholder border-2 border-dashed border-green-300 rounded-lg p-4 text-center hover:border-green-400 hover:bg-green-50 transition-colors cursor-pointer group bg-green-50" 
+            <div class="add-block-placeholder border-2 border-dashed border-orange-300 rounded-lg p-4 text-center hover:border-orange-400 hover:bg-orange-50 transition-colors cursor-pointer group bg-orange-50" 
                  data-position="1" data-act="add-new-block">
               <div class="flex flex-col items-center justify-center space-y-2">
-                <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center group-hover:bg-green-200 transition-colors">
-                  <i class="fas fa-plus-circle text-xl text-green-500"></i>
+                <div class="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center group-hover:bg-orange-200 transition-colors">
+                  <i class="fas fa-plus-circle text-xl text-orange-500"></i>
                 </div>
-                <span class="text-sm font-medium text-green-600 group-hover:text-green-700">새 공지 추가</span>
+                <span class="text-sm font-medium text-orange-600 group-hover:text-orange-700">새 공지 추가</span>
               </div>
             </div>
           `;
@@ -4454,13 +4454,13 @@
             // 블록이 없을 때 첫 번째 블록 생성 버튼
             finalSnippets = [
               `
-              <div class="add-block-placeholder border-2 border-dashed border-green-300 rounded-lg p-8 text-center hover:border-green-400 hover:bg-green-50 transition-colors cursor-pointer group bg-green-50" 
+              <div class="add-block-placeholder border-2 border-dashed border-orange-300 rounded-lg p-8 text-center hover:border-orange-400 hover:bg-orange-50 transition-colors cursor-pointer group bg-orange-50" 
                    data-position="1" data-act="add-new-block">
                 <div class="flex flex-col items-center justify-center space-y-4">
-                  <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center group-hover:bg-green-200 transition-colors">
-                    <i class="fas fa-plus-circle text-4xl text-green-500"></i>
+                  <div class="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center group-hover:bg-orange-200 transition-colors">
+                    <i class="fas fa-plus-circle text-4xl text-orange-500"></i>
                   </div>
-                  <span class="text-lg font-medium text-green-600 group-hover:text-green-700">첫 번째 공지를 추가하세요</span>
+                  <span class="text-lg font-medium text-orange-600 group-hover:text-orange-700">첫 번째 공지를 추가하세요</span>
                 </div>
               </div>
               `,
