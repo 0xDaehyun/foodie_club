@@ -1953,14 +1953,17 @@
           </div>
         </div>
         <div id="rank-list" class="space-y-2"></div>
-        
+
         <!-- 점수 변경 기록 (회장/부회장만 보임) -->
         <div id="rank-history-section" class="hidden mt-6">
           <h4 class="text-lg font-bold text-gray-800 mb-3">
             <i class="fas fa-history mr-2 text-blue-600"></i>
             점수 변경 기록
           </h4>
-          <div id="rank-history-list" class="space-y-2 max-h-60 overflow-y-auto bg-gray-50 rounded-lg p-3">
+          <div
+            id="rank-history-list"
+            class="space-y-2 max-h-60 overflow-y-auto bg-gray-50 rounded-lg p-3"
+          >
             <!-- 기록이 여기에 표시됩니다 -->
           </div>
         </div>
@@ -13417,19 +13420,22 @@
       function toggleRankHistory() {
         const historySection = document.getElementById("rank-history-section");
         const historyBtn = document.getElementById("rank-history-btn");
-        
+
         if (historySection.classList.contains("hidden")) {
           historySection.classList.remove("hidden");
-          historyBtn.innerHTML = '<i class="fas fa-eye-slash mr-1"></i>기록 숨기기';
+          historyBtn.innerHTML =
+            '<i class="fas fa-eye-slash mr-1"></i>기록 숨기기';
           loadGroupScoreHistory();
         } else {
           historySection.classList.add("hidden");
-          historyBtn.innerHTML = '<i class="fas fa-history mr-1"></i>점수 변경 기록';
+          historyBtn.innerHTML =
+            '<i class="fas fa-history mr-1"></i>점수 변경 기록';
         }
       }
 
       // 점수 변경 기록 로드 (회장/부회장만)
       function loadGroupScoreHistory() {
+        const isUserAdmin = currentUser && adminList.includes(currentUser.studentId);
         if (!currentUser || !isUserAdmin) return;
 
         const unsubscribe = onSnapshot(
@@ -13442,10 +13448,10 @@
                 ...doc.data(),
               });
             });
-            
+
             // 최신순으로 정렬
             history.sort((a, b) => b.timestamp - a.timestamp);
-            
+
             // 조모임 모달이 열려있으면 기록 새로고침
             const rankModal = document.getElementById("rank-modal");
             if (rankModal && !rankModal.classList.contains("hidden")) {
@@ -13466,30 +13472,46 @@
         if (!container) return;
 
         if (history.length === 0) {
-          container.innerHTML = '<p class="text-gray-400 text-center py-4">변경 기록이 없습니다.</p>';
+          container.innerHTML =
+            '<p class="text-gray-400 text-center py-4">변경 기록이 없습니다.</p>';
           return;
         }
 
-        container.innerHTML = history.map(record => {
-          const actionText = record.action === "added" ? "추가" : 
-                           record.action === "deleted" ? "삭제" : "수정";
-          const actionIcon = record.action === "added" ? "➕" : 
-                           record.action === "deleted" ? "🗑️" : "✏️";
-          
-          return `
+        container.innerHTML = history
+          .map((record) => {
+            const actionText =
+              record.action === "added"
+                ? "추가"
+                : record.action === "deleted"
+                ? "삭제"
+                : "수정";
+            const actionIcon =
+              record.action === "added"
+                ? "➕"
+                : record.action === "deleted"
+                ? "🗑️"
+                : "✏️";
+
+            return `
             <div class="flex items-center justify-between p-2 bg-white rounded border">
               <div class="flex items-center gap-2">
                 <span class="text-lg">${actionIcon}</span>
                 <div>
-                  <div class="font-medium text-gray-800">${saf(record.groupName)}</div>
+                  <div class="font-medium text-gray-800">${saf(
+                    record.groupName
+                  )}</div>
                   <div class="text-xs text-gray-500">${record.changedBy}</div>
                 </div>
               </div>
               <div class="text-right">
                 <div class="text-sm font-semibold">
-                  ${record.action === "added" ? `+${record.newScore}` : 
-                    record.action === "deleted" ? `-${record.oldScore}` : 
-                    `${record.oldScore} → ${record.newScore}`}
+                  ${
+                    record.action === "added"
+                      ? `+${record.newScore}`
+                      : record.action === "deleted"
+                      ? `-${record.oldScore}`
+                      : `${record.oldScore} → ${record.newScore}`
+                  }
                 </div>
                 <div class="text-xs text-gray-500">
                   ${new Date(record.timestamp).toLocaleString()}
@@ -13497,7 +13519,8 @@
               </div>
             </div>
           `;
-        }).join("");
+          })
+          .join("");
       }
 
       // 조모임 순위 저장 함수
@@ -13636,16 +13659,16 @@
       // 조모임 수정 함수
       async function updateGroup(groupId, name, score) {
         // 수정 전 조모임 정보 가져오기
-        const groupToUpdate = groupsData.find(g => g.id === groupId);
+        const groupToUpdate = groupsData.find((g) => g.id === groupId);
         const oldScore = groupToUpdate ? groupToUpdate.score || 0 : 0;
-        
+
         const groupRef = doc(db, "groups", groupId);
         await updateDoc(groupRef, {
           name: name,
           score: score,
           lastUpdated: new Date().toISOString(),
         });
-        
+
         // 조모임 수정 기록 저장 (회장/부회장만 볼 수 있음)
         if (groupToUpdate && oldScore !== score) {
           await addDoc(collection(db, "groupScoreHistory"), {
@@ -13657,7 +13680,7 @@
             changedByStudentId: currentUser.studentId,
             timestamp: new Date(),
             date: new Date().toISOString().split("T")[0],
-            action: "updated"
+            action: "updated",
           });
         }
       }
@@ -13665,11 +13688,11 @@
       // 조모임 삭제 함수
       async function deleteGroup(groupId) {
         // 삭제 전 조모임 정보 가져오기
-        const groupToDelete = groupsData.find(g => g.id === groupId);
-        
+        const groupToDelete = groupsData.find((g) => g.id === groupId);
+
         const groupRef = doc(db, "groups", groupId);
         await deleteDoc(groupRef);
-        
+
         // 조모임 삭제 기록 저장 (회장/부회장만 볼 수 있음)
         if (groupToDelete) {
           await addDoc(collection(db, "groupScoreHistory"), {
@@ -13681,7 +13704,7 @@
             changedByStudentId: currentUser.studentId,
             timestamp: new Date(),
             date: new Date().toISOString().split("T")[0],
-            action: "deleted"
+            action: "deleted",
           });
         }
       }
@@ -13694,7 +13717,7 @@
           members: [],
           lastUpdated: new Date().toISOString(),
         });
-        
+
         // 조모임 추가 기록 저장 (회장/부회장만 볼 수 있음)
         await addDoc(collection(db, "groupScoreHistory"), {
           groupId: docRef.id,
@@ -13705,7 +13728,7 @@
           changedByStudentId: currentUser.studentId,
           timestamp: new Date(),
           date: new Date().toISOString().split("T")[0],
-          action: "added"
+          action: "added",
         });
       }
 
