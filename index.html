@@ -6037,14 +6037,11 @@
                   .join("")}
                </div>`;
 
-        // 이벤트 목록을 먼저 표시하고, 그 다음에 점선 블록으로 새 이벤트 생성 옵션 표시
+        // 점선 블록을 먼저 표시하고, 그 다음에 이벤트 목록 표시
         c.innerHTML =
-          `<div class="section">
-             ${listHTML}
-           </div>` +
           (isAdmin
             ? `
-            <div class="section">
+            <div class="section mb-6">
               <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <!-- 미식회 만들기 점선 블록 -->
                 <div class="border-2 border-dashed border-orange-300 rounded-xl p-6 text-center hover:border-orange-400 hover:bg-orange-50 transition-all cursor-pointer group" id="create-tasting-block">
@@ -6074,7 +6071,10 @@
               </div>
             </div>
           `
-            : "");
+            : "") +
+          `<div class="section">
+             ${listHTML}
+           </div>`;
 
         // 기존 이벤트 리스너 제거 (중복 방지)
         c.removeEventListener("click", handleReservationTabClick);
