@@ -628,8 +628,7 @@
 
       .calendar-header {
         display: flex;
-        justify-content: space-between;
-        align-items: center;
+        flex-direction: column;
         margin-bottom: 1.5rem;
         padding-bottom: 1rem;
         border-bottom: 2px solid #f97316;
@@ -638,7 +637,24 @@
       .calendar-nav {
         display: flex;
         align-items: center;
+        justify-content: space-between;
+        width: 100%;
         gap: 1rem;
+        margin-top: 0.75rem;
+      }
+      
+      .calendar-nav-prev {
+        order: 1;
+      }
+      
+      .calendar-month-year {
+        order: 2;
+        flex: 1;
+        text-align: center;
+      }
+      
+      .calendar-nav-next {
+        order: 3;
       }
 
       .calendar-nav-btn {
@@ -668,12 +684,7 @@
         font-weight: 700;
         color: #1f2937;
         margin: 0;
-      }
-
-      .calendar-nav {
-        display: flex;
-        gap: 0.5rem;
-        align-items: center;
+        text-align: center;
       }
 
       .calendar-nav-btn {
@@ -3546,7 +3557,7 @@
               
               <div id="dashboard-roadmap" class="section mb-4">
                 <div class="mb-2 roadmap-accordion">
-                  <div class="flex items-center gap-2 mb-2">
+                  <div class="flex items-center justify-between mb-2">
                     <h3 class="text-lg md:text-xl font-bold">F👀die 일정</h3>
                     <button
                       id="h-roadmap-toggle-btn"
@@ -12090,12 +12101,16 @@
           <div class="calendar-container">
             <div class="calendar-header">
               <h3 class="calendar-title">F👀die 달력</h3>
+              <p class="text-xs text-gray-500 text-center mt-1 mb-3">
+                <i class="fas fa-hand-point-right mr-1"></i>
+                달력을 넘겨 일정을 확인해보세요
+              </p>
               <div class="calendar-nav">
-                <button class="calendar-nav-btn" onclick="changeCalendarMonth(-1)">
+                <button class="calendar-nav-btn calendar-nav-prev" onclick="changeCalendarMonth(-1)">
                   <i class="fas fa-chevron-left"></i>
                 </button>
                 <div class="calendar-month-year">${year}년 ${monthNames[month]}</div>
-                <button class="calendar-nav-btn" onclick="changeCalendarMonth(1)">
+                <button class="calendar-nav-btn calendar-nav-next" onclick="changeCalendarMonth(1)">
                   <i class="fas fa-chevron-right"></i>
                 </button>
               </div>
@@ -12195,6 +12210,12 @@
 
         calendarHTML += `
             </div>
+            
+            <!-- 안내 메시지 -->
+            <p class="text-xs text-gray-500 text-center mt-3 px-4">
+              <i class="fas fa-mouse-pointer mr-1"></i>
+              일정을 클릭하여 자세한 내용을 확인해보세요
+            </p>
           </div>
           
           ${
@@ -15218,13 +15239,19 @@
 
         // 카테고리별 이모티콘 반환 함수
         const getCategoryEmoji = (category) => {
-          switch(category) {
-            case "한식": return "🍚";
-            case "일식": return "🍣";
-            case "중식": return "🥟";
-            case "양식": return "🍝";
-            case "디저트": return "🍰";
-            default: return "🍽️";
+          switch (category) {
+            case "한식":
+              return "🍚";
+            case "일식":
+              return "🍣";
+            case "중식":
+              return "🥟";
+            case "양식":
+              return "🍝";
+            case "디저트":
+              return "🍰";
+            default:
+              return "🍽️";
           }
         };
 
