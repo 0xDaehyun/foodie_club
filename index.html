@@ -14847,14 +14847,14 @@
 
         // 패들 충돌 검사 (더 정확한 충돌 감지) - 바 충돌 버그 수정
         if (
-          gameState.ballY + ballSize / 2 >= 300 &&
-          gameState.ballY - ballSize / 2 <= 300 + 20 && // 패들 높이 20px
+          gameState.ballY + ballSize / 2 >= 380 &&
+          gameState.ballY - ballSize / 2 <= 380 + 20 && // 패들 높이 20px
           gameState.ballX + ballSize / 2 >= gameState.paddleX &&
           gameState.ballX - ballSize / 2 <=
             gameState.paddleX + gameState.paddleWidth &&
           gameState.ballVy > 0 // 공이 아래로 떨어지고 있을 때만
         ) {
-          gameState.ballY = 300 - ballSize / 2; // 공을 패들 위에 정확히 위치
+          gameState.ballY = 380 - ballSize / 2; // 공을 패들 위에 정확히 위치
           gameState.ballVy = -Math.abs(gameState.ballVy); // 즉시 위로 반사
           gameState.score += 10;
 
