@@ -2031,7 +2031,7 @@
 
         <!-- 게임 화면 -->
         <div id="game-screen" class="hidden">
-          <div id="game-content" class="text-center"></div>
+          <div id="game-content" class="text-center min-h-[500px] flex flex-col justify-center"></div>
           <div class="mt-4 flex gap-2 justify-center">
             <button
               id="game-back-btn"
@@ -14324,10 +14324,10 @@
           btn.style.opacity = "0.3";
           setTimeout(() => {
             btn.style.opacity = "1";
-          }, 500);
+          }, Math.max(100, 500 - (gameState.level - 1) * 40)); // 레벨이 올라갈수록 빨라짐
 
           index++;
-        }, 600);
+        }, Math.max(200, 600 - (gameState.level - 1) * 50)); // 레벨이 올라갈수록 빨라짐
       }
 
       function handleColorClick(color) {
@@ -14530,10 +14530,10 @@
         // 속도 증가 (거리에 따라 점점 빨라짐)
         gameState.speed = Math.min(3 + (gameState.distance / 100) * 0.5, 8);
 
-        // 장애물 생성 (더 자주 생성)
+        // 장애물 생성 (거리에 따라 빨라짐)
         const now = Date.now();
-        if (now - gameState.lastObstacleTime > 800) {
-          // 0.8초마다 장애물 생성
+        const obstacleInterval = Math.max(300, 1200 - (gameState.distance / 50) * 100); // 최소 0.3초, 최대 1.2초
+        if (now - gameState.lastObstacleTime > obstacleInterval) {
           createObstacle();
           gameState.lastObstacleTime = now;
         }
@@ -14566,20 +14566,26 @@
 
       function moveObstacles() {
         gameState.obstacles = gameState.obstacles.filter((obstacle) => {
-          obstacle.y += gameState.speed * 2;
-          return obstacle.y < 300; // 화면 밖으로 나가면 제거
+          obstacle.y += gameState.speed * 2.5; // 더 빠른 이동
+          return obstacle.y < 350; // 화면 밖으로 나가면 제거
         });
       }
 
       function checkCollision() {
         const carX = gameState.carPosition;
-        const carY = 200; // 자동차 y 위치 (하단에서 4px + 자동차 높이 48px)
+        const carY = 200; // 자동차 y 위치
+        const carWidth = 60; // 자동차 폭
+        const carHeight = 48; // 자동차 높이
 
         return gameState.obstacles.some((obstacle) => {
+          // 더 정교한 충돌 감지 (중심점 기준)
+          const carCenterX = carX * 100 + 50; // 차선 중앙
+          const obstacleCenterX = obstacle.x * 100 + 50;
+          
           return (
-            obstacle.x === carX &&
+            Math.abs(carCenterX - obstacleCenterX) < (carWidth + obstacle.width) / 2 &&
             obstacle.y + obstacle.height >= carY &&
-            obstacle.y <= carY + 48
+            obstacle.y <= carY + carHeight
           );
         });
       }
@@ -14803,22 +14809,22 @@
         gameState.ballX += gameState.ballVx;
         gameState.ballY += gameState.ballVy;
 
-        // 벽 충돌 검사 (공의 크기 고려)
+        // 벽 충돌 검사 (공의 크기 고려) - 오른쪽 벽 버그 수정
         const ballSize = gameState.ballSize;
         if (gameState.ballX <= ballSize / 2) {
           gameState.ballX = ballSize / 2;
-          gameState.ballVx = -gameState.ballVx;
+          gameState.ballVx = Math.abs(gameState.ballVx); // 항상 양수로
         } else if (gameState.ballX >= 400 - ballSize / 2) {
           gameState.ballX = 400 - ballSize / 2;
-          gameState.ballVx = -gameState.ballVx;
+          gameState.ballVx = -Math.abs(gameState.ballVx); // 항상 음수로
         }
         if (gameState.ballY <= ballSize / 2) {
           gameState.ballY = ballSize / 2;
           gameState.ballVy = -gameState.ballVy;
         }
 
-        // 바닥 충돌 검사
-        if (gameState.ballY >= 320 - ballSize / 2) {
+        // 바닥 충돌 검사 (패들 충돌 후에만)
+        if (gameState.ballY >= 320 - ballSize / 2 && gameState.ballVy > 0) {
           gameState.lives--;
           if (gameState.lives <= 0) {
             endBallGame();
@@ -14832,14 +14838,15 @@
           gameState.ballVy = -4;
         }
 
-        // 패들 충돌 검사 (더 정확한 충돌 감지)
+        // 패들 충돌 검사 (더 정확한 충돌 감지) - 바 충돌 버그 수정
         if (
-          gameState.ballY >= 300 &&
-          gameState.ballX >= gameState.paddleX &&
-          gameState.ballX <= gameState.paddleX + gameState.paddleWidth &&
+          gameState.ballY + ballSize / 2 >= 300 &&
+          gameState.ballY - ballSize / 2 <= 300 + 20 && // 패들 높이 20px
+          gameState.ballX + ballSize / 2 >= gameState.paddleX &&
+          gameState.ballX - ballSize / 2 <= gameState.paddleX + gameState.paddleWidth &&
           gameState.ballVy > 0 // 공이 아래로 떨어지고 있을 때만
         ) {
-          gameState.ballY = 300; // 공을 패들 위에 정확히 위치
+          gameState.ballY = 300 - ballSize / 2; // 공을 패들 위에 정확히 위치
           gameState.ballVy = -Math.abs(gameState.ballVy); // 즉시 위로 반사
           gameState.score += 10;
 
@@ -14936,7 +14943,7 @@
         gameState.paddleStartX = gameState.paddleX;
       }
 
-      // 터치 이동 시 드래그한 만큼만 패들 이동
+      // 터치 이동 시 슬라이드로 패들 이동 (개선된 방식)
       function handleBallBounceTouchMove(e) {
         if (!gameState.gameRunning) return;
 
@@ -14947,16 +14954,14 @@
 
         const rect = gameArea.getBoundingClientRect();
         const touchX = touch.clientX - rect.left;
+        const gameWidth = rect.width;
 
-        // 드래그한 거리 계산
-        const dragDistance = touchX - (gameState.touchStartX || touchX);
-
-        // 초기 패들 위치에서 드래그한 만큼만 이동
-        const newPaddleX =
-          (gameState.paddleStartX || gameState.paddleX) + dragDistance;
+        // 터치 위치를 게임 화면 비율로 변환
+        const touchRatio = touchX / gameWidth;
+        const newPaddleX = touchRatio * (400 - gameState.paddleWidth);
 
         // 경계 내에서만 이동
-        gameState.paddleX = Math.max(0, Math.min(300, newPaddleX));
+        gameState.paddleX = Math.max(0, Math.min(400 - gameState.paddleWidth, newPaddleX));
       }
 
       // 게임 점수 데이터 로드
