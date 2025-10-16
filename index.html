@@ -15595,12 +15595,12 @@
               </div>
             </div>
             
-            <!-- 카테고리 필터 -->
             ${
               tastingRestaurants.length > 0
                 ? `
+            <!-- 카테고리 필터 -->
             <div class="mb-4">
-              <div class="flex flex-wrap gap-2 mb-4">
+              <div class="flex flex-wrap gap-2">
                 <button 
                   class="category-filter-btn px-4 py-2 rounded-lg font-semibold text-sm transition-all border-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white border-orange-600 shadow-md"
                   data-category="all">
@@ -15780,8 +15780,23 @@
                   <p class="text-sm">다른 식당 이름으로 검색해보세요</p>
                 </div>
               `;
+            } else if (currentCategory !== "all") {
+              // 카테고리만 선택되고 검색어가 없을 때 빈 결과 표시
+              const categoryName = currentCategory === "한식" ? "🍚 한식" :
+                                  currentCategory === "일식" ? "🍣 일식" :
+                                  currentCategory === "중식" ? "🥟 중식" :
+                                  currentCategory === "양식" ? "🍝 양식" :
+                                  currentCategory === "디저트" ? "🍰 디저트" : "🍽️ 기타";
+              restaurantCardsContainer.innerHTML = `
+                <div class="col-span-2 text-center py-12 text-gray-400">
+                  <i class="fas fa-utensils text-4xl mb-3"></i>
+                  <p class="text-lg font-semibold mb-2">${categoryName} 카테고리에 식당이 없습니다</p>
+                  <p class="text-sm">다른 카테고리를 선택해보세요</p>
+                </div>
+              `;
             } else {
-              restaurantCardsContainer.innerHTML = tastingRestaurants
+              // 기본 상태 (전체 표시)
+              restaurantCardsContainer.innerHTML = filteredRestaurants
                 .map(createRestaurantCard)
                 .join("");
             }
