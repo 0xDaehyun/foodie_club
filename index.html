@@ -2031,7 +2031,10 @@
 
         <!-- 게임 화면 -->
         <div id="game-screen" class="hidden">
-          <div id="game-content" class="text-center min-h-[500px] flex flex-col justify-center"></div>
+          <div
+            id="game-content"
+            class="text-center min-h-[500px] flex flex-col justify-center"
+          ></div>
           <div class="mt-4 flex gap-2 justify-center">
             <button
               id="game-back-btn"
@@ -14532,7 +14535,10 @@
 
         // 장애물 생성 (거리에 따라 빨라짐)
         const now = Date.now();
-        const obstacleInterval = Math.max(300, 1200 - (gameState.distance / 50) * 100); // 최소 0.3초, 최대 1.2초
+        const obstacleInterval = Math.max(
+          300,
+          1200 - (gameState.distance / 50) * 100
+        ); // 최소 0.3초, 최대 1.2초
         if (now - gameState.lastObstacleTime > obstacleInterval) {
           createObstacle();
           gameState.lastObstacleTime = now;
@@ -14581,9 +14587,10 @@
           // 더 정교한 충돌 감지 (중심점 기준)
           const carCenterX = carX * 100 + 50; // 차선 중앙
           const obstacleCenterX = obstacle.x * 100 + 50;
-          
+
           return (
-            Math.abs(carCenterX - obstacleCenterX) < (carWidth + obstacle.width) / 2 &&
+            Math.abs(carCenterX - obstacleCenterX) <
+              (carWidth + obstacle.width) / 2 &&
             obstacle.y + obstacle.height >= carY &&
             obstacle.y <= carY + carHeight
           );
@@ -14843,7 +14850,8 @@
           gameState.ballY + ballSize / 2 >= 300 &&
           gameState.ballY - ballSize / 2 <= 300 + 20 && // 패들 높이 20px
           gameState.ballX + ballSize / 2 >= gameState.paddleX &&
-          gameState.ballX - ballSize / 2 <= gameState.paddleX + gameState.paddleWidth &&
+          gameState.ballX - ballSize / 2 <=
+            gameState.paddleX + gameState.paddleWidth &&
           gameState.ballVy > 0 // 공이 아래로 떨어지고 있을 때만
         ) {
           gameState.ballY = 300 - ballSize / 2; // 공을 패들 위에 정확히 위치
@@ -14961,7 +14969,10 @@
         const newPaddleX = touchRatio * (400 - gameState.paddleWidth);
 
         // 경계 내에서만 이동
-        gameState.paddleX = Math.max(0, Math.min(400 - gameState.paddleWidth, newPaddleX));
+        gameState.paddleX = Math.max(
+          0,
+          Math.min(400 - gameState.paddleWidth, newPaddleX)
+        );
       }
 
       // 게임 점수 데이터 로드
