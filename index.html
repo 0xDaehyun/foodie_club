@@ -16999,8 +16999,8 @@
 
                   return `<button type="button" class="star-rating-btn text-3xl transition-all hover:scale-110" data-rating="${rating}">
                     <i class="fas fa-star ${
-                    isSelected ? "text-yellow-400" : "text-gray-300"
-                  }"></i>
+                      isSelected ? "text-yellow-400" : "text-gray-300"
+                    }"></i>
                   </button>`;
                 }).join("")}
               </div>
@@ -17043,12 +17043,15 @@
             const btnRating = parseFloat(btn.dataset.rating);
             const star = btn.querySelector("i");
 
-            if (btnRating <= rating) {
-              star.classList.remove("text-gray-300");
-              star.classList.add("text-yellow-400");
-            } else {
-              star.classList.remove("text-yellow-400");
-              star.classList.add("text-gray-300");
+            // star 요소가 존재하는지 확인
+            if (star) {
+              if (btnRating <= rating) {
+                star.classList.remove("text-gray-300");
+                star.classList.add("text-yellow-400");
+              } else {
+                star.classList.remove("text-yellow-400");
+                star.classList.add("text-gray-300");
+              }
             }
           });
 
