@@ -4147,11 +4147,7 @@
                       <h3 class="font-bold text-base md:text-lg text-blue-800 break-words">${saf(
                         b.title
                       )}</h3>
-                      ${
-                        b.isAuto
-                          ? ""
-                          : ""
-                      }
+                      ${b.isAuto ? "" : ""}
                     </div>
                     <div class="text-sm md:text-base text-gray-700 whitespace-pre-wrap break-words">${saf(
                       b.content
@@ -4186,7 +4182,8 @@
                 new Date().getMonth(),
                 sorted,
                 false, // 로그아웃 상태에서는 다운로드 버튼 표시하지 않음
-                false // 로그아웃 상태에서는 관리자 권한 없음
+                false, // 로그아웃 상태에서는 관리자 권한 없음
+                false // 로그아웃 상태에서는 네비게이션 버튼과 안내 문구 표시하지 않음
               );
 
               return `
@@ -4198,11 +4195,7 @@
                     <h3 class="font-bold text-base md:text-lg text-gray-800 break-words flex-1 min-w-0">${saf(
                       b.title
                     )}</h3>
-                    ${
-                      b.isAuto
-                        ? ""
-                        : ""
-                    }
+                    ${b.isAuto ? "" : ""}
                   </div>
                   <div class="schedule-content">
                     ${calendarHTML}
@@ -12337,7 +12330,8 @@
         month,
         events = [],
         showDownloadButtons = false,
-        isAdmin = false
+        isAdmin = false,
+        isLoggedIn = true
       ) {
         const firstDay = new Date(year, month, 1);
         const lastDay = new Date(year, month + 1, 0);
@@ -12371,7 +12365,17 @@
             <div class="calendar-header">
               <h3 class="calendar-title">F👀die 달력</h3>
               <div class="calendar-nav">
+                ${isLoggedIn ? `
+                <button class="calendar-nav-btn calendar-nav-prev" onclick="changeCalendarMonth(-1)">
+                  <i class="fas fa-chevron-left"></i>
+                </button>
+                ` : ''}
                 <div class="calendar-month-year">${year}년 ${monthNames[month]}</div>
+                ${isLoggedIn ? `
+                <button class="calendar-nav-btn calendar-nav-next" onclick="changeCalendarMonth(1)">
+                  <i class="fas fa-chevron-right"></i>
+                </button>
+                ` : ''}
               </div>
             </div>
             <div class="calendar-grid">
@@ -12470,7 +12474,14 @@
         calendarHTML += `
             </div>
             
-            <!-- 안내 메시지 -->
+            ${isLoggedIn ? `
+            <div class="text-center mt-3 px-4">
+              <p class="text-sm text-gray-600 font-medium">
+                <i class="fas fa-calendar-check mr-2 text-blue-500"></i>
+                일정을 클릭하여 자세한 내용을 확인해보세요
+              </p>
+            </div>
+            ` : ''}
           </div>
           
         `;
@@ -12635,8 +12646,9 @@
             currentCalendarYear,
             currentCalendarMonth,
             sorted,
-            false,
-            !!isAdmin
+            true, // 로그인 상태에서는 다운로드 버튼 표시
+            isAdmin, // 관리자 권한 전달
+            true // 로그인 상태에서는 네비게이션 버튼과 안내 문구 표시
           );
           accordionContent.innerHTML = calendarHTML;
         }
@@ -12919,8 +12931,9 @@
               currentCalendarYear,
               currentCalendarMonth,
               sorted,
-              true, // 다운로드 버튼 표시
-              isFullAdmin() // 관리자 권한 전달 - 운영진 제외
+              true, // 로그인 상태에서는 다운로드 버튼 표시
+              isFullAdmin(), // 관리자 권한 전달 - 운영진 제외
+              true // 로그인 상태에서는 네비게이션 버튼과 안내 문구 표시
             );
             accordionContent.innerHTML = calendarHTML;
 
