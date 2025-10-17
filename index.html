@@ -283,21 +283,24 @@
         margin-bottom: 0;
         text-shadow: 2px 2px 4px rgba(249, 115, 22, 0.2);
         line-height: 1;
+        position: relative;
       }
 
-      /* 웃는 모양 진행바 컨테이너 */
+      /* 웃는 모양 진행바 컨테이너 - 약간 오른쪽으로 이동 */
       .foodie-loader {
-        width: 300px;
-        height: 100px;
+        width: 150px;
+        height: 60px;
         position: relative;
         display: flex;
         justify-content: center;
-        align-items: flex-start;
+        align-items: center;
+        margin: 0;
         margin-bottom: 1.5rem;
-        margin-top: -10px;
+        margin-top: -5px;
+        margin-left: -70px;
       }
 
-      /* SVG 진행바 스타일 */
+      /* SVG 진행바 스타일 - 원래 굵기 유지 */
       .smile-progress-bg {
         stroke: #fed7aa;
         stroke-width: 14;
@@ -310,8 +313,8 @@
         stroke-width: 14;
         fill: none;
         stroke-linecap: round;
-        stroke-dasharray: 440;
-        stroke-dashoffset: 440;
+        stroke-dasharray: 200;
+        stroke-dashoffset: 200;
         transition: stroke-dashoffset 0.5s ease-in-out;
       }
 
@@ -1727,18 +1730,18 @@
       <!-- F👀die 로고 -->
       <div class="foodie-logo">F👀die</div>
 
-      <!-- 웃는 모양 진행바 -->
+      <!-- 웃는 모양 진행바 (더 긴 길이로 조정) -->
       <div class="foodie-loader">
         <svg
-          width="300"
-          height="100"
-          viewBox="0 0 300 100"
+          width="150"
+          height="60"
+          viewBox="0 0 150 60"
           xmlns="http://www.w3.org/2000/svg"
         >
           <!-- 배경 호 (연한 주황색) -->
           <path
             class="smile-progress-bg"
-            d="M 50 50 Q 150 100 250 50"
+            d="M 15 30 Q 75 58 135 30"
             stroke-linecap="round"
           />
 
@@ -1746,7 +1749,7 @@
           <path
             id="progress-bar"
             class="smile-progress-fill loading"
-            d="M 50 50 Q 150 100 250 50"
+            d="M 15 30 Q 75 58 135 30"
             stroke-linecap="round"
           />
         </svg>
@@ -2772,6 +2775,9 @@
           }
         });
       }
+
+      // 전역 함수로 등록
+      window.openInquiryModal = openInquiryModal;
 
       // 문의 제출 함수
       window.submitInquiry = async () => {
@@ -4161,13 +4167,13 @@
             .getElementById("login-button")
             .addEventListener("click", login);
 
-          // 문의하기 버튼 이벤트 리스너
-          const inquiryBtn = document.getElementById("inquiry-button");
-          if (inquiryBtn) {
-            inquiryBtn.addEventListener("click", () => {
+          // 문의하기 버튼 이벤트 리스너 (이벤트 위임 사용)
+          document.addEventListener("click", (e) => {
+            if (e.target.closest("#inquiry-button")) {
+              e.preventDefault();
               openInquiryModal();
-            });
-          }
+            }
+          });
 
           // 자동 로그인 체크박스 이벤트 리스너
           const autoLoginCheckbox = document.getElementById(
@@ -4375,13 +4381,7 @@
               if (btn) showTab(btn.dataset.tab);
             });
 
-          // 문의 버튼 클릭 이벤트 - 모달 열기
-          const inquiryButton = document.getElementById("inquiry-button");
-          if (inquiryButton) {
-            inquiryButton.addEventListener("click", () => {
-              openInquiryModal();
-            });
-          }
+          // 문의 버튼 이벤트는 위에서 이벤트 위임으로 처리됨
 
           // 상단 조모임/미니게임 버튼 이벤트
           const rankBtnDup = document.getElementById("rank-button-duplicate");
@@ -18488,9 +18488,9 @@
         const loadingText = document.getElementById("loading-text");
 
         if (progressBar) {
-          // SVG path의 전체 길이는 440으로 설정됨
+          // SVG path의 전체 길이는 200으로 설정됨 (더 긴 길이)
           // 진행률에 따라 stroke-dashoffset을 줄임
-          const totalLength = 440;
+          const totalLength = 200;
           const offset = totalLength - (totalLength * loadingProgress) / 100;
 
           // 부드러운 애니메이션으로 진행률 업데이트
