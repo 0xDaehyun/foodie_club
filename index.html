@@ -498,8 +498,8 @@
 
       /* 다음 일정 강조 */
       .schedule-block.next-schedule {
-        border-color: #f97316;
-        background: linear-gradient(135deg, #fff7ed 0%, #fed7aa 100%);
+        border: 3px solid #f97316;
+        background: white;
         box-shadow: 0 4px 20px rgba(249, 115, 22, 0.2);
       }
 
@@ -15446,7 +15446,9 @@
                       <div class="category-item bg-white border-2 border-gray-200 rounded-lg p-4 flex items-center justify-between hover:border-orange-300 transition-all group" data-index="${index}">
                         <div class="flex items-center gap-3 flex-1">
                           <span class="text-3xl">${cat.emoji}</span>
-                          <span class="font-semibold text-gray-800">${cat.name}</span>
+                          <span class="font-semibold text-gray-800">${
+                            cat.name
+                          }</span>
                         </div>
                         <div class="flex items-center gap-2">
                           <button 
@@ -15459,10 +15461,16 @@
                           </button>
                           <button 
                             class="move-category-down px-2 py-1 bg-gray-400 hover:bg-gray-500 text-white rounded text-sm font-semibold transition-colors ${
-                              index === restaurantCategories.length - 1 ? "opacity-30 cursor-not-allowed" : ""
+                              index === restaurantCategories.length - 1
+                                ? "opacity-30 cursor-not-allowed"
+                                : ""
                             }"
                             data-index="${index}"
-                            ${index === restaurantCategories.length - 1 ? "disabled" : ""}>
+                            ${
+                              index === restaurantCategories.length - 1
+                                ? "disabled"
+                                : ""
+                            }>
                             <i class="fas fa-chevron-down"></i>
                           </button>
                           <button 
@@ -15598,7 +15606,10 @@
             const index = parseInt(upBtn.dataset.index);
             if (index > 0) {
               const newCategories = [...restaurantCategories];
-              [newCategories[index - 1], newCategories[index]] = [newCategories[index], newCategories[index - 1]];
+              [newCategories[index - 1], newCategories[index]] = [
+                newCategories[index],
+                newCategories[index - 1],
+              ];
 
               try {
                 await setDoc(doc(db, "settings", "restaurantCategories"), {
@@ -15619,7 +15630,10 @@
             const index = parseInt(downBtn.dataset.index);
             if (index < restaurantCategories.length - 1) {
               const newCategories = [...restaurantCategories];
-              [newCategories[index], newCategories[index + 1]] = [newCategories[index + 1], newCategories[index]];
+              [newCategories[index], newCategories[index + 1]] = [
+                newCategories[index + 1],
+                newCategories[index],
+              ];
 
               try {
                 await setDoc(doc(db, "settings", "restaurantCategories"), {
