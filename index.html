@@ -6439,34 +6439,32 @@
                     <div class="flex items-center gap-2">
                       <div class="bg-orange-100 text-orange-800 px-3 py-1.5 rounded-lg flex items-center gap-2 flex-1">
                         <i class="fas fa-calendar-check text-orange-600"></i>
-                        <span class="text-sm font-medium">이벤트 실시일</span>
+                        <span class="text-sm font-medium">이벤트 실시일: ${
+                          ev.datetime
+                            ? new Date(ev.datetime).toLocaleString("ko-KR", {
+                                month: "long",
+                                day: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })
+                            : "-"
+                        }</span>
                       </div>
-                      <p class="text-gray-700 font-semibold text-sm flex-1">${
-                        ev.datetime
-                          ? new Date(ev.datetime).toLocaleString("ko-KR", {
-                              month: "long",
-                              day: "numeric",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })
-                          : "-"
-                      }</p>
                     </div>
                     <div class="flex items-center gap-2">
                       <div class="bg-red-100 text-red-800 px-3 py-1.5 rounded-lg flex items-center gap-2 flex-1">
                         <i class="fas fa-clock text-red-600"></i>
-                        <span class="text-sm font-medium">신청 마감일</span>
+                        <span class="text-sm font-medium">신청 마감일: ${
+                          ev.deadline
+                            ? new Date(ev.deadline).toLocaleString("ko-KR", {
+                                month: "long",
+                                day: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })
+                            : "미설정"
+                        }</span>
                       </div>
-                      <p class="text-red-700 font-semibold text-sm flex-1">${
-                        ev.deadline
-                          ? new Date(ev.deadline).toLocaleString("ko-KR", {
-                              month: "long",
-                              day: "numeric",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })
-                          : "미설정"
-                      }</p>
                     </div>
                   </div>
                   ${paymentInfoHTML(ev)}
@@ -6708,34 +6706,38 @@
                         <div class="flex items-center gap-2">
                           <div class="bg-orange-100 text-orange-800 px-3 py-1.5 rounded-lg flex items-center gap-2 flex-1">
                             <i class="fas fa-calendar-check text-orange-600"></i>
-                            <span class="text-sm font-medium">이벤트 실시일</span>
+                            <span class="text-sm font-medium">이벤트 실시일: ${
+                              ev.datetime
+                                ? new Date(ev.datetime).toLocaleString(
+                                    "ko-KR",
+                                    {
+                                      month: "long",
+                                      day: "numeric",
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                    }
+                                  )
+                                : "-"
+                            }</span>
                           </div>
-                          <p class="text-gray-700 font-semibold text-sm flex-1">${
-                            ev.datetime
-                              ? new Date(ev.datetime).toLocaleString("ko-KR", {
-                                  month: "long",
-                                  day: "numeric",
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                })
-                              : "-"
-                          }</p>
                         </div>
                         <div class="flex items-center gap-2">
                           <div class="bg-red-100 text-red-800 px-3 py-1.5 rounded-lg flex items-center gap-2 flex-1">
                             <i class="fas fa-clock text-red-600"></i>
-                            <span class="text-sm font-medium">신청 마감일</span>
+                            <span class="text-sm font-medium">신청 마감일: ${
+                              ev.deadline
+                                ? new Date(ev.deadline).toLocaleString(
+                                    "ko-KR",
+                                    {
+                                      month: "long",
+                                      day: "numeric",
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                    }
+                                  )
+                                : "미설정"
+                            }</span>
                           </div>
-                          <p class="text-red-700 font-semibold text-sm flex-1">${
-                            ev.deadline
-                              ? new Date(ev.deadline).toLocaleString("ko-KR", {
-                                  month: "long",
-                                  day: "numeric",
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                })
-                              : "미설정"
-                          }</p>
                         </div>
                       </div>
                   ${adminStatsHTML(ev)}
@@ -7606,6 +7608,14 @@
       async function reserveGeneral(id) {
         if (!currentUser) return showAlert("😥", "로그인이 필요합니다.");
 
+        // 중복 클릭 방지
+        const requestKey = `reserve-general-${id}`;
+        if (processingRequests.has(requestKey)) {
+          console.log("이미 처리 중인 요청입니다:", requestKey);
+          return;
+        }
+        processingRequests.add(requestKey);
+
         // 로딩 상태 표시
         const button = document.querySelector(
           `button[data-act="reserve-general"][data-id="${id}"]`
@@ -7647,6 +7657,9 @@
             showAlert("🙂", "이미 이 이벤트에 신청(또는 대기)되어 있어요.");
           else showAlert("😥", "신청 실패");
         } finally {
+          // 처리 완료 시 전역 변수에서 제거
+          processingRequests.delete(requestKey);
+
           // 버튼 상태 복원
           if (button) {
             button.disabled = false;
@@ -7656,6 +7669,14 @@
       }
       async function cancelGeneral(id) {
         if (!currentUser) return;
+
+        // 중복 클릭 방지
+        const requestKey = `cancel-general-${id}`;
+        if (processingRequests.has(requestKey)) {
+          console.log("이미 처리 중인 요청입니다:", requestKey);
+          return;
+        }
+        processingRequests.add(requestKey);
 
         // 로딩 상태 표시
         const button = document.querySelector(
@@ -7691,6 +7712,9 @@
         } catch {
           showAlert("😥", "취소 실패");
         } finally {
+          // 처리 완료 시 전역 변수에서 제거
+          processingRequests.delete(requestKey);
+
           if (button) {
             button.disabled = false;
             button.innerHTML = originalText;
@@ -7699,6 +7723,14 @@
       }
       async function cancelWaitGeneral(id) {
         if (!currentUser) return showAlert("😥", "로그인이 필요합니다.");
+
+        // 중복 클릭 방지
+        const requestKey = `cancel-wait-general-${id}`;
+        if (processingRequests.has(requestKey)) {
+          console.log("이미 처리 중인 요청입니다:", requestKey);
+          return;
+        }
+        processingRequests.add(requestKey);
 
         // 로딩 상태 표시
         const button = document.querySelector(
@@ -7726,14 +7758,28 @@
         } catch {
           showAlert("😥", "취소 실패");
         } finally {
+          // 처리 완료 시 전역 변수에서 제거
+          processingRequests.delete(requestKey);
+
           if (button) {
             button.disabled = false;
             button.innerHTML = originalText;
           }
         }
       }
+      // 중복 클릭 방지를 위한 전역 변수
+      const processingRequests = new Set();
+
       async function reserveTasting(id, rid) {
         if (!currentUser) return showAlert("😥", "로그인이 필요합니다.");
+
+        // 중복 클릭 방지
+        const requestKey = `reserve-tasting-${id}-${rid}`;
+        if (processingRequests.has(requestKey)) {
+          console.log("이미 처리 중인 요청입니다:", requestKey);
+          return;
+        }
+        processingRequests.add(requestKey);
 
         // 로딩 상태 표시
         const button = document.querySelector(
@@ -7786,6 +7832,9 @@
             );
           else showAlert("😥", "신청 실패");
         } finally {
+          // 처리 완료 시 전역 변수에서 제거
+          processingRequests.delete(requestKey);
+
           // 버튼 상태 복원
           if (button) {
             button.disabled = false;
@@ -7795,6 +7844,14 @@
       }
       async function cancelTasting(id, rid) {
         if (!currentUser) return;
+
+        // 중복 클릭 방지
+        const requestKey = `cancel-tasting-${id}-${rid}`;
+        if (processingRequests.has(requestKey)) {
+          console.log("이미 처리 중인 요청입니다:", requestKey);
+          return;
+        }
+        processingRequests.add(requestKey);
 
         // 로딩 상태 표시
         const button = document.querySelector(
@@ -7835,6 +7892,9 @@
         } catch {
           showAlert("😥", "취소 실패");
         } finally {
+          // 처리 완료 시 전역 변수에서 제거
+          processingRequests.delete(requestKey);
+
           if (button) {
             button.disabled = false;
             button.innerHTML = originalText;
@@ -7843,6 +7903,14 @@
       }
       async function cancelWaitTasting(id, rid) {
         if (!currentUser) return showAlert("😥", "로그인이 필요합니다.");
+
+        // 중복 클릭 방지
+        const requestKey = `cancel-wait-tasting-${id}-${rid}`;
+        if (processingRequests.has(requestKey)) {
+          console.log("이미 처리 중인 요청입니다:", requestKey);
+          return;
+        }
+        processingRequests.add(requestKey);
 
         // 로딩 상태 표시
         const button = document.querySelector(
@@ -7875,6 +7943,9 @@
         } catch {
           showAlert("😥", "취소 실패");
         } finally {
+          // 처리 완료 시 전역 변수에서 제거
+          processingRequests.delete(requestKey);
+
           if (button) {
             button.disabled = false;
             button.innerHTML = originalText;
@@ -12753,11 +12824,11 @@
             const actionBtns = isPendingGroup
               ? `<button class="text-emerald-700 hover:text-emerald-900 text-xs" data-act="approve" data-id="${m.studentId}"><i class="fas fa-check mr-1"></i>승인</button>
                <button class="text-amber-700 hover:text-amber-900 text-xs" data-act="reject" data-id="${m.studentId}"><i class="fas fa-xmark mr-1"></i>거절</button>
-               <button class="text-gray-700 hover:text-black text-xs" data-act="block" data-id="${m.studentId}"><i class="fas fa-ban mr-1"></i>차단</button>
+               <button class="text-green-700 hover:text-green-900 text-xs" data-act="retention" data-id="${m.studentId}"><i class="fas fa-user-plus mr-1"></i>잔류</button>
                <button class="text-blue-700 hover:text-blue-900 text-xs" data-act="edit" data-id="${m.studentId}"><i class="fas fa-pen mr-1"></i>수정</button>
                <button class="text-red-700 hover:text-red-900 text-xs" data-act="delete" data-id="${m.studentId}"><i class="fas fa-trash mr-1"></i>삭제</button>
                ${adminBtn}`
-              : `<button class="text-gray-700 hover:text-black text-xs" data-act="block" data-id="${m.studentId}"><i class="fas fa-ban mr-1"></i>차단</button>
+              : `<button class="text-green-700 hover:text-green-900 text-xs" data-act="retention" data-id="${m.studentId}"><i class="fas fa-user-plus mr-1"></i>잔류</button>
                <button class="text-blue-700 hover:text-blue-900 text-xs" data-act="edit" data-id="${m.studentId}"><i class="fas fa-pen mr-1"></i>수정</button>
                <button class="text-red-700 hover:text-red-900 text-xs" data-act="delete" data-id="${m.studentId}"><i class="fas fa-trash mr-1"></i>삭제</button>
                ${adminBtn}`;
@@ -12791,7 +12862,7 @@
         const sid = btn.dataset.id;
         if (act === "approve") return approveMember(sid);
         if (act === "reject") return updateMemberStatus(sid, "rejected");
-        if (act === "block") return updateMemberStatus(sid, "blocked");
+        if (act === "retention") return applyRetention(sid);
         if (act === "delete") return deleteMember(sid);
         if (act === "edit") return openMemberEditModal(sid);
         if (act === "make-admin") return makeAdminFromMember(sid);
@@ -12804,6 +12875,38 @@
           showAlert("😥", "처리 실패");
         }
       }
+
+      // 잔류 신청 함수
+      async function applyRetention(sid) {
+        try {
+          const member = membersData.find((m) => m.studentId === sid);
+          if (!member) {
+            showAlert("😥", "회원 정보를 찾을 수 없습니다.");
+            return;
+          }
+
+          if (
+            !confirm(
+              `${member.name}님을 다음 학기 잔류 신청자로 등록하시겠습니까?\n\n잔류 신청자는 승인 필요 상태로 변경됩니다.`
+            )
+          ) {
+            return;
+          }
+
+          await updateDoc(doc(db, "members", sid), {
+            status: "pending",
+            retentionApplied: true,
+            retentionAppliedAt: serverTimestamp(),
+          });
+          showAlert(
+            "✅",
+            "잔류 신청이 등록되었습니다. 다음 학기 승인이 필요합니다."
+          );
+        } catch (error) {
+          console.error("잔류 신청 오류:", error);
+          showAlert("😥", "잔류 신청 중 오류가 발생했습니다.");
+        }
+      }
       async function updateMemberStatus(sid, status) {
         try {
           await updateDoc(doc(db, "members", sid), { status });
@@ -12813,7 +12916,34 @@
         }
       }
       async function deleteMember(sid) {
-        if (!confirm("해당 회원을 삭제하시겠어요?")) return;
+        // 회원 정보 확인
+        const member = membersData.find((m) => m.studentId === sid);
+        if (!member) {
+          showAlert("😥", "회원 정보를 찾을 수 없습니다.");
+          return;
+        }
+
+        // 회장단 여부 확인
+        const isAdmin = adminList.includes(sid);
+        if (isAdmin) {
+          showAlert(
+            "⚠️",
+            "회장단은 삭제할 수 없습니다.\n\n먼저 회장단 직책을 해제해야 합니다."
+          );
+          return;
+        }
+
+        // 잔류 신청자 여부 확인
+        if (member.retentionApplied === true) {
+          showAlert(
+            "⚠️",
+            "잔류 신청자는 삭제할 수 없습니다.\n\n다음 학기 승인 후에 삭제 가능합니다."
+          );
+          return;
+        }
+
+        if (!confirm(`${member.name}님을 삭제하시겠습니까?`)) return;
+
         try {
           await deleteDoc(doc(db, "members", sid));
           showAlert("🗑️", "삭제되었습니다.");
@@ -13137,14 +13267,19 @@
         // 1단계: 첫 번째 경고
         if (
           !confirm(
-            "⚠️ 경고: 회원 전체 삭제를 진행하시겠습니까?\n\n이 작업은 되돌릴 수 없으며, 모든 회원 데이터가 영구적으로 삭제됩니다."
+            "⚠️ 경고: 회원 전체 삭제를 진행하시겠습니까?\n\n이 작업은 되돌릴 수 없으며, 모든 회원 데이터가 영구적으로 삭제됩니다.\n\n⚠️ 회장단과 잔류 신청자는 삭제에서 제외됩니다."
           )
         ) {
           return;
         }
 
         // 2단계: 텍스트 입력 확인
-        const confirmText = prompt("회원을 전체 삭제합니다.");
+        const confirmText = prompt(
+          "⚠️ 최종 확인\n\n" +
+            "회원을 전체 삭제하려면 아래 텍스트를 정확히 입력해주세요:\n" +
+            '"회원을 전체 삭제합니다."\n\n' +
+            "이 작업은 되돌릴 수 없습니다!"
+        );
         if (confirmText !== "회원을 전체 삭제합니다.") {
           showAlert(
             "❌",
@@ -13156,7 +13291,7 @@
         // 3단계: 최종 확인
         if (
           !confirm(
-            "🚨 최종 확인\n\n모든 회원 데이터를 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다."
+            "🚨 최종 확인\n\n모든 회원 데이터를 삭제하시겠습니까?\n\n⚠️ 회장단과 잔류 신청자는 보호됩니다.\n\n이 작업은 되돌릴 수 없습니다."
           )
         ) {
           return;
@@ -13165,9 +13300,27 @@
         try {
           const snap = await getDocs(collection(db, "members"));
           const batch = writeBatch(db);
-          snap.forEach((d) => batch.delete(doc(db, "members", d.id)));
+          let deletedCount = 0;
+          let protectedCount = 0;
+
+          snap.forEach((doc) => {
+            const data = doc.data();
+            const isAdmin = adminList.includes(data.studentId);
+            const isRetentionApplied = data.retentionApplied === true;
+
+            if (isAdmin || isRetentionApplied) {
+              protectedCount++;
+            } else {
+              batch.delete(doc.ref);
+              deletedCount++;
+            }
+          });
+
           await batch.commit();
-          showAlert("🗑️", "전체 삭제가 완료되었습니다.");
+          showAlert(
+            "🗑️",
+            `전체 삭제가 완료되었습니다.\n\n삭제된 회원: ${deletedCount}명\n보호된 회원: ${protectedCount}명 (회장단 + 잔류 신청자)`
+          );
         } catch {
           showAlert("😥", "전체 삭제 중 오류가 발생했습니다.");
         }
