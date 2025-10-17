@@ -6145,7 +6145,7 @@
         const listHTML =
           activeEvents.length === 0
             ? `<div class="text-center py-12"><i class="fas fa-calendar-xmark text-4xl text-gray-300"></i><p class="mt-3 text-gray-500">진행 중인 이벤트/미식회가 없습니다.</p></div>`
-            : `<div id="events-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" style="position: relative; z-index: 1; min-height: 200px;">
+            : `<div id="events-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6" style="position: relative; z-index: 1; min-height: 200px;">
                 ${activeEvents
                   .sort((a, b) => (a.order || 999) - (b.order || 999))
                   .map(eventCardHTML)
@@ -6156,9 +6156,9 @@
         c.innerHTML = isAdmin
           ? `
             <div class="section mb-6">
-              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 <!-- 미식회 만들기 점선 블록 -->
-                <div class="border-2 border-dashed border-orange-300 rounded-xl p-6 text-center hover:border-orange-400 hover:bg-orange-50 transition-all cursor-pointer group" id="create-tasting-block">
+                <div class="border-2 border-dashed border-orange-300 rounded-xl p-4 sm:p-6 text-center hover:border-orange-400 hover:bg-orange-50 transition-all cursor-pointer group" id="create-tasting-block">
                   <div class="flex flex-col items-center justify-center space-y-3">
                     <div class="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center group-hover:bg-orange-200 transition-colors">
                       <i class="fas fa-utensils text-2xl text-orange-500"></i>
@@ -6171,7 +6171,7 @@
                 </div>
                 
                 <!-- 이벤트 만들기 점선 블록 -->
-                <div class="border-2 border-dashed border-blue-300 rounded-xl p-6 text-center hover:border-blue-400 hover:bg-blue-50 transition-all cursor-pointer group" id="create-event-block">
+                <div class="border-2 border-dashed border-blue-300 rounded-xl p-4 sm:p-6 text-center hover:border-blue-400 hover:bg-blue-50 transition-all cursor-pointer group" id="create-event-block">
                   <div class="flex flex-col items-center justify-center space-y-3">
                     <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center group-hover:bg-blue-200 transition-colors">
                       <i class="fas fa-calendar-plus text-2xl text-blue-500"></i>
@@ -15793,7 +15793,7 @@
           const categoryEmoji = getCategoryEmoji(restaurant.restaurantCategory);
 
           return `
-            <div class="bg-white rounded-xl border border-gray-100 border-t-4 border-t-orange-500 border-b-4 border-b-orange-500 overflow-hidden hover:shadow-xl hover:border-orange-300 transition-all duration-300 group mx-2 sm:mx-0" data-restaurant-id="${
+            <div class="bg-white rounded-xl border border-gray-100 border-t-4 border-t-orange-500 border-b-4 border-b-orange-500 overflow-hidden hover:shadow-xl hover:border-orange-300 transition-all duration-300 group" data-restaurant-id="${
               restaurant.eventId
             }">
               ${
@@ -16136,7 +16136,7 @@
 
         c.innerHTML = `
           <div class="section">
-            <div class="mb-4 px-2 sm:px-0">
+            <div class="mb-4">
               <h3 class="text-xl sm:text-2xl font-bold text-gray-800 mb-2">
                 <i class="fas fa-utensils mr-2 text-orange-600"></i>
                 미식회 후기
@@ -16156,7 +16156,7 @@
               tastingRestaurants.length > 0
                 ? `
             <!-- 카테고리 필터 (동적 생성) -->
-            <div class="mb-4 px-2 sm:px-0">
+            <div class="mb-4">
               <div class="flex flex-wrap items-center gap-2">
                 <button 
                   class="category-filter-btn bg-orange-500 text-white rounded-full px-3 py-2 sm:py-1 hover:bg-orange-600 transition-colors font-medium text-sm"
@@ -16194,7 +16194,7 @@
             
             <!-- 검색창 -->
             <div class="mb-4">
-              <div class="relative px-2 sm:px-0">
+              <div class="relative">
                 <input 
                   type="text" 
                   id="restaurant-search-input"
@@ -16219,7 +16219,7 @@
             <div id="restaurant-list-container">
               ${
                 tastingRestaurants.length > 0
-                  ? `<div class="grid grid-cols-1 gap-4 sm:gap-6 px-2 sm:px-0" id="restaurant-cards">${tastingRestaurants
+                  ? `<div class="grid grid-cols-1 gap-4 sm:gap-6" id="restaurant-cards">${tastingRestaurants
                       .map(createRestaurantCard)
                       .join("")}</div>`
                   : `<div class="text-center py-12 text-gray-400">
