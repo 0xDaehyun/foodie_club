@@ -4118,7 +4118,7 @@
           return true;
         });
 
-        // 로그아웃 상태에서는 자동으로 일정 블록 추가
+        // 로그아웃 상태에서는 일정 블록 추가
         if (!isLoggedIn && roadmapData && roadmapData.length > 0) {
           const scheduleBlock = {
             id: "auto-schedule-block",
@@ -10240,12 +10240,12 @@
           console.log("blockId:", blockId);
           console.log("blocksData:", blocksData);
 
-          // 자동 일정 블록 처리 - 실제로는 순서 변경 허용
+          // 일정 블록 처리 - 실제로는 순서 변경 허용
           if (blockId === "auto-schedule-block") {
-            console.log("자동 일정 블록의 순서 변경 요청");
+            console.log("일정 블록의 순서 변경 요청");
             // 자동 일정 블록은 실제로는 순서를 변경할 수 없지만,
             // UI에서는 다른 로그아웃 블록들과 함께 순서를 변경할 수 있도록 허용
-            showAlert("ℹ️", "자동 일정 블록의 순서가 변경되었습니다.");
+            showAlert("ℹ️", "일정 블록의 순서가 변경되었습니다.");
             smoothRender("dynamic-blocks", renderBlocks); // 블록 다시 렌더링
             return;
           }
@@ -10331,12 +10331,12 @@
           console.log("blockId:", blockId);
           console.log("blocksData:", blocksData);
 
-          // 자동 일정 블록 처리 - 실제로는 순서 변경 허용
+          // 일정 블록 처리 - 실제로는 순서 변경 허용
           if (blockId === "auto-schedule-block") {
-            console.log("자동 일정 블록의 순서 변경 요청");
+            console.log("일정 블록의 순서 변경 요청");
             // 자동 일정 블록은 실제로는 순서를 변경할 수 없지만,
             // UI에서는 다른 로그아웃 블록들과 함께 순서를 변경할 수 있도록 허용
-            showAlert("ℹ️", "자동 일정 블록의 순서가 변경되었습니다.");
+            showAlert("ℹ️", "일정 블록의 순서가 변경되었습니다.");
             smoothRender("dynamic-blocks", renderBlocks); // 블록 다시 렌더링
             return;
           }
@@ -12372,13 +12372,7 @@
             <div class="calendar-header">
               <h3 class="calendar-title">F👀die 달력</h3>
               <div class="calendar-nav">
-                <button class="calendar-nav-btn calendar-nav-prev" onclick="changeCalendarMonth(-1)">
-                  <i class="fas fa-chevron-left"></i>
-                </button>
                 <div class="calendar-month-year">${year}년 ${monthNames[month]}</div>
-                <button class="calendar-nav-btn calendar-nav-next" onclick="changeCalendarMonth(1)">
-                  <i class="fas fa-chevron-right"></i>
-                </button>
               </div>
             </div>
             <div class="calendar-grid">
@@ -12478,12 +12472,6 @@
             </div>
             
             <!-- 안내 메시지 -->
-            <div class="text-center mt-3 px-4">
-              <p class="text-sm text-gray-600 font-medium">
-                <i class="fas fa-calendar-check mr-2 text-blue-500"></i>
-                일정을 클릭하여 자세한 내용을 확인해보세요
-              </p>
-            </div>
           </div>
           
         `;
