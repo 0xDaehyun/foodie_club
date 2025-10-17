@@ -3674,7 +3674,7 @@
                     </button>
                   </div>
                   <div class="schedule-blocks-container" id="h-roadmap-list"></div>
-                  <div class="roadmap-accordion-content" id="h-roadmap-full-list" style="max-height: 0; overflow: hidden; transition: max-height 0.4s ease-in-out, opacity 0.3s ease-in-out; opacity: 0;">
+                  <div class="roadmap-accordion-content" id="h-roadmap-full-list" style="max-height: 0; overflow: hidden; opacity: 0;">
                     <!-- 전체 일정이 여기에 표시됩니다 -->
                   </div>
                 </div>
@@ -3794,7 +3794,6 @@
               // 조모임 추가 모달 열기
               openGroupAddModal();
             });
-
 
           document
             .getElementById("rank-save-changes")
@@ -4277,13 +4276,16 @@
               b.id
             }">
                       ${getBlockAdminButtons(b)}
-                      <div class="accordion-header cursor-pointer p-3 md:p-4 lg:p-6">
-                        <h3 class="text-base md:text-lg lg:text-xl font-bold text-gray-700 break-words pr-8"><i class="fas fa-question-circle mr-2 text-orange-500"></i>${saf(
-                          b.title || "Q&A"
-                        )}</h3>
-                        <i class="fas fa-chevron-down text-gray-500"></i>
+                      <div class="accordion-header cursor-pointer flex items-center justify-between py-3 px-2 md:px-3 hover:bg-gray-50 transition-colors">
+                        <h3 class="text-base md:text-lg lg:text-xl font-bold text-gray-700 flex items-center break-words flex-1 min-w-0 pr-2">
+                          <i class="fas fa-question-circle mr-2 text-orange-500 flex-shrink-0"></i>
+                          <span class="break-words">${saf(b.title || "Q&A")}</span>
+                        </h3>
+                        <i class="fas fa-chevron-down accordion-icon transition-transform duration-300 text-gray-400 flex-shrink-0"></i>
                       </div>
-                      <div class="accordion-content"><div class="space-y-2">${html}</div></div>
+                      <div class="accordion-content">
+                        <div class="space-y-2 px-2 md:px-3 pb-3">${html}</div>
+                      </div>
                     </div>`;
           } else if (b.type === "notice") {
             const content = b.payload?.html || b.payload?.text || "";
@@ -17945,7 +17947,7 @@
         return `
           <div class="space-y-4">
             <h4 class="text-lg font-semibold text-gray-700">블록 타입 선택</h4>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <button type="button" class="p-4 border-2 border-orange-200 rounded-lg hover:border-orange-400 hover:bg-orange-50 transition-colors" onclick="selectBlockType('notice')">
                 <div class="text-center">
                   <i class="fas fa-bullhorn text-2xl text-orange-500 mb-2"></i>
@@ -17967,11 +17969,6 @@
                   <p class="text-sm text-gray-600">팀별 점수와 순위 표시</p>
                 </div>
               </button>
-              <button type="button" class="p-4 border-2 border-purple-200 rounded-lg hover:border-purple-400 hover:bg-purple-50 transition-colors" onclick="selectBlockType('roadmap')">
-                <div class="text-center">
-                  <i class="fas fa-map-signs text-2xl text-purple-500 mb-2"></i>
-                  <h5 class="font-semibold text-gray-800">로드맵 블록</h5>
-                  <p class="text-sm text-gray-600">Foodie 활동 일정과 로드맵</p>
                 </div>
               </button>
             </div>
