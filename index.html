@@ -2473,7 +2473,7 @@
       let currentMainTab = "roadmap"; // 메인 탭 상태 저장 (기본값: 미식회)
 
       // settings
-      let signupSettings = { open: false, start: "", end: "" };
+      let signupSettings = { open: false };
       let duesSettings = {
         enabled: false,
         bank: "",
@@ -2582,18 +2582,7 @@
         return (!S || x >= S) && (!E || x <= E);
       };
       const isSignupOpen = () => {
-        if (signupSettings.open) return true;
-        const hasStart = !!(
-          signupSettings.start && signupSettings.start.trim()
-        );
-        const hasEnd = !!(signupSettings.end && signupSettings.end.trim());
-        if (!hasStart && !hasEnd) return false;
-        const today = new Date().toISOString().slice(0, 10);
-        return isWithin(
-          today,
-          hasStart ? signupSettings.start : null,
-          hasEnd ? signupSettings.end : null
-        );
+        return signupSettings.open === true;
       };
       const isUserIn = (arr = []) =>
         arr?.some((p) => p.studentId === currentUser?.studentId);
@@ -16803,7 +16792,7 @@
 
       /* ===== 시스템 설정 관리자 ===== */
       function renderSystemAdmin(container) {
-        const signup = signupSettings || { open: false, start: "", end: "" };
+        const signup = signupSettings || { open: false };
         const dues = duesSettings || {
           enabled: false,
           bank: "",
@@ -16817,25 +16806,23 @@
         container.innerHTML = `
           <div class="grid grid-cols-1 gap-4">
             <div class="section">
-              <h3 class="text-xl font-bold text-gray-800 mb-2">회원가입 기간</h3>
-              <div class="grid grid-cols-1 md:grid-cols-4 gap-2">
-                <select id="set-signup-open" class="px-3 py-2 border rounded bg-white text-gray-900 border-gray-300">
-                  <option value="auto" ${
-                    signup.open ? "" : "selected"
-                  }>기간 기반</option>
-                  <option value="force" ${
-                    signup.open ? "selected" : ""
-                  }>항상 열기</option>
-                </select>
-                <input id="set-signup-start" type="date" class="px-3 py-2 border rounded bg-white  text-gray-900  border-gray-300  value="${saf(
-                  signup.start || ""
-                )}">
-                <input id="set-signup-end" type="date" class="px-3 py-2 border rounded bg-white  text-gray-900  border-gray-300  value="${saf(
-                  signup.end || ""
-                )}">
-                <button id="set-signup-save" class="px-3 py-2 bg-orange-500 text-white rounded">저장</button>
+              <h3 class="text-xl font-bold text-gray-800 mb-2">회원가입 설정</h3>
+              <div class="flex items-center gap-4">
+                <div class="flex items-center gap-2">
+                  <input type="radio" id="signup-closed" name="signup-status" value="closed" ${
+                    !signup.open ? "checked" : ""
+                  } class="text-orange-500">
+                  <label for="signup-closed" class="text-gray-700 font-medium">닫기</label>
+                </div>
+                <div class="flex items-center gap-2">
+                  <input type="radio" id="signup-open" name="signup-status" value="open" ${
+                    signup.open ? "checked" : ""
+                  } class="text-orange-500">
+                  <label for="signup-open" class="text-gray-700 font-medium">열기</label>
+                </div>
+                <button id="set-signup-save" class="px-4 py-2 bg-orange-500 text-white rounded-lg font-semibold hover:bg-orange-600 transition-colors">저장</button>
               </div>
-              <p class="text-xs text-gray-500 mt-1">* "항상 열기" 선택 시 기간과 무관하게 회원가입이 가능합니다.</p>
+              <p class="text-xs text-gray-500 mt-2">* "열기" 선택 시 회원가입이 가능합니다.</p>
             </div>
 
             <div class="section">
@@ -16901,14 +16888,12 @@
 
         // 저장 핸들러
         container.querySelector("#set-signup-save").onclick = async () => {
-          const mode = container.querySelector("#set-signup-open").value;
-          const start = container.querySelector("#set-signup-start").value;
-          const end = container.querySelector("#set-signup-end").value;
-          const open = mode === "force";
+          const status = container.querySelector('input[name="signup-status"]:checked').value;
+          const open = status === "open";
           try {
             await setDoc(
               doc(db, "settings", "signup"),
-              { open, start, end },
+              { open },
               { merge: true }
             );
             showAlert("✅", "회원가입 설정이 저장되었습니다.");
