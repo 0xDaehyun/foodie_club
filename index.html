@@ -615,7 +615,9 @@
         border: 2px solid #e5e7eb;
         border-radius: 16px;
         padding: 1.5rem;
+        padding-bottom: 2rem; /* 하단 패딩 증가 */
         margin-top: 1rem;
+        margin-bottom: 1rem; /* 하단 마진 추가 */
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
         min-height: 500px;
         width: 100%;
@@ -724,8 +726,8 @@
         gap: 1px;
         background: #e5e7eb;
         border-radius: 8px;
+        min-height: 450px; /* 데스크톱에서도 충분한 높이 확보 */
         overflow: hidden;
-        min-height: 400px;
         width: 100%;
         table-layout: fixed;
       }
@@ -847,7 +849,9 @@
       @media (max-width: 768px) {
         .calendar-container {
           padding: 0.75rem;
+          padding-bottom: 1.5rem; /* 모바일에서도 하단 패딩 증가 */
           margin-top: 0.5rem;
+          margin-bottom: 1rem; /* 모바일에서도 하단 마진 추가 */
           border-radius: 12px;
           width: 100%;
           max-width: 100%;
@@ -885,7 +889,7 @@
         }
 
         .calendar-grid {
-          min-height: 350px;
+          min-height: 400px; /* 최소 높이 증가 */
           grid-template-columns: repeat(7, 1fr);
           width: 100%;
           table-layout: fixed;
@@ -12365,17 +12369,27 @@
             <div class="calendar-header">
               <h3 class="calendar-title">F👀die 달력</h3>
               <div class="calendar-nav">
-                ${isLoggedIn ? `
+                ${
+                  isLoggedIn
+                    ? `
                 <button class="calendar-nav-btn calendar-nav-prev" onclick="changeCalendarMonth(-1)">
                   <i class="fas fa-chevron-left"></i>
                 </button>
-                ` : ''}
-                <div class="calendar-month-year">${year}년 ${monthNames[month]}</div>
-                ${isLoggedIn ? `
+                `
+                    : ""
+                }
+                <div class="calendar-month-year">${year}년 ${
+          monthNames[month]
+        }</div>
+                ${
+                  isLoggedIn
+                    ? `
                 <button class="calendar-nav-btn calendar-nav-next" onclick="changeCalendarMonth(1)">
                   <i class="fas fa-chevron-right"></i>
                 </button>
-                ` : ''}
+                `
+                    : ""
+                }
               </div>
             </div>
             <div class="calendar-grid">
@@ -12474,14 +12488,18 @@
         calendarHTML += `
             </div>
             
-            ${isLoggedIn ? `
+            ${
+              isLoggedIn
+                ? `
             <div class="text-center mt-3 px-4">
               <p class="text-sm text-gray-600 font-medium">
                 <i class="fas fa-calendar-check mr-2 text-blue-500"></i>
                 일정을 클릭하여 자세한 내용을 확인해보세요
               </p>
             </div>
-            ` : ''}
+            `
+                : ""
+            }
           </div>
           
         `;
