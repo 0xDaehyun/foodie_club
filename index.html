@@ -6120,10 +6120,9 @@
                   .join("")}
                </div>`;
 
-        // 점선 블록을 먼저 표시하고, 그 다음에 이벤트 목록 표시
-        c.innerHTML =
-          (isAdmin
-            ? `
+        // 관리자인 경우: 점선 블록 + 이벤트 목록, 일반 회원: 이벤트 목록만
+        c.innerHTML = isAdmin
+          ? `
             <div class="section mb-6">
               <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <!-- 미식회 만들기 점선 블록 -->
@@ -6153,11 +6152,13 @@
                 </div>
               </div>
             </div>
+            <div class="section">
+              ${listHTML}
+            </div>
           `
-            : "") +
-          `<div class="section">
-             ${listHTML}
-           </div>`;
+          : `<div class="section">
+              ${listHTML}
+            </div>`;
 
         // 기존 이벤트 리스너 제거 (중복 방지)
         c.removeEventListener("click", handleReservationTabClick);
@@ -6215,6 +6216,19 @@
       /* ===== 이벤트 관리자 패널 (대시보드에서 제거, 신청하기 탭 상단으로 이동) ===== */
       function adminEventsPanelHTML(defaultType = null) {
         return `<div class="section">
+          <!-- 현재 이벤트 목록 (맨 위로 이동) -->
+          <div class="mb-8 pb-6 border-b-2 border-gray-200">
+            <div class="flex items-center gap-2 mb-4">
+              <i class="fas fa-list text-gray-600 text-xl"></i>
+              <h4 class="text-xl font-bold text-gray-800">생성된 이벤트 목록</h4>
+            </div>
+            <p class="text-sm text-gray-600 mb-4">
+              <i class="fas fa-info-circle text-blue-500 mr-1"></i>
+              만들어진 이벤트를 수정하거나 삭제할 수 있어요
+            </p>
+            <div class="space-y-3">${adminEventsListHTML()}</div>
+          </div>
+
           <!-- 헤더 -->
           <div class="bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl p-4 mb-6">
             <h3 class="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-2">
@@ -6425,19 +6439,6 @@
               <i class="fas fa-redo"></i>
               <span>다시 작성</span>
             </button>
-          </div>
-
-          <!-- 현재 이벤트 목록 -->
-          <div class="mt-8 pt-6 border-t-2 border-gray-200">
-            <div class="flex items-center gap-2 mb-4">
-              <i class="fas fa-list text-gray-600 text-xl"></i>
-              <h4 class="text-xl font-bold text-gray-800">생성된 이벤트 목록</h4>
-            </div>
-            <p class="text-sm text-gray-600 mb-4">
-              <i class="fas fa-info-circle text-blue-500 mr-1"></i>
-              만들어진 이벤트를 수정하거나 삭제할 수 있어요
-            </p>
-            <div class="space-y-3">${adminEventsListHTML()}</div>
           </div>
         </div>`;
       }
