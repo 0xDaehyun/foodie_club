@@ -2566,12 +2566,375 @@
         blockEditorCancel: document.getElementById("block-editor-cancel"),
       };
       const showAlert = (icon, msg) => {
-        el.alertIcon.innerHTML = icon || "ℹ️";
-        el.alertMsg.innerHTML = msg || "";
-        el.alert.classList.remove("hidden");
+        if (el.alertIcon) el.alertIcon.innerHTML = icon || "ℹ️";
+        if (el.alertMsg) el.alertMsg.innerHTML = msg || "";
+        if (el.alert) el.alert.classList.remove("hidden");
       };
-      const closeModal = () => el.alert.classList.add("hidden");
+      const closeModal = () => {
+        if (el.alert) el.alert.classList.add("hidden");
+      };
       const closeEmergencyModal = () => el.emerg.classList.add("hidden");
+
+      // 클립보드 복사 함수
+      const copyToClipboard = async (text) => {
+        try {
+          await navigator.clipboard.writeText(text);
+          showAlert("✅", "계좌번호가 복사되었습니다!");
+        } catch (err) {
+          // 클립보드 API가 지원되지 않는 경우 대체 방법
+          const textArea = document.createElement("textarea");
+          textArea.value = text;
+          document.body.appendChild(textArea);
+          textArea.select();
+          document.execCommand("copy");
+          document.body.removeChild(textArea);
+          showAlert("✅", "계좌번호가 복사되었습니다!");
+        }
+      };
+
+      // 전역 함수로 등록
+      window.copyToClipboard = copyToClipboard;
+
+      // 금액 포맷팅 함수는 아래에 정의됨
+
+      // ===================== 회원 수동 추가 모달 =====================
+      function openAddMemberModal() {
+        const modal = document.createElement("div");
+        modal.className =
+          "fixed inset-0 bg-black/50 flex justify-center items-center px-4 z-[9999]";
+        modal.innerHTML = `
+          <div class="bg-white p-6 rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+              <h3 class="text-2xl font-bold text-gray-800">👤 회원 수동 추가</h3>
+              <button onclick="this.closest('.fixed').remove()" class="text-gray-500 hover:text-gray-700 hover:bg-gray-100 p-2 rounded-full transition-colors">
+                <i class="fas fa-times text-xl"></i>
+              </button>
+            </div>
+            
+            <div class="space-y-4">
+              <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                <p class="text-sm text-blue-800 flex items-center gap-2">
+                  <i class="fas fa-info-circle"></i>
+                  회장단이 직접 회원을 추가할 수 있습니다. 모든 필수 정보를 입력해주세요.
+                </p>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    <i class="fas fa-id-card text-purple-500 mr-2"></i>
+                    학번 <span class="text-red-500">*</span>
+                  </label>
+                  <input 
+                    id="add-member-student-id" 
+                    type="text" 
+                    placeholder="예: 2023123456" 
+                    class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all text-base" 
+                    required
+                  >
+                </div>
+                
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    <i class="fas fa-user text-purple-500 mr-2"></i>
+                    이름 <span class="text-red-500">*</span>
+                  </label>
+                  <input 
+                    id="add-member-name" 
+                    type="text" 
+                    placeholder="예: 홍길동" 
+                    class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all text-base" 
+                    required
+                  >
+                </div>
+                
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    <i class="fas fa-venus-mars text-purple-500 mr-2"></i>
+                    성별 <span class="text-red-500">*</span>
+                  </label>
+                  <select 
+                    id="add-member-gender" 
+                    class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all text-base bg-white" 
+                    required
+                  >
+                    <option value="">성별 선택</option>
+                    <option value="male">남성</option>
+                    <option value="female">여성</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    <i class="fas fa-graduation-cap text-purple-500 mr-2"></i>
+                    학년 <span class="text-red-500">*</span>
+                  </label>
+                  <select 
+                    id="add-member-grade" 
+                    class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all text-base bg-white" 
+                    required
+                  >
+                    <option value="">학년 선택</option>
+                    <option value="1">1학년</option>
+                    <option value="2">2학년</option>
+                    <option value="3">3학년</option>
+                    <option value="4">4학년</option>
+                    <option value="5">5학년</option>
+                    <option value="6">6학년</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    <i class="fas fa-university text-purple-500 mr-2"></i>
+                    단과대 <span class="text-red-500">*</span>
+                  </label>
+                  <input 
+                    id="add-member-college" 
+                    type="text" 
+                    placeholder="예: 공과대학" 
+                    class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all text-base" 
+                    required
+                  >
+                </div>
+                
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    <i class="fas fa-book text-purple-500 mr-2"></i>
+                    학과 <span class="text-red-500">*</span>
+                  </label>
+                  <input 
+                    id="add-member-department" 
+                    type="text" 
+                    placeholder="예: 컴퓨터공학과" 
+                    class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all text-base" 
+                    required
+                  >
+                </div>
+                
+                <div class="md:col-span-2">
+                  <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    <i class="fas fa-phone text-purple-500 mr-2"></i>
+                    전화번호 <span class="text-red-500">*</span>
+                  </label>
+                  <input 
+                    id="add-member-phone" 
+                    type="tel" 
+                    placeholder="예: 010-1234-5678" 
+                    class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all text-base" 
+                    required
+                  >
+                </div>
+                
+                <div class="md:col-span-2">
+                  <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    <i class="fas fa-toggle-on text-purple-500 mr-2"></i>
+                    초기 상태
+                  </label>
+                  <select 
+                    id="add-member-status" 
+                    class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all text-base bg-white"
+                  >
+                    <option value="active">활성 (즉시 승인)</option>
+                    <option value="pending">대기 (승인 필요)</option>
+                  </select>
+                  <p class="text-xs text-gray-500 mt-1">활성으로 설정하면 즉시 승인된 상태로 추가됩니다.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex gap-3 justify-end mt-6">
+              <button onclick="this.closest('.fixed').remove()" class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors">
+                취소
+              </button>
+              <button onclick="saveNewMember()" class="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg transition-colors">
+                <i class="fas fa-save mr-2"></i>
+                회원 추가
+              </button>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(modal);
+
+        // 모달 배경 클릭 시 닫기
+        modal.addEventListener("click", (e) => {
+          if (e.target === modal) {
+            modal.remove();
+          }
+        });
+      }
+
+      // 회원 저장 함수
+      window.saveNewMember = async () => {
+        const studentId = document
+          .getElementById("add-member-student-id")
+          .value.trim();
+        const name = document.getElementById("add-member-name").value.trim();
+        const gender = document.getElementById("add-member-gender").value;
+        const grade = document.getElementById("add-member-grade").value;
+        const college = document
+          .getElementById("add-member-college")
+          .value.trim();
+        const department = document
+          .getElementById("add-member-department")
+          .value.trim();
+        const phone = document.getElementById("add-member-phone").value.trim();
+        const status = document.getElementById("add-member-status").value;
+
+        // 유효성 검사
+        if (
+          !studentId ||
+          !name ||
+          !gender ||
+          !grade ||
+          !college ||
+          !department ||
+          !phone
+        ) {
+          showAlert("😥", "모든 필수 항목을 입력해주세요.");
+          return;
+        }
+
+        // 학번 중복 확인
+        const existingMember = membersData.find(
+          (m) => m.studentId === studentId
+        );
+        if (existingMember) {
+          showAlert("😥", "이미 존재하는 학번입니다.");
+          return;
+        }
+
+        // 전화번호 형식 검사 (간단한 검사)
+        const phoneRegex = /^[0-9-]+$/;
+        if (!phoneRegex.test(phone)) {
+          showAlert("😥", "올바른 전화번호 형식을 입력해주세요.");
+          return;
+        }
+
+        try {
+          const memberData = {
+            studentId,
+            name,
+            gender,
+            grade: parseInt(grade),
+            college,
+            department,
+            phone,
+            status,
+            createdAt: new Date().toISOString(),
+            addedBy: currentUser?.studentId || "admin",
+          };
+
+          await addDoc(collection(db, "members"), memberData);
+          showAlert("✅", "회원이 성공적으로 추가되었습니다!");
+
+          // 모달 닫기
+          document.querySelector(".fixed.inset-0").remove();
+
+          // 페이지 새로고침하여 변경사항 반영
+          setTimeout(() => {
+            location.reload();
+          }, 1000);
+        } catch (error) {
+          console.error("회원 추가 오류:", error);
+          showAlert("😥", "회원 추가에 실패했습니다.");
+        }
+      };
+
+      // 식당 정보 수정 모달 열기 함수
+      window.openRestaurantEditModal = (
+        eventId,
+        restaurantName,
+        currentInfo
+      ) => {
+        const modal = document.createElement("div");
+        modal.className =
+          "fixed inset-0 bg-black/50 flex justify-center items-center px-4 z-[9999]";
+        modal.innerHTML = `
+          <div class="bg-white p-6 rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+              <h3 class="text-2xl font-bold text-gray-800">대표 메뉴 수정</h3>
+              <button onclick="this.closest('.fixed').remove()" class="text-gray-500 hover:text-gray-700 hover:bg-gray-100 p-2 rounded-full transition-colors">
+                <i class="fas fa-times text-xl"></i>
+              </button>
+            </div>
+            <div class="mb-4">
+              <div class="text-sm text-gray-600 mb-2">식당: <span class="font-semibold">${restaurantName}</span></div>
+              <label class="block text-sm font-bold text-gray-700 mb-2">
+                <i class="fas fa-utensils text-orange-500 mr-2"></i>
+                대표 메뉴
+              </label>
+              <textarea id="restaurant-menu-edit" rows="4" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all text-base resize-none" placeholder="이 식당의 대표 메뉴를 알려주세요">${currentInfo}</textarea>
+            </div>
+            <div class="flex gap-3 justify-end">
+              <button onclick="this.closest('.fixed').remove()" class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors">
+                취소
+              </button>
+              <button onclick="saveRestaurantMenu('${eventId}', '${restaurantName.replace(
+          /'/g,
+          "\\'"
+        )}')" class="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors">
+                저장
+              </button>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(modal);
+
+        // 모달 배경 클릭 시 닫기
+        modal.addEventListener("click", (e) => {
+          if (e.target === modal) {
+            modal.remove();
+          }
+        });
+      };
+
+      // 식당 메뉴 저장 함수
+      window.saveRestaurantMenu = async (eventId, restaurantName) => {
+        const newMenu = document
+          .getElementById("restaurant-menu-edit")
+          .value.trim();
+        if (!newMenu) {
+          showAlert("😥", "대표 메뉴를 입력해주세요.");
+          return;
+        }
+
+        try {
+          const eventRef = doc(db, "events", eventId);
+          const eventSnap = await getDoc(eventRef);
+          if (!eventSnap.exists()) {
+            showAlert("😥", "이벤트를 찾을 수 없습니다.");
+            return;
+          }
+
+          const eventData = eventSnap.data();
+          const restaurants = eventData.restaurants || [];
+          const restaurantIndex = restaurants.findIndex(
+            (r) => r.name === restaurantName
+          );
+
+          if (restaurantIndex === -1) {
+            showAlert("😥", "식당을 찾을 수 없습니다.");
+            return;
+          }
+
+          restaurants[restaurantIndex].info = newMenu;
+
+          await updateDoc(eventRef, { restaurants });
+          showAlert("✅", "대표 메뉴가 수정되었습니다.");
+
+          // 모달 닫기
+          document.querySelector(".fixed.inset-0").remove();
+
+          // 페이지 새로고침하여 변경사항 반영
+          setTimeout(() => {
+            location.reload();
+          }, 1000);
+        } catch (error) {
+          console.error("메뉴 수정 오류:", error);
+          showAlert("😥", "메뉴 수정에 실패했습니다.");
+        }
+      };
       const mask = (sid) => (sid ? `${String(sid).slice(0, 4)}****` : "");
       const isWithin = (d, s, e) => {
         const x = new Date(d);
@@ -3960,19 +4323,37 @@
           el.duesBoxContent.innerHTML = "";
           return;
         }
+        const accountInfo =
+          d.bank && d.number ? `${saf(d.bank)} ${saf(d.number)}` : "";
         const lines = [];
-        if (d.bank || d.number)
+        if (accountInfo)
           lines.push(
-            `<b>${saf(d.bank || "")} ${saf(d.number || "")}</b>${
+            `<div class="select-all cursor-pointer hover:bg-orange-100 p-2 rounded transition-colors" 
+                 onclick="copyToClipboard('${accountInfo.replace(
+                   /'/g,
+                   "\\'"
+                 )}')" 
+                 title="클릭하여 계좌번호 복사"><b>${accountInfo}</b>${
               d.holder ? ` (예금주 ${saf(d.holder)})` : ""
-            }`
+            }</div>`
           );
         if (d.amount) lines.push(`회비: <b>${formatKRW(d.amount)}</b>`);
         if (d.note)
           lines.push(
             `<span class="text-amber-700">${saf(d.note || "")}</span>`
           );
-        el.duesBoxContent.innerHTML = lines.join("<br/>");
+
+        const copyButton = accountInfo
+          ? `<button 
+            onclick="copyToClipboard('${accountInfo.replace(/'/g, "\\'")}')" 
+            class="w-full mt-3 bg-orange-500 hover:bg-orange-600 text-white px-3 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2"
+            title="계좌번호 복사">
+            <i class="fas fa-copy"></i>
+            계좌 복사하기
+          </button>`
+          : "";
+
+        el.duesBoxContent.innerHTML = lines.join("<br/>") + copyButton;
       }
       function openSignupModal() {
         if (!isSignupOpen())
@@ -5673,16 +6054,43 @@
       function paymentInfoHTML(ev) {
         if (!(ev.type === "mt" || ev.type === "assembly")) return "";
         const p = ev.payment || {};
-        if (!p.bank && !p.number && !p.holder && !p.note) return "";
+        if (!p.bank && !p.number && !p.holder && !p.amount && !p.note)
+          return "";
         const line = [p.bank, p.number].filter(Boolean).map(saf).join(" ");
-        return `<div class="mt-2 text-sm bg-orange-50 border border-orange-200 rounded p-2">
-                  <div class="font-semibold text-orange-800">💸 회비 입금 정보</div>
-                  <div class="text-orange-700">${line || ""}${
+        const accountInfo = line || "";
+        const amount = p.amount ? formatKRW(p.amount) : "";
+        return `<div class="mt-2 text-sm bg-orange-50 border border-orange-200 rounded p-3">
+                  <div class="font-semibold text-orange-800 mb-2">💸 회비 입금 정보</div>
+                  ${
+                    amount
+                      ? `<div class="text-orange-700 mb-2 font-bold text-lg">회비: ${amount}</div>`
+                      : ""
+                  }
+                  <div class="text-orange-700 mb-2 select-all cursor-pointer hover:bg-orange-100 p-2 rounded transition-colors" 
+                       onclick="copyToClipboard('${accountInfo.replace(
+                         /'/g,
+                         "\\'"
+                       )}')" 
+                       title="클릭하여 계좌번호 복사">${accountInfo}${
           p.holder ? ` (예금주 ${saf(p.holder)})` : ""
         }</div>
                   ${
                     p.note
-                      ? `<div class="text-orange-700">${saf(p.note)}</div>`
+                      ? `<div class="text-orange-700 mb-2">${saf(p.note)}</div>`
+                      : ""
+                  }
+                  ${
+                    accountInfo
+                      ? `<button 
+                          onclick="copyToClipboard('${accountInfo.replace(
+                            /'/g,
+                            "\\'"
+                          )}')" 
+                          class="w-full bg-orange-500 hover:bg-orange-600 text-white px-3 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2"
+                          title="계좌번호 복사">
+                          <i class="fas fa-copy"></i>
+                          계좌 복사하기
+                        </button>`
                       : ""
                   }
                 </div>`;
@@ -6158,7 +6566,7 @@
         const listHTML =
           activeEvents.length === 0
             ? `<div class="text-center py-12"><i class="fas fa-calendar-xmark text-4xl text-gray-300"></i><p class="mt-3 text-gray-500">진행 중인 이벤트/미식회가 없습니다.</p></div>`
-            : `<div id="events-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6" style="position: relative; z-index: 1; min-height: 200px;">
+            : `<div id="events-container" class="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6" style="position: relative; z-index: 1; min-height: 200px;">
                 ${activeEvents
                   .sort((a, b) => (a.order || 999) - (b.order || 999))
                   .map(eventCardHTML)
@@ -6215,20 +6623,7 @@
         // 새로운 이벤트 리스너 등록
         c.addEventListener("click", handleReservationTabClick);
 
-        // 미식회/이벤트 생성 점선 블록 이벤트 리스너
-        if (isAdmin) {
-          document
-            .getElementById("create-tasting-block")
-            ?.addEventListener("click", () => {
-              openEventModal("create", null, "tasting");
-            });
-
-          document
-            .getElementById("create-event-block")
-            ?.addEventListener("click", () => {
-              openEventModal("create", null, "general");
-            });
-        }
+        // 미식회/이벤트 생성 점선 블록 이벤트 리스너는 전역 이벤트 리스너에서 처리됨
 
         // bindAdminEventsPanel은 모달 내부에서만 호출됨
       }
@@ -6251,7 +6646,13 @@
             showAlert("🔒", "관리자만 이벤트를 수정할 수 있습니다.");
             return;
           }
-          return openEventModal("edit", id);
+          // 이벤트 타입에 따라 올바른 모달 열기
+          const event = eventsData.find((e) => e.id === id);
+          if (event && event.type === "tasting") {
+            return openTastingModal("edit", id);
+          } else {
+            return openEventModal("edit", id);
+          }
         }
         if (act === "admin-close") return closeEvent(id);
         if (act === "admin-reopen") return reopenEvent(id);
@@ -6262,8 +6663,9 @@
         if (act === "export-xlsx") return exportApplicantsXLSX(id);
       }
 
-      /* ===== 이벤트 관리자 패널 (대시보드에서 제거, 신청하기 탭 상단으로 이동) ===== */
-      function adminEventsPanelHTML(defaultType = null) {
+      /* ===== 기존 이벤트 관리자 패널 (새로운 모달 구조로 대체됨) ===== */
+      // 이 함수는 더 이상 사용되지 않습니다. 새로운 모달 구조를 사용하세요.
+      function adminEventsPanelHTML_DEPRECATED(defaultType = null) {
         return `<div class="section">
           <!-- 현재 이벤트 목록 (맨 위로 이동) -->
           <div class="mb-8 pb-6 border-b-2 border-gray-200">
@@ -6470,7 +6872,7 @@
                   미식회는 최소 1개 이상의 식당을 추가해야 해요!
                 </p>
               </div>
-              <div id="event-restaurants-wrap" class="space-y-3 mb-4">${restaurantFieldHTML()}</div>
+              <div id="event-restaurants-wrap" class="space-y-3 mb-4">${createRestaurantFieldHTML()}</div>
               <button id="add-restaurant-btn" type="button" class="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold py-3 px-4 rounded-lg transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2">
                 <i class="fas fa-plus-circle text-lg"></i>
                 <span>식당 추가하기</span>
@@ -6491,7 +6893,8 @@
           </div>
         </div>`;
       }
-      function bindAdminEventsPanel() {
+      // 기존 bindAdminEventsPanel 함수는 새로운 모달 구조로 대체됨
+      function bindAdminEventsPanel_DEPRECATED() {
         const wrap = document.getElementById("event-restaurants-wrap");
         const eventType = document.getElementById("event-type");
         const addRestaurantBtn = document.getElementById("add-restaurant-btn");
@@ -6510,9 +6913,8 @@
           return;
         }
 
-        eventType.addEventListener("change", (e) =>
-          onTypeChange(e.target.value)
-        );
+        // 기존 onTypeChange는 새로운 모달 구조에서 사용되지 않음
+        // eventType.addEventListener("change", (e) => onTypeChange(e.target.value));
         addRestaurantBtn.addEventListener("click", () => addRestaurantField());
 
         // 기존 식당 필드들에 이벤트 바인딩
@@ -6525,7 +6927,8 @@
           if (!row) return;
           if (e.target.closest(".remove-restaurant")) row.remove();
         });
-        saveEventBtn.addEventListener("click", () => createOrSaveEvent());
+        // 기존 createOrSaveEvent는 새로운 모달 구조에서 사용되지 않음
+        // saveEventBtn.addEventListener("click", () => createOrSaveEvent());
         resetEventBtn.addEventListener("click", () => resetEventForm());
 
         // 테스트 알림 게시 버튼
@@ -6649,9 +7052,11 @@
           updateStatusButtons(statusInput.value);
         }
 
-        onTypeChange(eventType.value);
+        // 기존 onTypeChange는 새로운 모달 구조에서 사용되지 않음
+        // onTypeChange(eventType.value);
       }
-      function restaurantFieldHTML(
+      // 기존 restaurantFieldHTML 함수는 새로운 createRestaurantFieldHTML로 대체됨
+      function restaurantFieldHTML_DEPRECATED(
         n = "",
         i = "",
         c = "",
@@ -6713,19 +7118,20 @@
               
               <div>
                 <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                  <i class="fas fa-info-circle text-orange-500"></i>
-                  식당 상세 정보
+                  <i class="fas fa-utensils text-orange-500"></i>
+                  대표 메뉴 <span class="text-red-500">*</span>
                 </label>
-                <textarea data-field="info" rows="4" placeholder="식당의 위치, 메뉴, 가격, 특징 등을 알려주세요&#10;예: 신촌역 3번 출구 &#10;메뉴: 파스타, 리조또&#10;가격: 1만원대" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all text-base resize-none">${saf(
+                <textarea data-field="info" rows="3" placeholder="이 식당의 대표 메뉴를 알려주세요&#10;예: 토마토 파스타, 크림 리조또, 마르게리타 피자" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all text-base resize-none" required>${saf(
                   i
                 )}</textarea>
-                <p class="text-xs text-gray-500 mt-1 pl-6">📝 Enter 키로 줄바꿈이 가능해요</p>
+                <p class="text-xs text-gray-500 mt-1 pl-6">🍽️ 이 식당에서 꼭 먹어봐야 할 메뉴를 적어주세요</p>
               </div>
             </div>
           </div>
         </div>`;
       }
-      function onTypeChange(type) {
+      // 기존 onTypeChange 함수는 새로운 모달 구조에서 bindEventForm으로 대체됨
+      function onTypeChange_DEPRECATED(type) {
         const tastingFields = document.getElementById("tasting-fields");
         const paymentFields = document.getElementById("payment-fields");
 
@@ -6819,7 +7225,7 @@
         const wrap = document.getElementById("event-restaurants-wrap");
         if (!wrap) return;
 
-        wrap.insertAdjacentHTML("beforeend", restaurantFieldHTML());
+        wrap.insertAdjacentHTML("beforeend", createRestaurantFieldHTML());
 
         // 새로 추가된 필드에 이벤트 바인딩
         bindRestaurantFieldEvents(wrap.lastElementChild);
@@ -6968,27 +7374,8 @@
 
         const prof = pickProfileFields(await getCurrentMemberProfile());
         try {
-          // 먼저 다른 활성 이벤트에 이미 신청했는지 체크
-          const activeEvents = eventsData.filter(
-            (e) =>
-              e.status !== "archived" && e.status !== "closed" && e.id !== id
-          );
-
-          const hasOtherApplication = activeEvents.some((event) => {
-            if (event.type === "tasting") {
-              return event.restaurants?.some((r) =>
-                (r.reservations || [])
-                  .concat(r.waiting || [])
-                  .some((p) => p.studentId === currentUser.studentId)
-              );
-            } else {
-              return (event.applicants || [])
-                .concat(event.waiting || [])
-                .some((p) => p.studentId === currentUser.studentId);
-            }
-          });
-
-          if (hasOtherApplication) throw new Error("DUP");
+          // 각 이벤트는 독립적이므로 다른 이벤트 신청 여부는 체크하지 않음
+          // 단, 같은 이벤트 내에서만 중복 체크
 
           await runTransaction(db, async (tx) => {
             const ref = doc(db, "events", id);
@@ -7012,10 +7399,7 @@
           showAlert("✅", "신청 완료!");
         } catch (e) {
           if (String(e?.message).includes("DUP"))
-            showAlert(
-              "🙂",
-              "이미 다른 이벤트에 신청(또는 대기)되어 있어요.<br><b>한 번에 한 이벤트만</b> 신청할 수 있습니다."
-            );
+            showAlert("🙂", "이미 이 이벤트에 신청(또는 대기)되어 있어요.");
           else showAlert("😥", "신청 실패");
         } finally {
           // 버튼 상태 복원
@@ -7124,7 +7508,7 @@
             const snap = await tx.get(ref);
             const ev = snap.data();
             ev.restaurants ??= [];
-            
+
             // 미식회는 같은 이벤트 내에서만 중복 체크 (다른 미식회 이벤트는 허용)
             const already = ev.restaurants.some((r) =>
               (r.reservations || [])
@@ -7402,7 +7786,8 @@
       }
 
       /* ===== 이벤트 저장/보관/삭제/재게시 ===== */
-      async function createOrSaveEvent() {
+      // 기존 createOrSaveEvent 함수는 새로운 saveEvent와 saveTastingEvent로 대체됨
+      async function createOrSaveEvent_DEPRECATED() {
         const type = document.getElementById("event-type").value;
         const title = document.getElementById("event-title").value.trim();
         const datetime = document.getElementById("event-datetime").value;
@@ -7421,12 +7806,14 @@
           const b = document.getElementById("pay-bank").value.trim();
           const n = document.getElementById("pay-number").value.trim();
           const h = document.getElementById("pay-holder").value.trim();
+          const a = document.getElementById("pay-amount").value.trim();
           const note = document.getElementById("pay-note").value.trim();
           const d = duesSettings || {};
           payment = {
             bank: b || d.bank || "",
             number: n || d.number || "",
             holder: h || d.holder || "",
+            amount: a ? parseInt(a) : d.amount ? parseInt(d.amount) : null,
             note:
               note ||
               (d.amount ? `회비 ${formatKRW(d.amount)} ` : "") + (d.note || ""),
@@ -7576,30 +7963,7 @@
           showAlert("😥", `저장 중 오류가 발생했습니다: ${error.message}`);
         }
       }
-      function resetEventForm() {
-        editingEventId = null;
-        const t = document.getElementById("event-type");
-        if (t) t.value = "tasting";
-        [
-          "event-title",
-          "event-datetime",
-          "event-deadline",
-          "event-limit",
-          "pay-bank",
-          "pay-number",
-          "pay-holder",
-          "pay-note",
-        ].forEach((i) => {
-          const x = document.getElementById(i);
-          if (x) x.value = "";
-        });
-        const st = document.getElementById("event-status");
-        if (st) st.value = "open";
-        document.getElementById("tasting-fields").classList.remove("hidden");
-        document.getElementById("payment-fields").classList.add("hidden");
-        const wrap = document.getElementById("event-restaurants-wrap");
-        if (wrap) wrap.innerHTML = restaurantFieldHTML();
-      }
+      // 기존 resetEventForm 함수는 새로운 구조로 대체됨
       async function closeEvent(id) {
         if (
           !confirm(
@@ -11273,11 +11637,9 @@
 
           <div class="flex flex-wrap items-center gap-2 mb-3">
             <input id="member-search" class="px-3 py-2 border rounded bg-white  text-gray-900  border-gray-300  flex-1 min-w-[200px]" placeholder="이름/학번/학과 검색">
-            <button id="members-bulk-approve" class="px-3 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors">
-              <i class="fas fa-check-circle mr-1"></i>대기 회원 일괄 승인
+            <button id="add-member-btn" class="px-3 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors">
+              <i class="fas fa-user-plus mr-1"></i>회원 수동 추가
             </button>
-            <button id="members-export" class="px-3 py-2 bg-blue-600 text-white rounded"><i class="fas fa-file-csv mr-1"></i>CSV 다운로드(한글)</button>
-            <button id="members-delete-all" class="px-3 py-2 bg-red-600 text-white rounded"><i class="fas fa-trash mr-1"></i>회원 전체 삭제</button>
           </div>
 
           <!-- 엑셀 업로드 섹션 -->
@@ -11329,9 +11691,14 @@
 
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <div>
-              <h4 class="font-semibold text-amber-700 mb-2">승인 필요(대기/거절/차단) <span class="bg-amber-100 text-amber-800 px-2 py-1 rounded-full text-xs ml-2">${
-                pendingSet.length
-              }명</span></h4>
+              <div class="flex items-center justify-between mb-2">
+                <h4 class="font-semibold text-amber-700">승인 필요(대기/거절/차단) <span class="bg-amber-100 text-amber-800 px-2 py-1 rounded-full text-xs ml-2">${
+                  pendingSet.length
+                }명</span></h4>
+                <button id="members-bulk-approve" class="px-3 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors text-sm">
+                  <i class="fas fa-check-circle mr-1"></i>일괄 승인
+                </button>
+              </div>
               <div class="overflow-auto border rounded">
                 <table class="min-w-full text-sm">
                   <thead class="bg-gray-50">
@@ -11357,9 +11724,14 @@
             </div>
 
             <div>
-              <h4 class="font-semibold text-emerald-700 mb-2">활동중(승인됨) <span class="bg-emerald-100 text-emerald-800 px-2 py-1 rounded-full text-xs ml-2">${
-                activeSet.length
-              }명</span></h4>
+              <div class="flex items-center justify-between mb-2">
+                <h4 class="font-semibold text-emerald-700">활동중(승인됨) <span class="bg-emerald-100 text-emerald-800 px-2 py-1 rounded-full text-xs ml-2">${
+                  activeSet.length
+                }명</span></h4>
+                <button id="members-export" class="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm">
+                  <i class="fas fa-file-csv mr-1"></i>전체명단 다운로드
+                </button>
+              </div>
               <div class="overflow-auto border rounded">
                 <table class="min-w-full text-sm">
                   <thead class="bg-gray-50">
@@ -11385,6 +11757,19 @@
           </div>
 
           <p class="text-xs text-gray-500 mt-2">* CSV는 UTF-8(BOM)으로 저장되어 엑셀에서 한글이 깨지지 않습니다.</p>
+
+          <!-- 위험한 작업 섹션 -->
+          <div class="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <h4 class="text-lg font-semibold text-red-800 mb-2">
+              <i class="fas fa-exclamation-triangle mr-2"></i>위험한 작업
+            </h4>
+            <p class="text-sm text-red-700 mb-3">
+              아래 작업은 되돌릴 수 없습니다. 신중하게 진행해주세요.
+            </p>
+            <button id="members-delete-all" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors">
+              <i class="fas fa-trash mr-2"></i>회원 전체 삭제
+            </button>
+          </div>
         </div>`;
 
         // 검색
@@ -11405,6 +11790,9 @@
         });
 
         // 버튼들
+        container
+          .querySelector("#add-member-btn")
+          .addEventListener("click", openAddMemberModal);
         container
           .querySelector("#members-export")
           .addEventListener("click", exportMembersCSV);
@@ -11832,12 +12220,34 @@
       }
 
       async function deleteAllMembers() {
+        // 1단계: 첫 번째 경고
         if (
           !confirm(
-            "정말로 모든 회원을 삭제하시겠어요? 이 작업은 되돌릴 수 없습니다."
+            "⚠️ 경고: 회원 전체 삭제를 진행하시겠습니까?\n\n이 작업은 되돌릴 수 없으며, 모든 회원 데이터가 영구적으로 삭제됩니다."
           )
-        )
+        ) {
           return;
+        }
+
+        // 2단계: 텍스트 입력 확인
+        const confirmText = prompt("회원을 전체 삭제합니다.");
+        if (confirmText !== "회원을 전체 삭제합니다.") {
+          showAlert(
+            "❌",
+            "입력한 텍스트가 정확하지 않습니다. 작업이 취소되었습니다."
+          );
+          return;
+        }
+
+        // 3단계: 최종 확인
+        if (
+          !confirm(
+            "🚨 최종 확인\n\n모든 회원 데이터를 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다."
+          )
+        ) {
+          return;
+        }
+
         try {
           const snap = await getDocs(collection(db, "members"));
           const batch = writeBatch(db);
@@ -11991,8 +12401,8 @@
               </div>
             </div>
             
-            <!-- 이벤트 상세 정보 -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+            <!-- 이벤트 상세 정보 - PC에서 더 나은 레이아웃 -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
               <div class="flex items-center gap-2 text-sm">
                 <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-orange-100">
                   <i class="fas fa-calendar text-orange-600"></i>
@@ -15873,6 +16283,11 @@
                     <h4 class="text-lg sm:text-xl font-bold text-gray-900 flex-1 group-hover:text-orange-600 transition-colors">
                       <span class="mr-2 sm:mr-3 text-xl sm:text-2xl">${categoryEmoji}</span>
                       ${saf(restaurant.restaurantName || "(식당 이름 없음)")}
+                      ${
+                        restaurant.restaurantCategory
+                          ? `<span class="ml-2 text-sm font-normal text-gray-500">(${restaurant.restaurantCategory})</span>`
+                          : ""
+                      }
                     </h4>
                     ${
                       isAdmin && !restaurant.restaurantImage
@@ -15891,9 +16306,33 @@
                   </div>
                   ${
                     restaurant.restaurantInfo
-                      ? `<p class="text-sm sm:text-base text-gray-600">${saf(
-                          restaurant.restaurantInfo
-                        )}</p>`
+                      ? `<div class="mb-3">
+                          <div class="text-sm font-semibold text-orange-600 mb-1 flex items-center justify-between">
+                            <div class="flex items-center gap-1">
+                              <i class="fas fa-utensils"></i>
+                              대표 메뉴
+                            </div>
+                            ${
+                              isAdmin
+                                ? `<button 
+                                    class="text-xs bg-orange-100 hover:bg-orange-200 text-orange-700 px-2 py-1 rounded transition-colors"
+                                    onclick="openRestaurantEditModal('${
+                                      restaurant.eventId
+                                    }', '${saf(
+                                    restaurant.restaurantName
+                                  )}', '${saf(
+                                    restaurant.restaurantInfo
+                                  ).replace(/'/g, "\\'")}')"
+                                    title="대표 메뉴 수정">
+                                    <i class="fas fa-edit mr-1"></i>수정
+                                  </button>`
+                                : ""
+                            }
+                          </div>
+                          <p class="text-base sm:text-lg text-gray-700 leading-relaxed">${saf(
+                            restaurant.restaurantInfo
+                          )}</p>
+                        </div>`
                       : ""
                   }
                   <p class="text-xs sm:text-sm text-gray-500 mt-2">
@@ -16992,6 +17431,8 @@
           </div>
         `;
 
+        // 회원 수동 추가 버튼 이벤트는 renderMembersAdmin에서 처리됨
+
         // 저장 핸들러
         container.querySelector("#set-signup-save").onclick = async () => {
           const status = container.querySelector(
@@ -17243,6 +17684,88 @@
         }
       });
 
+      // ===================== 미식회 모달 관리 =====================
+      function openTastingModal(mode = "create", eventId = null) {
+        const modal = document.getElementById("tasting-modal");
+        const title = document.getElementById("tasting-modal-title");
+        const content = document.getElementById("tasting-modal-content");
+
+        if (mode === "create") {
+          // 생성 모드: editingEventId 초기화
+          if (typeof editingEventId !== "undefined") {
+            editingEventId = null;
+          }
+          title.textContent = "🍽️ 미식회 만들기";
+          content.innerHTML = createTastingFormHTML();
+          modal.classList.remove("hidden");
+          bindTastingForm();
+        } else if (mode === "edit" && eventId) {
+          // 수정 모드: editingEventId 설정
+          if (typeof editingEventId !== "undefined") {
+            editingEventId = eventId;
+          }
+          title.textContent = "🍽️ 미식회 수정";
+          content.innerHTML = createTastingFormHTML();
+          modal.classList.remove("hidden");
+          bindTastingForm();
+          // DOM이 렌더링된 후 폼 로드
+          setTimeout(() => {
+            loadTastingToForm(eventId);
+          }, 0);
+        }
+      }
+
+      function closeTastingModal() {
+        const modal = document.getElementById("tasting-modal");
+        modal.classList.add("hidden");
+        resetTastingForm();
+      }
+
+      // ===================== 미식회 폼 데이터 로드 =====================
+      function loadTastingToForm(eventId) {
+        const event = eventsData.find((e) => e.id === eventId);
+        if (!event) {
+          showAlert("😥", "이벤트를 찾을 수 없습니다.");
+          return;
+        }
+
+        // 기본 정보 로드
+        const titleInput = document.getElementById("tasting-title");
+        if (titleInput) titleInput.value = event.title || "";
+
+        const datetimeInput = document.getElementById("tasting-datetime");
+        if (datetimeInput && event.datetime) {
+          const date = new Date(event.datetime);
+          datetimeInput.value = date.toISOString().slice(0, 16);
+        }
+
+        const deadlineInput = document.getElementById("tasting-deadline");
+        if (deadlineInput && event.deadline) {
+          const date = new Date(event.deadline);
+          deadlineInput.value = date.toISOString().slice(0, 16);
+        }
+
+        const limitInput = document.getElementById("tasting-limit");
+        if (limitInput) limitInput.value = event.limit || "";
+
+        // 식당 정보 로드
+        const container = document.getElementById("tasting-restaurants-wrap");
+        if (container && event.restaurants && event.restaurants.length > 0) {
+          container.innerHTML = event.restaurants
+            .map((restaurant) =>
+              createRestaurantFieldHTML(
+                restaurant.name || "",
+                restaurant.info || "",
+                restaurant.capacity || "",
+                restaurant.category || "기타"
+              )
+            )
+            .join("");
+        } else if (container) {
+          container.innerHTML = createRestaurantFieldHTML();
+        }
+      }
+
       // ===================== 이벤트 모달 관리 =====================
       function openEventModal(mode = "create", eventId = null) {
         const modal = document.getElementById("event-modal");
@@ -17250,15 +17773,15 @@
         const content = document.getElementById("event-modal-content");
 
         if (mode === "create") {
-          title.textContent = "이벤트·미식회 생성";
-          content.innerHTML = adminEventsPanelHTML();
+          title.textContent = "📅 이벤트 만들기";
+          content.innerHTML = createEventFormHTML();
           modal.classList.remove("hidden");
-          bindAdminEventsPanel();
+          bindEventForm();
         } else if (mode === "edit" && eventId) {
-          title.textContent = "이벤트·미식회 수정";
-          content.innerHTML = adminEventsPanelHTML();
+          title.textContent = "📅 이벤트 수정";
+          content.innerHTML = createEventFormHTML();
           modal.classList.remove("hidden");
-          bindAdminEventsPanel();
+          bindEventForm();
           // DOM이 렌더링된 후 폼 로드
           setTimeout(() => {
             loadEventToForm(eventId);
@@ -17272,32 +17795,780 @@
         resetEventForm();
       }
 
-      // 이벤트 모달 이벤트 바인딩
+      // ===================== 미식회 폼 HTML 생성 =====================
+      function createTastingFormHTML() {
+        return `
+          <div class="space-y-6">
+            <!-- 미식회 기본 정보 -->
+            <div class="bg-gradient-to-r from-orange-50 to-orange-100 border-2 border-orange-200 rounded-xl p-6">
+              <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center">
+                  <i class="fas fa-utensils text-white text-lg"></i>
+                </div>
+                <h4 class="text-xl font-bold text-gray-800">미식회 기본 정보</h4>
+              </div>
+              
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    <i class="fas fa-heading text-orange-500 mr-2"></i>
+                    미식회 제목 <span class="text-red-500">*</span>
+                  </label>
+                  <input 
+                    id="tasting-title" 
+                    type="text" 
+                    placeholder="예: 푸디 가을 미식회, 신촌 맛집 투어" 
+                    class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all text-base" 
+                    required
+                  >
+                </div>
+                
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    <i class="fas fa-calendar-alt text-orange-500 mr-2"></i>
+                    미식회 날짜 <span class="text-red-500">*</span>
+                  </label>
+                  <input 
+                    id="tasting-datetime" 
+                    type="datetime-local" 
+                    class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all text-base" 
+                    required
+                  >
+                </div>
+                
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    <i class="fas fa-clock text-orange-500 mr-2"></i>
+                    신청 마감일 <span class="text-red-500">*</span>
+                  </label>
+                  <input 
+                    id="tasting-deadline" 
+                    type="datetime-local" 
+                    class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all text-base" 
+                    required
+                  >
+                </div>
+                
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    <i class="fas fa-users text-orange-500 mr-2"></i>
+                    전체 정원 <span class="text-red-500">*</span>
+                  </label>
+                  <input 
+                    id="tasting-limit" 
+                    type="number" 
+                    min="1" 
+                    placeholder="예: 30" 
+                    class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all text-base" 
+                    required
+                  >
+                  <p class="text-xs text-gray-500 mt-1">전체 참가 가능 인원을 입력하세요</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- 식당 추가 섹션 -->
+            <div class="bg-gradient-to-r from-green-50 to-green-100 border-2 border-green-200 rounded-xl p-6">
+              <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+                  <i class="fas fa-store text-white text-lg"></i>
+                </div>
+                <h4 class="text-xl font-bold text-gray-800">식당 추가하기</h4>
+              </div>
+              
+              <div class="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
+                <p class="text-sm text-green-800 flex items-center gap-2">
+                  <i class="fas fa-lightbulb"></i>
+                  미식회는 최소 1개 이상의 식당을 추가해야 합니다. 각 식당별로 정원을 설정할 수 있어요!
+                </p>
+              </div>
+              
+              <div id="tasting-restaurants-wrap" class="space-y-4 mb-4">
+                ${createRestaurantFieldHTML()}
+              </div>
+              
+              <button 
+                id="add-restaurant-btn" 
+                type="button" 
+                class="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-3 px-4 rounded-lg transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+              >
+                <i class="fas fa-plus-circle text-lg"></i>
+                <span>식당 추가하기</span>
+              </button>
+            </div>
+
+            <!-- 저장 버튼 -->
+            <div class="flex gap-4">
+              <button 
+                id="save-tasting-btn" 
+                type="button" 
+                class="flex-1 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold py-4 px-6 rounded-lg transition-all shadow-lg hover:shadow-xl text-lg"
+              >
+                <i class="fas fa-save mr-2"></i>
+                미식회 만들기
+              </button>
+              <button 
+                id="reset-tasting-btn" 
+                type="button" 
+                class="px-6 py-4 bg-gray-500 hover:bg-gray-600 text-white font-bold rounded-lg transition-all"
+              >
+                <i class="fas fa-undo mr-2"></i>
+                초기화
+              </button>
+            </div>
+          </div>
+        `;
+      }
+
+      // ===================== 이벤트 폼 HTML 생성 =====================
+      function createEventFormHTML() {
+        return `
+          <div class="space-y-6">
+            <!-- 이벤트 기본 정보 -->
+            <div class="bg-gradient-to-r from-blue-50 to-blue-100 border-2 border-blue-200 rounded-xl p-6">
+              <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                  <i class="fas fa-calendar text-white text-lg"></i>
+                </div>
+                <h4 class="text-xl font-bold text-gray-800">이벤트 기본 정보</h4>
+              </div>
+              
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    <i class="fas fa-tag text-blue-500 mr-2"></i>
+                    이벤트 종류 <span class="text-red-500">*</span>
+                  </label>
+                  <select 
+                    id="event-type" 
+                    class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-base bg-white" 
+                    required
+                  >
+                    <option value="general">일반 이벤트</option>
+                    <option value="mt">MT (Membership Training)</option>
+                    <option value="assembly">총회</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    <i class="fas fa-heading text-blue-500 mr-2"></i>
+                    이벤트 제목 <span class="text-red-500">*</span>
+                  </label>
+                  <input 
+                    id="event-title" 
+                    type="text" 
+                    placeholder="예: 푸디 가을 MT, 정기 총회" 
+                    class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-base" 
+                    required
+                  >
+                </div>
+                
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    <i class="fas fa-calendar-alt text-blue-500 mr-2"></i>
+                    이벤트 날짜 <span class="text-red-500">*</span>
+                  </label>
+                  <input 
+                    id="event-datetime" 
+                    type="datetime-local" 
+                    class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-base" 
+                    required
+                  >
+                </div>
+                
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    <i class="fas fa-clock text-blue-500 mr-2"></i>
+                    신청 마감일 <span class="text-red-500">*</span>
+                  </label>
+                  <input 
+                    id="event-deadline" 
+                    type="datetime-local" 
+                    class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-base" 
+                    required
+                  >
+                </div>
+                
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    <i class="fas fa-users text-blue-500 mr-2"></i>
+                    참가 정원 <span class="text-red-500">*</span>
+                  </label>
+                  <input 
+                    id="event-limit" 
+                    type="number" 
+                    min="1" 
+                    placeholder="예: 20" 
+                    class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-base" 
+                    required
+                  >
+                </div>
+                
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    <i class="fas fa-eye text-blue-500 mr-2"></i>
+                    공개 설정
+                  </label>
+                  <select 
+                    id="event-status" 
+                    class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-base bg-white"
+                  >
+                    <option value="open">공개</option>
+                    <option value="archived">숨김</option>
+                  </select>
+                  <p class="text-xs text-gray-500 mt-1">숨김으로 설정하면 사용자에게 보이지 않습니다</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- 회비 정보 (MT/총회만) -->
+            <div id="payment-section" class="bg-gradient-to-r from-purple-50 to-purple-100 border-2 border-purple-200 rounded-xl p-6 hidden">
+              <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center">
+                  <i class="fas fa-credit-card text-white text-lg"></i>
+                </div>
+                <h4 class="text-xl font-bold text-gray-800">회비 입금 정보</h4>
+              </div>
+              
+              <div class="bg-purple-50 border border-purple-200 rounded-lg p-3 mb-4">
+                <p class="text-sm text-purple-800 flex items-center gap-2">
+                  <i class="fas fa-info-circle"></i>
+                  시스템 설정의 계좌 정보가 자동으로 불러와집니다. 필요시 수정하세요.
+                </p>
+              </div>
+              
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    <i class="fas fa-university text-purple-500 mr-2"></i>
+                    은행명
+                  </label>
+                  <input 
+                    id="pay-bank" 
+                    type="text" 
+                    placeholder="예: 국민은행" 
+                    class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all text-base"
+                  >
+                </div>
+                
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    <i class="fas fa-hashtag text-purple-500 mr-2"></i>
+                    계좌번호
+                  </label>
+                  <input 
+                    id="pay-number" 
+                    type="text" 
+                    placeholder="예: 123-456-789012" 
+                    class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all text-base"
+                  >
+                </div>
+                
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    <i class="fas fa-user text-purple-500 mr-2"></i>
+                    예금주
+                  </label>
+                  <input 
+                    id="pay-holder" 
+                    type="text" 
+                    placeholder="예: 홍길동" 
+                    class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all text-base"
+                  >
+                </div>
+                
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    <i class="fas fa-won-sign text-purple-500 mr-2"></i>
+                    회비 금액
+                  </label>
+                  <input 
+                    id="pay-amount" 
+                    type="number" 
+                    placeholder="예: 50000" 
+                    class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all text-base"
+                  >
+                  <p class="text-xs text-gray-500 mt-1">숫자만 입력하세요 (예: 50000)</p>
+                </div>
+                
+                <div class="md:col-span-2">
+                  <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    <i class="fas fa-comment-dots text-purple-500 mr-2"></i>
+                    입금 안내 (선택사항)
+                  </label>
+                  <input 
+                    id="pay-note" 
+                    type="text" 
+                    placeholder="예: 입금 시 이름 꼭 적어주세요" 
+                    class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all text-base"
+                  >
+                </div>
+              </div>
+            </div>
+
+            <!-- 저장 버튼 -->
+            <div class="flex gap-4">
+              <button 
+                id="save-event-btn" 
+                type="button" 
+                class="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-4 px-6 rounded-lg transition-all shadow-lg hover:shadow-xl text-lg"
+              >
+                <i class="fas fa-save mr-2"></i>
+                이벤트 만들기
+              </button>
+              <button 
+                id="reset-event-btn" 
+                type="button" 
+                class="px-6 py-4 bg-gray-500 hover:bg-gray-600 text-white font-bold rounded-lg transition-all"
+              >
+                <i class="fas fa-undo mr-2"></i>
+                초기화
+              </button>
+            </div>
+          </div>
+        `;
+      }
+
+      // 모달 이벤트 바인딩
       document.addEventListener("click", (e) => {
-        if (e.target.id === "create-event-btn") {
+        // 미식회 만들기 블록 클릭
+        if (e.target.closest("#create-tasting-block")) {
+          if (!isFullAdmin()) {
+            showAlert("🔒", "관리자만 미식회를 관리할 수 있습니다.");
+            return;
+          }
+          openTastingModal("create");
+        }
+        // 이벤트 만들기 블록 클릭
+        else if (e.target.closest("#create-event-block")) {
           if (!isFullAdmin()) {
             showAlert("🔒", "관리자만 이벤트를 관리할 수 있습니다.");
             return;
           }
           openEventModal("create");
-        } else if (e.target.id === "auto-close-btn") {
+        }
+        // 자동 마감 버튼
+        else if (e.target.id === "auto-close-btn") {
           if (!isFullAdmin()) {
             showAlert("🔒", "관리자만 자동 마감을 실행할 수 있습니다.");
             return;
           }
           autoCloseExpiredEvents();
-        } else if (
+        }
+        // 미식회 모달 닫기
+        else if (
+          e.target.id === "tasting-modal-close" ||
+          e.target.closest("#tasting-modal-close")
+        ) {
+          closeTastingModal();
+        } else if (e.target.closest("#tasting-modal")) {
+          if (e.target.id === "tasting-modal") {
+            closeTastingModal();
+          }
+        }
+        // 이벤트 모달 닫기
+        else if (
           e.target.id === "event-modal-close" ||
           e.target.closest("#event-modal-close")
         ) {
           closeEventModal();
         } else if (e.target.closest("#event-modal")) {
-          // 모달 배경 클릭 시 닫기
           if (e.target.id === "event-modal") {
             closeEventModal();
           }
         }
       });
+
+      // ===================== 미식회 폼 바인딩 =====================
+      function bindTastingForm() {
+        // 식당 추가 버튼
+        document
+          .getElementById("add-restaurant-btn")
+          ?.addEventListener("click", () => {
+            const container = document.getElementById(
+              "tasting-restaurants-wrap"
+            );
+            if (container) {
+              container.insertAdjacentHTML(
+                "beforeend",
+                createRestaurantFieldHTML()
+              );
+            }
+          });
+
+        // 식당 삭제 버튼
+        document.addEventListener("click", (e) => {
+          if (e.target.closest(".remove-restaurant")) {
+            e.target.closest(".restaurant-row")?.remove();
+          }
+        });
+
+        // 미식회 저장 버튼
+        document
+          .getElementById("save-tasting-btn")
+          ?.addEventListener("click", async () => {
+            await saveTastingEvent();
+          });
+
+        // 미식회 초기화 버튼
+        document
+          .getElementById("reset-tasting-btn")
+          ?.addEventListener("click", () => {
+            resetTastingForm();
+          });
+      }
+
+      // ===================== 이벤트 폼 바인딩 =====================
+      function bindEventForm() {
+        // 이벤트 종류 변경 시 회비 섹션 표시/숨김
+        document
+          .getElementById("event-type")
+          ?.addEventListener("change", (e) => {
+            const paymentSection = document.getElementById("payment-section");
+            if (paymentSection) {
+              if (e.target.value === "mt" || e.target.value === "assembly") {
+                paymentSection.classList.remove("hidden");
+              } else {
+                paymentSection.classList.add("hidden");
+              }
+            }
+          });
+
+        // 이벤트 저장 버튼
+        document
+          .getElementById("save-event-btn")
+          ?.addEventListener("click", async () => {
+            await saveEvent();
+          });
+
+        // 이벤트 초기화 버튼
+        document
+          .getElementById("reset-event-btn")
+          ?.addEventListener("click", () => {
+            resetEventForm();
+          });
+      }
+
+      // ===================== 미식회 저장 함수 =====================
+      async function saveTastingEvent() {
+        const title = document.getElementById("tasting-title")?.value.trim();
+        const datetime = document.getElementById("tasting-datetime")?.value;
+        const deadline = document.getElementById("tasting-deadline")?.value;
+        const limit = parseInt(
+          document.getElementById("tasting-limit")?.value || "0",
+          10
+        );
+
+        if (!title || !datetime || !deadline || !limit) {
+          showAlert("😥", "모든 필수 항목을 입력해주세요.");
+          return;
+        }
+
+        if (new Date(deadline) >= new Date(datetime)) {
+          showAlert("😥", "신청 마감일은 이벤트 날짜보다 이전이어야 합니다.");
+          return;
+        }
+
+        // 식당 정보 수집
+        const restaurantRows = document.querySelectorAll(
+          "#tasting-restaurants-wrap .restaurant-row"
+        );
+        const restaurants = [];
+
+        for (const row of restaurantRows) {
+          const name = row.querySelector("[data-field='name']")?.value.trim();
+          const info = row.querySelector("[data-field='info']")?.value.trim();
+          const capacity = parseInt(
+            row.querySelector("[data-field='capacity']")?.value || "0",
+            10
+          );
+          const category =
+            row.querySelector("[data-field='category']")?.value || "기타";
+
+          if (name && capacity > 0) {
+            restaurants.push({
+              id: row.getAttribute("data-id"),
+              name,
+              info,
+              capacity,
+              category,
+              reservations: [],
+              waiting: [],
+            });
+          }
+        }
+
+        if (restaurants.length === 0) {
+          showAlert("😥", "최소 1개 이상의 식당을 추가해주세요.");
+          return;
+        }
+
+        try {
+          // 수정 모드인지 확인 (editingEventId가 있는지 확인)
+          const isEditMode =
+            typeof editingEventId !== "undefined" && editingEventId;
+
+          if (isEditMode) {
+            // 수정 모드
+            await updateDoc(doc(db, "events", editingEventId), {
+              title,
+              datetime,
+              deadline,
+              limit,
+              restaurants,
+            });
+            showAlert("🎉", "미식회가 성공적으로 수정되었습니다!");
+          } else {
+            // 생성 모드
+            await addDoc(collection(db, "events"), {
+              type: "tasting",
+              title,
+              datetime,
+              deadline,
+              limit,
+              status: "open",
+              restaurants,
+            });
+            showAlert("🎉", "미식회가 성공적으로 생성되었습니다!");
+          }
+
+          closeTastingModal();
+          renderAll();
+        } catch (error) {
+          console.error("미식회 저장 오류:", error);
+          showAlert(
+            "😥",
+            isEditMode
+              ? "미식회 수정에 실패했습니다."
+              : "미식회 생성에 실패했습니다."
+          );
+        }
+      }
+
+      // ===================== 이벤트 저장 함수 =====================
+      async function saveEvent() {
+        const type = document.getElementById("event-type")?.value;
+        const title = document.getElementById("event-title")?.value.trim();
+        const datetime = document.getElementById("event-datetime")?.value;
+        const deadline = document.getElementById("event-deadline")?.value;
+        const limit = parseInt(
+          document.getElementById("event-limit")?.value || "0",
+          10
+        );
+        const status = document.getElementById("event-status")?.value || "open";
+
+        if (!type || !title || !datetime || !deadline || !limit) {
+          showAlert("😥", "모든 필수 항목을 입력해주세요.");
+          return;
+        }
+
+        if (new Date(deadline) >= new Date(datetime)) {
+          showAlert("😥", "신청 마감일은 이벤트 날짜보다 이전이어야 합니다.");
+          return;
+        }
+
+        const eventData = {
+          type,
+          title,
+          datetime,
+          deadline,
+          limit,
+          status,
+          applicants: [],
+          waiting: [],
+        };
+
+        // MT/총회인 경우 회비 정보 추가
+        if (type === "mt" || type === "assembly") {
+          const bank = document.getElementById("pay-bank")?.value.trim();
+          const number = document.getElementById("pay-number")?.value.trim();
+          const holder = document.getElementById("pay-holder")?.value.trim();
+          const amount = document.getElementById("pay-amount")?.value.trim();
+          const note = document.getElementById("pay-note")?.value.trim();
+
+          if (bank || number || holder || amount || note) {
+            eventData.payment = {
+              bank,
+              number,
+              holder,
+              amount: amount ? parseInt(amount) : null,
+              note,
+            };
+          }
+        }
+
+        try {
+          await addDoc(collection(db, "events"), eventData);
+          showAlert("🎉", "이벤트가 성공적으로 생성되었습니다!");
+          closeEventModal();
+          renderAll();
+        } catch (error) {
+          console.error("이벤트 생성 오류:", error);
+          showAlert("😥", "이벤트 생성에 실패했습니다.");
+        }
+      }
+
+      // ===================== 폼 초기화 함수 =====================
+      function resetTastingForm() {
+        // editingEventId 초기화
+        if (typeof editingEventId !== "undefined") {
+          editingEventId = null;
+        }
+
+        const titleInput = document.getElementById("tasting-title");
+        if (titleInput) titleInput.value = "";
+
+        const datetimeInput = document.getElementById("tasting-datetime");
+        if (datetimeInput) datetimeInput.value = "";
+
+        const deadlineInput = document.getElementById("tasting-deadline");
+        if (deadlineInput) deadlineInput.value = "";
+
+        const limitInput = document.getElementById("tasting-limit");
+        if (limitInput) limitInput.value = "";
+
+        const container = document.getElementById("tasting-restaurants-wrap");
+        if (container) {
+          container.innerHTML = createRestaurantFieldHTML();
+        }
+      }
+
+      function resetEventForm() {
+        // 기존 코드와의 호환성을 위해 editingEventId 초기화
+        if (typeof editingEventId !== "undefined") {
+          editingEventId = null;
+        }
+
+        // 이벤트 기본 정보 초기화
+        const eventType = document.getElementById("event-type");
+        if (eventType) eventType.value = "general";
+
+        const eventTitle = document.getElementById("event-title");
+        if (eventTitle) eventTitle.value = "";
+
+        const eventDatetime = document.getElementById("event-datetime");
+        if (eventDatetime) eventDatetime.value = "";
+
+        const eventDeadline = document.getElementById("event-deadline");
+        if (eventDeadline) eventDeadline.value = "";
+
+        const eventLimit = document.getElementById("event-limit");
+        if (eventLimit) eventLimit.value = "";
+
+        const eventStatus = document.getElementById("event-status");
+        if (eventStatus) eventStatus.value = "open";
+
+        // 회비 정보 초기화
+        const payBank = document.getElementById("pay-bank");
+        if (payBank) payBank.value = "";
+
+        const payNumber = document.getElementById("pay-number");
+        if (payNumber) payNumber.value = "";
+
+        const payHolder = document.getElementById("pay-holder");
+        if (payHolder) payHolder.value = "";
+
+        const payAmount = document.getElementById("pay-amount");
+        if (payAmount) payAmount.value = "";
+
+        const payNote = document.getElementById("pay-note");
+        if (payNote) payNote.value = "";
+
+        // 회비 섹션 숨김
+        const paymentSection = document.getElementById("payment-section");
+        if (paymentSection) paymentSection.classList.add("hidden");
+
+        // 기존 구조와의 호환성을 위한 추가 초기화
+        const tastingFields = document.getElementById("tasting-fields");
+        if (tastingFields) tastingFields.classList.remove("hidden");
+
+        const paymentFields = document.getElementById("payment-fields");
+        if (paymentFields) paymentFields.classList.add("hidden");
+
+        const eventRestaurantsWrap = document.getElementById(
+          "event-restaurants-wrap"
+        );
+        if (eventRestaurantsWrap) {
+          // 새로운 createRestaurantFieldHTML 함수 사용
+          if (typeof createRestaurantFieldHTML === "function") {
+            eventRestaurantsWrap.innerHTML = createRestaurantFieldHTML();
+          }
+        }
+      }
+
+      // ===================== 식당 필드 HTML 생성 =====================
+      function createRestaurantFieldHTML(
+        n = "",
+        i = "",
+        c = "",
+        category = "기타"
+      ) {
+        const rid = `res_${Math.random().toString(36).slice(2, 9)}`;
+        return `
+          <div class="restaurant-row bg-gradient-to-br from-white to-green-50 border-2 border-green-300 rounded-xl p-5 relative" data-id="${rid}">
+            <!-- 삭제 버튼 -->
+            <button type="button" class="remove-restaurant absolute top-3 right-3 bg-red-500 hover:bg-red-600 text-white w-8 h-8 rounded-full transition-all shadow-md hover:shadow-lg flex items-center justify-center" title="이 식당 삭제">
+              <i class="fas fa-trash text-sm"></i>
+            </button>
+
+            <div class="space-y-4">
+              <!-- 카테고리 선택 -->
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                  <i class="fas fa-tags text-green-500 mr-2"></i>
+                  음식 종류 <span class="text-red-500">*</span>
+                </label>
+                <select data-field="category" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all text-base bg-white" required>
+                  ${restaurantCategories
+                    .map(
+                      (cat) => `
+                    <option value="${cat.name}" ${
+                        category === cat.name ? "selected" : ""
+                      }>${cat.emoji} ${cat.name}</option>
+                  `
+                    )
+                    .join("")}
+                </select>
+              </div>
+
+              <!-- 입력 필드들 -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    <i class="fas fa-utensils text-green-500 mr-2"></i>
+                    식당 이름 <span class="text-red-500">*</span>
+                  </label>
+                  <input data-field="name" type="text" value="${saf(
+                    n
+                  )}" placeholder="예: 맛있는 파스타집" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all text-base" required>
+                </div>
+                
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    <i class="fas fa-users text-green-500 mr-2"></i>
+                    정원 <span class="text-red-500">*</span>
+                  </label>
+                  <input data-field="capacity" type="number" min="1" value="${saf(
+                    c
+                  )}" placeholder="예: 10" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all text-base" required>
+                </div>
+              </div>
+              
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                  <i class="fas fa-utensils text-green-500 mr-2"></i>
+                  대표 메뉴 <span class="text-red-500">*</span>
+                </label>
+                <textarea data-field="info" rows="3" placeholder="이 식당의 대표 메뉴를 알려주세요&#10;예: 토마토 파스타, 크림 리조또, 마르게리타 피자" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all text-base resize-none" required>${saf(
+                  i
+                )}</textarea>
+                <p class="text-xs text-gray-500 mt-1">🍽️ 이 식당에서 꼭 먹어봐야 할 메뉴를 적어주세요</p>
+              </div>
+            </div>
+          </div>
+        `;
+      }
 
       // 이벤트 액션 클릭 핸들러
       document.addEventListener("click", (e) => {
@@ -17323,7 +18594,13 @@
             showAlert("🔒", "관리자만 이벤트를 수정할 수 있습니다.");
             return;
           }
-          return openEventModal("edit", id);
+          // 이벤트 타입에 따라 올바른 모달 열기
+          const event = eventsData.find((e) => e.id === id);
+          if (event && event.type === "tasting") {
+            return openTastingModal("edit", id);
+          } else {
+            return openEventModal("edit", id);
+          }
         }
         if (act === "admin-close") {
           if (!isFullAdmin()) {
@@ -17433,11 +18710,13 @@
         const payBank = document.getElementById("pay-bank");
         const payNumber = document.getElementById("pay-number");
         const payHolder = document.getElementById("pay-holder");
+        const payAmount = document.getElementById("pay-amount");
         const payNote = document.getElementById("pay-note");
 
         if (payBank) payBank.value = p.bank || "";
         if (payNumber) payNumber.value = p.number || "";
         if (payHolder) payHolder.value = p.holder || "";
+        if (payAmount) payAmount.value = p.amount || "";
         if (payNote) payNote.value = p.note || "";
 
         // 식당 정보 로드
@@ -17447,22 +18726,21 @@
             wrap.innerHTML =
               event.restaurants
                 .map((r) =>
-                  restaurantFieldHTML(
+                  createRestaurantFieldHTML(
                     r.name || "",
                     r.info || "",
                     r.capacity || "",
-                    r.imageUrl || "",
-                    r.id || "",
                     r.category || "기타"
                   )
                 )
-                .join("") || restaurantFieldHTML();
+                .join("") || createRestaurantFieldHTML();
           } else {
-            wrap.innerHTML = restaurantFieldHTML();
+            wrap.innerHTML = createRestaurantFieldHTML();
           }
         }
 
-        onTypeChange(event.type || "tasting");
+        // 기존 onTypeChange는 새로운 모달 구조에서 사용되지 않음
+        // onTypeChange(event.type || "tasting");
       }
 
       /* ===== 평가 작성 기능 ===== */
@@ -18752,6 +20030,45 @@
     </div>
 
     <!-- 이벤트 생성/수정 모달 -->
+    <!-- 미식회 생성 모달 -->
+    <div
+      id="tasting-modal"
+      class="hidden fixed inset-0 bg-black/50 flex justify-center items-center px-4 z-[9998]"
+    >
+      <div
+        class="bg-white p-6 md:p-8 rounded-2xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+      >
+        <div class="flex justify-between items-center mb-6">
+          <h3 id="tasting-modal-title" class="text-2xl font-bold text-gray-800">
+            🍽️ 미식회 만들기
+          </h3>
+          <button
+            id="tasting-modal-close"
+            class="text-gray-500 hover:text-gray-700 hover:bg-gray-100 p-2 rounded-full transition-colors"
+            title="닫기"
+          >
+            <svg
+              class="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              ></path>
+            </svg>
+          </button>
+        </div>
+        <div id="tasting-modal-content">
+          <!-- 미식회 생성 폼이 여기에 동적으로 로드됩니다 -->
+        </div>
+      </div>
+    </div>
+
+    <!-- 이벤트 생성 모달 -->
     <div
       id="event-modal"
       class="hidden fixed inset-0 bg-black/50 flex justify-center items-center px-4 z-[9998]"
@@ -18761,7 +20078,7 @@
       >
         <div class="flex justify-between items-center mb-6">
           <h3 id="event-modal-title" class="text-2xl font-bold text-gray-800">
-            이벤트·미식회 생성
+            📅 이벤트 만들기
           </h3>
           <button
             id="event-modal-close"
