@@ -238,51 +238,94 @@
         box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
           0 4px 6px -2px rgba(0, 0, 0, 0.05);
       }
+      /* 로딩 화면 전체 화면 차지 */
+      #loading-screen {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        height: 100dvh !important; /* 동적 뷰포트 높이 (모바일 사파리) */
+        min-height: 100vh !important;
+        z-index: 9999 !important;
+        overflow: hidden !important;
+      }
+
+      /* 사파리에서 안전 영역 고려 */
+      @supports (padding: max(0px)) {
+        #loading-screen {
+          padding-top: max(0px, env(safe-area-inset-top)) !important;
+          padding-bottom: max(0px, env(safe-area-inset-bottom)) !important;
+          padding-left: max(0px, env(safe-area-inset-left)) !important;
+          padding-right: max(0px, env(safe-area-inset-right)) !important;
+        }
+      }
+
+      /* 동아리 설명 문구 스타일 */
+      .club-description {
+        font-size: 1rem;
+        font-weight: 500;
+        color: #f97316;
+        margin-bottom: 0.5rem;
+        text-align: left;
+        opacity: 0.8;
+        margin-left: 9.5rem;
+        margin-top: -0.5rem;
+      }
+
+      /* 푸디 로고 스타일 */
+      .foodie-logo {
+        font-size: 5rem;
+        font-weight: bold;
+        color: #f97316;
+        margin-bottom: 0;
+        text-shadow: 2px 2px 4px rgba(249, 115, 22, 0.2);
+        line-height: 1;
+      }
+
+      /* 웃는 모양 진행바 컨테이너 */
       .foodie-loader {
-        width: 200px;
-        height: 8px;
-        background-color: #f3f3f3;
-        border-radius: 4px;
-        overflow: hidden;
+        width: 300px;
+        height: 100px;
         position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        margin-bottom: 1.5rem;
+        margin-top: -10px;
       }
 
-      .loading-bar {
-        width: 100%;
-        height: 100%;
-        position: relative;
+      /* SVG 진행바 스타일 */
+      .smile-progress-bg {
+        stroke: #fed7aa;
+        stroke-width: 14;
+        fill: none;
+        stroke-linecap: round;
       }
 
-      .bar-container {
-        width: 100%;
-        height: 100%;
-        position: relative;
+      .smile-progress-fill {
+        stroke: #f97316;
+        stroke-width: 14;
+        fill: none;
+        stroke-linecap: round;
+        stroke-dasharray: 440;
+        stroke-dashoffset: 440;
+        transition: stroke-dashoffset 0.5s ease-in-out;
       }
 
-      .bar-fill {
-        height: 100%;
-        background: linear-gradient(90deg, #f97316, #ea580c, #dc2626);
-        border-radius: 4px;
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 0%;
-        transition: width 0.5s ease-in-out;
+      .smile-progress-fill.loading {
+        animation: loading-glow 2s ease-in-out infinite;
       }
 
-      .bar-fill.loading {
-        animation: loading-pulse 2s ease-in-out infinite;
-      }
-
-      @keyframes loading-pulse {
-        0% {
-          opacity: 0.6;
+      @keyframes loading-glow {
+        0%,
+        100% {
+          opacity: 0.8;
         }
         50% {
           opacity: 1;
-        }
-        100% {
-          opacity: 0.6;
         }
       }
       .tab-btn {
@@ -1668,15 +1711,51 @@
     <div
       id="loading-screen"
       class="fixed inset-0 bg-white flex flex-col justify-center items-center z-40"
+      style="
+        height: 100vh;
+        height: 100dvh;
+        width: 100vw;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+      "
     >
+      <!-- 동아리 설명 -->
+      <div class="club-description">전북대학교 맛집 탐방 동아리</div>
+
+      <!-- F👀die 로고 -->
+      <div class="foodie-logo">F👀die</div>
+
+      <!-- 웃는 모양 진행바 -->
       <div class="foodie-loader">
-        <div class="loading-bar">
-          <div class="bar-container">
-            <div id="progress-bar" class="bar-fill loading"></div>
-          </div>
-        </div>
+        <svg
+          width="300"
+          height="100"
+          viewBox="0 0 300 100"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <!-- 배경 호 (연한 주황색) -->
+          <path
+            class="smile-progress-bg"
+            d="M 50 50 Q 150 100 250 50"
+            stroke-linecap="round"
+          />
+
+          <!-- 진행바 호 (주황색) -->
+          <path
+            id="progress-bar"
+            class="smile-progress-fill loading"
+            d="M 50 50 Q 150 100 250 50"
+            stroke-linecap="round"
+          />
+        </svg>
       </div>
-      <p id="loading-text" class="mt-3 text-gray-600">Foodie Web에 접속중...</p>
+
+      <!-- 로딩 텍스트 -->
+      <p id="loading-text" class="text-lg font-medium text-orange-600">
+        잘 먹겠습니다! 🍽️
+      </p>
     </div>
 
     <div
@@ -1739,9 +1818,19 @@
           <div id="pre-login-info" class="space-y-6 md:space-y-8">
             <!-- 로그인 -->
             <div id="login-section" class="section max-w-lg mx-auto">
-              <h2 class="text-2xl font-bold mb-4 text-center text-gray-700">
-                Foodie 회원 인증
-              </h2>
+              <div class="relative mb-4">
+                <h2 class="text-2xl font-bold text-gray-700 text-center">
+                  Foodie 회원 인증
+                </h2>
+                <button
+                  id="inquiry-button"
+                  type="button"
+                  class="absolute right-0 top-1/2 -translate-y-1/2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm font-medium flex items-center gap-2"
+                >
+                  <i class="fas fa-question-circle"></i>
+                  문의하기
+                </button>
+              </div>
               <div class="space-y-3 md:space-y-4">
                 <input
                   id="studentId"
@@ -2493,6 +2582,7 @@
       let blocksData = [];
       let presenceData = [];
       let onlineUsers = [];
+      let inquiriesData = [];
       let memberSearchTerm = "";
       let editingEventId = null;
       let restaurantCategories = [
@@ -2597,6 +2687,136 @@
 
       // 금액 포맷팅 함수는 아래에 정의됨
 
+      // ===================== 문의하기 모달 =====================
+      function openInquiryModal() {
+        const modal = document.createElement("div");
+        modal.className =
+          "fixed inset-0 bg-black/50 flex justify-center items-center px-4 z-[9999]";
+        modal.innerHTML = `
+          <div class="bg-white p-6 rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+              <h3 class="text-2xl font-bold text-gray-800">💬 문의하기</h3>
+              <button onclick="this.closest('.fixed').remove()" class="text-gray-500 hover:text-gray-700 hover:bg-gray-100 p-2 rounded-full transition-colors">
+                <i class="fas fa-times text-xl"></i>
+              </button>
+            </div>
+            
+            <div class="space-y-4">
+              <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                <p class="text-sm text-blue-800 flex items-center gap-2">
+                  <i class="fas fa-info-circle"></i>
+                  회원가입, 로그인, 이벤트 관련 문의사항을 남겨주세요. 회장단이 확인 후 연락드립니다.
+                </p>
+              </div>
+
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                  <i class="fas fa-user text-blue-500 mr-2"></i>
+                  이름 <span class="text-red-500">*</span>
+                </label>
+                <input 
+                  id="inquiry-name" 
+                  type="text" 
+                  placeholder="예: 홍길동" 
+                  class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-base" 
+                  required
+                >
+              </div>
+              
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                  <i class="fas fa-phone text-blue-500 mr-2"></i>
+                  연락처 <span class="text-red-500">*</span>
+                </label>
+                <input 
+                  id="inquiry-contact" 
+                  type="tel" 
+                  placeholder="예: 010-1234-5678" 
+                  class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-base" 
+                  required
+                >
+              </div>
+              
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                  <i class="fas fa-comment-dots text-blue-500 mr-2"></i>
+                  문의 내용 <span class="text-red-500">*</span>
+                </label>
+                <textarea 
+                  id="inquiry-content" 
+                  rows="6" 
+                  placeholder="문의하실 내용을 자세히 적어주세요" 
+                  class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-base resize-none" 
+                  required
+                ></textarea>
+              </div>
+            </div>
+
+            <div class="flex gap-3 justify-end mt-6">
+              <button onclick="this.closest('.fixed').remove()" class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors">
+                취소
+              </button>
+              <button onclick="submitInquiry()" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors">
+                <i class="fas fa-paper-plane mr-2"></i>
+                문의 보내기
+              </button>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(modal);
+
+        // 모달 배경 클릭 시 닫기
+        modal.addEventListener("click", (e) => {
+          if (e.target === modal) {
+            modal.remove();
+          }
+        });
+      }
+
+      // 문의 제출 함수
+      window.submitInquiry = async () => {
+        const name = document.getElementById("inquiry-name").value.trim();
+        const contact = document.getElementById("inquiry-contact").value.trim();
+        const content = document.getElementById("inquiry-content").value.trim();
+
+        // 유효성 검사
+        if (!name || !contact || !content) {
+          showAlert("😥", "모든 필수 항목을 입력해주세요.");
+          return;
+        }
+
+        // 연락처 형식 검사
+        const phoneRegex = /^[0-9-]+$/;
+        if (!phoneRegex.test(contact)) {
+          showAlert("😥", "올바른 연락처 형식을 입력해주세요.");
+          return;
+        }
+
+        try {
+          const inquiryData = {
+            name,
+            contact,
+            content,
+            status: "pending", // pending, answered
+            createdAt: serverTimestamp(),
+            answeredAt: null,
+            answer: null,
+          };
+
+          await addDoc(collection(db, "inquiries"), inquiryData);
+          showAlert(
+            "✅",
+            "문의가 성공적으로 전송되었습니다! 회장단이 확인 후 연락드리겠습니다."
+          );
+
+          // 모달 닫기
+          document.querySelector(".fixed.inset-0").remove();
+        } catch (error) {
+          console.error("문의 전송 오류:", error);
+          showAlert("😥", "문의 전송에 실패했습니다. 다시 시도해주세요.");
+        }
+      };
+
       // ===================== 회원 수동 추가 모달 =====================
       function openAddMemberModal() {
         const modal = document.createElement("div");
@@ -2659,8 +2879,9 @@
                     required
                   >
                     <option value="">성별 선택</option>
-                    <option value="male">남성</option>
-                    <option value="female">여성</option>
+                    <option value="남">남</option>
+                    <option value="여">여</option>
+                    <option value="기타">기타</option>
                   </select>
                 </div>
                 
@@ -2670,17 +2891,16 @@
                     학년 <span class="text-red-500">*</span>
                   </label>
                   <select 
-                    id="add-member-grade" 
+                    id="add-member-year" 
                     class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all text-base bg-white" 
                     required
                   >
                     <option value="">학년 선택</option>
-                    <option value="1">1학년</option>
-                    <option value="2">2학년</option>
-                    <option value="3">3학년</option>
-                    <option value="4">4학년</option>
-                    <option value="5">5학년</option>
-                    <option value="6">6학년</option>
+                    <option value="1학년">1학년</option>
+                    <option value="2학년">2학년</option>
+                    <option value="3학년">3학년</option>
+                    <option value="4학년">4학년</option>
+                    <option value="기타">기타</option>
                   </select>
                 </div>
                 
@@ -2771,7 +2991,7 @@
           .value.trim();
         const name = document.getElementById("add-member-name").value.trim();
         const gender = document.getElementById("add-member-gender").value;
-        const grade = document.getElementById("add-member-grade").value;
+        const year = document.getElementById("add-member-year").value;
         const college = document
           .getElementById("add-member-college")
           .value.trim();
@@ -2786,7 +3006,7 @@
           !studentId ||
           !name ||
           !gender ||
-          !grade ||
+          !year ||
           !college ||
           !department ||
           !phone
@@ -2796,12 +3016,15 @@
         }
 
         // 학번 중복 확인
-        const existingMember = membersData.find(
-          (m) => m.studentId === studentId
-        );
-        if (existingMember) {
-          showAlert("😥", "이미 존재하는 학번입니다.");
-          return;
+        try {
+          const mref = doc(db, "members", studentId);
+          const ms = await getDoc(mref);
+          if (ms.exists()) {
+            showAlert("😥", "이미 존재하는 학번입니다.");
+            return;
+          }
+        } catch (error) {
+          console.error("학번 확인 오류:", error);
         }
 
         // 전화번호 형식 검사 (간단한 검사)
@@ -2816,16 +3039,17 @@
             studentId,
             name,
             gender,
-            grade: parseInt(grade),
+            year,
             college,
             department,
             phone,
             status,
-            createdAt: new Date().toISOString(),
+            requestedAt: serverTimestamp(),
             addedBy: currentUser?.studentId || "admin",
           };
 
-          await addDoc(collection(db, "members"), memberData);
+          // members 컬렉션에 학번을 문서 ID로 사용
+          await setDoc(doc(db, "members", studentId), memberData);
           showAlert("✅", "회원이 성공적으로 추가되었습니다!");
 
           // 모달 닫기
@@ -3848,6 +4072,19 @@
             (err) => console.warn("suggestions:", err?.message)
           );
         }
+        if (!unsubAdmin.inquiries) {
+          unsubAdmin.inquiries = onSnapshot(
+            query(collection(db, "inquiries"), orderBy("createdAt", "desc")),
+            (snap) => {
+              inquiriesData = snap.docs.map((d) => ({
+                id: d.id,
+                ...d.data(),
+              }));
+              scheduleRender();
+            },
+            (err) => console.warn("inquiries:", err?.message)
+          );
+        }
         if (!unsubAdmin.history) {
           unsubAdmin.history = onSnapshot(
             query(collection(db, "history"), orderBy("createdAt", "desc")),
@@ -3923,6 +4160,14 @@
           document
             .getElementById("login-button")
             .addEventListener("click", login);
+
+          // 문의하기 버튼 이벤트 리스너
+          const inquiryBtn = document.getElementById("inquiry-button");
+          if (inquiryBtn) {
+            inquiryBtn.addEventListener("click", () => {
+              openInquiryModal();
+            });
+          }
 
           // 자동 로그인 체크박스 이벤트 리스너
           const autoLoginCheckbox = document.getElementById(
@@ -4046,7 +4291,7 @@
           el.main.innerHTML = `
             <div class="mb-4 md:mb-6">
               <div class="flex items-center justify-between mb-4">
-                <p class="text-gray-700 text-lg md:text-xl font-medium"><span class="text-orange-600 font-bold text-4xl md:text-5xl">Foodie</span> <b id="userNameDisplay">${saf(
+                <p class="text-gray-700 text-lg md:text-xl font-medium"><span class="text-orange-600 font-bold text-4xl md:text-5xl">F👀die</span> <b id="userNameDisplay">${saf(
                   currentUser.name
                 )}</b>${getPositionSuffix()}님</p>
                 <button 
@@ -8233,8 +8478,13 @@
       // 조짜기 모달 열기
       async function openGroupMakerModal(eventId) {
         try {
+          console.log("🚀 조짜기 모달 열기 시작:", eventId);
           const ev = eventsData.find((e) => e.id === eventId);
-          if (!ev) return showAlert("😥", "이벤트를 찾을 수 없습니다.");
+          if (!ev) {
+            console.error("❌ 이벤트를 찾을 수 없습니다:", eventId);
+            return showAlert("😥", "이벤트를 찾을 수 없습니다.");
+          }
+          console.log("✅ 이벤트 찾음:", ev.title);
 
           // 참가자 데이터 수집
           let participants = [];
@@ -8266,128 +8516,213 @@
             });
           }
 
+          console.log("📋 참가자 수집 완료:", participants.length, "명");
+
           if (participants.length === 0) {
+            console.error("❌ 참가자가 없습니다");
             return showAlert("😥", "참가자가 없습니다.");
           }
 
+          console.log("🎨 조짜기 모달 HTML 생성 중...");
           // 조짜기 모달 생성
           const modalHTML = `
-            <div id="group-maker-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div class="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-                <div class="flex justify-between items-center mb-4">
-                  <h3 class="text-xl font-bold text-gray-800">조짜기 설정</h3>
-                  <button type="button" id="group-maker-close" class="text-gray-500 hover:text-gray-700">
+            <div id="group-maker-modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+              <div class="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[95vh] overflow-hidden flex flex-col">
+                <!-- 헤더 -->
+                <div class="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-4 flex justify-between items-center">
+                  <div class="flex items-center gap-3">
+                    <div class="bg-white bg-opacity-20 rounded-full p-2">
+                      <i class="fas fa-users text-white text-xl"></i>
+                    </div>
+                    <div>
+                      <h3 class="text-2xl font-bold text-white">조짜기</h3>
+                      <p class="text-purple-100 text-sm">참가자를 조로 나누어보세요</p>
+                    </div>
+                  </div>
+                  <button type="button" id="group-maker-close" class="text-white hover:bg-white hover:bg-opacity-20 rounded-full p-2 transition-all duration-200">
                     <i class="fas fa-times text-xl"></i>
                   </button>
                 </div>
-                
-                <div class="mb-4 p-3 bg-blue-50 rounded-lg">
-                  <p class="text-sm text-blue-800">
-                    <i class="fas fa-info-circle mr-2"></i>
-                    총 <strong>${
-                      participants.length
-                    }명</strong>의 참가자가 있습니다.
-                  </p>
-                </div>
 
-                <div class="space-y-4">
-                  <!-- 조 개수 설정 -->
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                      <i class="fas fa-layer-group mr-2 text-blue-600"></i>조 개수
-                    </label>
-                    <div class="relative">
-                      <input type="number" id="group-count" min="1" max="${
-                        participants.length
-                      }" value="1" 
-                             class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-lg font-semibold">
-                      <div class="absolute inset-y-0 right-0 flex items-center pr-3">
-                        <span class="text-gray-500 text-sm">개</span>
+                <!-- 컨텐츠 영역 -->
+                <div class="overflow-y-auto flex-1 px-6 py-6">
+                  <!-- 참가자 정보 -->
+                  <div class="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200">
+                    <div class="flex items-center gap-3">
+                      <div class="bg-blue-600 rounded-full p-3">
+                        <i class="fas fa-user-friends text-white text-lg"></i>
+                      </div>
+                      <div>
+                        <p class="text-sm text-blue-600 font-medium">총 참가자</p>
+                        <p class="text-3xl font-bold text-blue-900">${
+                          participants.length
+                        }<span class="text-lg ml-1">명</span></p>
                       </div>
                     </div>
                   </div>
 
-                  <!-- 남녀비율 설정 -->
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                      <i class="fas fa-venus-mars mr-2 text-pink-600"></i>남녀비율
-                    </label>
-                    <div class="grid grid-cols-1 gap-3">
-                      <label class="flex items-center p-3 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 transition-colors cursor-pointer">
-                        <input type="radio" name="gender-ratio" value="balanced" checked class="mr-3 text-green-600 focus:ring-green-500">
-                        <i class="fas fa-balance-scale mr-2 text-green-600"></i>
-                        <span class="font-medium">균등 배분</span>
-                        <span class="ml-auto text-xs text-green-600">남녀 비율을 고려해서 조를 나눕니다</span>
-                      </label>
-                      <label class="flex items-center p-3 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors cursor-pointer">
-                        <input type="radio" name="gender-ratio" value="mixed" class="mr-3 text-blue-600 focus:ring-blue-500">
-                        <i class="fas fa-random mr-2 text-blue-600"></i>
-                        <span class="font-medium">무작위 섞기</span>
-                        <span class="ml-auto text-xs text-blue-600">성별을 무작위로 섞어서 배정합니다</span>
-                      </label>
-                      <label class="flex items-center p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer">
-                        <input type="radio" name="gender-ratio" value="ignore" class="mr-3 text-gray-600 focus:ring-gray-500">
-                        <i class="fas fa-users mr-2 text-gray-600"></i>
-                        <span class="font-medium">성별 무관</span>
-                        <span class="ml-auto text-xs text-gray-600">성별을 고려하지 않고 배정합니다</span>
-                      </label>
+                  <div class="space-y-6">
+                    <!-- 1. 조 개수 설정 -->
+                    <div class="bg-white border-2 border-gray-200 rounded-xl p-5 hover:border-blue-300 transition-all duration-200">
+                      <div class="flex items-center gap-3 mb-4">
+                        <div class="bg-blue-100 rounded-full p-2">
+                          <i class="fas fa-layer-group text-blue-600 text-lg"></i>
+                        </div>
+                        <div>
+                          <label class="text-lg font-bold text-gray-800">1단계: 조 개수</label>
+                          <p class="text-sm text-gray-500">몇 개의 조로 나누시겠습니까?</p>
+                        </div>
+                      </div>
+                      <div class="relative">
+                        <input type="number" id="group-count" min="1" max="${
+                          participants.length
+                        }" value="3" 
+                               class="w-full px-6 py-4 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-200 focus:border-blue-500 transition-all duration-200 text-2xl font-bold text-center">
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-6 pointer-events-none">
+                          <span class="text-gray-400 text-lg font-medium">개</span>
+                        </div>
+                      </div>
+                      <div class="mt-3 flex items-center gap-2 text-xs text-gray-500">
+                        <i class="fas fa-lightbulb"></i>
+                        <span>권장: ${Math.ceil(
+                          participants.length / 4
+                        )}-${Math.ceil(
+            participants.length / 6
+          )}개 조 (조당 4-6명)</span>
+                      </div>
                     </div>
-                  </div>
 
-                  <!-- 단과대별 섞기 설정 -->
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                      <i class="fas fa-university mr-2 text-purple-600"></i>단과대별 분배
-                    </label>
-                    <div class="grid grid-cols-1 gap-3">
-                      <label class="flex items-center p-3 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 transition-colors cursor-pointer">
-                        <input type="radio" name="college-mix" value="mixed" checked class="mr-3 text-purple-600 focus:ring-purple-500">
-                        <i class="fas fa-shuffle mr-2 text-purple-600"></i>
-                        <span class="font-medium">단과대별로 고르게 분배</span>
-                        <span class="ml-auto text-xs text-purple-600">각 단과대가 골고루 섞이도록 배정합니다</span>
-                      </label>
-                      <label class="flex items-center p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer">
-                        <input type="radio" name="college-mix" value="ignore" class="mr-3 text-gray-600 focus:ring-gray-500">
-                        <i class="fas fa-random mr-2 text-gray-600"></i>
-                        <span class="font-medium">단과대 상관없이 무작위</span>
-                        <span class="ml-auto text-xs text-gray-600">단과대를 고려하지 않고 무작위로 배정합니다</span>
-                      </label>
-                    </div>
-                  </div>
-
-                  <!-- 조장 설정 (관리자만) -->
-                  ${
-                    currentUser && adminList.includes(currentUser.studentId)
-                      ? `
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                      <i class="fas fa-crown mr-2 text-yellow-600"></i>조장 설정
-                    </label>
-                    <div class="space-y-3">
-                      <div class="grid grid-cols-1 gap-3">
-                        <label class="flex items-center p-3 bg-yellow-50 border border-yellow-200 rounded-lg hover:bg-yellow-100 transition-colors cursor-pointer">
-                          <input type="radio" name="leader-setting" value="manual" checked class="mr-3 text-yellow-600 focus:ring-yellow-500">
-                          <i class="fas fa-hand-pointer mr-2 text-yellow-600"></i>
-                          <span class="font-medium">수동 선택</span>
-                          <span class="ml-auto text-xs text-yellow-600">각 조의 조장을 직접 선택합니다</span>
+                    <!-- 2. 성별 배분 -->
+                    <div class="bg-white border-2 border-gray-200 rounded-xl p-5 hover:border-pink-300 transition-all duration-200">
+                      <div class="flex items-center gap-3 mb-4">
+                        <div class="bg-pink-100 rounded-full p-2">
+                          <i class="fas fa-venus-mars text-pink-600 text-lg"></i>
+                        </div>
+                        <div>
+                          <label class="text-lg font-bold text-gray-800">2단계: 성별 배분</label>
+                          <p class="text-sm text-gray-500">성별을 어떻게 배정할까요?</p>
+                        </div>
+                      </div>
+                      <div class="space-y-2">
+                        <label class="flex items-center gap-3 p-4 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl hover:shadow-md transition-all duration-200 cursor-pointer group">
+                          <input type="radio" name="gender-ratio" value="balanced" checked class="w-5 h-5 text-green-600 focus:ring-green-500">
+                          <div class="flex-1">
+                            <div class="flex items-center gap-2">
+                              <i class="fas fa-balance-scale text-green-600 text-lg group-hover:scale-110 transition-transform"></i>
+                              <span class="font-bold text-gray-800">균등 배분</span>
+                            </div>
+                            <p class="text-xs text-green-700 mt-1">남녀 비율을 최대한 균등하게 배정합니다</p>
+                          </div>
                         </label>
-                        <label class="flex items-center p-3 bg-orange-50 border border-orange-200 rounded-lg hover:bg-orange-100 transition-colors cursor-pointer">
-                          <input type="radio" name="leader-setting" value="auto" class="mr-3 text-orange-600 focus:ring-orange-500">
-                          <i class="fas fa-magic mr-2 text-orange-600"></i>
-                          <span class="font-medium">자동 설정</span>
-                          <span class="ml-auto text-xs text-orange-600">학년이 높은 순으로 자동 배정합니다</span>
+                        <label class="flex items-center gap-3 p-4 bg-gradient-to-r from-blue-50 to-sky-50 border-2 border-blue-200 rounded-xl hover:shadow-md transition-all duration-200 cursor-pointer group">
+                          <input type="radio" name="gender-ratio" value="mixed" class="w-5 h-5 text-blue-600 focus:ring-blue-500">
+                          <div class="flex-1">
+                            <div class="flex items-center gap-2">
+                              <i class="fas fa-random text-blue-600 text-lg group-hover:scale-110 transition-transform"></i>
+                              <span class="font-bold text-gray-800">무작위 섞기</span>
+                            </div>
+                            <p class="text-xs text-blue-700 mt-1">성별을 완전히 무작위로 배정합니다</p>
+                          </div>
                         </label>
-                        <label class="flex items-center p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer">
-                          <input type="radio" name="leader-setting" value="none" class="mr-3 text-gray-600 focus:ring-gray-500">
-                          <i class="fas fa-users mr-2 text-gray-600"></i>
-                          <span class="font-medium">조장 없음</span>
-                          <span class="ml-auto text-xs text-gray-600">조장을 설정하지 않습니다</span>
+                        <label class="flex items-center gap-3 p-4 bg-gradient-to-r from-gray-50 to-slate-50 border-2 border-gray-200 rounded-xl hover:shadow-md transition-all duration-200 cursor-pointer group">
+                          <input type="radio" name="gender-ratio" value="ignore" class="w-5 h-5 text-gray-600 focus:ring-gray-500">
+                          <div class="flex-1">
+                            <div class="flex items-center gap-2">
+                              <i class="fas fa-users text-gray-600 text-lg group-hover:scale-110 transition-transform"></i>
+                              <span class="font-bold text-gray-800">성별 무관</span>
+                            </div>
+                            <p class="text-xs text-gray-700 mt-1">성별을 고려하지 않고 배정합니다</p>
+                          </div>
                         </label>
                       </div>
-                      <div id="manual-leader-selection" class="space-y-3 mt-4">
-                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                          <p class="text-sm text-blue-800 font-medium mb-2">
-                            <i class="fas fa-info-circle mr-2"></i>각 조의 조장을 선택하세요
+                    </div>
+
+                    <!-- 3. 단과대별 분배 -->
+                    <div class="bg-white border-2 border-gray-200 rounded-xl p-5 hover:border-purple-300 transition-all duration-200">
+                      <div class="flex items-center gap-3 mb-4">
+                        <div class="bg-purple-100 rounded-full p-2">
+                          <i class="fas fa-university text-purple-600 text-lg"></i>
+                        </div>
+                        <div>
+                          <label class="text-lg font-bold text-gray-800">3단계: 단과대 배분</label>
+                          <p class="text-sm text-gray-500">단과대를 어떻게 배정할까요?</p>
+                        </div>
+                      </div>
+                      <div class="space-y-2">
+                        <label class="flex items-center gap-3 p-4 bg-gradient-to-r from-purple-50 to-violet-50 border-2 border-purple-200 rounded-xl hover:shadow-md transition-all duration-200 cursor-pointer group">
+                          <input type="radio" name="college-mix" value="mixed" checked class="w-5 h-5 text-purple-600 focus:ring-purple-500">
+                          <div class="flex-1">
+                            <div class="flex items-center gap-2">
+                              <i class="fas fa-shuffle text-purple-600 text-lg group-hover:scale-110 transition-transform"></i>
+                              <span class="font-bold text-gray-800">고르게 분배</span>
+                            </div>
+                            <p class="text-xs text-purple-700 mt-1">각 단과대가 골고루 섞이도록 배정합니다</p>
+                          </div>
+                        </label>
+                        <label class="flex items-center gap-3 p-4 bg-gradient-to-r from-gray-50 to-slate-50 border-2 border-gray-200 rounded-xl hover:shadow-md transition-all duration-200 cursor-pointer group">
+                          <input type="radio" name="college-mix" value="ignore" class="w-5 h-5 text-gray-600 focus:ring-gray-500">
+                          <div class="flex-1">
+                            <div class="flex items-center gap-2">
+                              <i class="fas fa-random text-gray-600 text-lg group-hover:scale-110 transition-transform"></i>
+                              <span class="font-bold text-gray-800">무작위 배정</span>
+                            </div>
+                            <p class="text-xs text-gray-700 mt-1">단과대를 고려하지 않고 무작위 배정합니다</p>
+                          </div>
+                        </label>
+                      </div>
+                    </div>
+
+                    <!-- 4. 조장 설정 (관리자만) -->
+                    ${
+                      currentUser && adminList.includes(currentUser.studentId)
+                        ? `
+                    <div class="bg-white border-2 border-gray-200 rounded-xl p-5 hover:border-yellow-300 transition-all duration-200">
+                      <div class="flex items-center gap-3 mb-4">
+                        <div class="bg-yellow-100 rounded-full p-2">
+                          <i class="fas fa-crown text-yellow-600 text-lg"></i>
+                        </div>
+                        <div>
+                          <label class="text-lg font-bold text-gray-800">4단계: 조장 설정</label>
+                          <p class="text-sm text-gray-500">조장을 어떻게 지정할까요?</p>
+                        </div>
+                      </div>
+                      <div class="space-y-2">
+                        <label class="flex items-center gap-3 p-4 bg-gradient-to-r from-yellow-50 to-amber-50 border-2 border-yellow-200 rounded-xl hover:shadow-md transition-all duration-200 cursor-pointer group">
+                          <input type="radio" name="leader-setting" value="manual" checked class="w-5 h-5 text-yellow-600 focus:ring-yellow-500">
+                          <div class="flex-1">
+                            <div class="flex items-center gap-2">
+                              <i class="fas fa-hand-pointer text-yellow-600 text-lg group-hover:scale-110 transition-transform"></i>
+                              <span class="font-bold text-gray-800">수동 선택</span>
+                            </div>
+                            <p class="text-xs text-yellow-700 mt-1">각 조의 조장을 직접 선택합니다</p>
+                          </div>
+                        </label>
+                        <label class="flex items-center gap-3 p-4 bg-gradient-to-r from-orange-50 to-amber-50 border-2 border-orange-200 rounded-xl hover:shadow-md transition-all duration-200 cursor-pointer group">
+                          <input type="radio" name="leader-setting" value="auto" class="w-5 h-5 text-orange-600 focus:ring-orange-500">
+                          <div class="flex-1">
+                            <div class="flex items-center gap-2">
+                              <i class="fas fa-magic text-orange-600 text-lg group-hover:scale-110 transition-transform"></i>
+                              <span class="font-bold text-gray-800">자동 설정</span>
+                            </div>
+                            <p class="text-xs text-orange-700 mt-1">학년이 높은 순으로 자동 배정합니다</p>
+                          </div>
+                        </label>
+                        <label class="flex items-center gap-3 p-4 bg-gradient-to-r from-gray-50 to-slate-50 border-2 border-gray-200 rounded-xl hover:shadow-md transition-all duration-200 cursor-pointer group">
+                          <input type="radio" name="leader-setting" value="none" class="w-5 h-5 text-gray-600 focus:ring-gray-500">
+                          <div class="flex-1">
+                            <div class="flex items-center gap-2">
+                              <i class="fas fa-users text-gray-600 text-lg group-hover:scale-110 transition-transform"></i>
+                              <span class="font-bold text-gray-800">조장 없음</span>
+                            </div>
+                            <p class="text-xs text-gray-700 mt-1">조장을 따로 설정하지 않습니다</p>
+                          </div>
+                        </label>
+                      </div>
+                      <div id="manual-leader-selection" class="mt-4 space-y-3">
+                        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-4">
+                          <p class="text-sm text-blue-900 font-bold mb-3 flex items-center gap-2">
+                            <i class="fas fa-info-circle"></i>
+                            <span>각 조의 조장을 선택하세요</span>
                           </p>
                           <div id="leader-selectors" class="space-y-2">
                             <!-- 동적으로 생성될 조장 선택기들 -->
@@ -8395,46 +8730,57 @@
                         </div>
                       </div>
                     </div>
-                  </div>
-                  `
-                      : ""
-                  }
+                    `
+                        : ""
+                    }
 
-                  <!-- 참가자 미리보기 (관리자만) -->
-                  ${
-                    currentUser && adminList.includes(currentUser.studentId)
-                      ? `
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">참가자 목록</label>
-                    <div class="max-h-32 overflow-y-auto border rounded-lg p-2 bg-gray-50">
-                      <div class="grid grid-cols-2 gap-1 text-xs">
-                        ${participants
-                          .map(
-                            (p) => `
-                          <div class="flex justify-between">
-                            <span>${p.name} (${p.studentId})</span>
-                            <span class="text-gray-500">${p.gender}/${p.college}</span>
-                          </div>
-                        `
-                          )
-                          .join("")}
+                    <!-- 참가자 목록 (관리자만) -->
+                    ${
+                      currentUser && adminList.includes(currentUser.studentId)
+                        ? `
+                    <div class="bg-white border-2 border-gray-200 rounded-xl p-5">
+                      <div class="flex items-center gap-3 mb-3">
+                        <div class="bg-gray-100 rounded-full p-2">
+                          <i class="fas fa-list text-gray-600 text-lg"></i>
+                        </div>
+                        <label class="text-lg font-bold text-gray-800">참가자 목록</label>
+                      </div>
+                      <div class="max-h-48 overflow-y-auto border-2 border-gray-200 rounded-xl p-3 bg-gray-50">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          ${participants
+                            .map(
+                              (p, idx) => `
+                            <div class="flex items-center justify-between p-2 bg-white rounded-lg text-sm hover:shadow-sm transition-shadow">
+                              <span class="font-medium text-gray-800">${
+                                idx + 1
+                              }. ${p.name}</span>
+                              <span class="text-xs text-gray-500">${
+                                p.gender
+                              } · ${p.college}</span>
+                            </div>
+                          `
+                            )
+                            .join("")}
+                        </div>
                       </div>
                     </div>
+                    `
+                        : ""
+                    }
                   </div>
-                  `
-                      : ""
-                  }
                 </div>
 
-                <div class="flex gap-3 mt-8">
-                  <button type="button" id="group-maker-generate" 
-                          class="flex-1 bg-gradient-to-r from-purple-600 to-purple-700 text-white py-3 px-6 rounded-xl hover:from-purple-700 hover:to-purple-800 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center gap-2 font-bold">
-                    <i class="fas fa-magic"></i>
-                    <span>조짜기 시작!</span>
-                  </button>
+                <!-- 푸터 -->
+                <div class="px-6 py-4 bg-gray-50 border-t-2 border-gray-200 flex gap-3">
                   <button type="button" id="group-maker-cancel" 
-                          class="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 font-medium">
+                          class="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-white hover:border-gray-400 transition-all duration-200 font-semibold">
                     <i class="fas fa-times mr-2"></i>취소
+                  </button>
+                  <button type="button" id="group-maker-generate" 
+                          class="flex-1 bg-gradient-to-r from-purple-600 via-purple-700 to-indigo-600 text-white py-4 px-6 rounded-xl hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-3 font-bold text-lg group">
+                    <i class="fas fa-magic text-xl group-hover:rotate-12 transition-transform"></i>
+                    <span>조짜기 시작!</span>
+                    <i class="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
                   </button>
                 </div>
               </div>
@@ -8443,42 +8789,81 @@
 
           // 모달 추가
           document.body.insertAdjacentHTML("beforeend", modalHTML);
+          console.log("✅ 조짜기 모달 DOM에 추가 완료");
 
           // 이벤트 리스너 추가
-          document
-            .getElementById("group-maker-close")
-            .addEventListener("click", closeGroupMakerModal);
-          document
-            .getElementById("group-maker-cancel")
-            .addEventListener("click", closeGroupMakerModal);
-          document
-            .getElementById("group-maker-generate")
-            .addEventListener("click", () => {
-              generateGroups(eventId, participants);
-            });
+          console.log("🔗 이벤트 리스너 연결 중...");
+          const closeBtn = document.getElementById("group-maker-close");
+          const cancelBtn = document.getElementById("group-maker-cancel");
+          const generateBtn = document.getElementById("group-maker-generate");
 
-          // 조 개수 변경 시 조장 선택기 업데이트
-          document
-            .getElementById("group-count")
-            .addEventListener("input", () => {
-              updateLeaderSelectors(participants);
+          if (!closeBtn || !cancelBtn || !generateBtn) {
+            console.error("❌ 버튼 요소를 찾을 수 없습니다", {
+              closeBtn,
+              cancelBtn,
+              generateBtn,
             });
+            return showAlert("😥", "모달 버튼을 찾을 수 없습니다.");
+          }
 
-          // 조장 설정 방식 변경 시 UI 업데이트
-          document
-            .querySelectorAll('input[name="leader-setting"]')
-            .forEach((radio) => {
-              radio.addEventListener("change", () => {
-                updateLeaderSelectionVisibility();
+          closeBtn.addEventListener("click", () => {
+            console.log("🔴 닫기 버튼 클릭됨");
+            closeGroupMakerModal();
+          });
+          cancelBtn.addEventListener("click", () => {
+            console.log("🔴 취소 버튼 클릭됨");
+            closeGroupMakerModal();
+          });
+          generateBtn.addEventListener("click", () => {
+            console.log("🟢 조짜기 시작 버튼 클릭됨");
+            generateGroups(eventId, participants);
+          });
+          console.log("✅ 이벤트 리스너 연결 완료");
+
+          // 관리자만 조장 관련 이벤트 리스너 추가
+          if (currentUser && adminList.includes(currentUser.studentId)) {
+            console.log("👨‍💼 관리자 모드: 조장 관련 기능 활성화");
+
+            // 조 개수 변경 시 조장 선택기 업데이트
+            const groupCountInput = document.getElementById("group-count");
+            if (groupCountInput) {
+              groupCountInput.addEventListener("input", () => {
+                console.log("📊 조 개수 변경됨");
+                updateLeaderSelectors(participants);
               });
-            });
+            }
 
-          // 초기 조장 선택기 생성
-          updateLeaderSelectors(participants);
-          updateLeaderSelectionVisibility();
+            // 조장 설정 방식 변경 시 UI 업데이트
+            const leaderSettingRadios = document.querySelectorAll(
+              'input[name="leader-setting"]'
+            );
+            console.log(
+              "👑 조장 설정 라디오 버튼 수:",
+              leaderSettingRadios.length
+            );
+            if (leaderSettingRadios.length > 0) {
+              leaderSettingRadios.forEach((radio) => {
+                radio.addEventListener("change", () => {
+                  console.log("👑 조장 설정 방식 변경됨:", radio.value);
+                  updateLeaderSelectionVisibility();
+                });
+              });
+            }
+
+            // 초기 조장 선택기 생성
+            console.log("🔧 초기 조장 선택기 생성 중...");
+            updateLeaderSelectors(participants);
+            updateLeaderSelectionVisibility();
+            console.log("✅ 조장 선택기 초기화 완료");
+          } else {
+            console.log("👤 일반 사용자 모드: 조장 기능 비활성화");
+          }
+
+          console.log("🎉 조짜기 모달 열기 완료!");
         } catch (error) {
-          console.error("조짜기 모달 오류:", error);
-          showAlert("😥", "조짜기 모달을 열 수 없습니다.");
+          console.error("❌ 조짜기 모달 오류:", error);
+          console.error("에러 스택:", error.stack);
+          showAlert("😥", `조짜기 모달을 열 수 없습니다: ${error.message}`);
         }
       }
 
@@ -8488,22 +8873,29 @@
           parseInt(document.getElementById("group-count").value) || 3;
         const container = document.getElementById("leader-selectors");
 
+        if (!container) return;
+
         container.innerHTML = "";
 
         for (let i = 1; i <= groupCount; i++) {
           const selectorHTML = `
-            <div class="flex items-center gap-2">
-              <label class="text-sm font-medium text-gray-700 min-w-[40px]">${i}조:</label>
-              <select class="leader-select flex-1 px-2 py-1 border border-gray-300 rounded text-sm" data-group="${i}">
-                <option value="">조장 선택</option>
-                ${participants
-                  .map(
-                    (p) => `
-                  <option value="${p.studentId}">${p.name} (${p.studentId}) - ${p.gender}/${p.college}</option>
-                `
-                  )
-                  .join("")}
-              </select>
+            <div class="flex items-center gap-3 bg-white rounded-lg p-3 border-2 border-gray-200 hover:border-yellow-300 transition-colors">
+              <div class="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-yellow-400 to-orange-400 rounded-full text-white font-bold">
+                ${i}
+              </div>
+              <div class="flex-1">
+                <label class="text-xs text-gray-500 font-medium">${i}조 조장</label>
+                <select class="leader-select w-full mt-1 px-3 py-2 border-2 border-gray-300 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition-all" data-group="${i}">
+                  <option value="">👉 조장을 선택하세요</option>
+                  ${participants
+                    .map(
+                      (p) => `
+                    <option value="${p.studentId}">${p.name} (${p.studentId}) - ${p.gender}/${p.college}</option>
+                  `
+                    )
+                    .join("")}
+                </select>
+              </div>
             </div>
           `;
           container.insertAdjacentHTML("beforeend", selectorHTML);
@@ -8512,12 +8904,16 @@
 
       // 조장 선택 UI 표시/숨김
       function updateLeaderSelectionVisibility() {
-        const leaderSetting = document.querySelector(
+        const leaderSettingElement = document.querySelector(
           'input[name="leader-setting"]:checked'
-        ).value;
+        );
         const manualSelection = document.getElementById(
           "manual-leader-selection"
         );
+
+        if (!leaderSettingElement || !manualSelection) return;
+
+        const leaderSetting = leaderSettingElement.value;
 
         if (leaderSetting === "manual") {
           manualSelection.style.display = "block";
@@ -8528,29 +8924,64 @@
 
       // 조짜기 모달 닫기
       function closeGroupMakerModal() {
+        console.log("🔴 조짜기 모달 닫기 호출됨");
         const modal = document.getElementById("group-maker-modal");
         if (modal) {
           modal.remove();
+          console.log("✅ 조짜기 모달 제거 완료");
+        } else {
+          console.warn("⚠️ 조짜기 모달을 찾을 수 없습니다");
         }
       }
 
       // 조 생성하기
       async function generateGroups(eventId, participants) {
         try {
-          const groupCount = parseInt(
-            document.getElementById("group-count").value
-          );
-          const genderRatio = document.querySelector(
+          console.log("🎯 조짜기 시작!", {
+            eventId,
+            participantsCount: participants.length,
+          });
+
+          const groupCountInput = document.getElementById("group-count");
+          if (!groupCountInput) {
+            console.error("❌ group-count 입력 요소를 찾을 수 없습니다");
+            return showAlert("😥", "조 개수 입력란을 찾을 수 없습니다.");
+          }
+
+          const groupCount = parseInt(groupCountInput.value);
+          console.log("📊 조 개수:", groupCount);
+
+          const genderRatioElement = document.querySelector(
             'input[name="gender-ratio"]:checked'
-          ).value;
-          const collegeMix = document.querySelector(
+          );
+          if (!genderRatioElement) {
+            console.error("❌ 성별 배분 옵션을 찾을 수 없습니다");
+            return showAlert("😥", "성별 배분 옵션을 선택해주세요.");
+          }
+          const genderRatio = genderRatioElement.value;
+          console.log("👫 성별 배분:", genderRatio);
+
+          const collegeMixElement = document.querySelector(
             'input[name="college-mix"]:checked'
-          ).value;
-          const leaderSetting = document.querySelector(
+          );
+          if (!collegeMixElement) {
+            console.error("❌ 단과대 배분 옵션을 찾을 수 없습니다");
+            return showAlert("😥", "단과대 배분 옵션을 선택해주세요.");
+          }
+          const collegeMix = collegeMixElement.value;
+          console.log("🏛️ 단과대 배분:", collegeMix);
+
+          // 조장 설정 요소 확인 (관리자만 접근 가능)
+          const leaderSettingElement = document.querySelector(
             'input[name="leader-setting"]:checked'
-          ).value;
+          );
+          const leaderSetting = leaderSettingElement
+            ? leaderSettingElement.value
+            : "none";
+          console.log("👑 조장 설정:", leaderSetting);
 
           if (groupCount < 1 || groupCount > participants.length) {
+            console.error("❌ 조 개수가 올바르지 않습니다:", groupCount);
             return showAlert("😥", "조 개수를 올바르게 설정해주세요.");
           }
 
@@ -8562,10 +8993,12 @@
               const studentId = select.value;
               if (studentId) {
                 manualLeaders[groupNum] = studentId;
+                console.log(`👑 ${groupNum}조 조장:`, studentId);
               }
             });
           }
 
+          console.log("⚙️ 조 생성 알고리즘 실행 중...");
           // 조 생성 알고리즘
           const groups = createGroups(
             participants,
@@ -8576,11 +9009,17 @@
             manualLeaders
           );
 
+          console.log("✅ 조 생성 완료!", {
+            groupsCount: groups.length,
+            groups,
+          });
+
           // 결과 모달 표시
           showGroupResults(eventId, groups, participants);
         } catch (error) {
-          console.error("조 생성 오류:", error);
-          showAlert("😥", "조 생성 중 오류가 발생했습니다.");
+          console.error("❌ 조 생성 오류:", error);
+          console.error("에러 스택:", error.stack);
+          showAlert("😥", `조 생성 중 오류가 발생했습니다: ${error.message}`);
         }
       }
 
@@ -8946,103 +9385,227 @@
 
       // 조 결과 표시 모달
       function showGroupResults(eventId, groups, participants) {
+        console.log("🎊 조 결과 모달 표시 시작", {
+          eventId,
+          groupsCount: groups.length,
+          participantsCount: participants.length,
+        });
         closeGroupMakerModal();
+        console.log("🔴 조짜기 설정 모달 닫기 완료");
+
+        // 각 조의 성별 통계 계산
+        const getGroupStats = (group) => {
+          const maleCount = group.filter((m) => m.gender === "남성").length;
+          const femaleCount = group.filter((m) => m.gender === "여성").length;
+          return { maleCount, femaleCount };
+        };
 
         const modalHTML = `
-          <div id="group-results-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div class="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-              <div class="flex justify-between items-center mb-4">
-                <h3 class="text-xl font-bold text-gray-800">조 구성 결과</h3>
-                <button type="button" id="group-results-close" class="text-gray-500 hover:text-gray-700">
-                  <i class="fas fa-times text-xl"></i>
-                </button>
-              </div>
-              
-              <div class="mb-4 p-3 bg-green-50 rounded-lg">
-                <p class="text-sm text-green-800">
-                  <i class="fas fa-check-circle mr-2"></i>
-                  총 <strong>${participants.length}명</strong>을 <strong>${
-          groups.length
-        }개 조</strong>로 나누었습니다.
-                </p>
-              </div>
-
-              <div class="space-y-4 mb-6">
-                ${groups
-                  .map(
-                    (group, index) => `
-                  <div class="border rounded-lg p-4">
-                    <h4 class="font-semibold text-lg mb-3 text-blue-600">${
-                      index + 1
-                    }조 (${group.length}명)</h4>
-                    ${group
-                      .map(
-                        (member, memberIndex) => `
-                      <div class="flex justify-between items-center py-1 ${
-                        member.isLeader
-                          ? "bg-blue-100 font-semibold text-blue-800 rounded px-2"
-                          : ""
-                      }">
-                        <span>${memberIndex + 1}. ${member.name} (${
-                          member.studentId
-                        })</span>
-                        <span class="text-xs text-gray-500">${member.gender}/${
-                          member.college
-                        }</span>
-                      </div>
-                    `
-                      )
-                      .join("")}
+          <div id="group-results-modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+            <div class="bg-white rounded-2xl shadow-2xl max-w-6xl w-full max-h-[95vh] overflow-hidden flex flex-col">
+              <!-- 헤더 -->
+              <div class="bg-gradient-to-r from-green-600 to-emerald-600 px-6 py-5 flex justify-between items-center">
+                <div class="flex items-center gap-4">
+                  <div class="bg-white bg-opacity-20 rounded-full p-3">
+                    <i class="fas fa-check-circle text-white text-2xl"></i>
                   </div>
-                `
-                  )
-                  .join("")}
+                  <div>
+                    <h3 class="text-2xl font-bold text-white">조짜기 완료!</h3>
+                    <p class="text-green-100 text-sm mt-1">
+                      <i class="fas fa-users mr-1"></i>
+                      총 <strong>${participants.length}명</strong>을 <strong>${
+          groups.length
+        }개 조</strong>로 나누었습니다
+                    </p>
+                  </div>
+                </div>
+                <button type="button" id="group-results-close" class="text-white hover:bg-white hover:bg-opacity-20 rounded-full p-2 transition-all duration-200">
+                  <i class="fas fa-times text-2xl"></i>
+                </button>
               </div>
 
-              <div class="flex gap-3">
-                <button type="button" id="group-export-excel" 
-                        class="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors">
-                  <i class="fas fa-file-excel mr-2"></i>엑셀 파일로 다운로드
-                </button>
-                <button type="button" id="group-export-csv" 
-                        class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
-                  <i class="fas fa-file-csv mr-2"></i>CSV 파일로 다운로드
-                </button>
-                <button type="button" id="group-results-cancel" 
-                        class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                  닫기
-                </button>
+              <!-- 컨텐츠 영역 -->
+              <div class="overflow-y-auto flex-1 px-6 py-6">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+                  ${groups
+                    .map((group, index) => {
+                      const stats = getGroupStats(group);
+                      const colors = [
+                        "from-blue-500 to-blue-600",
+                        "from-purple-500 to-purple-600",
+                        "from-pink-500 to-pink-600",
+                        "from-orange-500 to-orange-600",
+                        "from-teal-500 to-teal-600",
+                        "from-indigo-500 to-indigo-600",
+                        "from-red-500 to-red-600",
+                        "from-yellow-500 to-yellow-600",
+                      ];
+                      const color = colors[index % colors.length];
+
+                      return `
+                        <div class="bg-white border-2 border-gray-200 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300">
+                          <!-- 조 헤더 -->
+                          <div class="bg-gradient-to-r ${color} px-5 py-4">
+                            <div class="flex items-center justify-between">
+                              <div class="flex items-center gap-3">
+                                <div class="bg-white bg-opacity-30 rounded-full px-4 py-2">
+                                  <span class="text-2xl font-bold text-white">${
+                                    index + 1
+                                  }</span>
+                                </div>
+                                <div>
+                                  <h4 class="text-xl font-bold text-white">${
+                                    index + 1
+                                  }조</h4>
+                                  <p class="text-white text-opacity-90 text-sm">총 ${
+                                    group.length
+                                  }명</p>
+                                </div>
+                              </div>
+                              <div class="flex gap-2">
+                                <div class="bg-white bg-opacity-20 rounded-lg px-3 py-1 text-white text-sm font-medium">
+                                  <i class="fas fa-mars mr-1"></i>${
+                                    stats.maleCount
+                                  }
+                                </div>
+                                <div class="bg-white bg-opacity-20 rounded-lg px-3 py-1 text-white text-sm font-medium">
+                                  <i class="fas fa-venus mr-1"></i>${
+                                    stats.femaleCount
+                                  }
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <!-- 조원 목록 -->
+                          <div class="p-4">
+                            <div class="space-y-2">
+                              ${group
+                                .map(
+                                  (member, memberIndex) => `
+                                <div class="flex items-center gap-3 p-3 rounded-xl transition-all duration-200 ${
+                                  member.isLeader
+                                    ? "bg-gradient-to-r from-yellow-50 to-amber-50 border-2 border-yellow-300 shadow-md"
+                                    : "bg-gray-50 hover:bg-gray-100 border-2 border-transparent"
+                                }">
+                                  ${
+                                    member.isLeader
+                                      ? `<div class="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-yellow-400 to-orange-400 rounded-full">
+                                           <i class="fas fa-crown text-white text-sm"></i>
+                                         </div>`
+                                      : `<div class="flex items-center justify-center w-8 h-8 bg-gray-300 rounded-full text-gray-700 font-bold text-sm">
+                                           ${memberIndex + 1}
+                                         </div>`
+                                  }
+                                  <div class="flex-1">
+                                    <div class="flex items-center gap-2">
+                                      <span class="font-bold text-gray-800">${
+                                        member.name
+                                      }</span>
+                                      ${
+                                        member.isLeader
+                                          ? '<span class="text-xs bg-yellow-400 text-yellow-900 px-2 py-0.5 rounded-full font-bold">조장</span>'
+                                          : ""
+                                      }
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-0.5">
+                                      ${member.studentId} · ${
+                                    member.gender
+                                  } · ${member.college}
+                                    </p>
+                                  </div>
+                                </div>
+                              `
+                                )
+                                .join("")}
+                            </div>
+                          </div>
+                        </div>
+                      `;
+                    })
+                    .join("")}
+                </div>
+              </div>
+
+              <!-- 푸터 -->
+              <div class="px-6 py-4 bg-gray-50 border-t-2 border-gray-200">
+                <div class="flex flex-col sm:flex-row gap-3">
+                  <button type="button" id="group-export-excel" 
+                          class="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3 px-6 rounded-xl hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 font-semibold group">
+                    <i class="fas fa-file-excel text-lg group-hover:scale-110 transition-transform"></i>
+                    <span>엑셀 다운로드</span>
+                  </button>
+                  <button type="button" id="group-export-csv" 
+                          class="flex-1 bg-gradient-to-r from-blue-600 to-sky-600 text-white py-3 px-6 rounded-xl hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 font-semibold group">
+                    <i class="fas fa-file-csv text-lg group-hover:scale-110 transition-transform"></i>
+                    <span>CSV 다운로드</span>
+                  </button>
+                  <button type="button" id="group-results-cancel" 
+                          class="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-white hover:border-gray-400 transition-all duration-200 font-semibold">
+                    <i class="fas fa-times mr-2"></i>닫기
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         `;
 
         document.body.insertAdjacentHTML("beforeend", modalHTML);
+        console.log("✅ 조 결과 모달 DOM에 추가 완료");
 
         // 이벤트 리스너 추가
-        document
-          .getElementById("group-results-close")
-          .addEventListener("click", closeGroupResultsModal);
-        document
-          .getElementById("group-results-cancel")
-          .addEventListener("click", closeGroupResultsModal);
-        document
-          .getElementById("group-export-excel")
-          .addEventListener("click", () => {
+        console.log("🔗 결과 모달 이벤트 리스너 연결 중...");
+        const closeBtn = document.getElementById("group-results-close");
+        const cancelBtn = document.getElementById("group-results-cancel");
+        const excelBtn = document.getElementById("group-export-excel");
+        const csvBtn = document.getElementById("group-export-csv");
+
+        if (!closeBtn || !cancelBtn || !excelBtn || !csvBtn) {
+          console.error("❌ 결과 모달 버튼 요소를 찾을 수 없습니다", {
+            closeBtn,
+            cancelBtn,
+            excelBtn,
+            csvBtn,
+          });
+        }
+
+        if (closeBtn) {
+          closeBtn.addEventListener("click", () => {
+            console.log("🔴 결과 모달 닫기 버튼 클릭됨");
+            closeGroupResultsModal();
+          });
+        }
+        if (cancelBtn) {
+          cancelBtn.addEventListener("click", () => {
+            console.log("🔴 결과 모달 닫기 버튼 클릭됨");
+            closeGroupResultsModal();
+          });
+        }
+        if (excelBtn) {
+          excelBtn.addEventListener("click", () => {
+            console.log("📥 엑셀 다운로드 버튼 클릭됨");
             exportGroupsToExcel(eventId, groups, participants);
           });
-        document
-          .getElementById("group-export-csv")
-          .addEventListener("click", () => {
+        }
+        if (csvBtn) {
+          csvBtn.addEventListener("click", () => {
+            console.log("📥 CSV 다운로드 버튼 클릭됨");
             exportGroupsToCSV(eventId, groups, participants);
           });
+        }
+        console.log("✅ 결과 모달 이벤트 리스너 연결 완료");
+        console.log("🎉 조 결과 모달 표시 완료!");
       }
 
       // 조 결과 모달 닫기
       function closeGroupResultsModal() {
+        console.log("🔴 조 결과 모달 닫기 호출됨");
         const modal = document.getElementById("group-results-modal");
         if (modal) {
           modal.remove();
+          console.log("✅ 조 결과 모달 제거 완료");
+        } else {
+          console.warn("⚠️ 조 결과 모달을 찾을 수 없습니다");
         }
       }
 
@@ -9932,12 +10495,19 @@
           // members 컬렉션에서 우테코 사용자 찾기 및 삭제
           const membersSnapshot = await getDocs(collection(db, "members"));
           let deletedCount = 0;
+          const deletedStudentIds = [];
 
           for (const docSnap of membersSnapshot.docs) {
             const data = docSnap.data();
-            if (data.name === "우테코" || data.studentId === "20251010") {
-              console.log("우테코 사용자 발견, 삭제 중:", docSnap.id);
+            // 이름이 "우테코"인 모든 사용자 삭제
+            if (
+              data.name === "우테코" ||
+              data.college === "우테코" ||
+              data.department === "우테코"
+            ) {
+              console.log("우테코 사용자 발견, 삭제 중:", docSnap.id, data);
               await deleteDoc(doc(db, "members", docSnap.id));
+              deletedStudentIds.push(docSnap.id);
               deletedCount++;
             }
           }
@@ -9949,12 +10519,18 @@
             const studentIds = adminData.studentIds || [];
             const positions = adminData.positions || {};
 
-            // 20251010 제거
-            const newStudentIds = studentIds.filter((id) => id !== "20251010");
-            delete positions["20251010"];
+            // 삭제된 모든 학번 제거
+            const newStudentIds = studentIds.filter(
+              (id) => !deletedStudentIds.includes(id)
+            );
+
+            // positions에서도 제거
+            deletedStudentIds.forEach((id) => {
+              delete positions[id];
+            });
 
             if (newStudentIds.length !== studentIds.length) {
-              console.log("관리자 목록에서 우테코 제거");
+              console.log("관리자 목록에서 우테코 사용자들 제거");
               await setDoc(doc(db, "admins", "list"), {
                 studentIds: newStudentIds,
                 positions: positions,
@@ -9963,8 +10539,11 @@
           }
 
           console.log(`우테코 사용자 ${deletedCount}명 삭제 완료`);
+          console.log("삭제된 학번:", deletedStudentIds);
           alert(
-            `우테코 사용자 ${deletedCount}명이 삭제되었습니다. 페이지를 새로고침합니다.`
+            `우테코 사용자 ${deletedCount}명이 삭제되었습니다.\n삭제된 학번: ${deletedStudentIds.join(
+              ", "
+            )}\n\n페이지를 새로고침합니다.`
           );
           location.reload();
         } catch (error) {
@@ -9992,6 +10571,9 @@
             <button class="subtab-btn px-3 py-1.5 rounded bg-gray-200" data-sub="system">
               <i class="fas fa-gear mr-1"></i>시스템
             </button>
+          <button class="subtab-btn px-3 py-1.5 rounded bg-gray-200" data-sub="inquiries">
+            <i class="fas fa-comment-dots mr-1"></i>문의 관리
+          </button>
           </div>
           <div id="subtab-container"></div>
         </div>`;
@@ -10035,6 +10617,253 @@
           renderSystemAdmin(cont);
           return;
         }
+        if (name === "inquiries") {
+          renderInquiriesAdmin(cont);
+          return;
+        }
+      }
+
+      /* ===== 문의 관리 ===== */
+      function renderInquiriesAdmin(container) {
+        const pendingInquiries = (inquiriesData || []).filter(
+          (i) => i.status === "pending"
+        );
+        const answeredInquiries = (inquiriesData || []).filter(
+          (i) => i.status === "answered"
+        );
+
+        container.innerHTML = `
+          <div class="section">
+            <h3 class="text-xl font-bold text-gray-800 mb-4">문의 관리</h3>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <!-- 미답변 문의 -->
+              <div>
+                <h4 class="font-semibold text-amber-700 mb-2">
+                  미답변 문의 
+                  <span class="bg-amber-100 text-amber-800 px-2 py-1 rounded-full text-xs ml-2">
+                    ${pendingInquiries.length}건
+                  </span>
+                </h4>
+                <div class="space-y-3 max-h-[600px] overflow-y-auto">
+                  ${
+                    pendingInquiries.length > 0
+                      ? pendingInquiries
+                          .map((inq) => createInquiryCard(inq, false))
+                          .join("")
+                      : '<div class="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center text-gray-400">미답변 문의가 없습니다.</div>'
+                  }
+                </div>
+              </div>
+
+              <!-- 답변 완료 -->
+              <div>
+                <h4 class="font-semibold text-emerald-700 mb-2">
+                  답변 완료 
+                  <span class="bg-emerald-100 text-emerald-800 px-2 py-1 rounded-full text-xs ml-2">
+                    ${answeredInquiries.length}건
+                  </span>
+                </h4>
+                <div class="space-y-3 max-h-[600px] overflow-y-auto">
+                  ${
+                    answeredInquiries.length > 0
+                      ? answeredInquiries
+                          .map((inq) => createInquiryCard(inq, true))
+                          .join("")
+                      : '<div class="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center text-gray-400">답변 완료된 문의가 없습니다.</div>'
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        // 이벤트 리스너 등록
+        container.addEventListener("click", onInquiryClick);
+      }
+
+      function createInquiryCard(inquiry, isAnswered) {
+        const createdAt = inquiry.createdAt?.toDate
+          ? inquiry.createdAt.toDate()
+          : new Date();
+        const timeStr = `${createdAt.getFullYear()}.${String(
+          createdAt.getMonth() + 1
+        ).padStart(2, "0")}.${String(createdAt.getDate()).padStart(
+          2,
+          "0"
+        )} ${String(createdAt.getHours()).padStart(2, "0")}:${String(
+          createdAt.getMinutes()
+        ).padStart(2, "0")}`;
+
+        return `
+          <div class="bg-white border ${
+            isAnswered ? "border-emerald-200" : "border-amber-200"
+          } rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
+            <div class="flex items-start justify-between mb-2">
+              <div>
+                <span class="font-semibold text-gray-800">${saf(
+                  inquiry.name
+                )}</span>
+                <span class="text-sm text-gray-500 ml-2">${saf(
+                  inquiry.contact
+                )}</span>
+              </div>
+              <span class="text-xs text-gray-400">${timeStr}</span>
+            </div>
+            
+            <div class="text-sm text-gray-700 mb-3 line-clamp-3">
+              ${saf(inquiry.content)}
+            </div>
+            
+            <div class="flex gap-2">
+              <button 
+                data-act="view-inquiry" 
+                data-id="${inquiry.id}" 
+                class="flex-1 px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors text-sm"
+              >
+                <i class="fas fa-eye mr-1"></i>상세보기
+              </button>
+              ${
+                !isAnswered
+                  ? `<button 
+                      data-act="mark-answered" 
+                      data-id="${inquiry.id}" 
+                      class="px-3 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors text-sm"
+                    >
+                      <i class="fas fa-check mr-1"></i>완료
+                    </button>`
+                  : ""
+              }
+              <button 
+                data-act="delete-inquiry" 
+                data-id="${inquiry.id}" 
+                class="px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors text-sm"
+              >
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </div>
+        `;
+      }
+
+      async function onInquiryClick(e) {
+        const btn = e.target.closest("button[data-act]");
+        if (!btn) return;
+
+        const id = btn.dataset.id;
+        const inquiry = inquiriesData.find((i) => i.id === id);
+        if (!inquiry) return;
+
+        if (btn.dataset.act === "view-inquiry") {
+          showInquiryDetailModal(inquiry);
+        } else if (btn.dataset.act === "mark-answered") {
+          if (!confirm("이 문의를 답변 완료 처리하시겠습니까?")) return;
+          try {
+            await updateDoc(doc(db, "inquiries", id), {
+              status: "answered",
+              answeredAt: serverTimestamp(),
+            });
+            showAlert("✅", "답변 완료 처리되었습니다.");
+          } catch (error) {
+            console.error("문의 완료 처리 오류:", error);
+            showAlert("😥", "처리 중 오류가 발생했습니다.");
+          }
+        } else if (btn.dataset.act === "delete-inquiry") {
+          if (!confirm("이 문의를 삭제하시겠습니까?")) return;
+          try {
+            await deleteDoc(doc(db, "inquiries", id));
+            showAlert("🗑️", "문의가 삭제되었습니다.");
+          } catch (error) {
+            console.error("문의 삭제 오류:", error);
+            showAlert("😥", "삭제 중 오류가 발생했습니다.");
+          }
+        }
+      }
+
+      function showInquiryDetailModal(inquiry) {
+        const createdAt = inquiry.createdAt?.toDate
+          ? inquiry.createdAt.toDate()
+          : new Date();
+        const timeStr = `${createdAt.getFullYear()}년 ${
+          createdAt.getMonth() + 1
+        }월 ${createdAt.getDate()}일 ${String(createdAt.getHours()).padStart(
+          2,
+          "0"
+        )}:${String(createdAt.getMinutes()).padStart(2, "0")}`;
+
+        const modal = document.createElement("div");
+        modal.className =
+          "fixed inset-0 bg-black/50 flex justify-center items-center px-4 z-[9999]";
+        modal.innerHTML = `
+          <div class="bg-white p-6 rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+              <h3 class="text-2xl font-bold text-gray-800">📋 문의 상세 내역</h3>
+              <button onclick="this.closest('.fixed').remove()" class="text-gray-500 hover:text-gray-700 hover:bg-gray-100 p-2 rounded-full transition-colors">
+                <i class="fas fa-times text-xl"></i>
+              </button>
+            </div>
+            
+            <div class="space-y-4">
+              <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <label class="text-sm font-semibold text-gray-600">이름</label>
+                    <p class="text-base text-gray-800 mt-1">${saf(
+                      inquiry.name
+                    )}</p>
+                  </div>
+                  <div>
+                    <label class="text-sm font-semibold text-gray-600">연락처</label>
+                    <p class="text-base text-gray-800 mt-1">${saf(
+                      inquiry.contact
+                    )}</p>
+                  </div>
+                  <div class="col-span-2">
+                    <label class="text-sm font-semibold text-gray-600">문의 일시</label>
+                    <p class="text-base text-gray-800 mt-1">${timeStr}</p>
+                  </div>
+                  <div class="col-span-2">
+                    <label class="text-sm font-semibold text-gray-600">상태</label>
+                    <p class="text-base text-gray-800 mt-1">
+                      <span class="px-3 py-1 rounded-full text-sm ${
+                        inquiry.status === "answered"
+                          ? "bg-emerald-100 text-emerald-800"
+                          : "bg-amber-100 text-amber-800"
+                      }">
+                        ${
+                          inquiry.status === "answered" ? "답변 완료" : "미답변"
+                        }
+                      </span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              <div>
+                <label class="block text-sm font-semibold text-gray-600 mb-2">문의 내용</label>
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                  <p class="text-gray-800 whitespace-pre-wrap">${saf(
+                    inquiry.content
+                  )}</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex gap-3 justify-end mt-6">
+              <button onclick="this.closest('.fixed').remove()" class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors">
+                닫기
+              </button>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(modal);
+
+        // 모달 배경 클릭 시 닫기
+        modal.addEventListener("click", (e) => {
+          if (e.target === modal) {
+            modal.remove();
+          }
+        });
       }
 
       /* ===== 직책 관리 ===== */
@@ -10345,16 +11174,49 @@
 
         // 회장단
         if (presidentAdmins.length > 0) {
+          const showAll = presidentAdmins.length <= 2;
+          const visibleAdmins = showAll
+            ? presidentAdmins
+            : presidentAdmins.slice(0, 2);
+          const hiddenAdmins = showAll ? [] : presidentAdmins.slice(2);
+
           html += `
             <div class="mb-4">
-              <h5 class="font-semibold text-blue-900 mb-2 flex items-center">
-                <i class="fas fa-crown mr-2 text-blue-600"></i>회장단
-                <span class="ml-2 bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full text-xs">${
-                  presidentAdmins.length
-                }명</span>
-              </h5>
+              <div class="flex items-center justify-between mb-2">
+                <h5 class="font-semibold text-blue-900 flex items-center">
+                  <i class="fas fa-crown mr-2 text-blue-600"></i>회장단
+                  <span class="ml-2 bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full text-xs">${
+                    presidentAdmins.length
+                  }명</span>
+                </h5>
+                ${
+                  presidentAdmins.length > 2
+                    ? `
+                  <button 
+                    onclick="toggleAdminList('president')" 
+                    id="president-toggle-btn"
+                    class="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1 transition-colors"
+                  >
+                    <span id="president-toggle-text">전체보기</span>
+                    <i class="fas fa-chevron-down text-xs transition-transform" id="president-toggle-icon"></i>
+                  </button>
+                `
+                    : ""
+                }
+              </div>
               <div class="space-y-2 bg-blue-50 p-3 rounded-lg">
-                ${presidentAdmins.map(renderAdminCard).join("")}
+                <div id="president-visible-list">
+                  ${visibleAdmins.map(renderAdminCard).join("")}
+                </div>
+                ${
+                  hiddenAdmins.length > 0
+                    ? `
+                  <div id="president-hidden-list" style="display: none;" class="space-y-2 mt-2">
+                    ${hiddenAdmins.map(renderAdminCard).join("")}
+                  </div>
+                `
+                    : ""
+                }
               </div>
             </div>
           `;
@@ -10362,16 +11224,49 @@
 
         // 일반 임원
         if (regularAdmins.length > 0) {
+          const showAll = regularAdmins.length <= 2;
+          const visibleAdmins = showAll
+            ? regularAdmins
+            : regularAdmins.slice(0, 2);
+          const hiddenAdmins = showAll ? [] : regularAdmins.slice(2);
+
           html += `
             <div class="mb-4">
-              <h5 class="font-semibold text-green-900 mb-2 flex items-center">
-                <i class="fas fa-users mr-2 text-green-600"></i>일반 임원
-                <span class="ml-2 bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs">${
-                  regularAdmins.length
-                }명</span>
-              </h5>
+              <div class="flex items-center justify-between mb-2">
+                <h5 class="font-semibold text-green-900 flex items-center">
+                  <i class="fas fa-users mr-2 text-green-600"></i>일반 임원
+                  <span class="ml-2 bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs">${
+                    regularAdmins.length
+                  }명</span>
+                </h5>
+                ${
+                  regularAdmins.length > 2
+                    ? `
+                  <button 
+                    onclick="toggleAdminList('regular')" 
+                    id="regular-toggle-btn"
+                    class="text-sm text-green-600 hover:text-green-800 flex items-center gap-1 transition-colors"
+                  >
+                    <span id="regular-toggle-text">전체보기</span>
+                    <i class="fas fa-chevron-down text-xs transition-transform" id="regular-toggle-icon"></i>
+                  </button>
+                `
+                    : ""
+                }
+              </div>
               <div class="space-y-2 bg-green-50 p-3 rounded-lg">
-                ${regularAdmins.map(renderAdminCard).join("")}
+                <div id="regular-visible-list">
+                  ${visibleAdmins.map(renderAdminCard).join("")}
+                </div>
+                ${
+                  hiddenAdmins.length > 0
+                    ? `
+                  <div id="regular-hidden-list" style="display: none;" class="space-y-2 mt-2">
+                    ${hiddenAdmins.map(renderAdminCard).join("")}
+                  </div>
+                `
+                    : ""
+                }
               </div>
             </div>
           `;
@@ -10418,6 +11313,25 @@
           )
           .join("");
       }
+
+      // 임원 목록 토글 함수
+      window.toggleAdminList = (category) => {
+        const hiddenList = document.getElementById(`${category}-hidden-list`);
+        const toggleText = document.getElementById(`${category}-toggle-text`);
+        const toggleIcon = document.getElementById(`${category}-toggle-icon`);
+
+        if (hiddenList) {
+          if (hiddenList.style.display === "none") {
+            hiddenList.style.display = "block";
+            toggleText.textContent = "접기";
+            toggleIcon.style.transform = "rotate(180deg)";
+          } else {
+            hiddenList.style.display = "none";
+            toggleText.textContent = "전체보기";
+            toggleIcon.style.transform = "rotate(0deg)";
+          }
+        }
+      };
 
       // 직책 추가 함수
       async function addPositionToCategory(category) {
@@ -12369,7 +13283,7 @@
                 ? restaurantParticipants
                 : ev.applicants?.length || 0;
 
-            return `<div class="section relative overflow-hidden" style="border-top: 4px solid #f97316;">
+            return `<div class="section relative overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300">
             <!-- 헤더 -->
             <div class="flex items-start justify-between mb-4">
               <div class="flex-1">
@@ -12569,7 +13483,7 @@
                       (_, i) =>
                         `<i class="fas fa-star ${
                           i < hasReview.rating
-                            ? "text-gray-600"
+                            ? "text-yellow-400"
                             : "text-gray-300"
                         }"></i>`
                     ).join("")}
@@ -12591,9 +13505,11 @@
                 }
                 <div class="mt-3 text-xs text-gray-500 flex items-center gap-1">
                   <i class="fas fa-clock"></i>
-                  <span>${new Date(hasReview.timestamp).toLocaleString(
-                    "ko-KR"
-                  )}</span>
+                  <span>${
+                    hasReview.timestamp
+                      ? new Date(hasReview.timestamp).toLocaleString("ko-KR")
+                      : "-"
+                  }</span>
                 </div>
               </div>
             `
@@ -15764,9 +16680,9 @@
           });
       });
 
-      /* ===== 문의하기 탭 ===== */
-      /* ===== 문의 모달 ===== */
-      function openInquiryModal() {
+      /* ===== 문의하기 탭 (DEPRECATED - 새 시스템으로 대체됨) ===== */
+      /* ===== 문의 모달 (DEPRECATED) ===== */
+      function openInquiryModal_DEPRECATED() {
         const modal = document.getElementById("inquiry-modal");
         modal.classList.remove("hidden");
         renderInquiryList();
@@ -16245,7 +17161,7 @@
           const categoryEmoji = getCategoryEmoji(restaurant.restaurantCategory);
 
           return `
-            <div class="bg-white rounded-xl border border-gray-100 border-t-4 border-t-orange-500 border-b-4 border-b-orange-500 overflow-hidden hover:shadow-xl hover:border-orange-300 transition-all duration-300 group" data-restaurant-id="${
+            <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 group" data-restaurant-id="${
               restaurant.eventId
             }">
               ${
@@ -16279,16 +17195,22 @@
               
               <div class="p-4 sm:p-6">
                 <div class="mb-3 sm:mb-4">
-                  <div class="flex items-start justify-between mb-2">
-                    <h4 class="text-lg sm:text-xl font-bold text-gray-900 flex-1 group-hover:text-orange-600 transition-colors">
-                      <span class="mr-2 sm:mr-3 text-xl sm:text-2xl">${categoryEmoji}</span>
-                      ${saf(restaurant.restaurantName || "(식당 이름 없음)")}
+                  <div class="flex items-start justify-between mb-3">
+                    <div class="flex-1">
+                      <div class="flex items-center gap-2 mb-1">
+                        <span class="text-2xl sm:text-3xl">${categoryEmoji}</span>
+                        <h4 class="text-xl sm:text-2xl font-bold text-gray-900 group-hover:text-orange-600 transition-colors">
+                          ${saf(
+                            restaurant.restaurantName || "(식당 이름 없음)"
+                          )}
+                        </h4>
+                      </div>
                       ${
                         restaurant.restaurantCategory
-                          ? `<span class="ml-2 text-sm font-normal text-gray-500">(${restaurant.restaurantCategory})</span>`
+                          ? `<span class="inline-block bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-xs font-semibold">${restaurant.restaurantCategory}</span>`
                           : ""
                       }
-                    </h4>
+                    </div>
                     ${
                       isAdmin && !restaurant.restaurantImage
                         ? `
@@ -16306,16 +17228,16 @@
                   </div>
                   ${
                     restaurant.restaurantInfo
-                      ? `<div class="mb-3">
-                          <div class="text-sm font-semibold text-orange-600 mb-1 flex items-center justify-between">
-                            <div class="flex items-center gap-1">
-                              <i class="fas fa-utensils"></i>
-                              대표 메뉴
+                      ? `<div class="mb-3 mt-2">
+                          <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center gap-1.5">
+                              <i class="fas fa-utensils text-orange-500 text-sm"></i>
+                              <span class="text-sm font-semibold text-gray-700">대표 메뉴</span>
                             </div>
                             ${
                               isAdmin
                                 ? `<button 
-                                    class="text-xs bg-orange-100 hover:bg-orange-200 text-orange-700 px-2 py-1 rounded transition-colors"
+                                    class="text-xs text-orange-600 hover:text-orange-700 transition-colors"
                                     onclick="openRestaurantEditModal('${
                                       restaurant.eventId
                                     }', '${saf(
@@ -16329,7 +17251,7 @@
                                 : ""
                             }
                           </div>
-                          <p class="text-base sm:text-lg text-gray-700 leading-relaxed">${saf(
+                          <p class="text-lg sm:text-xl text-gray-800 leading-relaxed font-medium">${saf(
                             restaurant.restaurantInfo
                           )}</p>
                         </div>`
@@ -16624,7 +17546,7 @@
               </h3>
               <p class="text-sm sm:text-base text-gray-600 mb-3">
                 <i class="fas fa-heart mr-1 text-orange-500"></i>
-                Foodie 회원들과 함께했던 미식회, 그들이 남겨준 진솔한 후기입니다
+                Foodie 회원들과 함께했던 미식회
               </p>
               <div class="text-sm sm:text-base text-gray-600 bg-orange-50 border border-orange-200 rounded-lg px-3 py-2 inline-block">
                 총 <span class="font-bold text-orange-600">${
@@ -17566,22 +18488,25 @@
         const loadingText = document.getElementById("loading-text");
 
         if (progressBar) {
+          // SVG path의 전체 길이는 440으로 설정됨
+          // 진행률에 따라 stroke-dashoffset을 줄임
+          const totalLength = 440;
+          const offset = totalLength - (totalLength * loadingProgress) / 100;
+
           // 부드러운 애니메이션으로 진행률 업데이트
           progressBar.style.transition =
-            "width 0.8s cubic-bezier(0.4, 0, 0.2, 1)";
-          progressBar.style.width = `${loadingProgress}%`;
+            "stroke-dashoffset 0.8s cubic-bezier(0.4, 0, 0.2, 1)";
+          progressBar.style.strokeDashoffset = offset;
+
           if (loadingProgress >= 100) {
             progressBar.classList.remove("loading");
           }
         }
 
         if (loadingText && text) {
-          // 70% 이상일 때는 "잘 먹겠습니다!" 메시지로 변경
-          let displayText = text;
-          // 모든 로딩 메시지를 "잘 먹겠습니다!"로 통일
-          if (text && text.includes("맛있는 식사를 위해")) {
-            displayText = "잘 먹겠습니다!";
-          }
+          // 진행률에 따라 메시지 변경
+          let displayText =
+            loadingProgress >= 100 ? "잘 먹겠습니다! 😊" : "잘 먹겠습니다! 🍽️";
 
           // 텍스트 페이드 효과
           if (
@@ -18896,6 +19821,7 @@
             studentName: currentUser.name,
             rating: rating,
             comment: comment,
+            timestamp: new Date().toISOString(),
             createdAt:
               existingIndex >= 0
                 ? reviews[existingIndex].createdAt
