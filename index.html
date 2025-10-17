@@ -16033,15 +16033,9 @@
                 ? `
             <!-- 카테고리 필터 (동적 생성) -->
             <div class="mb-4">
-              <div class="flex items-center gap-2 mb-3">
-                <h4 class="font-semibold text-gray-700 flex items-center gap-2">
-                  <i class="fas fa-utensils text-orange-500"></i>
-                  카테고리 필터
-                </h4>
-              </div>
-              <div class="flex flex-wrap gap-2">
+              <div class="flex flex-wrap items-center gap-2">
                 <button 
-                  class="category-filter-btn px-4 py-2 rounded-lg font-semibold text-sm transition-all border-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white border-orange-600 shadow-md"
+                  class="category-filter-btn bg-orange-500 text-white rounded-full px-3 py-1 hover:bg-orange-600 transition-colors font-medium text-sm"
                   data-category="all">
                   🏠 전체 (${tastingRestaurants.length})
                 </button>
@@ -16049,7 +16043,7 @@
                   .map(
                     (cat) => `
                   <button 
-                    class="category-filter-btn px-4 py-2 rounded-lg font-semibold text-sm transition-all border-2 border-gray-300 bg-white text-gray-700 hover:border-orange-400 hover:bg-orange-50"
+                    class="category-filter-btn bg-gray-200 text-gray-700 rounded-full px-3 py-1 hover:bg-orange-500 hover:text-white transition-colors font-medium text-sm"
                     data-category="${cat.name}">
                     ${cat.emoji} ${cat.name} (${
                       tastingRestaurants.filter(
@@ -16065,9 +16059,8 @@
                     ? `
                 <button 
                   id="manage-categories-btn"
-                  class="px-4 py-2 rounded-lg font-semibold text-sm transition-all border-2 border-dashed border-orange-400 bg-orange-50 text-orange-600 hover:bg-orange-100 hover:border-orange-500 flex items-center gap-2">
-                  <i class="fas fa-plus text-lg"></i>
-                  추가
+                  class="bg-orange-100 text-orange-600 rounded-full px-3 py-1 hover:bg-orange-500 hover:text-white transition-colors font-medium text-sm flex items-center gap-1">
+                  <i class="fas fa-plus"></i> 추가
                 </button>
                 `
                     : ""
@@ -16249,32 +16242,14 @@
               const category = btn.dataset.category;
               currentCategory = category;
 
-              // 버튼 스타일 업데이트
+              // 버튼 스타일 업데이트 (조모임 스타일)
               categoryFilterBtns.forEach((b) => {
-                b.classList.remove(
-                  "bg-gradient-to-r",
-                  "from-orange-500",
-                  "to-orange-600",
-                  "text-white",
-                  "border-orange-600",
-                  "shadow-md"
-                );
-                b.classList.add("border-gray-300", "bg-white", "text-gray-700");
+                b.classList.remove("bg-orange-500", "text-white");
+                b.classList.add("bg-gray-200", "text-gray-700");
               });
 
-              btn.classList.remove(
-                "border-gray-300",
-                "bg-white",
-                "text-gray-700"
-              );
-              btn.classList.add(
-                "bg-gradient-to-r",
-                "from-orange-500",
-                "to-orange-600",
-                "text-white",
-                "border-orange-600",
-                "shadow-md"
-              );
+              btn.classList.remove("bg-gray-200", "text-gray-700");
+              btn.classList.add("bg-orange-500", "text-white");
 
               // 검색 재실행
               performSearch();
