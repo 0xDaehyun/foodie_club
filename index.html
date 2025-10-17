@@ -2956,12 +2956,24 @@
 
           // 로딩 화면 표시 및 "잘 먹었습니다" 메시지
           const loadingScreen = document.getElementById("loading-screen");
+          const loadingText = document.getElementById("loading-text");
+          const progressBar = document.getElementById("progress-bar");
+          
           if (loadingScreen) {
             loadingScreen.classList.remove("hidden");
           }
 
-          // 로딩바에서 "잘 먹었습니다" 메시지 표시
-          updateLoadingProgress(2, "잘 먹었습니다!");
+          // 로딩바와 텍스트 직접 업데이트
+          if (progressBar) {
+            progressBar.style.width = "100%";
+            progressBar.style.transition = "width 0.8s cubic-bezier(0.4, 0, 0.2, 1)";
+          }
+          
+          if (loadingText) {
+            loadingText.textContent = "잘 먹었습니다!";
+            loadingText.style.opacity = "1";
+            loadingText.style.transition = "opacity 0.3s ease";
+          }
 
           // 2초 후 페이지 새로고침
           setTimeout(() => {
@@ -16888,7 +16900,9 @@
 
         // 저장 핸들러
         container.querySelector("#set-signup-save").onclick = async () => {
-          const status = container.querySelector('input[name="signup-status"]:checked').value;
+          const status = container.querySelector(
+            'input[name="signup-status"]:checked'
+          ).value;
           const open = status === "open";
           try {
             await setDoc(
