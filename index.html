@@ -5472,6 +5472,15 @@
                   )}</textarea>
                   <p class="text-xs text-gray-500 mt-1">💡 Enter 키로 줄바꿈이 가능합니다</p>
                 </div>
+                <div>
+                  <label class="flex items-center gap-2">
+                    <input id="roadmap-event-edit-admin-only" type="checkbox" class="w-4 h-4 text-orange-600 bg-white border border-gray-300 rounded focus:ring-orange-500 focus:ring-2" ${
+                      event.isAdminOnly ? "checked" : ""
+                    }>
+                    <span class="text-sm font-medium text-gray-700">관리자만 보이도록 설정</span>
+                  </label>
+                  <p class="text-xs text-gray-500 mt-1">체크하면 일반 회원에게는 보이지 않습니다</p>
+                </div>
                 <input id="roadmap-event-edit-id" type="hidden" value="${eventId}">
               </div>
               <div class="flex gap-3 mt-6">
@@ -5510,6 +5519,9 @@
             const description = document.getElementById(
               "roadmap-event-edit-description"
             ).value;
+            const isAdminOnly = document.getElementById(
+              "roadmap-event-edit-admin-only"
+            ).checked;
 
             if (!name) {
               showAlert("😥", "일정 제목을 입력해주세요.");
@@ -5553,6 +5565,7 @@
                 activityName: name,
                 activityDate: date,
                 description: description,
+                isAdminOnly: isAdminOnly,
               });
               showAlert("✅", "로드맵 일정이 수정되었습니다.");
               document.getElementById("roadmap-event-edit-modal").remove();
@@ -6955,6 +6968,27 @@
 
         const prof = pickProfileFields(await getCurrentMemberProfile());
         try {
+          // 먼저 다른 활성 이벤트에 이미 신청했는지 체크
+          const activeEvents = eventsData.filter(
+            (e) => e.status !== "archived" && e.status !== "closed" && e.id !== id
+          );
+          
+          const hasOtherApplication = activeEvents.some((event) => {
+            if (event.type === "tasting") {
+              return event.restaurants?.some((r) =>
+                (r.reservations || [])
+                  .concat(r.waiting || [])
+                  .some((p) => p.studentId === currentUser.studentId)
+              );
+            } else {
+              return (event.applicants || [])
+                .concat(event.waiting || [])
+                .some((p) => p.studentId === currentUser.studentId);
+            }
+          });
+          
+          if (hasOtherApplication) throw new Error("DUP");
+
           await runTransaction(db, async (tx) => {
             const ref = doc(db, "events", id);
             const snap = await tx.get(ref);
@@ -6975,8 +7009,13 @@
             tx.update(ref, { applicants: ev.applicants, waiting: ev.waiting });
           });
           showAlert("✅", "신청 완료!");
-        } catch {
-          showAlert("😥", "신청 실패");
+        } catch (e) {
+          if (String(e?.message).includes("DUP"))
+            showAlert(
+              "🙂",
+              "이미 다른 이벤트에 신청(또는 대기)되어 있어요.<br><b>한 번에 한 이벤트만</b> 신청할 수 있습니다."
+            );
+          else showAlert("😥", "신청 실패");
         } finally {
           // 버튼 상태 복원
           if (button) {
@@ -7079,6 +7118,27 @@
 
         const prof = pickProfileFields(await getCurrentMemberProfile());
         try {
+          // 먼저 다른 활성 이벤트에 이미 신청했는지 체크
+          const activeEvents = eventsData.filter(
+            (e) => e.status !== "archived" && e.status !== "closed" && e.id !== id
+          );
+          
+          const hasOtherApplication = activeEvents.some((event) => {
+            if (event.type === "tasting") {
+              return event.restaurants?.some((r) =>
+                (r.reservations || [])
+                  .concat(r.waiting || [])
+                  .some((p) => p.studentId === currentUser.studentId)
+              );
+            } else {
+              return (event.applicants || [])
+                .concat(event.waiting || [])
+                .some((p) => p.studentId === currentUser.studentId);
+            }
+          });
+          
+          if (hasOtherApplication) throw new Error("DUP");
+
           await runTransaction(db, async (tx) => {
             const ref = doc(db, "events", id);
             const snap = await tx.get(ref);
