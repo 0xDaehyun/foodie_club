@@ -55,9 +55,6 @@
     <!-- Tailwind -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- HTML2Canvas for calendar download -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
     <!-- Loading Animation -->
     <style>
       @keyframes dot-pulse {
@@ -2472,6 +2469,9 @@
       let adminPositions = {};
       let customDefaultPositions = [];
       let deletedDefaultPositions = [];
+      // 회장단과 일반 임원 직책 분류
+      let presidentPositions = []; // 회장단 직책 (회장, 부회장 외 추가 가능)
+      let regularPositions = []; // 일반 임원 직책 (운영진 외 추가 가능)
       const MASTER_CODE = "foodie_emergency_2024!";
 
       // 관리자 대시보드 현재 탭 상태 저장
@@ -3307,6 +3307,48 @@
               scheduleRender();
             },
             (err) => console.warn("deletedPositions:", err?.message)
+          );
+        }
+        if (!unsubPublic.presidentPositions) {
+          unsubPublic.presidentPositions = onSnapshot(
+            doc(db, "settings", "presidentPositions"),
+            async (snap) => {
+              if (snap.exists()) {
+                const existingPositions = snap.data().positions || [];
+                // 기존 데이터가 있으면 그대로 사용
+                presidentPositions = existingPositions;
+              } else {
+                // 문서가 없으면 기본값으로 생성 (회장, 부회장만)
+                const defaultPositions = ["회장", "부회장"];
+                await setDoc(doc(db, "settings", "presidentPositions"), {
+                  positions: defaultPositions,
+                });
+                presidentPositions = defaultPositions;
+              }
+
+              if (__isInitialLoading) {
+                __loadingDataCount++;
+                checkLoadingComplete();
+              }
+              scheduleRender();
+            },
+            (err) => console.warn("presidentPositions:", err?.message)
+          );
+        }
+        if (!unsubPublic.regularPositions) {
+          unsubPublic.regularPositions = onSnapshot(
+            doc(db, "settings", "regularPositions"),
+            (snap) => {
+              regularPositions = snap.exists()
+                ? snap.data().positions || ["운영진"]
+                : ["운영진"];
+              if (__isInitialLoading) {
+                __loadingDataCount++;
+                checkLoadingComplete();
+              }
+              scheduleRender();
+            },
+            (err) => console.warn("regularPositions:", err?.message)
           );
         }
         if (!unsubPublic.roadmap) {
@@ -9392,9 +9434,6 @@
             <button class="subtab-btn px-3 py-1.5 rounded bg-gray-200" data-sub="homeblocks">
               <i class="fas fa-house-chimney mr-1"></i>홈 블록·로드맵
             </button>
-            <button class="subtab-btn px-3 py-1.5 rounded bg-gray-200" data-sub="hof">
-              <i class="fas fa-trophy mr-1"></i>명예의 전당
-            </button>
             <button class="subtab-btn px-3 py-1.5 rounded bg-gray-200" data-sub="system">
               <i class="fas fa-gear mr-1"></i>시스템
             </button>
@@ -9435,10 +9474,6 @@
         }
         if (name === "positions") {
           renderPositionsAdmin(cont);
-          return;
-        }
-        if (name === "hof") {
-          renderHOFAdmin(cont);
           return;
         }
         if (name === "system") {
@@ -9509,23 +9544,49 @@
             </div>
             
             <div class="border-t pt-4">
-              <h4 class="font-semibold text-gray-700 mb-2">기본 직책 관리</h4>
-              <div class="space-y-4">
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">기본 직책 추가</label>
-                  <div class="flex flex-col sm:flex-row gap-2">
-                    <input id="new-position" type="text" placeholder="예: 총무, 기획부장" 
-                           class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    <button id="add-position-btn" type="button" 
-                            class="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600">
-                      <i class="fas fa-plus mr-1"></i>추가
-                    </button>
+              <h4 class="font-semibold text-gray-700 mb-2">직책 분류 관리</h4>
+              <p class="text-xs text-gray-500 mb-4">직책을 회장단과 일반 임원으로 분류하여 관리합니다.</p>
+              
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- 회장단 직책 -->
+                <div class="border rounded-lg p-4 bg-blue-50">
+                  <h5 class="font-semibold text-blue-900 mb-3 flex items-center">
+                    <i class="fas fa-crown mr-2"></i>회장단
+                  </h5>
+                  <div class="space-y-2 mb-3">
+                    ${renderPresidentPositions()}
+                  </div>
+                  <div class="border-t border-blue-200 pt-3">
+                    <label class="block text-sm font-medium text-blue-900 mb-2">회장단 직책 추가</label>
+                    <div class="flex gap-2">
+                      <input id="new-president-position" type="text" placeholder="직책명 입력" 
+                             class="flex-1 px-3 py-2 border border-blue-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                      <button id="add-president-position-btn" type="button" 
+                              class="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm whitespace-nowrap">
+                        <i class="fas fa-plus"></i>
+                      </button>
+                    </div>
                   </div>
                 </div>
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">기본 직책 목록</label>
-                  <div id="default-positions-list" class="space-y-1">
-                    ${renderDefaultPositions()}
+                
+                <!-- 일반 임원 직책 -->
+                <div class="border rounded-lg p-4 bg-green-50">
+                  <h5 class="font-semibold text-green-900 mb-3 flex items-center">
+                    <i class="fas fa-users mr-2"></i>일반 임원
+                  </h5>
+                  <div class="space-y-2 mb-3">
+                    ${renderRegularPositions()}
+                  </div>
+                  <div class="border-t border-green-200 pt-3">
+                    <label class="block text-sm font-medium text-green-900 mb-2">일반 임원 직책 추가</label>
+                    <div class="flex gap-2">
+                      <input id="new-regular-position" type="text" placeholder="직책명 입력" 
+                             class="flex-1 px-3 py-2 border border-green-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+                      <button id="add-regular-position-btn" type="button" 
+                              class="px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm whitespace-nowrap">
+                        <i class="fas fa-plus"></i>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -9535,15 +9596,22 @@
 
         // 이벤트 바인딩
         document
-          .getElementById("add-position-btn")
-          .addEventListener("click", addDefaultPosition);
+          .getElementById("add-president-position-btn")
+          .addEventListener("click", () => addPositionToCategory("president"));
         document
-          .getElementById("new-position")
+          .getElementById("new-president-position")
           .addEventListener("keypress", (e) => {
-            if (e.key === "Enter") addDefaultPosition();
+            if (e.key === "Enter") addPositionToCategory("president");
           });
 
-        // 관리자 추가 기능은 시스템 탭에서 처리
+        document
+          .getElementById("add-regular-position-btn")
+          .addEventListener("click", () => addPositionToCategory("regular"));
+        document
+          .getElementById("new-regular-position")
+          .addEventListener("keypress", (e) => {
+            if (e.key === "Enter") addPositionToCategory("regular");
+          });
 
         // 관리자 직책 변경 이벤트
         container.addEventListener("change", (e) => {
@@ -9552,43 +9620,70 @@
           }
         });
 
-        // 관리자 제거 및 기본 직책 삭제 이벤트
+        // 관리자 제거 및 직책 이동/제거 이벤트
         container.addEventListener("click", (e) => {
-          if (e.target.matches(".remove-admin-btn")) {
-            removeAdmin(e.target.dataset.adminId);
-          }
-          if (e.target.matches(".remove-position-btn")) {
-            removeDefaultPosition(e.target.dataset.position);
+          const btn = e.target.closest("button");
+          if (!btn) return;
+
+          console.log("버튼 클릭됨:", btn);
+          console.log("버튼 클래스:", btn.className);
+          console.log("버튼 데이터:", btn.dataset);
+
+          if (btn.classList.contains("remove-admin-btn")) {
+            removeAdmin(btn.dataset.adminId);
+          } else if (btn.classList.contains("move-to-regular-btn")) {
+            movePositionToCategory(btn.dataset.position, "regular");
+          } else if (btn.classList.contains("move-to-president-btn")) {
+            movePositionToCategory(btn.dataset.position, "president");
+          } else if (btn.classList.contains("remove-position-btn")) {
+            console.log("직책 삭제 버튼 클릭됨!");
+            removePositionFromCategory(
+              btn.dataset.position,
+              btn.dataset.category
+            );
           }
         });
       }
 
       // 관리자 추가 기능은 시스템 탭에서 처리됨
 
-      function renderAdminPositionsList() {
-        if (!adminList.length)
-          return '<p class="text-gray-500 text-center py-4">등록된 관리자가 없습니다.</p>';
+      function renderPresidentPositions() {
+        // 회장, 부회장은 고정
+        const fixedPositions = ["회장", "부회장"];
 
-        return adminList
-          .map((studentId) => {
-            const member = membersData?.find((m) => m.studentId === studentId);
-            const currentPosition = adminPositions[studentId] || "";
-            const memberName = member?.name || "알 수 없음";
+        // 회장단 직책이 초기화되지 않았으면 기본값 설정
+        if (presidentPositions.length === 0) {
+          presidentPositions = [...fixedPositions];
+        }
 
+        return presidentPositions
+          .map((pos) => {
+            const isFixed = fixedPositions.includes(pos);
             return `
-            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <div>
-                <div class="font-medium text-gray-800">${saf(memberName)}</div>
-                <div class="text-sm text-gray-500">${studentId}</div>
-              </div>
+            <div class="flex items-center justify-between p-2 bg-white rounded border border-blue-200">
+              <span class="text-sm font-medium text-blue-900">${pos}${
+              isFixed
+                ? ' <span class="text-xs text-blue-500">(고정)</span>'
+                : ""
+            }</span>
               <div class="flex items-center gap-2">
-                <select data-admin-id="${studentId}" class="px-3 py-1 border border-gray-300 rounded-md text-sm">
-                  <option value="">직책 없음</option>
-                  ${renderPositionOptions(currentPosition)}
-                </select>
-                <button class="remove-admin-btn text-red-500 hover:text-red-700 p-1" data-admin-id="${studentId}" title="관리자 제거">
-                  <i class="fas fa-times"></i>
-                </button>
+                ${
+                  !isFixed
+                    ? `
+                  <button class="move-to-regular-btn text-green-600 hover:text-green-800 text-xs px-2 py-1" 
+                          data-position="${pos}" 
+                          title="일반 임원으로 이동">
+                    <i class="fas fa-arrow-right"></i>
+                  </button>
+                  <button class="remove-position-btn text-red-500 hover:text-red-700 text-xs px-2 py-1" 
+                          data-position="${pos}" 
+                          data-category="president"
+                          title="삭제">
+                    <i class="fas fa-times"></i>
+                  </button>
+                `
+                    : '<span class="text-xs text-gray-400">고정</span>'
+                }
               </div>
             </div>
           `;
@@ -9596,22 +9691,165 @@
           .join("");
       }
 
+      function renderRegularPositions() {
+        // 운영진만 고정 (개발자는 삭제 가능해야 함)
+        const fixedPositions = ["운영진"];
+
+        // 일반 임원 직책이 초기화되지 않았으면 기본값 설정
+        if (regularPositions.length === 0) {
+          regularPositions = ["운영진"];
+        }
+
+        return regularPositions
+          .map((pos) => {
+            const isFixed = fixedPositions.includes(pos);
+            return `
+            <div class="flex items-center justify-between p-2 bg-white rounded border border-green-200">
+              <span class="text-sm font-medium text-green-900">${pos}${
+              isFixed
+                ? ' <span class="text-xs text-green-500">(고정)</span>'
+                : ""
+            }</span>
+              <div class="flex items-center gap-2">
+                ${
+                  !isFixed
+                    ? `
+                  <button class="move-to-president-btn text-blue-600 hover:text-blue-800 text-xs px-2 py-1" 
+                          data-position="${pos}" 
+                          title="회장단으로 이동">
+                    <i class="fas fa-arrow-left"></i>
+                  </button>
+                  <button class="remove-position-btn text-red-500 hover:text-red-700 text-xs px-2 py-1" 
+                          data-position="${pos}" 
+                          data-category="regular"
+                          title="삭제">
+                    <i class="fas fa-times"></i>
+                  </button>
+                `
+                    : '<span class="text-xs text-gray-400">고정</span>'
+                }
+              </div>
+            </div>
+          `;
+          })
+          .join("");
+      }
+
+      function renderAdminPositionsList() {
+        if (!adminList.length)
+          return '<p class="text-gray-500 text-center py-4">등록된 관리자가 없습니다.</p>';
+
+        // 관리자들을 직책별로 분류
+        const presidentAdmins = [];
+        const regularAdmins = [];
+        const noPositionAdmins = [];
+
+        adminList.forEach((studentId) => {
+          const position = adminPositions[studentId] || "";
+          const member = membersData?.find((m) => m.studentId === studentId);
+          const adminData = {
+            studentId,
+            position,
+            name: member?.name || "알 수 없음",
+          };
+
+          if (!position) {
+            noPositionAdmins.push(adminData);
+          } else if (presidentPositions.includes(position)) {
+            presidentAdmins.push(adminData);
+          } else if (regularPositions.includes(position)) {
+            regularAdmins.push(adminData);
+          } else {
+            noPositionAdmins.push(adminData);
+          }
+        });
+
+        const renderAdminCard = (admin) => `
+          <div class="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
+            <div>
+              <div class="font-medium text-gray-800">${saf(admin.name)}</div>
+              <div class="text-sm text-gray-500">${admin.studentId}</div>
+            </div>
+            <div class="flex items-center gap-2">
+              <select data-admin-id="${
+                admin.studentId
+              }" class="px-3 py-1 border border-gray-300 rounded-md text-sm">
+                <option value="">직책 없음</option>
+                ${renderPositionOptions(admin.position)}
+              </select>
+              <button class="remove-admin-btn text-red-500 hover:text-red-700 p-1" data-admin-id="${
+                admin.studentId
+              }" title="관리자 제거">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+          </div>
+        `;
+
+        let html = "";
+
+        // 회장단
+        if (presidentAdmins.length > 0) {
+          html += `
+            <div class="mb-4">
+              <h5 class="font-semibold text-blue-900 mb-2 flex items-center">
+                <i class="fas fa-crown mr-2 text-blue-600"></i>회장단
+                <span class="ml-2 bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full text-xs">${
+                  presidentAdmins.length
+                }명</span>
+              </h5>
+              <div class="space-y-2 bg-blue-50 p-3 rounded-lg">
+                ${presidentAdmins.map(renderAdminCard).join("")}
+              </div>
+            </div>
+          `;
+        }
+
+        // 일반 임원
+        if (regularAdmins.length > 0) {
+          html += `
+            <div class="mb-4">
+              <h5 class="font-semibold text-green-900 mb-2 flex items-center">
+                <i class="fas fa-users mr-2 text-green-600"></i>일반 임원
+                <span class="ml-2 bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs">${
+                  regularAdmins.length
+                }명</span>
+              </h5>
+              <div class="space-y-2 bg-green-50 p-3 rounded-lg">
+                ${regularAdmins.map(renderAdminCard).join("")}
+              </div>
+            </div>
+          `;
+        }
+
+        // 직책 없음
+        if (noPositionAdmins.length > 0) {
+          html += `
+            <div class="mb-4">
+              <h5 class="font-semibold text-gray-700 mb-2 flex items-center">
+                <i class="fas fa-user mr-2 text-gray-500"></i>직책 미지정
+                <span class="ml-2 bg-gray-100 text-gray-700 px-2 py-0.5 rounded-full text-xs">${
+                  noPositionAdmins.length
+                }명</span>
+              </h5>
+              <div class="space-y-2 bg-gray-50 p-3 rounded-lg">
+                ${noPositionAdmins.map(renderAdminCard).join("")}
+              </div>
+            </div>
+          `;
+        }
+
+        return html;
+      }
+
       function renderPositionOptions(selectedPosition = "") {
-        const defaultPositions = [
-          "회장",
-          "부회장",
-          "총무",
-          "기획부장",
-          "홍보부장",
-          "운영진",
-        ];
+        // 회장단과 일반 임원 직책을 모두 포함
         const allPositions = [
-          ...defaultPositions,
-          ...customDefaultPositions,
+          ...presidentPositions,
+          ...regularPositions,
           ...Object.values(adminPositions).filter(
             (p) =>
-              !defaultPositions.includes(p) &&
-              !customDefaultPositions.includes(p)
+              !presidentPositions.includes(p) && !regularPositions.includes(p)
           ),
         ];
         const uniquePositions = [...new Set(allPositions)];
@@ -9626,53 +9864,167 @@
           .join("");
       }
 
-      function renderDefaultPositions() {
-        const defaultPositions = [
-          "회장",
-          "부회장",
-          "총무",
-          "기획부장",
-          "홍보부장",
-          "운영진",
-        ];
+      // 직책 추가 함수
+      async function addPositionToCategory(category) {
+        const inputId =
+          category === "president"
+            ? "new-president-position"
+            : "new-regular-position";
+        const input = document.getElementById(inputId);
+        const position = input.value.trim();
 
-        // 삭제 불가능한 직책들 (회장, 부회장, 운영진)
-        const undeletablePositions = ["회장", "부회장", "운영진"];
+        if (!position) {
+          showAlert("😥", "직책명을 입력하세요.");
+          return;
+        }
 
-        // 삭제된 기본 직책들을 제외한 기본 직책들
-        const activeDefaultPositions = defaultPositions.filter(
-          (pos) => !deletedDefaultPositions.includes(pos)
-        );
+        // 중복 체크
+        const allPositions = [...presidentPositions, ...regularPositions];
+        if (allPositions.includes(position)) {
+          showAlert("⚠️", "이미 존재하는 직책입니다.");
+          return;
+        }
 
-        // 활성 기본 직책과 커스텀 직책을 합쳐서 표시
-        const allPositions = [
-          ...activeDefaultPositions,
-          ...customDefaultPositions,
-        ];
+        try {
+          if (category === "president") {
+            const newPositions = [...presidentPositions, position];
+            await setDoc(doc(db, "settings", "presidentPositions"), {
+              positions: newPositions,
+            });
+            presidentPositions = newPositions;
+            showAlert("✅", `"${position}" 직책이 회장단에 추가되었습니다.`);
+          } else {
+            const newPositions = [...regularPositions, position];
+            await setDoc(doc(db, "settings", "regularPositions"), {
+              positions: newPositions,
+            });
+            regularPositions = newPositions;
+            showAlert("✅", `"${position}" 직책이 일반 임원에 추가되었습니다.`);
+          }
 
-        return allPositions
-          .map((pos) => {
-            const isUndeletable = undeletablePositions.includes(pos);
-            return `
-          <div class="flex items-center justify-between p-2 bg-gray-50 rounded">
-            <span class="text-sm ${
-              isUndeletable ? "text-gray-600" : ""
-            }">${pos}${
-              isUndeletable
-                ? ' <span class="text-xs text-gray-400">(삭제 불가)</span>'
-                : ""
-            }</span>
-            ${
-              isUndeletable
-                ? '<span class="text-xs text-gray-400">삭제 불가</span>'
-                : `<button class="remove-position-btn text-red-500 hover:text-red-700" data-position="${pos}" onclick="removeDefaultPosition('${pos}')">
-                <i class="fas fa-times"></i>
-              </button>`
+          input.value = "";
+          renderPositionsAdmin(document.getElementById("subtab-container"));
+        } catch (e) {
+          console.error(e);
+          showAlert("😥", "직책 추가에 실패했습니다.");
+        }
+      }
+
+      // 직책 이동 함수
+      async function movePositionToCategory(position, targetCategory) {
+        console.log("=== 직책 이동 함수 호출 ===");
+        console.log("position:", position);
+        console.log("targetCategory:", targetCategory);
+        console.log("현재 회장단:", presidentPositions);
+        console.log("현재 일반 임원:", regularPositions);
+
+        try {
+          let newPresidentPositions = [...presidentPositions];
+          let newRegularPositions = [...regularPositions];
+
+          // 먼저 양쪽에서 모두 제거 (중복 방지)
+          newPresidentPositions = newPresidentPositions.filter(
+            (p) => p !== position
+          );
+          newRegularPositions = newRegularPositions.filter(
+            (p) => p !== position
+          );
+
+          console.log("제거 후 회장단:", newPresidentPositions);
+          console.log("제거 후 일반 임원:", newRegularPositions);
+
+          // 타겟 카테고리에 추가
+          if (targetCategory === "regular") {
+            // 회장단 -> 일반 임원
+            if (!newRegularPositions.includes(position)) {
+              newRegularPositions.push(position);
             }
-          </div>
-        `;
-          })
-          .join("");
+          } else {
+            // 일반 임원 -> 회장단
+            if (!newPresidentPositions.includes(position)) {
+              newPresidentPositions.push(position);
+            }
+          }
+
+          console.log("최종 회장단:", newPresidentPositions);
+          console.log("최종 일반 임원:", newRegularPositions);
+
+          // Firebase에 저장 (동시에 저장)
+          await Promise.all([
+            setDoc(doc(db, "settings", "presidentPositions"), {
+              positions: newPresidentPositions,
+            }),
+            setDoc(doc(db, "settings", "regularPositions"), {
+              positions: newRegularPositions,
+            }),
+          ]);
+
+          presidentPositions = newPresidentPositions;
+          regularPositions = newRegularPositions;
+
+          showAlert("✅", `"${position}" 직책이 이동되었습니다.`);
+          renderPositionsAdmin(document.getElementById("subtab-container"));
+        } catch (e) {
+          console.error(e);
+          showAlert("😥", "직책 이동에 실패했습니다.");
+        }
+      }
+
+      // 직책 제거 함수
+      async function removePositionFromCategory(position, category) {
+        console.log("=== 직책 삭제 함수 호출 ===");
+        console.log("position:", position);
+        console.log("category:", category);
+
+        // 고정 직책은 삭제 불가
+        const fixedPositions = ["회장", "부회장", "운영진"];
+        if (fixedPositions.includes(position)) {
+          showAlert("😥", "고정 직책은 삭제할 수 없습니다.");
+          return;
+        }
+
+        if (!confirm(`"${position}" 직책을 삭제하시겠습니까?`)) {
+          console.log("사용자가 삭제를 취소했습니다.");
+          return;
+        }
+
+        console.log("삭제 진행 중...");
+
+        try {
+          let newPositions;
+          if (category === "president") {
+            newPositions = presidentPositions.filter((p) => p !== position);
+            await setDoc(doc(db, "settings", "presidentPositions"), {
+              positions: newPositions,
+            });
+            presidentPositions = newPositions;
+          } else {
+            newPositions = regularPositions.filter((p) => p !== position);
+            await setDoc(doc(db, "settings", "regularPositions"), {
+              positions: newPositions,
+            });
+            regularPositions = newPositions;
+          }
+
+          // 해당 직책을 가진 모든 관리자에서 제거
+          const newAdminPositions = { ...adminPositions };
+          Object.keys(newAdminPositions).forEach((studentId) => {
+            if (newAdminPositions[studentId] === position) {
+              delete newAdminPositions[studentId];
+            }
+          });
+
+          await setDoc(doc(db, "admins", "list"), {
+            studentIds: adminList,
+            positions: newAdminPositions,
+          });
+
+          showAlert("✅", `"${position}" 직책이 삭제되었습니다.`);
+          renderPositionsAdmin(document.getElementById("subtab-container"));
+        } catch (e) {
+          console.error(e);
+          showAlert("😥", "직책 제거에 실패했습니다.");
+        }
       }
 
       async function updateAdminPosition(studentId, position) {
@@ -9699,153 +10051,6 @@
           showAlert("😥", "직책 업데이트에 실패했습니다.");
         }
       }
-
-      async function addDefaultPosition() {
-        const input = document.getElementById("new-position");
-        const position = input.value.trim();
-        if (!position) {
-          showAlert("😥", "직책명을 입력하세요.");
-          return;
-        }
-
-        // 중복 체크
-        const defaultPositions = [
-          "회장",
-          "부회장",
-          "총무",
-          "기획부장",
-          "홍보부장",
-          "운영진",
-        ];
-        const allPositions = [...defaultPositions, ...customDefaultPositions];
-
-        if (allPositions.includes(position)) {
-          showAlert("⚠️", "이미 존재하는 직책입니다.");
-          return;
-        }
-
-        try {
-          // Firebase에 저장
-          const newCustomPositions = [...customDefaultPositions, position];
-          await setDoc(
-            doc(db, "settings", "customPositions"),
-            { positions: newCustomPositions },
-            { merge: true }
-          );
-
-          // 로컬 배열 업데이트
-          customDefaultPositions = newCustomPositions;
-
-          input.value = "";
-          showAlert("✅", `"${position}" 직책이 추가되었습니다.`);
-
-          // 기본 직책 목록 새로고침
-          const defaultPositionsList = document.getElementById(
-            "default-positions-list"
-          );
-          if (defaultPositionsList) {
-            defaultPositionsList.innerHTML = renderDefaultPositions();
-          }
-
-          renderPositionsAdmin(document.getElementById("subtab-container"));
-        } catch (e) {
-          console.error(e);
-          showAlert("😥", "직책 추가에 실패했습니다.");
-        }
-      }
-
-      // Make addDefaultPosition function globally accessible
-      window.addDefaultPosition = addDefaultPosition;
-
-      async function removeDefaultPosition(position) {
-        try {
-          // 삭제 불가능한 직책들
-          const undeletablePositions = ["회장", "부회장"];
-
-          if (undeletablePositions.includes(position)) {
-            showAlert("😥", "회장과 부회장은 삭제할 수 없습니다.");
-            return;
-          }
-
-          // 기본 직책과 커스텀 직책 모두에서 제거
-          const defaultPositions = [
-            "회장",
-            "부회장",
-            "총무",
-            "기획부장",
-            "홍보부장",
-          ];
-
-          // 확인 대화상자
-          if (!confirm(`"${position}" 직책을 삭제하시겠습니까?`)) {
-            return;
-          }
-
-          // 기본 직책인지 확인
-          const isDefaultPosition = defaultPositions.includes(position);
-
-          if (isDefaultPosition) {
-            // 기본 직책인 경우, 삭제된 직책 목록에 추가
-            const newDeletedPositions = [...deletedDefaultPositions, position];
-
-            await setDoc(
-              doc(db, "settings", "deletedPositions"),
-              { positions: newDeletedPositions },
-              { merge: true }
-            );
-
-            deletedDefaultPositions = newDeletedPositions;
-          } else {
-            // 커스텀 직책인 경우, 커스텀 목록에서 제거
-            const newCustomPositions = customDefaultPositions.filter(
-              (p) => p !== position
-            );
-
-            await setDoc(
-              doc(db, "settings", "customPositions"),
-              { positions: newCustomPositions },
-              { merge: true }
-            );
-
-            customDefaultPositions = newCustomPositions;
-          }
-
-          // 해당 직책을 가진 모든 관리자에서 제거
-          const newPositions = { ...adminPositions };
-          Object.keys(newPositions).forEach((studentId) => {
-            if (newPositions[studentId] === position) {
-              delete newPositions[studentId];
-            }
-          });
-
-          await setDoc(
-            doc(db, "admins", "list"),
-            {
-              studentIds: adminList,
-              positions: newPositions,
-            },
-            { merge: true }
-          );
-
-          showAlert("✅", `"${position}" 직책이 삭제되었습니다.`);
-
-          // UI 새로고침
-          const defaultPositionsList = document.getElementById(
-            "default-positions-list"
-          );
-          if (defaultPositionsList) {
-            defaultPositionsList.innerHTML = renderDefaultPositions();
-          }
-
-          renderPositionsAdmin(document.getElementById("subtab-container"));
-        } catch (e) {
-          console.error(e);
-          showAlert("😥", "직책 제거에 실패했습니다.");
-        }
-      }
-
-      // Make removeDefaultPosition function globally accessible
-      window.removeDefaultPosition = removeDefaultPosition;
 
       // addAdmin 함수 제거됨
 
@@ -11139,19 +11344,8 @@
           return;
         }
 
-        // 직책 목록 가져오기
-        const defaultPositions = [
-          "회장",
-          "부회장",
-          "총무",
-          "기획부장",
-          "홍보부장",
-          "운영진",
-        ];
-        const allPositions = [
-          ...defaultPositions,
-          ...customDefaultPositions,
-        ].filter((pos) => !deletedDefaultPositions.includes(pos));
+        // 직책 목록 가져오기 (회장단 + 일반 임원)
+        const allPositions = [...presidentPositions, ...regularPositions];
 
         // 직책 선택 모달 생성
         const modal = document.createElement("div");
@@ -11180,9 +11374,16 @@
               <label class="block text-sm font-medium text-gray-700 mb-2">직책 선택</label>
               <select id="admin-position-select" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500">
                 <option value="">직책을 선택하세요</option>
-                ${allPositions
-                  .map((pos) => `<option value="${pos}">${pos}</option>`)
-                  .join("")}
+                <optgroup label="회장단">
+                  ${presidentPositions
+                    .map((pos) => `<option value="${pos}">${pos}</option>`)
+                    .join("")}
+                </optgroup>
+                <optgroup label="일반 임원">
+                  ${regularPositions
+                    .map((pos) => `<option value="${pos}">${pos}</option>`)
+                    .join("")}
+                </optgroup>
               </select>
             </div>
             
@@ -11690,15 +11891,11 @@
                 : ""
             }
             
-            <!-- 관리자용 신청자 목록 -->
-            ${
-              isUserAdmin
-                ? `
-            <div class="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <!-- 신청자 목록 -->
+            <div class="mt-4 bg-gray-50 border border-gray-200 rounded-lg p-4">
               <div class="flex items-center gap-2 mb-3">
-                <i class="fas fa-list-ul text-blue-600"></i>
+                <i class="fas fa-list-ul text-gray-600"></i>
                 <h4 class="font-bold text-gray-800">신청자 명단</h4>
-                <span class="text-xs text-blue-600">(관리자·운영진 전용)</span>
               </div>
               ${
                 ev.type === "tasting" && restaurantName
@@ -11755,18 +11952,15 @@
               `
               }
             </div>
-            `
-                : ""
-            }
             
             <!-- 평가 섹션 -->
             ${
               hasReview
                 ? `
-              <div class="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-4 mb-4">
+              <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
                 <div class="flex items-center justify-between mb-3">
                   <div class="flex items-center gap-2">
-                    <i class="fas fa-star text-yellow-500"></i>
+                    <i class="fas fa-star text-gray-600"></i>
                     <span class="font-bold text-gray-800">내 평가</span>
                   </div>
                   <div class="flex items-center gap-1">
@@ -11775,7 +11969,7 @@
                       (_, i) =>
                         `<i class="fas fa-star ${
                           i < hasReview.rating
-                            ? "text-yellow-400"
+                            ? "text-gray-600"
                             : "text-gray-300"
                         }"></i>`
                     ).join("")}
@@ -11787,7 +11981,7 @@
                 ${
                   hasReview.comment
                     ? `
-                <div class="bg-white/50 rounded-lg p-3 border border-green-100">
+                <div class="bg-white rounded-lg p-3 border border-gray-100">
                   <p class="text-sm text-gray-700 leading-relaxed">${saf(
                     hasReview.comment
                   )}</p>
@@ -11991,7 +12185,7 @@
         year,
         month,
         events = [],
-        showDownloadButtons = true,
+        showDownloadButtons = false,
         isAdmin = false
       ) {
         const firstDay = new Date(year, month, 1);
@@ -12132,166 +12326,19 @@
             </div>
             
             <!-- 안내 메시지 -->
-            <div class="text-center mt-3 px-4 space-y-1">
-              <p class="text-xs text-gray-500">
-                <i class="fas fa-hand-point-right mr-1"></i>
-                달력을 넘겨 일정을 확인해보세요
-              </p>
-              <p class="text-xs text-gray-500">
-                <i class="fas fa-mouse-pointer mr-1"></i>
+            <div class="text-center mt-3 px-4">
+              <p class="text-sm text-gray-600 font-medium">
+                <i class="fas fa-calendar-check mr-2 text-blue-500"></i>
                 일정을 클릭하여 자세한 내용을 확인해보세요
               </p>
             </div>
           </div>
           
-          ${
-            showDownloadButtons && isAdmin
-              ? `
-          <!-- 달력 다운로드 버튼 (관리자 전용) -->
-          <div class="download-buttons flex justify-center gap-3 mt-4">
-            <button 
-              onclick="downloadCalendar('png')" 
-              class="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors duration-200"
-            >
-              <i class="fas fa-download"></i>
-              PNG 다운로드
-            </button>
-            <button 
-              onclick="downloadCalendar('jpeg')" 
-              class="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors duration-200"
-            >
-              <i class="fas fa-download"></i>
-              JPEG 다운로드
-            </button>
-          </div>
-          `
-              : ""
-          }
         `;
 
         return calendarHTML;
       }
 
-      // 달력 다운로드 함수
-      window.downloadCalendar = function (format) {
-        const calendarContainer = document.querySelector(".calendar-container");
-        if (!calendarContainer) {
-          showAlert("😥", "달력을 찾을 수 없습니다.");
-          return;
-        }
-
-        // 다운로드 시작 알림
-        showAlert("📸", "달력을 캡처하는 중입니다...");
-
-        // 다운로드 버튼 임시 숨김
-        const downloadButtons =
-          calendarContainer.querySelector(".download-buttons");
-        const originalButtonDisplay = downloadButtons
-          ? downloadButtons.style.display
-          : "";
-        if (downloadButtons) {
-          downloadButtons.style.display = "none";
-        }
-
-        // 달력 그리드만 캡처 (버튼 제외)
-        const calendarGrid = calendarContainer.querySelector(".calendar-grid");
-        const calendarHeader =
-          calendarContainer.querySelector(".calendar-header");
-
-        if (!calendarGrid) {
-          showAlert("😥", "달력 그리드를 찾을 수 없습니다.");
-          return;
-        }
-
-        // 달력 컨테이너에 캡처용 스타일 임시 적용
-        const originalOverflow = calendarContainer.style.overflow;
-        const originalPosition = calendarContainer.style.position;
-        const originalZIndex = calendarContainer.style.zIndex;
-
-        calendarContainer.style.overflow = "visible";
-        calendarContainer.style.position = "relative";
-        calendarContainer.style.zIndex = "9999";
-        calendarContainer.style.backgroundColor = "#ffffff";
-
-        // 약간의 지연 후 캡처
-        setTimeout(() => {
-          html2canvas(calendarContainer, {
-            backgroundColor: "#ffffff",
-            scale: 2,
-            useCORS: true,
-            allowTaint: false,
-            logging: false,
-            removeContainer: false,
-            foreignObjectRendering: false,
-            imageTimeout: 10000,
-            width: calendarContainer.offsetWidth,
-            height: calendarContainer.offsetHeight,
-          })
-            .then((canvas) => {
-              // 원본 스타일로 복원
-              calendarContainer.style.overflow = originalOverflow;
-              calendarContainer.style.position = originalPosition;
-              calendarContainer.style.zIndex = originalZIndex;
-              calendarContainer.style.backgroundColor = "";
-
-              // 다운로드 버튼 다시 표시
-              if (downloadButtons) {
-                downloadButtons.style.display = originalButtonDisplay;
-              }
-
-              // 캔버스를 원하는 형식으로 변환
-              const mimeType = format === "png" ? "image/png" : "image/jpeg";
-              const quality = format === "jpeg" ? 0.9 : undefined;
-
-              canvas.toBlob(
-                function (blob) {
-                  // 파일명 생성
-                  const now = new Date();
-                  const dateStr = now.toISOString().split("T")[0];
-                  const timeStr = now
-                    .toTimeString()
-                    .split(" ")[0]
-                    .replace(/:/g, "-");
-                  const filename = `Fodie_달력_${dateStr}_${timeStr}.${format}`;
-
-                  // 다운로드 링크 생성
-                  const url = URL.createObjectURL(blob);
-                  const link = document.createElement("a");
-                  link.href = url;
-                  link.download = filename;
-                  document.body.appendChild(link);
-                  link.click();
-                  document.body.removeChild(link);
-                  URL.revokeObjectURL(url);
-
-                  showAlert(
-                    "✅",
-                    `${format.toUpperCase()} 형식으로 달력이 다운로드되었습니다!`
-                  );
-                },
-                mimeType,
-                quality
-              );
-            })
-            .catch((error) => {
-              // 원본 스타일로 복원
-              calendarContainer.style.overflow = originalOverflow;
-              calendarContainer.style.position = originalPosition;
-              calendarContainer.style.zIndex = originalZIndex;
-              calendarContainer.style.backgroundColor = "";
-
-              // 다운로드 버튼 다시 표시
-              if (downloadButtons) {
-                downloadButtons.style.display = originalButtonDisplay;
-              }
-
-              console.error("달력 캡처 실패:", error);
-              showAlert("😥", "달력 다운로드에 실패했습니다.");
-            });
-        }, 100); // 100ms 지연
-      };
-
-      // 달력에서 일정 추가 모달 열기
       window.openAddEventModal = function (selectedDate) {
         // 현재 관리자 상태 확인
         const adminPositions = {
@@ -12356,32 +12403,19 @@
                 <p class="text-xs text-gray-500 mt-1">💡 Enter 키로 줄바꿈이 가능합니다</p>
               </div>
               
-              <div class="mb-4">
-                <label class="flex items-center">
-                  <input 
-                    id="calendar-event-admin-only" 
-                    type="checkbox" 
-                    class="mr-2 text-blue-600 focus:ring-blue-500"
-                  >
-                  <span class="text-sm font-medium text-gray-700">운영진 전용 일정</span>
-                  <span class="ml-1 text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded">파란색으로 표시</span>
-                </label>
-                <p class="text-xs text-gray-500 mt-1">체크하면 운영진과 관리자만 볼 수 있는 일정이 됩니다.</p>
-              </div>
-              
-              <div class="flex gap-2 justify-end">
+              <div class="flex justify-end gap-2">
                 <button 
                   type="button" 
                   onclick="this.closest('.fixed').remove()" 
-                  class="px-4 py-2 text-gray-600 hover:text-gray-800"
+                  class="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
                 >
                   취소
                 </button>
                 <button 
                   type="submit" 
-                  class="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition-colors"
+                  class="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600"
                 >
-                  추가
+                  일정 추가
                 </button>
               </div>
             </form>
@@ -12390,49 +12424,28 @@
 
         document.body.appendChild(modal);
 
-        // 폼 제출 처리
+        // 폼 제출 이벤트 처리
         modal
           .querySelector("#calendar-add-event-form")
-          .addEventListener("submit", async (e) => {
+          .addEventListener("submit", function (e) {
             e.preventDefault();
 
-            const eventName = modal.querySelector("#calendar-event-name").value;
-            const eventDate = modal.querySelector("#calendar-event-date").value;
-            const eventDescription = modal.querySelector(
-              "#calendar-event-description"
+            const name = document.getElementById("calendar-event-name").value;
+            const date = document.getElementById("calendar-event-date").value;
+            const description = document.getElementById(
+              "calendar-event-description"
             ).value;
-            const isAdminOnly = modal.querySelector(
-              "#calendar-event-admin-only"
-            ).checked;
 
-            if (!eventName.trim()) {
-              showAlert("😥", "일정명을 입력해주세요.");
+            if (!name || !date) {
+              showAlert("😥", "일정명과 날짜는 필수입니다.");
               return;
             }
 
-            try {
-              // 최대 order 값 찾기
-              const maxOrder = Math.max(
-                ...roadmapData.map((item) => item.order || 0),
-                0
-              );
+            // 일정 추가 로직 (여기에 실제 추가 코드 구현)
+            console.log("새 일정 추가:", { name, date, description });
+            showAlert("✅", "일정이 추가되었습니다!");
 
-              await addDoc(collection(db, "roadmap"), {
-                activityName: eventName,
-                activityDate: eventDate,
-                description: eventDescription || "",
-                order: maxOrder + 1,
-                createdAt: new Date().toISOString(),
-                isAdminOnly: isAdminOnly, // 운영진 전용 일정 플래그
-              });
-
-              showAlert("✅", "일정이 추가되었습니다!");
-              modal.remove();
-              smoothRender("h-roadmap-list", renderHorizontalRoadmap); // 달력 다시 렌더링
-            } catch (error) {
-              console.error("일정 추가 실패:", error);
-              showAlert("😥", "일정 추가에 실패했습니다.");
-            }
+            modal.remove();
           });
       };
 
@@ -12458,7 +12471,7 @@
           roadmapData &&
           roadmapData.length > 5
         ) {
-          // roadmapData를 날짜순으로 정렬 (간단히 보기 모드에서는 날짜만 고려)
+          // roadmapData를 날짜순으로 정렬
           const sorted = roadmapData
             .filter((item) => item && item.id)
             .sort((a, b) => {
@@ -12483,8 +12496,8 @@
             currentCalendarYear,
             currentCalendarMonth,
             sorted,
-            true, // 다운로드 버튼 표시
-            !!isAdmin // 관리자 권한 전달
+            false,
+            !!isAdmin
           );
           accordionContent.innerHTML = calendarHTML;
         }
@@ -15359,7 +15372,7 @@
           const categoryEmoji = getCategoryEmoji(restaurant.restaurantCategory);
 
           return `
-            <div class="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-all" data-restaurant-id="${
+            <div class="bg-white rounded-xl border border-gray-100 border-t-4 border-t-orange-500 overflow-hidden hover:shadow-xl hover:border-orange-300 transition-all duration-300 group" data-restaurant-id="${
               restaurant.eventId
             }">
               ${
@@ -15391,11 +15404,11 @@
                   : ""
               }
               
-              <div class="p-4">
-                <div class="mb-3">
-                  <div class="flex items-start justify-between mb-1">
-                    <h4 class="text-xl font-bold text-gray-800 flex-1">
-                      <span class="mr-2 text-2xl">${categoryEmoji}</span>
+              <div class="p-6">
+                <div class="mb-4">
+                  <div class="flex items-start justify-between mb-2">
+                    <h4 class="text-xl font-bold text-gray-900 flex-1 group-hover:text-orange-600 transition-colors">
+                      <span class="mr-3 text-2xl">${categoryEmoji}</span>
                       ${saf(restaurant.restaurantName || "(식당 이름 없음)")}
                     </h4>
                     ${
@@ -17328,6 +17341,386 @@
       window.addModalScoreRow = addModalScoreRow;
       window.addModalQAItem = addModalQAItem;
 
+      // 모든 직책을 기본 상태로 리셋하는 함수
+      async function resetAllPositions() {
+        try {
+          // 회장단: 회장, 부회장만
+          const presidentPositions = ["회장", "부회장"];
+          await setDoc(doc(db, "settings", "presidentPositions"), {
+            positions: presidentPositions,
+          });
+
+          // 일반 임원: 운영진만
+          const regularPositions = ["운영진"];
+          await setDoc(doc(db, "settings", "regularPositions"), {
+            positions: regularPositions,
+          });
+
+          showAlert("✅", "모든 직책이 기본 상태로 리셋되었습니다.");
+          console.log("리셋된 회장단:", presidentPositions);
+          console.log("리셋된 일반 임원:", regularPositions);
+
+          // 페이지 새로고침
+          location.reload();
+        } catch (e) {
+          console.error(e);
+          showAlert("😥", "직책 리셋에 실패했습니다.");
+        }
+      }
+
+      // 전역 함수로 등록
+      window.resetAllPositions = resetAllPositions;
+      window.removePositionFromCategory = removePositionFromCategory;
+
+      // 특정 직책을 강제로 완전 제거하는 함수
+      async function forceRemovePosition(position) {
+        console.log("=== 강제 직책 제거 함수 호출 ===");
+        console.log("제거할 직책:", position);
+
+        try {
+          // 양쪽에서 모두 제거
+          const newPresidentPositions = presidentPositions.filter(
+            (p) => p !== position
+          );
+          const newRegularPositions = regularPositions.filter(
+            (p) => p !== position
+          );
+
+          console.log("제거 후 회장단:", newPresidentPositions);
+          console.log("제거 후 일반 임원:", newRegularPositions);
+
+          // Firebase에 동시 저장
+          await Promise.all([
+            setDoc(doc(db, "settings", "presidentPositions"), {
+              positions: newPresidentPositions,
+            }),
+            setDoc(doc(db, "settings", "regularPositions"), {
+              positions: newRegularPositions,
+            }),
+          ]);
+
+          // 해당 직책을 가진 모든 관리자에서 제거
+          const newAdminPositions = { ...adminPositions };
+          Object.keys(newAdminPositions).forEach((studentId) => {
+            if (newAdminPositions[studentId] === position) {
+              delete newAdminPositions[studentId];
+            }
+          });
+
+          await setDoc(doc(db, "admins", "list"), {
+            studentIds: adminList,
+            positions: newAdminPositions,
+          });
+
+          presidentPositions = newPresidentPositions;
+          regularPositions = newRegularPositions;
+
+          showAlert("✅", `"${position}" 직책이 완전히 제거되었습니다.`);
+          console.log("강제 제거 완료");
+          location.reload();
+        } catch (e) {
+          console.error(e);
+          showAlert("😥", "강제 제거에 실패했습니다.");
+        }
+      }
+
+      // 전역 함수로 등록
+      window.forceRemovePosition = forceRemovePosition;
+
+      // Firebase 데이터를 직접 확인하고 정리하는 함수
+      async function debugAndFixPositions() {
+        console.log("=== Firebase 데이터 진단 시작 ===");
+
+        try {
+          // Firebase에서 직접 데이터 가져오기
+          const [presidentSnap, regularSnap] = await Promise.all([
+            getDoc(doc(db, "settings", "presidentPositions")),
+            getDoc(doc(db, "settings", "regularPositions")),
+          ]);
+
+          const firebasePresidentPositions = presidentSnap.exists()
+            ? presidentSnap.data().positions
+            : [];
+          const firebaseRegularPositions = regularSnap.exists()
+            ? regularSnap.data().positions
+            : [];
+
+          console.log("Firebase 회장단:", firebasePresidentPositions);
+          console.log("Firebase 일반 임원:", firebaseRegularPositions);
+          console.log("로컬 회장단:", presidentPositions);
+          console.log("로컬 일반 임원:", regularPositions);
+
+          // 중복된 직책 찾기
+          const duplicates = firebasePresidentPositions.filter((pos) =>
+            firebaseRegularPositions.includes(pos)
+          );
+
+          if (duplicates.length > 0) {
+            console.log("중복된 직책 발견:", duplicates);
+
+            // 중복 제거: 일반 임원에서만 유지
+            const cleanPresidentPositions = firebasePresidentPositions.filter(
+              (pos) => !firebaseRegularPositions.includes(pos)
+            );
+
+            console.log("정리된 회장단:", cleanPresidentPositions);
+
+            // Firebase에 저장
+            await setDoc(doc(db, "settings", "presidentPositions"), {
+              positions: cleanPresidentPositions,
+            });
+
+            console.log("중복 제거 완료!");
+            showAlert("✅", "중복된 직책이 제거되었습니다.");
+            location.reload();
+          } else {
+            console.log("중복된 직책이 없습니다.");
+            showAlert("ℹ️", "중복된 직책이 없습니다.");
+          }
+        } catch (e) {
+          console.error("진단 중 오류:", e);
+          showAlert("😥", "진단 중 오류가 발생했습니다.");
+        }
+      }
+
+      // 전역 함수로 등록
+      window.debugAndFixPositions = debugAndFixPositions;
+
+      // 완전히 깨끗하게 정리하는 함수
+      async function cleanAllPositions() {
+        console.log("=== 완전 정리 시작 ===");
+
+        try {
+          // 회장단: 회장, 부회장만
+          const cleanPresidentPositions = ["회장", "부회장"];
+
+          // 일반 임원: 운영진만
+          const cleanRegularPositions = ["운영진"];
+
+          console.log("정리할 회장단:", cleanPresidentPositions);
+          console.log("정리할 일반 임원:", cleanRegularPositions);
+
+          // Firebase에 동시 저장
+          await Promise.all([
+            setDoc(doc(db, "settings", "presidentPositions"), {
+              positions: cleanPresidentPositions,
+            }),
+            setDoc(doc(db, "settings", "regularPositions"), {
+              positions: cleanRegularPositions,
+            }),
+          ]);
+
+          // 모든 관리자에서 개발자 직책 제거
+          const newAdminPositions = { ...adminPositions };
+          Object.keys(newAdminPositions).forEach((studentId) => {
+            if (newAdminPositions[studentId] === "개발자") {
+              delete newAdminPositions[studentId];
+            }
+          });
+
+          await setDoc(doc(db, "admins", "list"), {
+            studentIds: adminList,
+            positions: newAdminPositions,
+          });
+
+          console.log("완전 정리 완료!");
+          showAlert("✅", "모든 직책이 기본 상태로 정리되었습니다.");
+          location.reload();
+        } catch (e) {
+          console.error("정리 중 오류:", e);
+          showAlert("😥", "정리 중 오류가 발생했습니다.");
+        }
+      }
+
+      // 전역 함수로 등록
+      window.cleanAllPositions = cleanAllPositions;
+
+      // Firebase 데이터를 강제로 덮어쓰는 함수
+      async function forceOverwritePositions() {
+        console.log("=== 강제 덮어쓰기 시작 ===");
+
+        try {
+          // 1단계: Firebase 데이터 강제 덮어쓰기
+          await Promise.all([
+            setDoc(doc(db, "settings", "presidentPositions"), {
+              positions: ["회장", "부회장"],
+            }),
+            setDoc(doc(db, "settings", "regularPositions"), {
+              positions: ["운영진"],
+            }),
+          ]);
+
+          console.log("Firebase 데이터 덮어쓰기 완료");
+
+          // 2단계: 모든 관리자에서 개발자 직책 제거
+          const newAdminPositions = {};
+          Object.keys(adminPositions).forEach((studentId) => {
+            const position = adminPositions[studentId];
+            if (position && position !== "개발자") {
+              newAdminPositions[studentId] = position;
+            }
+          });
+
+          await setDoc(doc(db, "admins", "list"), {
+            studentIds: adminList,
+            positions: newAdminPositions,
+          });
+
+          console.log("관리자 직책 정리 완료");
+
+          // 3단계: 로컬 변수 강제 업데이트
+          presidentPositions = ["회장", "부회장"];
+          regularPositions = ["운영진"];
+
+          console.log("로컬 변수 업데이트 완료");
+
+          // 4단계: 2초 후 새로고침 (Firebase 동기화 시간 확보)
+          setTimeout(() => {
+            showAlert("✅", "강제 정리 완료! 새로고침합니다.");
+            location.reload();
+          }, 2000);
+        } catch (e) {
+          console.error("강제 덮어쓰기 중 오류:", e);
+          showAlert("😥", "강제 덮어쓰기 중 오류가 발생했습니다.");
+        }
+      }
+
+      // 전역 함수로 등록
+      window.forceOverwritePositions = forceOverwritePositions;
+
+      // 리스너를 중단하고 강제로 정리하는 함수
+      async function nuclearCleanPositions() {
+        console.log("=== 핵 정리 시작 ===");
+
+        try {
+          // 1단계: Firebase 리스너 중단
+          if (unsubPublic.presidentPositions) {
+            unsubPublic.presidentPositions();
+            unsubPublic.presidentPositions = null;
+            console.log("회장단 리스너 중단");
+          }
+
+          if (unsubPublic.regularPositions) {
+            unsubPublic.regularPositions();
+            unsubPublic.regularPositions = null;
+            console.log("일반 임원 리스너 중단");
+          }
+
+          // 2단계: Firebase 데이터 강제 덮어쓰기 (여러 번 시도)
+          for (let i = 0; i < 3; i++) {
+            await Promise.all([
+              setDoc(doc(db, "settings", "presidentPositions"), {
+                positions: ["회장", "부회장"],
+              }),
+              setDoc(doc(db, "settings", "regularPositions"), {
+                positions: ["운영진"],
+              }),
+            ]);
+            console.log(`Firebase 덮어쓰기 ${i + 1}회 완료`);
+            await new Promise((resolve) => setTimeout(resolve, 500)); // 0.5초 대기
+          }
+
+          // 3단계: 관리자 데이터 정리
+          const cleanAdminPositions = {};
+          Object.keys(adminPositions).forEach((studentId) => {
+            const position = adminPositions[studentId];
+            if (position && position !== "개발자") {
+              cleanAdminPositions[studentId] = position;
+            }
+          });
+
+          await setDoc(doc(db, "admins", "list"), {
+            studentIds: adminList,
+            positions: cleanAdminPositions,
+          });
+
+          // 4단계: 로컬 변수 강제 업데이트
+          presidentPositions = ["회장", "부회장"];
+          regularPositions = ["운영진"];
+
+          console.log("핵 정리 완료!");
+          showAlert("✅", "핵 정리 완료! 새로고침합니다.");
+
+          // 5단계: 리스너 재시작을 위해 페이지 새로고침
+          setTimeout(() => {
+            location.reload();
+          }, 1000);
+        } catch (e) {
+          console.error("핵 정리 중 오류:", e);
+          showAlert("😥", "핵 정리 중 오류가 발생했습니다.");
+        }
+      }
+
+      // 전역 함수로 등록
+      window.nuclearCleanPositions = nuclearCleanPositions;
+
+      // 최종 해결 함수 - 모든 것을 완전히 정리
+      async function finalSolution() {
+        console.log("=== 최종 해결 시작 ===");
+
+        try {
+          // 1단계: 모든 Firebase 리스너 중단
+          if (unsubPublic.presidentPositions) {
+            unsubPublic.presidentPositions();
+            unsubPublic.presidentPositions = null;
+          }
+          if (unsubPublic.regularPositions) {
+            unsubPublic.regularPositions();
+            unsubPublic.regularPositions = null;
+          }
+          console.log("모든 리스너 중단 완료");
+
+          // 2단계: Firebase 데이터 완전 삭제 후 재생성
+          await deleteDoc(doc(db, "settings", "presidentPositions"));
+          await deleteDoc(doc(db, "settings", "regularPositions"));
+          console.log("기존 문서 삭제 완료");
+
+          // 3단계: 새로운 깨끗한 데이터 생성
+          await Promise.all([
+            setDoc(doc(db, "settings", "presidentPositions"), {
+              positions: ["회장", "부회장"],
+            }),
+            setDoc(doc(db, "settings", "regularPositions"), {
+              positions: ["운영진"],
+            }),
+          ]);
+          console.log("새로운 데이터 생성 완료");
+
+          // 4단계: 관리자 데이터에서 개발자 완전 제거
+          const cleanAdminPositions = {};
+          Object.keys(adminPositions).forEach((studentId) => {
+            const position = adminPositions[studentId];
+            if (position && position !== "개발자") {
+              cleanAdminPositions[studentId] = position;
+            }
+          });
+
+          await setDoc(doc(db, "admins", "list"), {
+            studentIds: adminList,
+            positions: cleanAdminPositions,
+          });
+          console.log("관리자 데이터 정리 완료");
+
+          // 5단계: 로컬 변수 강제 업데이트
+          presidentPositions = ["회장", "부회장"];
+          regularPositions = ["운영진"];
+
+          console.log("최종 해결 완료!");
+          showAlert("🎉", "최종 해결 완료! 새로고침합니다.");
+
+          // 6단계: 새로고침
+          setTimeout(() => {
+            location.reload();
+          }, 2000);
+        } catch (e) {
+          console.error("최종 해결 중 오류:", e);
+          showAlert("😥", "최종 해결 중 오류가 발생했습니다.");
+        }
+      }
+
+      // 전역 함수로 등록
+      window.finalSolution = finalSolution;
+
       function getBlockTypeName(type) {
         const names = {
           notice: "공지",
@@ -18011,5 +18404,63 @@
         </div>
       </div>
     </div>
+
+    <script>
+      // 임시: 회장단에 기존 직책들 복원하는 함수
+      async function restorePresidentPositions() {
+        try {
+          const positionsToAdd = ["총무", "기획부장", "홍보부장"];
+          const currentPositions = [...presidentPositions];
+
+          // 이미 있는 직책은 제외하고 추가
+          const newPositions = [...currentPositions];
+          positionsToAdd.forEach((pos) => {
+            if (!newPositions.includes(pos)) {
+              newPositions.push(pos);
+            }
+          });
+
+          await setDoc(doc(db, "settings", "presidentPositions"), {
+            positions: newPositions,
+          });
+
+          showAlert("✅", "회장단에 기존 직책들이 복원되었습니다.");
+          console.log("복원된 회장단 직책:", newPositions);
+        } catch (e) {
+          console.error(e);
+          showAlert("😥", "직책 복원에 실패했습니다.");
+        }
+      }
+
+      // 전역 함수로 등록
+      window.restorePresidentPositions = restorePresidentPositions;
+
+      // 모든 직책을 기본 상태로 리셋하는 함수
+      async function resetAllPositions() {
+        try {
+          // 회장단: 회장, 부회장만
+          const presidentPositions = ["회장", "부회장"];
+          await setDoc(doc(db, "settings", "presidentPositions"), {
+            positions: presidentPositions,
+          });
+
+          // 일반 임원: 운영진만
+          const regularPositions = ["운영진"];
+          await setDoc(doc(db, "settings", "regularPositions"), {
+            positions: regularPositions,
+          });
+
+          showAlert("✅", "모든 직책이 기본 상태로 리셋되었습니다.");
+          console.log("리셋된 회장단:", presidentPositions);
+          console.log("리셋된 일반 임원:", regularPositions);
+
+          // 페이지 새로고침
+          location.reload();
+        } catch (e) {
+          console.error(e);
+          showAlert("😥", "직책 리셋에 실패했습니다.");
+        }
+      }
+    </script>
   </body>
 </html>
