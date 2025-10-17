@@ -2958,7 +2958,7 @@
           const loadingScreen = document.getElementById("loading-screen");
           const loadingText = document.getElementById("loading-text");
           const progressBar = document.getElementById("progress-bar");
-          
+
           if (loadingScreen) {
             loadingScreen.classList.remove("hidden");
           }
@@ -2966,9 +2966,10 @@
           // 로딩바와 텍스트 직접 업데이트
           if (progressBar) {
             progressBar.style.width = "100%";
-            progressBar.style.transition = "width 0.8s cubic-bezier(0.4, 0, 0.2, 1)";
+            progressBar.style.transition =
+              "width 0.8s cubic-bezier(0.4, 0, 0.2, 1)";
           }
-          
+
           if (loadingText) {
             loadingText.textContent = "잘 먹었습니다!";
             loadingText.style.opacity = "1";
@@ -3633,6 +3634,14 @@
           el.signupBtn.title = openNow
             ? "회원가입 가능"
             : "현재는 회원가입 기간이 아닙니다.";
+          
+          // 버튼 텍스트 변경
+          const iconElement = el.signupBtn.querySelector('i');
+          if (openNow) {
+            el.signupBtn.innerHTML = '<i class="fas fa-user-plus mr-2"></i>회원가입';
+          } else {
+            el.signupBtn.innerHTML = '<i class="fas fa-user-times mr-2"></i>회원모집이 마감됐습니다.';
+          }
         }
         renderDuesInfoBox();
       }
