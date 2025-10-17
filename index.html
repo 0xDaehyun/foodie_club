@@ -1956,12 +1956,6 @@
             >
               <i class="fas fa-plus mr-1"></i>조모임 추가
             </button>
-            <button
-              id="rank-history-btn"
-              class="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600 transition-colors ml-2"
-            >
-              <i class="fas fa-history mr-1"></i>점수 변경 기록
-            </button>
           </div>
         </div>
         <div id="rank-list" class="space-y-2"></div>
@@ -3801,12 +3795,6 @@
               openGroupAddModal();
             });
 
-          document
-            .getElementById("rank-history-btn")
-            ?.addEventListener("click", () => {
-              // 점수 변경 기록 토글
-              toggleRankHistory();
-            });
 
           document
             .getElementById("rank-save-changes")
@@ -13441,22 +13429,19 @@
             });
           });
         }
-      }
 
-      // 점수 변경 기록 토글
-      function toggleRankHistory() {
+        // 회장단이면 자동으로 점수 변경 기록 표시
+        const isPresidentOrVice =
+          currentUser &&
+          (currentUser.position === "회장" ||
+            currentUser.position === "부회장");
+
         const historySection = document.getElementById("rank-history-section");
-        const historyBtn = document.getElementById("rank-history-btn");
-
-        if (historySection.classList.contains("hidden")) {
+        if (isPresidentOrVice && historySection) {
           historySection.classList.remove("hidden");
-          historyBtn.innerHTML =
-            '<i class="fas fa-eye-slash mr-1"></i>기록 숨기기';
           loadGroupScoreHistory();
-        } else {
+        } else if (historySection) {
           historySection.classList.add("hidden");
-          historyBtn.innerHTML =
-            '<i class="fas fa-history mr-1"></i>점수 변경 기록';
         }
       }
 
