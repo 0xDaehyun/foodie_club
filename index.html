@@ -2506,7 +2506,7 @@
         { name: "중식", emoji: "🥟" },
         { name: "양식", emoji: "🍝" },
         { name: "디저트", emoji: "🍰" },
-        { name: "기타", emoji: "🍽️" }
+        { name: "기타", emoji: "🍽️" },
       ]; // 미식회 카테고리 목록
       let roadmapShowAll = false;
       let presenceTimer = null;
@@ -3364,11 +3364,12 @@
             doc(db, "settings", "restaurantCategories"),
             async (snap) => {
               if (snap.exists()) {
-                restaurantCategories = snap.data().categories || restaurantCategories;
+                restaurantCategories =
+                  snap.data().categories || restaurantCategories;
               } else {
                 // 문서가 없으면 기본값으로 생성
                 await setDoc(doc(db, "settings", "restaurantCategories"), {
-                  categories: restaurantCategories
+                  categories: restaurantCategories,
                 });
               }
               if (__isInitialLoading) {
@@ -6631,11 +6632,15 @@
                 음식 종류 <span class="text-red-500">*</span>
               </label>
               <select data-field="category" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all text-base bg-white" required>
-                ${restaurantCategories.map(cat => `
+                ${restaurantCategories
+                  .map(
+                    (cat) => `
                   <option value="${cat.name}" ${
-                    category === cat.name ? "selected" : ""
-                  }>${cat.emoji} ${cat.name}</option>
-                `).join('')}
+                      category === cat.name ? "selected" : ""
+                    }>${cat.emoji} ${cat.name}</option>
+                `
+                  )
+                  .join("")}
               </select>
               <p class="text-xs text-gray-500 mt-1 pl-6">🏷️ 식당의 음식 종류를 선택해주세요</p>
             </div>
@@ -9546,9 +9551,6 @@
             <button class="subtab-btn px-3 py-1.5 rounded bg-gray-200" data-sub="positions">
               <i class="fas fa-user-tie mr-1"></i>임원 관리
             </button>
-            <button class="subtab-btn px-3 py-1.5 rounded bg-gray-200" data-sub="categories">
-              <i class="fas fa-tags mr-1"></i>카테고리 관리
-            </button>
             <button class="subtab-btn px-3 py-1.5 rounded bg-gray-200" data-sub="homeblocks">
               <i class="fas fa-house-chimney mr-1"></i>홈 블록·로드맵
             </button>
@@ -9594,177 +9596,10 @@
           renderPositionsAdmin(cont);
           return;
         }
-        if (name === "categories") {
-          renderCategoriesAdmin(cont);
-          return;
-        }
         if (name === "system") {
           renderSystemAdmin(cont);
           return;
         }
-      }
-
-      /* ===== 카테고리 관리 ===== */
-      function renderCategoriesAdmin(container) {
-        // 회장단 권한 확인
-        const isPresidentOrVice =
-          currentUser &&
-          (currentUser.position === "회장" ||
-            currentUser.position === "부회장");
-
-        if (!isPresidentOrVice) {
-          container.innerHTML = `
-            <div class="section">
-              <h3 class="text-xl font-bold text-gray-800 mb-4">카테고리 관리</h3>
-              <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                <p class="text-yellow-800">
-                  <i class="fas fa-lock mr-2"></i>
-                  이 기능은 회장 또는 부회장만 사용할 수 있습니다.
-                </p>
-              </div>
-            </div>
-          `;
-          return;
-        }
-
-        container.innerHTML = `
-          <div class="section">
-            <h3 class="text-xl font-bold text-gray-800 mb-4">미식회 카테고리 관리</h3>
-            <p class="text-sm text-gray-600 mb-4">
-              미식회 식당의 카테고리를 추가하거나 삭제할 수 있습니다.
-            </p>
-
-            <!-- 카테고리 추가 -->
-            <div class="mb-6 bg-gradient-to-r from-orange-50 to-orange-100 rounded-lg p-4 border-2 border-orange-200">
-              <h4 class="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                <i class="fas fa-plus-circle text-orange-600"></i>
-                새 카테고리 추가
-              </h4>
-              <div class="flex gap-2">
-                <input 
-                  id="new-category-name" 
-                  type="text" 
-                  placeholder="카테고리 이름 (예: 분식)"
-                  class="flex-1 px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all"
-                />
-                <input 
-                  id="new-category-emoji" 
-                  type="text" 
-                  placeholder="이모지 (예: 🍢)"
-                  class="w-24 px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all text-center"
-                  maxlength="2"
-                />
-                <button 
-                  id="add-category-btn"
-                  class="px-6 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-semibold transition-colors shadow-md hover:shadow-lg">
-                  <i class="fas fa-plus mr-1"></i>추가
-                </button>
-              </div>
-            </div>
-
-            <!-- 현재 카테고리 목록 -->
-            <div>
-              <h4 class="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                <i class="fas fa-list text-gray-600"></i>
-                현재 카테고리 목록
-                <span class="bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs ml-2">
-                  ${restaurantCategories.length}개
-                </span>
-              </h4>
-              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                ${restaurantCategories.map((cat, index) => `
-                  <div class="bg-white border-2 border-gray-200 rounded-lg p-4 flex items-center justify-between hover:border-orange-300 transition-all group">
-                    <div class="flex items-center gap-3">
-                      <span class="text-3xl">${cat.emoji}</span>
-                      <span class="font-semibold text-gray-800">${cat.name}</span>
-                    </div>
-                    <button 
-                      class="delete-category-btn opacity-0 group-hover:opacity-100 transition-opacity px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-sm font-semibold"
-                      data-index="${index}"
-                      data-name="${cat.name}">
-                      <i class="fas fa-trash"></i>
-                    </button>
-                  </div>
-                `).join('')}
-              </div>
-            </div>
-
-            <div class="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-              <p class="text-sm text-blue-800">
-                <i class="fas fa-info-circle mr-2"></i>
-                <strong>안내:</strong> 카테고리를 삭제해도 기존 식당의 카테고리 정보는 유지됩니다.
-              </p>
-            </div>
-          </div>
-        `;
-
-        // 카테고리 추가 버튼 이벤트
-        const addBtn = container.querySelector("#add-category-btn");
-        addBtn.addEventListener("click", async () => {
-          const nameInput = container.querySelector("#new-category-name");
-          const emojiInput = container.querySelector("#new-category-emoji");
-          const name = nameInput.value.trim();
-          const emoji = emojiInput.value.trim();
-
-          if (!name) {
-            showAlert("😥", "카테고리 이름을 입력해주세요.");
-            return;
-          }
-
-          if (!emoji) {
-            showAlert("😥", "이모지를 입력해주세요.");
-            return;
-          }
-
-          // 중복 체크
-          if (restaurantCategories.some(cat => cat.name === name)) {
-            showAlert("😥", "이미 존재하는 카테고리입니다.");
-            return;
-          }
-
-          try {
-            const newCategories = [...restaurantCategories, { name, emoji }];
-            await setDoc(doc(db, "settings", "restaurantCategories"), {
-              categories: newCategories
-            });
-            showAlert("✅", `${emoji} ${name} 카테고리가 추가되었습니다!`);
-            nameInput.value = "";
-            emojiInput.value = "";
-          } catch (error) {
-            console.error("카테고리 추가 오류:", error);
-            showAlert("😥", "카테고리 추가에 실패했습니다.");
-          }
-        });
-
-        // 카테고리 삭제 버튼 이벤트
-        container.addEventListener("click", async (e) => {
-          const btn = e.target.closest(".delete-category-btn");
-          if (!btn) return;
-
-          const index = parseInt(btn.dataset.index);
-          const name = btn.dataset.name;
-
-          if (!confirm(`"${name}" 카테고리를 삭제하시겠습니까?\n\n기존 식당의 카테고리 정보는 유지됩니다.`)) {
-            return;
-          }
-
-          try {
-            const newCategories = restaurantCategories.filter((_, i) => i !== index);
-            
-            if (newCategories.length === 0) {
-              showAlert("😥", "최소 1개의 카테고리는 필요합니다.");
-              return;
-            }
-
-            await setDoc(doc(db, "settings", "restaurantCategories"), {
-              categories: newCategories
-            });
-            showAlert("✅", `"${name}" 카테고리가 삭제되었습니다.`);
-          } catch (error) {
-            console.error("카테고리 삭제 오류:", error);
-            showAlert("😥", "카테고리 삭제에 실패했습니다.");
-          }
-        });
       }
 
       /* ===== 직책 관리 ===== */
@@ -15560,6 +15395,195 @@
         `;
       }
 
+      /* ===== 카테고리 관리 모달 ===== */
+      function openCategoryManagementModal() {
+        const modalHTML = `
+          <div id="category-management-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+              <!-- 헤더 -->
+              <div class="bg-gradient-to-r from-orange-500 to-orange-600 px-6 py-4 flex items-center justify-between">
+                <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                  <i class="fas fa-tags"></i>
+                  카테고리 관리
+                </h3>
+                <button id="close-category-modal" class="text-white hover:bg-white/20 rounded-full p-2 transition-colors">
+                  <i class="fas fa-times text-xl"></i>
+                </button>
+              </div>
+
+              <!-- 내용 -->
+              <div class="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
+                <!-- 카테고리 추가 -->
+                <div class="mb-6 bg-gradient-to-r from-orange-50 to-orange-100 rounded-lg p-4 border-2 border-orange-200">
+                  <h4 class="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                    <i class="fas fa-plus-circle text-orange-600"></i>
+                    새 카테고리 추가
+                  </h4>
+                  <div class="flex gap-2">
+                    <input 
+                      id="modal-category-name" 
+                      type="text" 
+                      placeholder="카테고리 이름 (예: 분식)"
+                      class="flex-1 px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all"
+                    />
+                    <input 
+                      id="modal-category-emoji" 
+                      type="text" 
+                      placeholder="🍢"
+                      class="w-20 px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all text-center text-xl"
+                      maxlength="2"
+                    />
+                    <button 
+                      id="modal-add-category-btn"
+                      class="px-6 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-semibold transition-colors shadow-md hover:shadow-lg whitespace-nowrap">
+                      <i class="fas fa-plus mr-1"></i>추가
+                    </button>
+                  </div>
+                </div>
+
+                <!-- 현재 카테고리 목록 -->
+                <div>
+                  <h4 class="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                    <i class="fas fa-list text-gray-600"></i>
+                    현재 카테고리 목록
+                    <span class="bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs ml-2">
+                      ${restaurantCategories.length}개
+                    </span>
+                  </h4>
+                  <div id="modal-categories-list" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    ${restaurantCategories
+                      .map(
+                        (cat, index) => `
+                      <div class="bg-white border-2 border-gray-200 rounded-lg p-4 flex items-center justify-between hover:border-orange-300 transition-all group">
+                        <div class="flex items-center gap-3">
+                          <span class="text-3xl">${cat.emoji}</span>
+                          <span class="font-semibold text-gray-800">${cat.name}</span>
+                        </div>
+                        <button 
+                          class="modal-delete-category-btn opacity-0 group-hover:opacity-100 transition-opacity px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-sm font-semibold"
+                          data-index="${index}"
+                          data-name="${cat.name}">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </div>
+                    `
+                      )
+                      .join("")}
+                  </div>
+                </div>
+
+                <div class="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                  <p class="text-sm text-blue-800">
+                    <i class="fas fa-info-circle mr-2"></i>
+                    <strong>안내:</strong> 카테고리를 삭제해도 기존 식당의 카테고리 정보는 유지됩니다.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        // 모달 추가
+        document.body.insertAdjacentHTML("beforeend", modalHTML);
+
+        const modal = document.getElementById("category-management-modal");
+        const closeBtn = document.getElementById("close-category-modal");
+        const addBtn = document.getElementById("modal-add-category-btn");
+        const nameInput = document.getElementById("modal-category-name");
+        const emojiInput = document.getElementById("modal-category-emoji");
+
+        // 닫기 버튼
+        closeBtn.addEventListener("click", () => {
+          modal.remove();
+        });
+
+        // 모달 외부 클릭 시 닫기
+        modal.addEventListener("click", (e) => {
+          if (e.target === modal) {
+            modal.remove();
+          }
+        });
+
+        // ESC 키로 닫기
+        const escHandler = (e) => {
+          if (e.key === "Escape") {
+            modal.remove();
+            document.removeEventListener("keydown", escHandler);
+          }
+        };
+        document.addEventListener("keydown", escHandler);
+
+        // 카테고리 추가
+        addBtn.addEventListener("click", async () => {
+          const name = nameInput.value.trim();
+          const emoji = emojiInput.value.trim();
+
+          if (!name) {
+            showAlert("😥", "카테고리 이름을 입력해주세요.");
+            return;
+          }
+
+          if (!emoji) {
+            showAlert("😥", "이모지를 입력해주세요.");
+            return;
+          }
+
+          if (restaurantCategories.some((cat) => cat.name === name)) {
+            showAlert("😥", "이미 존재하는 카테고리입니다.");
+            return;
+          }
+
+          try {
+            const newCategories = [...restaurantCategories, { name, emoji }];
+            await setDoc(doc(db, "settings", "restaurantCategories"), {
+              categories: newCategories,
+            });
+            showAlert("✅", `${emoji} ${name} 카테고리가 추가되었습니다!`);
+            modal.remove();
+          } catch (error) {
+            console.error("카테고리 추가 오류:", error);
+            showAlert("😥", "카테고리 추가에 실패했습니다.");
+          }
+        });
+
+        // 카테고리 삭제
+        modal.addEventListener("click", async (e) => {
+          const btn = e.target.closest(".modal-delete-category-btn");
+          if (!btn) return;
+
+          const index = parseInt(btn.dataset.index);
+          const name = btn.dataset.name;
+
+          if (
+            !confirm(
+              `"${name}" 카테고리를 삭제하시겠습니까?\n\n기존 식당의 카테고리 정보는 유지됩니다.`
+            )
+          ) {
+            return;
+          }
+
+          try {
+            const newCategories = restaurantCategories.filter(
+              (_, i) => i !== index
+            );
+
+            if (newCategories.length === 0) {
+              showAlert("😥", "최소 1개의 카테고리는 필요합니다.");
+              return;
+            }
+
+            await setDoc(doc(db, "settings", "restaurantCategories"), {
+              categories: newCategories,
+            });
+            showAlert("✅", `"${name}" 카테고리가 삭제되었습니다.`);
+            modal.remove();
+          } catch (error) {
+            console.error("카테고리 삭제 오류:", error);
+            showAlert("😥", "카테고리 삭제에 실패했습니다.");
+          }
+        });
+      }
+
       /* ===== 로드맵 탭 ===== */
       function renderRoadmapTab(isAdmin) {
         const c = document.getElementById("roadmap-tab");
@@ -15634,7 +15658,7 @@
 
         // 카테고리별 이모티콘 반환 함수 (동적으로 처리)
         const getCategoryEmoji = (category) => {
-          const cat = restaurantCategories.find(c => c.name === category);
+          const cat = restaurantCategories.find((c) => c.name === category);
           return cat ? cat.emoji : "🍽️";
         };
 
@@ -15737,16 +15761,24 @@
                         data-restaurant-name="${saf(
                           restaurant.restaurantName
                         )}">
-                        ${restaurantCategories.map(cat => `
+                        ${restaurantCategories
+                          .map(
+                            (cat) => `
                           <option value="${cat.name}" ${
-                            restaurant.restaurantCategory === cat.name ? "selected" : ""
-                          }>${cat.emoji} ${cat.name}</option>
-                        `).join('')}
+                              restaurant.restaurantCategory === cat.name
+                                ? "selected"
+                                : ""
+                            }>${cat.emoji} ${cat.name}</option>
+                        `
+                          )
+                          .join("")}
                       </select>
                     `
                         : `
                       <span class="inline-flex items-center px-2 py-1 bg-orange-100 text-orange-800 rounded-full text-xs font-semibold">
-                        ${getCategoryEmoji(restaurant.restaurantCategory)} ${restaurant.restaurantCategory || "기타"}
+                        ${getCategoryEmoji(restaurant.restaurantCategory)} ${
+                            restaurant.restaurantCategory || "기타"
+                          }
                       </span>
                     `
                     }
@@ -16001,13 +16033,33 @@
                 ? `
             <!-- 카테고리 필터 (동적 생성) -->
             <div class="mb-4">
+              <div class="flex items-center justify-between mb-3">
+                <h4 class="font-semibold text-gray-700 flex items-center gap-2">
+                  <i class="fas fa-filter text-orange-500"></i>
+                  카테고리 필터
+                </h4>
+                ${
+                  isAdmin
+                    ? `
+                <button 
+                  id="manage-categories-btn"
+                  class="px-3 py-1.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-lg text-sm font-semibold transition-all shadow hover:shadow-md flex items-center gap-2">
+                  <i class="fas fa-cog"></i>
+                  카테고리 관리
+                </button>
+                `
+                    : ""
+                }
+              </div>
               <div class="flex flex-wrap gap-2">
                 <button 
                   class="category-filter-btn px-4 py-2 rounded-lg font-semibold text-sm transition-all border-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white border-orange-600 shadow-md"
                   data-category="all">
                   🏠 전체 (${tastingRestaurants.length})
                 </button>
-                ${restaurantCategories.map(cat => `
+                ${restaurantCategories
+                  .map(
+                    (cat) => `
                   <button 
                     class="category-filter-btn px-4 py-2 rounded-lg font-semibold text-sm transition-all border-2 border-gray-300 bg-white text-gray-700 hover:border-orange-400 hover:bg-orange-50"
                     data-category="${cat.name}">
@@ -16017,7 +16069,9 @@
                       ).length
                     })
                   </button>
-                `).join('')}
+                `
+                  )
+                  .join("")}
               </div>
             </div>
             
@@ -16088,7 +16142,9 @@
             // 카테고리 필터링
             let filtered = tastingRestaurants;
             if (currentCategory !== "all") {
-              filtered = filtered.filter((r) => r.restaurantCategory === currentCategory);
+              filtered = filtered.filter(
+                (r) => r.restaurantCategory === currentCategory
+              );
             }
 
             // 검색 필터링
@@ -16176,6 +16232,14 @@
               performSearch();
             }
           });
+
+          // 카테고리 관리 버튼 이벤트 (관리자 전용)
+          const manageCategoriesBtn = document.getElementById("manage-categories-btn");
+          if (manageCategoriesBtn) {
+            manageCategoriesBtn.addEventListener("click", () => {
+              openCategoryManagementModal();
+            });
+          }
 
           // 카테고리 필터 버튼 이벤트
           categoryFilterBtns.forEach((btn) => {
