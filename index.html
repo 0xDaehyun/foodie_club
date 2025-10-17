@@ -1307,16 +1307,6 @@
         font-weight: 700;
       }
 
-      /* 자동 로그인 체크박스 스타일 */
-      #auto-login-checkbox:checked {
-        background-color: #ea580c;
-        border-color: #ea580c;
-      }
-
-      #auto-login-checkbox:checked ~ label {
-        color: #c2410c;
-        font-weight: 600;
-      }
       .h-pulse {
         animation: hblink 1.6s ease-out infinite;
       }
@@ -1766,25 +1756,17 @@
                 </p>
 
                 <!-- 자동 로그인 체크박스 -->
-                <div
-                  class="flex items-center justify-center space-x-2 bg-orange-50 border border-orange-200 rounded-lg p-3"
-                >
-                  <div class="relative">
-                    <input
-                      id="auto-login-checkbox"
-                      type="checkbox"
-                      class="w-5 h-5 text-orange-600 bg-white border-2 border-orange-300 rounded-md focus:ring-orange-500 focus:ring-2 transition-all duration-200 hover:border-orange-400"
-                    />
-                    <div
-                      class="absolute inset-0 rounded-md bg-gradient-to-r from-orange-400 to-orange-500 opacity-0 transition-opacity duration-200 pointer-events-none"
-                    ></div>
-                  </div>
+                <div class="flex items-center justify-center">
+                  <input
+                    id="auto-login-checkbox"
+                    type="checkbox"
+                    class="w-4 h-4 text-orange-600 bg-white border border-gray-300 rounded focus:ring-orange-500 focus:ring-2"
+                  />
                   <label
                     for="auto-login-checkbox"
-                    class="text-sm font-medium text-orange-700 cursor-pointer hover:text-orange-800 transition-colors duration-200"
+                    class="ml-2 text-sm text-gray-600 cursor-pointer hover:text-gray-800 transition-colors"
                   >
-                    <i class="fas fa-magic-wand-sparkles mr-1"></i>자동 로그인
-                    (영구 저장)
+                    자동 로그인
                   </label>
                 </div>
 
@@ -3634,13 +3616,15 @@
           el.signupBtn.title = openNow
             ? "회원가입 가능"
             : "현재는 회원가입 기간이 아닙니다.";
-          
+
           // 버튼 텍스트 변경
-          const iconElement = el.signupBtn.querySelector('i');
+          const iconElement = el.signupBtn.querySelector("i");
           if (openNow) {
-            el.signupBtn.innerHTML = '<i class="fas fa-user-plus mr-2"></i>회원가입';
+            el.signupBtn.innerHTML =
+              '<i class="fas fa-user-plus mr-2"></i>회원가입';
           } else {
-            el.signupBtn.innerHTML = '<i class="fas fa-user-times mr-2"></i>회원모집이 마감됐습니다.';
+            el.signupBtn.innerHTML =
+              '<i class="fas fa-user-times mr-2"></i>회원모집이 마감됐습니다.';
           }
         }
         renderDuesInfoBox();
