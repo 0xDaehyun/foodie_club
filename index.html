@@ -69,6 +69,24 @@
         }
       }
 
+      @keyframes bounce {
+        0%, 100% {
+          transform: scale(1) translateY(0);
+        }
+        50% {
+          transform: scale(1.1) translateY(-10px);
+        }
+      }
+
+      @keyframes pulse {
+        0%, 100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.05);
+        }
+      }
+
       /* 모바일 텍스트 잘림 방지 */
       * {
         word-wrap: break-word;
@@ -1786,14 +1804,12 @@
             >
               👥 접속 <b id="presence-count">0</b>명
             </button>
-            <!-- 미니게임 버튼 (개발 중) -->
+            <!-- 뭐먹지 버튼 -->
             <button
-              id="minigame-button"
-              class="text-sm md:text-base bg-gray-400 text-white rounded-full px-3 py-1 cursor-not-allowed opacity-60"
-              disabled
-              title="개발자가 게임을 수정 중입니다"
+              id="food-recommend-button"
+              class="text-sm md:text-base bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-full px-3 py-1 hover:from-orange-600 hover:to-red-600 shadow-md hover:shadow-lg transition-all"
             >
-              🔧 게임 수정 중
+              🍽️ 뭐먹지?
             </button>
             <!-- 조모임 순위(모두 보임) -->
             <button
@@ -2087,53 +2103,60 @@
       </div>
     </div>
 
-    <!-- Minigame Modal -->
+    <!-- 뭐먹지 Modal -->
     <div
-      id="minigame-modal"
+      id="food-recommend-modal"
       class="hidden fixed inset-0 bg-black/60 flex justify-center items-center px-4 z-50"
     >
       <div
-        class="bg-white p-6 md:p-7 rounded-2xl shadow-xl max-w-md w-full max-h-[80vh] overflow-y-auto"
+        class="bg-white p-6 md:p-7 rounded-2xl shadow-xl max-w-lg w-full"
       >
-        <h3 class="text-2xl font-bold text-gray-700 text-center mb-4">
-          🔧 게임 수정 중
+        <h3 class="text-3xl font-bold text-center mb-2">
+          <span class="bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent">
+            🍽️ 뭐먹지?
+          </span>
         </h3>
+        <p class="text-center text-gray-600 mb-6" id="meal-time-category">
+          <!-- 시간대별 카테고리가 여기 표시됩니다 -->
+        </p>
 
-        <div class="text-center py-12">
-          <div
-            class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gray-100 mb-4"
-          >
-            <i class="fas fa-tools text-4xl text-gray-400"></i>
-          </div>
-          <h4 class="text-xl font-bold text-gray-800 mb-2">
-            개발자가 게임을 수정 중입니다
-          </h4>
-          <p class="text-gray-600 mb-6">
-            더 나은 게임 경험을 위해 업데이트하고 있습니다.<br />곧 다시 만나요!
-            🚀
-          </p>
-
-          <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-            <div class="flex items-center gap-2 mb-2">
-              <i class="fas fa-info-circle text-blue-600"></i>
-              <span class="font-semibold text-blue-800"
-                >업데이트 예정 기능</span
-              >
+        <!-- 슬롯머신 디스플레이 -->
+        <div class="mb-6">
+          <div class="bg-gradient-to-br from-orange-50 to-red-50 rounded-2xl p-8 border-4 border-orange-300 shadow-inner">
+            <div id="slot-display" class="text-center">
+              <div class="text-5xl mb-2" id="slot-emoji">🍽️</div>
+              <div class="text-3xl font-bold text-gray-800 min-h-[45px] flex items-center justify-center" id="slot-text">
+                메뉴 정하기를 눌러주세요!
+              </div>
             </div>
-            <ul class="text-sm text-blue-700 space-y-1 text-left">
-              <li>• 새로운 게임 모드 추가</li>
-              <li>• 더 부드러운 게임 플레이</li>
-              <li>• 개선된 랭킹 시스템</li>
-              <li>• 모바일 최적화</li>
-            </ul>
           </div>
+        </div>
 
+        <!-- 버튼 영역 -->
+        <div class="flex gap-3">
           <button
-            id="minigame-close"
-            class="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors font-medium"
+            id="start-slot-btn"
+            class="flex-1 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold py-4 px-6 rounded-xl transition-all shadow-lg hover:shadow-xl text-lg"
           >
-            <i class="fas fa-times mr-2"></i>닫기
+            <i class="fas fa-play mr-2"></i>메뉴 정하기
           </button>
+          <button
+            id="food-recommend-close"
+            class="px-6 py-4 bg-gray-200 text-gray-700 hover:bg-gray-300 rounded-xl transition-colors font-medium"
+          >
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <!-- 메뉴 히스토리 -->
+        <div class="mt-6 pt-6 border-t border-gray-200">
+          <h4 class="text-sm font-semibold text-gray-600 mb-3 flex items-center gap-2">
+            <i class="fas fa-history"></i>
+            최근 추천 메뉴
+          </h4>
+          <div id="menu-history" class="flex flex-wrap gap-2">
+            <!-- 최근 메뉴들이 여기 표시됩니다 -->
+          </div>
         </div>
       </div>
     </div>
@@ -4348,14 +4371,12 @@
               renderRankList();
             });
           }
-          const minigameBtnDup = document.getElementById(
-            "minigame-button-duplicate"
+          const foodRecommendBtnDup = document.getElementById(
+            "food-recommend-button-duplicate"
           );
-          if (minigameBtnDup) {
-            minigameBtnDup.addEventListener("click", () => {
-              document
-                .getElementById("minigame-modal")
-                .classList.remove("hidden");
+          if (foodRecommendBtnDup) {
+            foodRecommendBtnDup.addEventListener("click", () => {
+              openFoodRecommendModal();
             });
           }
 
@@ -4376,11 +4397,9 @@
                 renderRankList();
               });
             document
-              .getElementById("minigame-button")
+              .getElementById("food-recommend-button")
               .addEventListener("click", () => {
-                document
-                  .getElementById("minigame-modal")
-                  .classList.remove("hidden");
+                openFoodRecommendModal();
               });
           }
           document
@@ -4405,9 +4424,16 @@
             });
 
           document
-            .getElementById("minigame-close")
+            .getElementById("food-recommend-close")
             .addEventListener("click", () => {
-              document.getElementById("minigame-modal").classList.add("hidden");
+              document.getElementById("food-recommend-modal").classList.add("hidden");
+            });
+          
+          // 메뉴 정하기 버튼
+          document
+            .getElementById("start-slot-btn")
+            .addEventListener("click", () => {
+              startSlotMachine();
             });
           document
             .getElementById("h-roadmap-toggle-btn")
@@ -4480,11 +4506,9 @@
                 renderRankList();
               });
             document
-              .getElementById("minigame-button")
+              .getElementById("food-recommend-button")
               .addEventListener("click", () => {
-                document
-                  .getElementById("minigame-modal")
-                  .classList.remove("hidden");
+                openFoodRecommendModal();
               });
           }
           document
@@ -4493,9 +4517,16 @@
               document.getElementById("rank-modal").classList.add("hidden");
             });
           document
-            .getElementById("minigame-close")
+            .getElementById("food-recommend-close")
             .addEventListener("click", () => {
-              document.getElementById("minigame-modal").classList.add("hidden");
+              document.getElementById("food-recommend-modal").classList.add("hidden");
+            });
+          
+          // 메뉴 정하기 버튼
+          document
+            .getElementById("start-slot-btn")
+            .addEventListener("click", () => {
+              startSlotMachine();
             });
         }
       }
@@ -15782,7 +15813,215 @@
         }
       }
 
-      /* ===== 미니게임 ===== */
+      /* ===== 뭐먹지? 메뉴 추천 ===== */
+      
+      // 메뉴 데이터베이스
+      const menuDatabase = {
+        breakfast: [ // 아침 메뉴 (4시~10시)
+          { name: "토스트", emoji: "🍞" },
+          { name: "샌드위치", emoji: "🥪" },
+          { name: "김밥", emoji: "🍙" },
+          { name: "죽", emoji: "🥣" },
+          { name: "시리얼", emoji: "🥣" },
+          { name: "베이글", emoji: "🥯" },
+          { name: "크루아상", emoji: "🥐" },
+          { name: "팬케이크", emoji: "🥞" },
+          { name: "와플", emoji: "🧇" },
+          { name: "계란요리", emoji: "🍳" }
+        ],
+        lunch: [ // 점심 메뉴 (10시~14시)
+          { name: "김치찌개", emoji: "🍲" },
+          { name: "된장찌개", emoji: "🍲" },
+          { name: "삼겹살", emoji: "🥓" },
+          { name: "불고기", emoji: "🥩" },
+          { name: "비빔밥", emoji: "🍚" },
+          { name: "냉면", emoji: "🍜" },
+          { name: "짜장면", emoji: "🍝" },
+          { name: "짬뽕", emoji: "🍜" },
+          { name: "돈까스", emoji: "🍛" },
+          { name: "햄버거", emoji: "🍔" },
+          { name: "피자", emoji: "🍕" },
+          { name: "파스타", emoji: "🍝" },
+          { name: "초밥", emoji: "🍣" },
+          { name: "라면", emoji: "🍜" },
+          { name: "국밥", emoji: "🍲" },
+          { name: "칼국수", emoji: "🍜" },
+          { name: "쌀국수", emoji: "🍜" },
+          { name: "닭갈비", emoji: "🍗" },
+          { name: "치킨", emoji: "🍗" },
+          { name: "족발", emoji: "🥓" }
+        ],
+        dinner: [ // 저녁 메뉴 (16시~21시)
+          { name: "삼겹살", emoji: "🥓" },
+          { name: "곱창", emoji: "🥘" },
+          { name: "족발", emoji: "🥓" },
+          { name: "치킨", emoji: "🍗" },
+          { name: "피자", emoji: "🍕" },
+          { name: "햄버거", emoji: "🍔" },
+          { name: "초밥", emoji: "🍣" },
+          { name: "회", emoji: "🐟" },
+          { name: "파스타", emoji: "🍝" },
+          { name: "스테이크", emoji: "🥩" },
+          { name: "김치찌개", emoji: "🍲" },
+          { name: "부대찌개", emoji: "🍲" },
+          { name: "해물찜", emoji: "🦞" },
+          { name: "찜닭", emoji: "🍗" },
+          { name: "양꼬치", emoji: "�串" },
+          { name: "마라탕", emoji: "🌶️" },
+          { name: "쌀국수", emoji: "🍜" },
+          { name: "라멘", emoji: "🍜" },
+          { name: "카레", emoji: "🍛" },
+          { name: "돈까스", emoji: "🍛" }
+        ]
+      };
+
+      let menuHistory = [];
+      let isSlotRunning = false;
+
+      // 시간대별 메뉴 카테고리 결정
+      function getMealTimeCategory() {
+        const hour = new Date().getHours();
+        
+        if (hour >= 4 && hour < 10) {
+          return { category: 'breakfast', label: '아메추 (아침 메뉴 추천)' };
+        } else if (hour >= 10 && hour < 14) {
+          return { category: 'lunch', label: '점메추 (점심 메뉴 추천)' };
+        } else if (hour >= 16 && hour < 21) {
+          return { category: 'dinner', label: '저메추 (저녁 메뉴 추천)' };
+        } else {
+          // 나머지 시간대는 전체 메뉴에서 랜덤
+          return { category: 'all', label: '메뉴 추천' };
+        }
+      }
+
+      // 메뉴 추천 모달 열기
+      function openFoodRecommendModal() {
+        const modal = document.getElementById('food-recommend-modal');
+        if (!modal) return;
+
+        modal.classList.remove('hidden');
+        
+        // 시간대별 카테고리 표시
+        const mealTime = getMealTimeCategory();
+        const categoryEl = document.getElementById('meal-time-category');
+        if (categoryEl) {
+          categoryEl.textContent = mealTime.label;
+        }
+
+        // 초기 상태로 리셋
+        const slotEmoji = document.getElementById('slot-emoji');
+        const slotText = document.getElementById('slot-text');
+        const startBtn = document.getElementById('start-slot-btn');
+        
+        if (slotEmoji) slotEmoji.textContent = '🍽️';
+        if (slotText) slotText.textContent = '메뉴 정하기를 눌러주세요!';
+        if (startBtn) {
+          startBtn.disabled = false;
+          startBtn.innerHTML = '<i class="fas fa-play mr-2"></i>메뉴 정하기';
+        }
+
+        // 히스토리 업데이트
+        updateMenuHistory();
+      }
+
+      // 슬롯머신 애니메이션
+      async function startSlotMachine() {
+        if (isSlotRunning) return;
+        
+        isSlotRunning = true;
+        const startBtn = document.getElementById('start-slot-btn');
+        const slotEmoji = document.getElementById('slot-emoji');
+        const slotText = document.getElementById('slot-text');
+
+        if (startBtn) {
+          startBtn.disabled = true;
+          startBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>메뉴 결정 중...';
+        }
+
+        // 메뉴 리스트 가져오기
+        const mealTime = getMealTimeCategory();
+        let menuList;
+        
+        if (mealTime.category === 'all') {
+          // 모든 메뉴 합치기
+          menuList = [...menuDatabase.breakfast, ...menuDatabase.lunch, ...menuDatabase.dinner];
+        } else {
+          menuList = menuDatabase[mealTime.category];
+        }
+
+        // 슬롯머신 애니메이션 (빠르게 메뉴 돌리기)
+        const animationDuration = 2000; // 2초
+        const intervalTime = 100; // 0.1초마다 변경
+        const startTime = Date.now();
+
+        const animation = setInterval(() => {
+          const randomMenu = menuList[Math.floor(Math.random() * menuList.length)];
+          if (slotEmoji) slotEmoji.textContent = randomMenu.emoji;
+          if (slotText) slotText.textContent = randomMenu.name;
+        }, intervalTime);
+
+        // 애니메이션 종료 후 최종 메뉴 선택
+        setTimeout(() => {
+          clearInterval(animation);
+          
+          // 최종 메뉴 선택
+          const finalMenu = menuList[Math.floor(Math.random() * menuList.length)];
+          if (slotEmoji) {
+            slotEmoji.textContent = finalMenu.emoji;
+            slotEmoji.style.animation = 'bounce 0.5s ease';
+          }
+          if (slotText) {
+            slotText.textContent = finalMenu.name;
+            slotText.style.animation = 'pulse 0.5s ease';
+          }
+
+          // 히스토리에 추가
+          addToMenuHistory(finalMenu);
+
+          // 버튼 상태 복원
+          if (startBtn) {
+            startBtn.disabled = false;
+            startBtn.innerHTML = '<i class="fas fa-redo mr-2"></i>다시 뽑기';
+          }
+
+          isSlotRunning = false;
+
+          // 애니메이션 클래스 제거
+          setTimeout(() => {
+            if (slotEmoji) slotEmoji.style.animation = '';
+            if (slotText) slotText.style.animation = '';
+          }, 500);
+        }, animationDuration);
+      }
+
+      // 메뉴 히스토리 추가
+      function addToMenuHistory(menu) {
+        menuHistory.unshift(menu);
+        if (menuHistory.length > 5) {
+          menuHistory = menuHistory.slice(0, 5);
+        }
+        updateMenuHistory();
+      }
+
+      // 메뉴 히스토리 업데이트
+      function updateMenuHistory() {
+        const historyEl = document.getElementById('menu-history');
+        if (!historyEl) return;
+
+        if (menuHistory.length === 0) {
+          historyEl.innerHTML = '<p class="text-sm text-gray-400">아직 추천받은 메뉴가 없습니다</p>';
+          return;
+        }
+
+        historyEl.innerHTML = menuHistory.map(menu => 
+          `<span class="inline-flex items-center gap-1 bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm">
+            <span>${menu.emoji}</span>
+            <span>${menu.name}</span>
+          </span>`
+        ).join('');
+      }
+
+      /* ===== 미니게임 (레거시 코드 - 사용 안 함) ===== */
       let currentGame = null;
       let gameState = {};
       let gameScores = {}; // 게임 점수 데이터
