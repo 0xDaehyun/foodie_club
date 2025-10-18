@@ -20543,13 +20543,30 @@
         }
 
         try {
-          await addDoc(collection(db, "events"), eventData);
-          showAlert("🎉", "이벤트가 성공적으로 생성되었습니다!");
+          // 수정 모드인지 확인 (editingEventId가 있는지 확인)
+          const isEditMode =
+            typeof editingEventId !== "undefined" && editingEventId;
+
+          if (isEditMode) {
+            // 수정 모드
+            await updateDoc(doc(db, "events", editingEventId), eventData);
+            showAlert("🎉", "이벤트가 성공적으로 수정되었습니다!");
+          } else {
+            // 생성 모드
+            await addDoc(collection(db, "events"), eventData);
+            showAlert("🎉", "이벤트가 성공적으로 생성되었습니다!");
+          }
+
           closeEventModal();
           renderAll();
         } catch (error) {
-          console.error("이벤트 생성 오류:", error);
-          showAlert("😥", "이벤트 생성에 실패했습니다.");
+          console.error("이벤트 저장 오류:", error);
+          showAlert(
+            "😥",
+            isEditMode
+              ? "이벤트 수정에 실패했습니다."
+              : "이벤트 생성에 실패했습니다."
+          );
         }
       }
 
