@@ -8961,12 +8961,14 @@
 
             // 즉시 실행
             const createLeaderSelectors = () => {
-              const leaderSelectors = document.getElementById("leader-selectors");
-              const groupCount = parseInt(document.getElementById("group-count")?.value) || 3;
-              
+              const leaderSelectors =
+                document.getElementById("leader-selectors");
+              const groupCount =
+                parseInt(document.getElementById("group-count")?.value) || 3;
+
               console.log("🔍 leader-selectors 요소:", leaderSelectors);
               console.log("🔍 조 개수:", groupCount);
-              
+
               if (leaderSelectors) {
                 let html = "";
                 for (let i = 1; i <= groupCount; i++) {
@@ -8979,15 +8981,18 @@
                         <label class="text-xs text-gray-500 font-medium">${i}조 조장</label>
                         <select class="leader-select w-full mt-1 px-3 py-2 border-2 border-gray-300 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition-all" data-group="${i}">
                           <option value="">👉 조장을 선택하세요</option>
-                          ${participants.map(p => 
-                            `<option value="${p.studentId}">${p.name} (${p.studentId}) - ${p.gender}/${p.college}</option>`
-                          ).join("")}
+                          ${participants
+                            .map(
+                              (p) =>
+                                `<option value="${p.studentId}">${p.name} (${p.studentId}) - ${p.gender}/${p.college}</option>`
+                            )
+                            .join("")}
                         </select>
                       </div>
                     </div>
                   `;
                 }
-                
+
                 leaderSelectors.innerHTML = html;
                 console.log("✅ 조장 선택기 즉시 생성 완료:", groupCount, "개");
                 console.log("🔍 생성된 HTML:", leaderSelectors.innerHTML);
@@ -8998,11 +9003,11 @@
 
             // 즉시 실행
             createLeaderSelectors();
-            
+
             // 지연 후 재실행 (안전장치)
             setTimeout(createLeaderSelectors, 100);
             setTimeout(createLeaderSelectors, 500);
-            
+
             updateLeaderSelectionVisibility();
             console.log("✅ 조장 선택기 초기화 완료");
 
@@ -13602,36 +13607,63 @@
                 : ev.applicants?.length || 0;
 
             return `<div class="section relative overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300">
-            <!-- 헤더 -->
-            <div class="flex items-start justify-between mb-4">
-              <div class="flex-1">
-                <div class="flex items-center gap-2 mb-2">
-                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${typeBadgeClass(
-                    ev.type
-                  )}">
-                    ${typeLabel(ev.type)}
-                  </span>
-                  ${
-                    isClosed
-                      ? '<span class="bg-green-100 text-green-800 px-2.5 py-0.5 rounded-full text-xs font-medium"><i class="fas fa-check-circle mr-1"></i>확정</span>'
-                      : ""
-                  }
-                  ${
-                    ev.activityStatus === "confirmed"
-                      ? '<span class="bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full text-xs font-medium"><i class="fas fa-thumbs-up mr-1"></i>활동 완료</span>'
-                      : ""
-                  }
-                  ${
-                    ev.activityStatus === "cancelled"
-                      ? '<span class="bg-red-100 text-red-800 px-2.5 py-0.5 rounded-full text-xs font-medium"><i class="fas fa-ban mr-1"></i>활동 취소</span>'
-                      : ""
-                  }
+            <!-- 아코디언 헤더 (항상 표시) -->
+            <div class="cursor-pointer" onclick="toggleActivityDetails('${ev.id}')">
+              <div class="flex items-center justify-between p-4">
+                <div class="flex items-center gap-3 flex-1">
+                  <!-- 이벤트 로고/아이콘 -->
+                  <div class="flex items-center justify-center w-12 h-12 rounded-xl ${typeBadgeClass(ev.type)}">
+                    <i class="fas ${ev.type === 'tasting' ? 'fa-utensils' : ev.type === 'mt' ? 'fa-mountain' : ev.type === 'meeting' ? 'fa-users' : 'fa-calendar'} text-white text-lg"></i>
+                  </div>
+                  
+                  <!-- 중요 정보 -->
+                  <div class="flex-1">
+                    <div class="flex items-center gap-2 mb-1">
+                      <h3 class="text-lg font-bold text-gray-800">${saf(ev.title || "(제목 없음)")}</h3>
+                      <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${typeBadgeClass(ev.type)}">
+                        ${typeLabel(ev.type)}
+                      </span>
+                    </div>
+                    
+                    <!-- 상태 및 일시 -->
+                    <div class="flex items-center gap-3 text-sm text-gray-600">
+                      <div class="flex items-center gap-1">
+                        <i class="fas fa-calendar text-orange-500"></i>
+                        <span>${new Date(ev.datetime).toLocaleDateString("ko-KR", { month: "short", day: "numeric" })}</span>
+                      </div>
+                      <div class="flex items-center gap-1">
+                        <i class="fas fa-clock text-blue-500"></i>
+                        <span>${new Date(ev.datetime).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })}</span>
+                      </div>
+                      ${
+                        isClosed
+                          ? '<span class="bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs font-medium"><i class="fas fa-check-circle mr-1"></i>확정</span>'
+                          : ""
+                      }
+                      ${
+                        ev.activityStatus === "confirmed"
+                          ? '<span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full text-xs font-medium"><i class="fas fa-thumbs-up mr-1"></i>완료</span>'
+                          : ""
+                      }
+                      ${
+                        ev.activityStatus === "cancelled"
+                          ? '<span class="bg-red-100 text-red-800 px-2 py-0.5 rounded-full text-xs font-medium"><i class="fas fa-ban mr-1"></i>취소</span>'
+                          : ""
+                      }
+                    </div>
+                  </div>
                 </div>
-                <h3 class="text-xl font-bold text-gray-800 mb-1">${saf(
-                  ev.title || "(제목 없음)"
-                )}</h3>
+                
+                <!-- 펼치기/접기 아이콘 -->
+                <div class="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors">
+                  <i class="fas fa-chevron-down text-gray-600 transition-transform duration-200" id="chevron-${ev.id}"></i>
+                </div>
               </div>
             </div>
+            
+            <!-- 아코디언 내용 (접혀있음) -->
+            <div class="hidden" id="details-${ev.id}">
+              <div class="px-4 pb-4 border-t border-gray-200">
             
             <!-- 이벤트 상세 정보 - PC에서 더 나은 레이아웃 -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
@@ -13923,6 +13955,8 @@
             `
                 : ""
             }
+              </div>
+            </div>
           </div>`;
           })
           .join("");
@@ -13947,6 +13981,22 @@
           </div>
           <div class="space-y-4">${eventCards}</div>
         `;
+        
+        // 아코디언 토글 함수 등록
+        window.toggleActivityDetails = function(eventId) {
+          const details = document.getElementById(`details-${eventId}`);
+          const chevron = document.getElementById(`chevron-${eventId}`);
+          
+          if (details && chevron) {
+            if (details.classList.contains('hidden')) {
+              details.classList.remove('hidden');
+              chevron.style.transform = 'rotate(180deg)';
+            } else {
+              details.classList.add('hidden');
+              chevron.style.transform = 'rotate(0deg)';
+            }
+          }
+        };
 
         // 평가 작성 이벤트 바인딩
         c.addEventListener("click", async (e) => {
