@@ -1786,12 +1786,14 @@
             >
               👥 접속 <b id="presence-count">0</b>명
             </button>
-            <!-- 미니게임 버튼 -->
+            <!-- 미니게임 버튼 (개발 중) -->
             <button
               id="minigame-button"
-              class="text-sm md:text-base bg-purple-500 text-white rounded-full px-3 py-1 hover:bg-purple-600"
+              class="text-sm md:text-base bg-gray-400 text-white rounded-full px-3 py-1 cursor-not-allowed opacity-60"
+              disabled
+              title="개발자가 게임을 수정 중입니다"
             >
-              🎮 미니게임
+              🔧 게임 수정 중
             </button>
             <!-- 조모임 순위(모두 보임) -->
             <button
@@ -2093,89 +2095,35 @@
       <div
         class="bg-white p-6 md:p-7 rounded-2xl shadow-xl max-w-md w-full max-h-[80vh] overflow-y-auto"
       >
-        <h3 class="text-2xl font-bold text-purple-700 text-center mb-4">
-          🎮 미니게임
+        <h3 class="text-2xl font-bold text-gray-700 text-center mb-4">
+          🔧 게임 수정 중
         </h3>
-
-        <!-- 게임 탭 -->
-        <div class="flex border-b border-gray-200 mb-4">
-          <button
-            id="games-tab-btn"
-            class="flex-1 py-2 px-4 text-center font-medium text-purple-600 border-b-2 border-purple-600"
-          >
-            게임하기
-          </button>
-          <button
-            id="ranking-tab-btn"
-            class="flex-1 py-2 px-4 text-center font-medium text-gray-500 hover:text-gray-700"
-          >
-            🏆 랭킹
-          </button>
-        </div>
-
-        <!-- 게임 선택 -->
-        <div id="game-selection" class="space-y-3">
-          <button
-            id="number-guess-btn"
-            class="w-full p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-          >
-            🔢 숫자 맞추기
-          </button>
-          <button
-            id="color-memory-btn"
-            class="w-full p-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
-          >
-            🎨 색깔 기억하기
-          </button>
-          <button
-            id="car-racing-btn"
-            class="w-full p-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-          >
-            🚗 자동차 레이싱
-          </button>
-          <button
-            id="ball-bounce-btn"
-            class="w-full p-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
-          >
-            ⚽ 공 튀기기
-          </button>
-        </div>
-
-        <!-- 랭킹 화면 -->
-        <div id="ranking-screen" class="hidden">
-          <div id="ranking-content" class="space-y-4">
-            <!-- 랭킹이 여기에 표시됩니다 -->
+        
+        <div class="text-center py-12">
+          <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gray-100 mb-4">
+            <i class="fas fa-tools text-4xl text-gray-400"></i>
           </div>
-        </div>
-
-        <!-- 게임 화면 -->
-        <div id="game-screen" class="hidden">
-          <div
-            id="game-content"
-            class="text-center min-h-[700px] md:min-h-[800px] flex flex-col justify-center"
-          ></div>
-          <div class="mt-6 flex gap-3 justify-center">
-            <button
-              id="game-back-btn"
-              class="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 text-lg font-semibold"
-            >
-              뒤로
-            </button>
-            <button
-              id="game-restart-btn"
-              class="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-lg font-semibold"
-            >
-              다시하기
-            </button>
+          <h4 class="text-xl font-bold text-gray-800 mb-2">개발자가 게임을 수정 중입니다</h4>
+          <p class="text-gray-600 mb-6">더 나은 게임 경험을 위해 업데이트하고 있습니다.<br>곧 다시 만나요! 🚀</p>
+          
+          <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <div class="flex items-center gap-2 mb-2">
+              <i class="fas fa-info-circle text-blue-600"></i>
+              <span class="font-semibold text-blue-800">업데이트 예정 기능</span>
+            </div>
+            <ul class="text-sm text-blue-700 space-y-1 text-left">
+              <li>• 새로운 게임 모드 추가</li>
+              <li>• 더 부드러운 게임 플레이</li>
+              <li>• 개선된 랭킹 시스템</li>
+              <li>• 모바일 최적화</li>
+            </ul>
           </div>
-        </div>
-
-        <div class="mt-4 text-right">
+          
           <button
             id="minigame-close"
-            class="px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300"
+            class="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors font-medium"
           >
-            닫기
+            <i class="fas fa-times mr-2"></i>닫기
           </button>
         </div>
       </div>
@@ -4399,7 +4347,6 @@
               document
                 .getElementById("minigame-modal")
                 .classList.remove("hidden");
-              showGameSelection();
             });
           }
 
@@ -4425,7 +4372,6 @@
                 document
                   .getElementById("minigame-modal")
                   .classList.remove("hidden");
-                showGameSelection();
               });
           }
           document
@@ -4530,7 +4476,6 @@
                 document
                   .getElementById("minigame-modal")
                   .classList.remove("hidden");
-                showGameSelection();
               });
           }
           document
@@ -13608,19 +13553,35 @@
 
             return `<div class="section relative overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300">
             <!-- 아코디언 헤더 (항상 표시) -->
-            <div class="cursor-pointer" onclick="toggleActivityDetails('${ev.id}')">
+            <div class="cursor-pointer" onclick="toggleActivityDetails('${
+              ev.id
+            }')">
               <div class="flex items-center justify-between p-4">
                 <div class="flex items-center gap-3 flex-1">
                   <!-- 이벤트 로고/아이콘 -->
-                  <div class="flex items-center justify-center w-12 h-12 rounded-xl ${typeBadgeClass(ev.type)}">
-                    <i class="fas ${ev.type === 'tasting' ? 'fa-utensils' : ev.type === 'mt' ? 'fa-mountain' : ev.type === 'meeting' ? 'fa-users' : 'fa-calendar'} text-white text-lg"></i>
+                  <div class="flex items-center justify-center w-12 h-12 rounded-xl ${typeBadgeClass(
+                    ev.type
+                  )}">
+                    <i class="fas ${
+                      ev.type === "tasting"
+                        ? "fa-utensils"
+                        : ev.type === "mt"
+                        ? "fa-mountain"
+                        : ev.type === "meeting"
+                        ? "fa-users"
+                        : "fa-calendar"
+                    } text-white text-lg"></i>
                   </div>
                   
                   <!-- 중요 정보 -->
                   <div class="flex-1">
                     <div class="flex items-center gap-2 mb-1">
-                      <h3 class="text-lg font-bold text-gray-800">${saf(ev.title || "(제목 없음)")}</h3>
-                      <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${typeBadgeClass(ev.type)}">
+                      <h3 class="text-lg font-bold text-gray-800">${saf(
+                        ev.title || "(제목 없음)"
+                      )}</h3>
+                      <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${typeBadgeClass(
+                        ev.type
+                      )}">
                         ${typeLabel(ev.type)}
                       </span>
                     </div>
@@ -13629,11 +13590,17 @@
                     <div class="flex items-center gap-3 text-sm text-gray-600">
                       <div class="flex items-center gap-1">
                         <i class="fas fa-calendar text-orange-500"></i>
-                        <span>${new Date(ev.datetime).toLocaleDateString("ko-KR", { month: "short", day: "numeric" })}</span>
+                        <span>${new Date(ev.datetime).toLocaleDateString(
+                          "ko-KR",
+                          { month: "short", day: "numeric" }
+                        )}</span>
                       </div>
                       <div class="flex items-center gap-1">
                         <i class="fas fa-clock text-blue-500"></i>
-                        <span>${new Date(ev.datetime).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })}</span>
+                        <span>${new Date(ev.datetime).toLocaleTimeString(
+                          "ko-KR",
+                          { hour: "2-digit", minute: "2-digit" }
+                        )}</span>
                       </div>
                       ${
                         isClosed
@@ -13656,7 +13623,9 @@
                 
                 <!-- 펼치기/접기 아이콘 -->
                 <div class="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors">
-                  <i class="fas fa-chevron-down text-gray-600 transition-transform duration-200" id="chevron-${ev.id}"></i>
+                  <i class="fas fa-chevron-down text-gray-600 transition-transform duration-200" id="chevron-${
+                    ev.id
+                  }"></i>
                 </div>
               </div>
             </div>
@@ -13981,19 +13950,19 @@
           </div>
           <div class="space-y-4">${eventCards}</div>
         `;
-        
+
         // 아코디언 토글 함수 등록
-        window.toggleActivityDetails = function(eventId) {
+        window.toggleActivityDetails = function (eventId) {
           const details = document.getElementById(`details-${eventId}`);
           const chevron = document.getElementById(`chevron-${eventId}`);
-          
+
           if (details && chevron) {
-            if (details.classList.contains('hidden')) {
-              details.classList.remove('hidden');
-              chevron.style.transform = 'rotate(180deg)';
+            if (details.classList.contains("hidden")) {
+              details.classList.remove("hidden");
+              chevron.style.transform = "rotate(180deg)";
             } else {
-              details.classList.add('hidden');
-              chevron.style.transform = 'rotate(0deg)';
+              details.classList.add("hidden");
+              chevron.style.transform = "rotate(0deg)";
             }
           }
         };
