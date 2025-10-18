@@ -125,6 +125,54 @@
         display: inline-block;
       }
 
+      /* 말풍선 버튼 스타일 */
+      .speech-bubble-btn {
+        position: relative;
+        background: linear-gradient(135deg, #ff9a56 0%, #ff6b6b 100%);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: bold;
+        box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 14px;
+      }
+
+      .speech-bubble-btn::after {
+        content: '';
+        position: absolute;
+        bottom: -8px;
+        left: 20px;
+        width: 0;
+        height: 0;
+        border-left: 8px solid transparent;
+        border-right: 8px solid transparent;
+        border-top: 8px solid #ff6b6b;
+        filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.1));
+      }
+
+      .speech-bubble-btn:hover {
+        transform: translateY(-2px) scale(1.05);
+        box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+      }
+
+      .speech-bubble-btn:active {
+        transform: translateY(0) scale(1);
+      }
+
+      @keyframes wiggle {
+        0%, 100% { transform: rotate(0deg); }
+        25% { transform: rotate(-5deg); }
+        75% { transform: rotate(5deg); }
+      }
+
+      .speech-bubble-btn:hover {
+        animation: wiggle 0.5s ease-in-out;
+      }
+
       /* 모바일 텍스트 잘림 방지 */
       * {
         word-wrap: break-word;
@@ -1783,6 +1831,14 @@
       <!-- 동아리 설명 -->
       <div class="club-description">전북대학교 맛집 탐방 동아리</div>
 
+      <!-- 뭐먹지 말풍선 버튼 -->
+      <div style="margin-bottom: 20px;">
+        <button class="speech-bubble-btn" id="loading-food-btn" disabled style="cursor: default; opacity: 0.9;">
+          <span style="font-size: 16px;">🍽️</span>
+          <span>오늘 <span id="meal-time-cube" class="inline-block font-bold">아침</span> 뭐먹지?</span>
+        </button>
+      </div>
+
       <!-- F👀die 로고 -->
       <div class="foodie-logo">F👀die</div>
 
@@ -1810,15 +1866,6 @@
           />
         </svg>
       </div>
-
-      <!-- 로딩 텍스트 -->
-      <p id="loading-text" class="text-lg font-medium text-orange-600">
-        오늘
-        <span id="meal-time-cube" class="inline-block font-bold text-orange-700"
-          >아침</span
-        >
-        뭐먹지? 🍽️
-      </p>
     </div>
 
     <div
@@ -4382,16 +4429,19 @@
           el.pre.classList.add("hidden");
           el.main.innerHTML = `
             <div class="mb-4 md:mb-6">
-              <div class="flex items-center justify-between mb-4">
-                            <p class="text-gray-700 text-lg md:text-xl font-medium"><span class="text-orange-600 font-bold text-4xl md:text-5xl">F👀die</span> <b id="userNameDisplay">${saf(
-                              currentUser.name
-                            )}</b>${getPositionSuffix()}님</p>
-                <button 
-                              id="food-recommend-button-main"
-                              class="text-sm md:text-base bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-full px-3 py-1 hover:from-orange-600 hover:to-red-600 shadow-md hover:shadow-lg transition-all"
-                            >
-                              🍽️ 뭐먹지?
+              <!-- 뭐먹지 말풍선 버튼 (상단 중앙) -->
+              <div class="text-center mb-3">
+                <button id="food-recommend-button-main" class="speech-bubble-btn">
+                  <span style="font-size: 16px;">🍽️</span>
+                  <span>뭐먹지?</span>
                 </button>
+              </div>
+
+              <div class="flex items-center justify-between mb-4">
+                <p class="text-gray-700 text-lg md:text-xl font-medium">
+                  <span class="text-orange-600 font-bold text-4xl md:text-5xl">F👀die</span> 
+                  <b id="userNameDisplay">${saf(currentUser.name)}</b>${getPositionSuffix()}님
+                </p>
               </div>
               
               <!-- 로그인 후 블록 표시 영역 (로드맵 위) -->
@@ -19589,18 +19639,17 @@
       // 로딩 애니메이션 시작
       function startLoadingAnimation() {
         loadingAnimationComplete = false;
-        
+
         // 로딩 시작할 때 한 번만 랜덤으로 시간대 선택
         const mealTimes = ["아침", "점심", "저녁", "간식"];
-        selectedMealTime = mealTimes[Math.floor(Math.random() * mealTimes.length)];
-        
-        // 즉시 선택된 시간대 표시
-        updateMealTimeCube();
-        
-        // 1.5초마다 같은 시간대를 애니메이션으로 반복 표시
-        mealTimeAnimationInterval = setInterval(() => {
-          updateMealTimeCube();
-        }, 1500);
+        selectedMealTime =
+          mealTimes[Math.floor(Math.random() * mealTimes.length)];
+
+        const cubeElement = document.getElementById("meal-time-cube");
+        if (cubeElement) {
+          // 애니메이션 없이 즉시 표시
+          cubeElement.textContent = selectedMealTime;
+        }
       }
 
       // 로딩 애니메이션 종료
