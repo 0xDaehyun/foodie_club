@@ -8940,11 +8940,21 @@
 
       // 조장 선택기 업데이트
       function updateLeaderSelectors(participants) {
-        const groupCount =
-          parseInt(document.getElementById("group-count").value) || 3;
+        console.log("🔄 조장 선택기 업데이트 시작", participants.length, "명");
+        const groupCountInput = document.getElementById("group-count");
         const container = document.getElementById("leader-selectors");
 
-        if (!container) return;
+        if (!groupCountInput) {
+          console.error("❌ group-count 요소를 찾을 수 없습니다");
+          return;
+        }
+        if (!container) {
+          console.error("❌ leader-selectors 요소를 찾을 수 없습니다");
+          return;
+        }
+
+        const groupCount = parseInt(groupCountInput.value) || 3;
+        console.log("📊 조장 선택기 생성할 조 개수:", groupCount);
 
         container.innerHTML = "";
 
@@ -8971,10 +8981,12 @@
           `;
           container.insertAdjacentHTML("beforeend", selectorHTML);
         }
+        console.log("✅ 조장 선택기 생성 완료:", groupCount, "개");
       }
 
       // 조장 선택 UI 표시/숨김
       function updateLeaderSelectionVisibility() {
+        console.log("👁️ 조장 선택 UI 표시/숨김 업데이트");
         const leaderSettingElement = document.querySelector(
           'input[name="leader-setting"]:checked'
         );
@@ -8982,14 +8994,24 @@
           "manual-leader-selection"
         );
 
-        if (!leaderSettingElement || !manualSelection) return;
+        if (!leaderSettingElement) {
+          console.error("❌ leader-setting 요소를 찾을 수 없습니다");
+          return;
+        }
+        if (!manualSelection) {
+          console.error("❌ manual-leader-selection 요소를 찾을 수 없습니다");
+          return;
+        }
 
         const leaderSetting = leaderSettingElement.value;
+        console.log("👑 현재 조장 설정 모드:", leaderSetting);
 
         if (leaderSetting === "manual") {
           manualSelection.style.display = "block";
+          console.log("✅ 수동 조장 선택 UI 표시");
         } else {
           manualSelection.style.display = "none";
+          console.log("✅ 수동 조장 선택 UI 숨김");
         }
       }
 
@@ -9021,6 +9043,11 @@
 
           const groupCount = parseInt(groupCountInput.value);
           console.log("📊 조 개수:", groupCount);
+          
+          if (!groupCount || groupCount < 1 || groupCount > participants.length) {
+            console.error("❌ 조 개수가 올바르지 않습니다:", groupCount);
+            return showAlert("😥", `조 개수를 1부터 ${participants.length} 사이로 설정해주세요.`);
+          }
 
           const genderRatioElement = document.querySelector(
             'input[name="gender-ratio"]:checked'
@@ -9051,22 +9078,20 @@
             : "none";
           console.log("👑 조장 설정:", leaderSetting);
 
-          if (groupCount < 1 || groupCount > participants.length) {
-            console.error("❌ 조 개수가 올바르지 않습니다:", groupCount);
-            return showAlert("😥", "조 개수를 올바르게 설정해주세요.");
-          }
-
           // 수동 조장 선택 정보 수집
           let manualLeaders = {};
           if (leaderSetting === "manual") {
-            document.querySelectorAll(".leader-select").forEach((select) => {
+            const leaderSelects = document.querySelectorAll(".leader-select");
+            console.log("👑 조장 선택기 개수:", leaderSelects.length);
+            leaderSelects.forEach((select) => {
               const groupNum = parseInt(select.dataset.group);
               const studentId = select.value;
               if (studentId) {
                 manualLeaders[groupNum] = studentId;
-                console.log(`👑 ${groupNum}조 조장:`, studentId);
+                console.log(`👑 ${groupNum}조 조장 선택:`, studentId);
               }
             });
+            console.log("👑 수동 선택된 조장 목록:", manualLeaders);
           }
 
           console.log("⚙️ 조 생성 알고리즘 실행 중...");
