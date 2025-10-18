@@ -20389,7 +20389,8 @@
         if (payHolder && !payHolder.value) payHolder.value = d.holder || "";
         if (payAmount && !payAmount.value) payAmount.value = d.amount || "";
         if (payNote && !payNote.value) {
-          payNote.value = (d.amount ? `회비 ${formatKRW(d.amount)} ` : "") + (d.note || "");
+          payNote.value =
+            (d.amount ? `회비 ${formatKRW(d.amount)} ` : "") + (d.note || "");
         }
       }
 
@@ -20862,6 +20863,16 @@
         if (payAmount) payAmount.value = p.amount || "";
         if (payNote) payNote.value = p.note || "";
 
+        // 회비 섹션 표시/숨김 처리
+        const paymentSection = document.getElementById("payment-section");
+        if (paymentSection) {
+          if (event.type === "mt" || event.type === "assembly") {
+            paymentSection.classList.remove("hidden");
+          } else {
+            paymentSection.classList.add("hidden");
+          }
+        }
+
         // 식당 정보 로드
         const wrap = document.getElementById("event-restaurants-wrap");
         if (wrap) {
@@ -20881,9 +20892,6 @@
             wrap.innerHTML = createRestaurantFieldHTML();
           }
         }
-
-        // 기존 onTypeChange는 새로운 모달 구조에서 사용되지 않음
-        // onTypeChange(event.type || "tasting");
       }
 
       /* ===== 평가 작성 기능 ===== */
