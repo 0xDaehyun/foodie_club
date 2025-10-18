@@ -8954,30 +8954,23 @@
               console.error("❌ 조장 설정 라디오 버튼을 찾을 수 없습니다");
             }
 
-            // 초기 조장 선택기 생성
-            console.log("🔧 초기 조장 선택기 생성 중...");
+            // 즉시 조장 선택기 강제 생성
+            console.log("🔧 조장 선택기 즉시 강제 생성 시작...");
             console.log("🔧 참가자 데이터:", participants);
             console.log("🔧 참가자 수:", participants.length);
 
-            // 강제로 조장 선택기 생성
-            setTimeout(() => {
-              console.log("⏰ 지연 후 조장 선택기 강제 생성 시도");
-              
+            // 즉시 실행
+            const createLeaderSelectors = () => {
               const leaderSelectors = document.getElementById("leader-selectors");
-              const manualSelection = document.getElementById("manual-leader-selection");
+              const groupCount = parseInt(document.getElementById("group-count")?.value) || 3;
               
               console.log("🔍 leader-selectors 요소:", leaderSelectors);
-              console.log("🔍 manual-leader-selection 요소:", manualSelection);
+              console.log("🔍 조 개수:", groupCount);
               
-              // 조장 선택기가 비어있으면 강제로 생성
-              if (!leaderSelectors || leaderSelectors.innerHTML.trim() === "") {
-                console.log("⚠️ 조장 선택기가 비어있음 - 강제 생성 시작");
-                
-                const groupCount = parseInt(document.getElementById("group-count")?.value) || 3;
-                let forcedHTML = "";
-                
+              if (leaderSelectors) {
+                let html = "";
                 for (let i = 1; i <= groupCount; i++) {
-                  forcedHTML += `
+                  html += `
                     <div class="flex items-center gap-3 bg-white rounded-lg p-3 border-2 border-gray-200 hover:border-yellow-300 transition-colors">
                       <div class="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-yellow-400 to-orange-400 rounded-full text-white font-bold">
                         ${i}
@@ -8986,27 +8979,30 @@
                         <label class="text-xs text-gray-500 font-medium">${i}조 조장</label>
                         <select class="leader-select w-full mt-1 px-3 py-2 border-2 border-gray-300 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition-all" data-group="${i}">
                           <option value="">👉 조장을 선택하세요</option>
-                          ${participants.length > 0 ? participants.map(p => 
+                          ${participants.map(p => 
                             `<option value="${p.studentId}">${p.name} (${p.studentId}) - ${p.gender}/${p.college}</option>`
-                          ).join("") : '<option value="">참가자가 없습니다</option>'}
+                          ).join("")}
                         </select>
                       </div>
                     </div>
                   `;
                 }
                 
-                if (leaderSelectors) {
-                  leaderSelectors.innerHTML = forcedHTML;
-                  console.log("✅ 강제로 조장 선택기 생성 완료:", groupCount, "개");
-                }
+                leaderSelectors.innerHTML = html;
+                console.log("✅ 조장 선택기 즉시 생성 완료:", groupCount, "개");
+                console.log("🔍 생성된 HTML:", leaderSelectors.innerHTML);
+              } else {
+                console.error("❌ leader-selectors 요소를 찾을 수 없습니다!");
               }
-              
-              if (leaderSelectors) {
-                console.log("🔍 최종 leader-selectors 내용:", leaderSelectors.innerHTML);
-              }
-            }, 300);
+            };
 
-            updateLeaderSelectors(participants);
+            // 즉시 실행
+            createLeaderSelectors();
+            
+            // 지연 후 재실행 (안전장치)
+            setTimeout(createLeaderSelectors, 100);
+            setTimeout(createLeaderSelectors, 500);
+            
             updateLeaderSelectionVisibility();
             console.log("✅ 조장 선택기 초기화 완료");
 
