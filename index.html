@@ -1809,7 +1809,7 @@
             stroke-linecap="round"
           />
         </svg>
-          </div>
+      </div>
 
       <!-- 로딩 텍스트 -->
       <p id="loading-text" class="text-lg font-medium text-orange-600">
@@ -2183,15 +2183,34 @@
             >
               <!-- 장식 요소 (모바일에서는 작게) -->
               <div class="absolute top-0 left-0 w-full h-full opacity-10">
-                <div class="absolute top-1 left-1 md:top-2 md:left-2 text-3xl md:text-5xl">🍕</div>
-                <div class="absolute top-1 right-1 md:top-2 md:right-2 text-3xl md:text-5xl">🍜</div>
-                <div class="absolute bottom-1 left-1 md:bottom-2 md:left-2 text-3xl md:text-5xl">🍔</div>
-                <div class="absolute bottom-1 right-1 md:bottom-2 md:right-2 text-3xl md:text-5xl">🍣</div>
+                <div
+                  class="absolute top-1 left-1 md:top-2 md:left-2 text-3xl md:text-5xl"
+                >
+                  🍕
+                </div>
+                <div
+                  class="absolute top-1 right-1 md:top-2 md:right-2 text-3xl md:text-5xl"
+                >
+                  🍜
+                </div>
+                <div
+                  class="absolute bottom-1 left-1 md:bottom-2 md:left-2 text-3xl md:text-5xl"
+                >
+                  🍔
+                </div>
+                <div
+                  class="absolute bottom-1 right-1 md:bottom-2 md:right-2 text-3xl md:text-5xl"
+                >
+                  🍣
+                </div>
               </div>
 
               <!-- 슬롯 디스플레이 -->
               <div id="slot-display" class="text-center relative z-10">
-                <div class="text-4xl md:text-6xl mb-2 md:mb-3 drop-shadow-lg" id="slot-emoji">
+                <div
+                  class="text-4xl md:text-6xl mb-2 md:mb-3 drop-shadow-lg"
+                  id="slot-emoji"
+                >
                   🍽️
                 </div>
                 <div
@@ -4239,7 +4258,7 @@
             if (e.target.closest("#inquiry-button")) {
               e.preventDefault();
               openInquiryModal();
-          }
+            }
           });
 
           // 자동 로그인 체크박스 이벤트 리스너
@@ -4365,8 +4384,8 @@
             <div class="mb-4 md:mb-6">
               <div class="flex items-center justify-between mb-4">
                             <p class="text-gray-700 text-lg md:text-xl font-medium"><span class="text-orange-600 font-bold text-4xl md:text-5xl">F👀die</span> <b id="userNameDisplay">${saf(
-                  currentUser.name
-                )}</b>${getPositionSuffix()}님</p>
+                              currentUser.name
+                            )}</b>${getPositionSuffix()}님</p>
                 <button 
                               id="food-recommend-button-main"
                               class="text-sm md:text-base bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-full px-3 py-1 hover:from-orange-600 hover:to-red-600 shadow-md hover:shadow-lg transition-all"
@@ -4484,11 +4503,11 @@
                 renderRankList();
               });
           }
-            document
+          document
             .getElementById("food-recommend-button-main")
-              .addEventListener("click", () => {
+            .addEventListener("click", () => {
               openFoodRecommendModal();
-              });
+            });
 
           document
             .getElementById("rank-close")
@@ -4588,19 +4607,19 @@
         }
         document.getElementById("rank-close").addEventListener("click", () => {
           document.getElementById("rank-modal").classList.add("hidden");
-              });
-            document
+        });
+        document
           .getElementById("food-recommend-close")
-              .addEventListener("click", () => {
-                document
+          .addEventListener("click", () => {
+            document
               .getElementById("food-recommend-modal")
               .classList.add("hidden");
-              });
+          });
 
         // 메뉴 정하기 버튼
-          document
+        document
           .getElementById("start-slot-btn")
-            .addEventListener("click", () => {
+          .addEventListener("click", () => {
             startSlotMachine();
           });
       }
@@ -5090,13 +5109,14 @@
                               ? roadmapItems
                                   .map((item, index) => {
                                     const formattedDate = item.date
-                                            ? new Date(
-                                                item.date
-                                              ).toLocaleDateString("ko-KR", {
+                                      ? new Date(item.date).toLocaleDateString(
+                                          "ko-KR",
+                                          {
                                             year: "numeric",
                                             month: "long",
                                             day: "numeric",
-                                              })
+                                          }
+                                        )
                                       : "날짜 미정";
 
                                     return `
@@ -6382,9 +6402,7 @@
         }</div>
                   ${
                     p.note
-                            ? `<div class="text-orange-700 mb-2">${saf(
-                                p.note
-                              )}</div>`
+                      ? `<div class="text-orange-700 mb-2">${saf(p.note)}</div>`
                       : ""
                   }
                   ${
@@ -6503,17 +6521,17 @@
                       <div class="bg-orange-100 text-orange-800 px-3 py-1.5 rounded-lg flex items-center gap-2 flex-1">
                         <i class="fas fa-calendar-check text-orange-600"></i>
                                     <span class="text-sm font-medium">이벤트 실시일: ${
-                        ev.datetime
+                                      ev.datetime
                                         ? new Date(ev.datetime).toLocaleString(
                                             "ko-KR",
                                             {
-                              month: "long",
-                              day: "numeric",
-                              hour: "2-digit",
-                              minute: "2-digit",
+                                              month: "long",
+                                              day: "numeric",
+                                              hour: "2-digit",
+                                              minute: "2-digit",
                                             }
                                           )
-                          : "-"
+                                        : "-"
                                     }</span>
                                   </div>
                     </div>
@@ -6521,17 +6539,17 @@
                       <div class="bg-red-100 text-red-800 px-3 py-1.5 rounded-lg flex items-center gap-2 flex-1">
                         <i class="fas fa-clock text-red-600"></i>
                                     <span class="text-sm font-medium">신청 마감일: ${
-                        ev.deadline
+                                      ev.deadline
                                         ? new Date(ev.deadline).toLocaleString(
                                             "ko-KR",
                                             {
-                              month: "long",
-                              day: "numeric",
-                              hour: "2-digit",
-                              minute: "2-digit",
+                                              month: "long",
+                                              day: "numeric",
+                                              hour: "2-digit",
+                                              minute: "2-digit",
                                             }
                                           )
-                          : "미설정"
+                                        : "미설정"
                                     }</span>
                                   </div>
                     </div>
@@ -6542,9 +6560,7 @@
                       ? `
                   <div class="mt-3">
                     <div class="w-full bg-gray-200 rounded-full h-4"><div class="bg-orange-500 h-4 rounded-full" style="width:${
-                            lim
-                              ? Math.min(100, Math.round((count / lim) * 100))
-                              : 0
+                      lim ? Math.min(100, Math.round((count / lim) * 100)) : 0
                     }%"></div></div>
                     <p class="text-right text-sm mt-1 text-gray-600">신청: ${count} / ${lim} 명</p>
                   </div>
@@ -6736,15 +6752,12 @@
                     }
                     
                     ${
-                            currentUser &&
-                            adminList.includes(currentUser.studentId)
+                      currentUser && adminList.includes(currentUser.studentId)
                         ? `
                     <div class="mb-3">
                       <div class="w-full bg-gray-200 rounded-full h-2">
                         <div class="bg-orange-500 h-2 rounded-full transition-all duration-300" style="width:${
-                                cap
-                                  ? Math.min(100, Math.round((cnt / cap) * 100))
-                                  : 0
+                          cap ? Math.min(100, Math.round((cnt / cap) * 100)) : 0
                         }%"></div>
                       </div>
                     </div>
@@ -6783,16 +6796,16 @@
                           <div class="bg-orange-100 text-orange-800 px-3 py-1.5 rounded-lg flex items-center gap-2 flex-1">
                             <i class="fas fa-calendar-check text-orange-600"></i>
                                         <span class="text-sm font-medium">이벤트 실시일: ${
-                            ev.datetime
+                                          ev.datetime
                                             ? new Date(
                                                 ev.datetime
                                               ).toLocaleString("ko-KR", {
-                                  month: "long",
-                                  day: "numeric",
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                })
-                              : "-"
+                                                month: "long",
+                                                day: "numeric",
+                                                hour: "2-digit",
+                                                minute: "2-digit",
+                                              })
+                                            : "-"
                                         }</span>
                                       </div>
                         </div>
@@ -6800,16 +6813,16 @@
                           <div class="bg-red-100 text-red-800 px-3 py-1.5 rounded-lg flex items-center gap-2 flex-1">
                             <i class="fas fa-clock text-red-600"></i>
                                         <span class="text-sm font-medium">신청 마감일: ${
-                            ev.deadline
+                                          ev.deadline
                                             ? new Date(
                                                 ev.deadline
                                               ).toLocaleString("ko-KR", {
-                                  month: "long",
-                                  day: "numeric",
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                })
-                              : "미설정"
+                                                month: "long",
+                                                day: "numeric",
+                                                hour: "2-digit",
+                                                minute: "2-digit",
+                                              })
+                                            : "미설정"
                                         }</span>
                                       </div>
                         </div>
@@ -8709,7 +8722,7 @@
                                   <div>
                                     <p class="text-sm text-blue-600 font-medium">총 참가자</p>
                                     <p class="text-3xl font-bold text-blue-900">${
-                      participants.length
+                                      participants.length
                                     }<span class="text-lg ml-1">명</span></p>
                                   </div>
                                 </div>
@@ -8730,7 +8743,7 @@
                     <div class="relative">
                       <input type="number" id="group-count" min="1" max="${
                         participants.length
-                            }" value="3"
+                      }" value="3"
                                            class="w-full px-6 py-4 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-200 focus:border-blue-500 transition-all duration-200 text-2xl font-bold text-center">
                                     <div class="absolute inset-y-0 right-0 flex items-center pr-6 pointer-events-none">
                                       <span class="text-gray-400 text-lg font-medium">개</span>
@@ -8898,7 +8911,7 @@
                                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         ${participants
                           .map(
-                                  (p, idx) => `
+                            (p, idx) => `
                                         <div class="flex items-center justify-between p-2 bg-white rounded-lg text-sm hover:shadow-sm transition-shadow">
                                           <span class="font-medium text-gray-800">${
                                             idx + 1
@@ -8914,8 +8927,8 @@
                     </div>
                   </div>
                   `
-                      : ""
-                  }
+                            : ""
+                        }
                               </div>
                 </div>
 
@@ -8985,8 +8998,8 @@
                 console.log("🟢 버튼 요소:", generateBtn);
                 console.log("🟢 이벤트 ID:", eventId);
                 console.log("🟢 참가자 수:", participants.length);
-              generateGroups(eventId, participants);
-            });
+                generateGroups(eventId, participants);
+              });
               console.log("✅ 조짜기 시작 버튼 연결 완료");
             } else {
               console.error("❌ 조짜기 시작 버튼을 찾을 수 없습니다");
@@ -8997,19 +9010,19 @@
             // 조장 관련 이벤트 리스너 추가 (모든 사용자)
             console.log("👨‍💼 조장 관련 기능 활성화");
 
-          // 조 개수 변경 시 조장 선택기 업데이트
+            // 조 개수 변경 시 조장 선택기 업데이트
             const groupCountInput = document.getElementById("group-count");
             if (groupCountInput) {
               groupCountInput.addEventListener("input", () => {
                 console.log("📊 조 개수 변경됨");
-              updateLeaderSelectors(participants);
-            });
+                updateLeaderSelectors(participants);
+              });
               console.log("✅ 조 개수 입력 이벤트 연결 완료");
             } else {
               console.error("❌ group-count 입력을 찾을 수 없습니다");
             }
 
-          // 조장 설정 방식 변경 시 UI 업데이트
+            // 조장 설정 방식 변경 시 UI 업데이트
             const leaderSettingRadios = document.querySelectorAll(
               'input[name="leader-setting"]'
             );
@@ -9019,11 +9032,11 @@
             );
             if (leaderSettingRadios.length > 0) {
               leaderSettingRadios.forEach((radio) => {
-              radio.addEventListener("change", () => {
+                radio.addEventListener("change", () => {
                   console.log("👑 조장 설정 방식 변경됨:", radio.value);
-                updateLeaderSelectionVisibility();
+                  updateLeaderSelectionVisibility();
+                });
               });
-            });
               console.log("✅ 조장 설정 라디오 이벤트 연결 완료");
             } else {
               console.error("❌ 조장 설정 라디오 버튼을 찾을 수 없습니다");
@@ -9083,7 +9096,7 @@
             setTimeout(createLeaderSelectors, 100);
             setTimeout(createLeaderSelectors, 500);
 
-          updateLeaderSelectionVisibility();
+            updateLeaderSelectionVisibility();
             console.log("✅ 조장 선택기 초기화 완료");
 
             // 추가 안전장치: 전역 이벤트 위임으로 버튼 클릭 처리
@@ -9746,21 +9759,21 @@
                           <div class="overflow-y-auto flex-1 px-6 py-6">
                             <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
                 ${groups
-                        .map((group, index) => {
-                          const stats = getGroupStats(group);
-                          const colors = [
-                            "from-blue-500 to-blue-600",
-                            "from-purple-500 to-purple-600",
-                            "from-pink-500 to-pink-600",
-                            "from-orange-500 to-orange-600",
-                            "from-teal-500 to-teal-600",
-                            "from-indigo-500 to-indigo-600",
-                            "from-red-500 to-red-600",
-                            "from-yellow-500 to-yellow-600",
-                          ];
-                          const color = colors[index % colors.length];
+                  .map((group, index) => {
+                    const stats = getGroupStats(group);
+                    const colors = [
+                      "from-blue-500 to-blue-600",
+                      "from-purple-500 to-purple-600",
+                      "from-pink-500 to-pink-600",
+                      "from-orange-500 to-orange-600",
+                      "from-teal-500 to-teal-600",
+                      "from-indigo-500 to-indigo-600",
+                      "from-red-500 to-red-600",
+                      "from-yellow-500 to-yellow-600",
+                    ];
+                    const color = colors[index % colors.length];
 
-                          return `
+                    return `
                                     <div class="bg-white border-2 border-gray-200 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300">
                                       <!-- 조 헤더 -->
                                       <div class="bg-gradient-to-r ${color} px-5 py-4">
@@ -9768,7 +9781,7 @@
                                           <div class="flex items-center gap-3">
                                             <div class="bg-white bg-opacity-30 rounded-full px-4 py-2">
                                               <span class="text-2xl font-bold text-white">${
-                      index + 1
+                                                index + 1
                                               }</span>
                                             </div>
                                             <div>
@@ -9802,7 +9815,7 @@
                       .map(
                         (member, memberIndex) => `
                                             <div class="flex items-center gap-3 p-3 rounded-xl transition-all duration-200 ${
-                        member.isLeader
+                                              member.isLeader
                                                 ? "bg-gradient-to-r from-yellow-50 to-amber-50 border-2 border-yellow-300 shadow-md"
                                                 : "bg-gray-50 hover:bg-gray-100 border-2 border-transparent"
                                             }">
@@ -9819,7 +9832,7 @@
                                                 <div class="flex items-center gap-2">
                                                   <span class="font-bold text-gray-800">${
                                                     member.name
-                        }</span>
+                                                  }</span>
                                                   ${
                                                     member.isLeader
                                                       ? '<span class="text-xs bg-yellow-400 text-yellow-900 px-2 py-0.5 rounded-full font-bold">조장</span>'
@@ -9828,8 +9841,8 @@
                                                 </div>
                                                 <p class="text-xs text-gray-500 mt-0.5">
                                                   ${member.studentId} · ${
-                                member.gender
-                              } · ${member.college}
+                          member.gender
+                        } · ${member.college}
                                                 </p>
                                               </div>
                       </div>
@@ -9840,7 +9853,7 @@
                                       </div>
                                     </div>
                                   `;
-                        })
+                  })
                   .join("")}
                             </div>
               </div>
@@ -11149,9 +11162,7 @@
                           : "bg-amber-100 text-amber-800"
                       }">
                         ${
-                                inquiry.status === "answered"
-                                  ? "답변 완료"
-                                  : "미답변"
+                          inquiry.status === "answered" ? "답변 완료" : "미답변"
                         }
                       </span>
                     </p>
@@ -12243,9 +12254,7 @@
                   block.title || "(제목 없음)"
                 )}</span>
                 <span class="text-xs ${
-                        block.visible !== false
-                          ? "text-green-600"
-                          : "text-gray-400"
+                  block.visible !== false ? "text-green-600" : "text-gray-400"
                 }">
                   <i class="fas ${
                     block.visible !== false ? "fa-eye" : "fa-eye-slash"
@@ -12532,9 +12541,8 @@
                   <h4 class="font-semibold text-gray-700 mb-3 flex items-center">
                     <i class="fas fa-eye mr-2 text-green-500"></i>항상 표시 블록
                     <span class="ml-2 text-xs bg-green-100 text-green-700 px-2 py-1 rounded">${
-                            blocksData.filter(
-                              (b) => !b.showWhen || b.showWhen === ""
-                            ).length
+                      blocksData.filter((b) => !b.showWhen || b.showWhen === "")
+                        .length
                     }개</span>
                   </h4>
                   <ul class="space-y-2 block-sortable" data-show-when="">
@@ -12551,8 +12559,7 @@
                   <h4 class="font-semibold text-gray-700 mb-3 flex items-center">
                     <i class="fas fa-sign-in-alt mr-2 text-blue-500"></i>로그인시만 표시 블록
                     <span class="ml-2 text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">${
-                            blocksData.filter((b) => b.showWhen === "login")
-                              .length
+                      blocksData.filter((b) => b.showWhen === "login").length
                     }개</span>
                   </h4>
                   <ul class="space-y-2 block-sortable" data-show-when="login">
@@ -12569,8 +12576,7 @@
                   <h4 class="font-semibold text-gray-700 mb-3 flex items-center">
                     <i class="fas fa-sign-out-alt mr-2 text-purple-500"></i>로그아웃시만 표시 블록
                     <span class="ml-2 text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">${
-                            blocksData.filter((b) => b.showWhen === "logout")
-                              .length +
+                      blocksData.filter((b) => b.showWhen === "logout").length +
                       (roadmapData && roadmapData.length > 0 ? 1 : 0)
                     }개</span>
                   </h4>
@@ -13268,16 +13274,12 @@
                 <option value="">직책을 선택하세요</option>
                 <optgroup label="회장단">
                   ${presidentPositions
-                          .map(
-                            (pos) => `<option value="${pos}">${pos}</option>`
-                          )
+                    .map((pos) => `<option value="${pos}">${pos}</option>`)
                     .join("")}
                 </optgroup>
                 <optgroup label="일반 임원">
                   ${regularPositions
-                          .map(
-                            (pos) => `<option value="${pos}">${pos}</option>`
-                          )
+                    .map((pos) => `<option value="${pos}">${pos}</option>`)
                     .join("")}
                 </optgroup>
               </select>
@@ -13739,8 +13741,8 @@
                                     ev.title || "(제목 없음)"
                                   )}</h3>
                                   <span class="flex-shrink-0 inline-flex items-center px-1.5 md:px-2 py-0.5 rounded-full text-xs font-medium ${typeBadgeClass(
-                    ev.type
-                  )}">
+                                    ev.type
+                                  )}">
                     ${typeLabel(ev.type)}
                   </span>
                                 </div>
@@ -13770,17 +13772,17 @@
                                   <div class="flex items-center gap-1 flex-wrap">
                   ${
                     isClosed
-                            ? '<span class="bg-green-100 text-green-800 px-1.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap"><i class="fas fa-check-circle mr-1"></i>확정</span>'
+                      ? '<span class="bg-green-100 text-green-800 px-1.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap"><i class="fas fa-check-circle mr-1"></i>확정</span>'
                       : ""
                   }
                   ${
                     ev.activityStatus === "confirmed"
-                            ? '<span class="bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap"><i class="fas fa-thumbs-up mr-1"></i>완료</span>'
+                      ? '<span class="bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap"><i class="fas fa-thumbs-up mr-1"></i>완료</span>'
                       : ""
                   }
                   ${
                     ev.activityStatus === "cancelled"
-                            ? '<span class="bg-red-100 text-red-800 px-1.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap"><i class="fas fa-ban mr-1"></i>취소</span>'
+                      ? '<span class="bg-red-100 text-red-800 px-1.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap"><i class="fas fa-ban mr-1"></i>취소</span>'
                       : ""
                   }
                 </div>
@@ -13993,9 +13995,7 @@
                   <i class="fas fa-clock"></i>
                   <span>${
                     hasReview.timestamp
-                            ? new Date(hasReview.timestamp).toLocaleString(
-                                "ko-KR"
-                              )
+                      ? new Date(hasReview.timestamp).toLocaleString("ko-KR")
                       : "-"
                   }</span>
                 </div>
@@ -14954,8 +14954,7 @@
                   
                   <div class="flex gap-2">
                     ${
-                            currentUser &&
-                            adminList.includes(currentUser.studentId)
+                      currentUser && adminList.includes(currentUser.studentId)
                         ? `
                       <button onclick="openRoadmapEventEditModal('${eventId}', 0); closeEventDetailModal();" 
                               class="flex-1 bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors">
@@ -16698,7 +16697,7 @@
                 <h4 class="font-bold text-lg">${game.name}</h4>
                 ${
                   isAdmin
-                          ? `<button class="clear-game-btn px-2 py-1 bg-red-400 text-white text-xs rounded hover:bg-red-500 transition-colors" data-game-type="${game.type}" title="이 게임의 모든 점수를 초기화합니다">이 게임 점수 초기화</button>`
+                    ? `<button class="clear-game-btn px-2 py-1 bg-red-400 text-white text-xs rounded hover:bg-red-500 transition-colors" data-game-type="${game.type}" title="이 게임의 모든 점수를 초기화합니다">이 게임 점수 초기화</button>`
                     : ""
                 }
               </div>
@@ -17165,11 +17164,7 @@
             <!-- 자동차 (실제 자동차 모양) -->
             <div id="car" class="absolute bottom-4 w-10 h-16 transition-all duration-100" 
                  style="left: ${
-                         carPosition === 0
-                           ? "25%"
-                           : carPosition === 1
-                           ? "50%"
-                           : "75%"
+                   carPosition === 0 ? "25%" : carPosition === 1 ? "50%" : "75%"
                  }; transform: translateX(-50%);">
               <div class="relative w-full h-full">
                 <!-- 자동차 본체 -->
@@ -17372,11 +17367,7 @@
             (obstacle, index) => `
           <div class="absolute w-8 h-8 bg-orange-600 rounded" 
                style="left: ${
-                       obstacle.x === 0
-                         ? "25%"
-                         : obstacle.x === 1
-                         ? "50%"
-                         : "75%"
+                 obstacle.x === 0 ? "25%" : obstacle.x === 1 ? "50%" : "75%"
                }; 
                       top: ${obstacle.y}px; 
                       transform: translateX(-50%);">
@@ -17983,9 +17974,7 @@
                         <div class="flex items-center gap-2">
                           <button 
                             class="move-category-up px-2 py-1 bg-gray-400 hover:bg-gray-500 text-white rounded text-sm font-semibold transition-colors ${
-                                    index === 0
-                                      ? "opacity-30 cursor-not-allowed"
-                                      : ""
+                              index === 0 ? "opacity-30 cursor-not-allowed" : ""
                             }"
                             data-index="${index}"
                             ${index === 0 ? "disabled" : ""}>
@@ -18309,8 +18298,7 @@
                         <span class="text-2xl sm:text-3xl">${categoryEmoji}</span>
                         <h4 class="text-xl sm:text-2xl font-bold text-gray-900 group-hover:text-orange-600 transition-colors">
                           ${saf(
-                                  restaurant.restaurantName ||
-                                    "(식당 이름 없음)"
+                            restaurant.restaurantName || "(식당 이름 없음)"
                           )}
                         </h4>
                       </div>
@@ -18601,9 +18589,8 @@
                         )
                         .join("")}
                       ${
-                              ev.reviews.filter(
-                                (r) => r.comment && r.comment.trim()
-                              ).length > 3
+                        ev.reviews.filter((r) => r.comment && r.comment.trim())
+                          .length > 3
                           ? `<p class="text-xs text-gray-500 text-center mt-1">외 ${
                               ev.reviews.filter(
                                 (r) => r.comment && r.comment.trim()
@@ -19580,22 +19567,18 @@
       let loadingProgress = 0;
       const totalLoadingSteps = 2; // 총 로딩 단계 수 (간소화)
 
-      // 자연스러운 시간대 전환 애니메이션 (랜덤 전환)
+      // 자연스러운 시간대 전환 애니메이션 (한 번만 랜덤 선택)
       let mealTimeAnimationInterval = null;
       let loadingAnimationComplete = false;
+      let selectedMealTime = null; // 로딩마다 한 번만 선택
 
       function updateMealTimeCube() {
         const cubeElement = document.getElementById("meal-time-cube");
         if (!cubeElement) return;
 
-        const mealTimes = ["아침", "점심", "저녁", "간식"];
-        
-        // 랜덤으로 시간대 선택
-        const randomIndex = Math.floor(Math.random() * mealTimes.length);
-        
         // 애니메이션 시작
         cubeElement.classList.add("smooth-fade");
-        cubeElement.textContent = mealTimes[randomIndex];
+        cubeElement.textContent = selectedMealTime;
 
         // 애니메이션 클래스 제거
         setTimeout(() => {
@@ -19607,10 +19590,14 @@
       function startLoadingAnimation() {
         loadingAnimationComplete = false;
         
-        // 즉시 첫 번째 시간대 표시 (랜덤)
+        // 로딩 시작할 때 한 번만 랜덤으로 시간대 선택
+        const mealTimes = ["아침", "점심", "저녁", "간식"];
+        selectedMealTime = mealTimes[Math.floor(Math.random() * mealTimes.length)];
+        
+        // 즉시 선택된 시간대 표시
         updateMealTimeCube();
         
-        // 1.5초마다 시간대 전환 (애니메이션이 1.2초이므로 여유 있게)
+        // 1.5초마다 같은 시간대를 애니메이션으로 반복 표시
         mealTimeAnimationInterval = setInterval(() => {
           updateMealTimeCube();
         }, 1500);
@@ -19623,6 +19610,7 @@
           mealTimeAnimationInterval = null;
         }
         loadingAnimationComplete = true;
+        selectedMealTime = null; // 초기화
       }
 
       function updateLoadingProgress(step, text) {
