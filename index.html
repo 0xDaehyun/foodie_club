@@ -8561,7 +8561,10 @@
           console.log("✅ 이벤트 찾음:", ev.title);
           console.log("👤 현재 사용자:", currentUser);
           console.log("👑 관리자 목록:", adminList);
-          console.log("🔐 관리자 여부:", currentUser && adminList.includes(currentUser.studentId));
+          console.log(
+            "🔐 관리자 여부:",
+            currentUser && adminList.includes(currentUser.studentId)
+          );
 
           // 참가자 데이터 수집
           let participants = [];
@@ -8876,8 +8879,10 @@
             });
 
             if (closeBtn) {
-              closeBtn.addEventListener("click", () => {
-                console.log("🔴 닫기 버튼 클릭됨");
+              closeBtn.addEventListener("click", (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log("🔴 닫기 버튼 클릭됨 - 이벤트:", e);
                 closeGroupMakerModal();
               });
               console.log("✅ 닫기 버튼 연결 완료");
@@ -8886,8 +8891,10 @@
             }
 
             if (cancelBtn) {
-              cancelBtn.addEventListener("click", () => {
-                console.log("🔴 취소 버튼 클릭됨");
+              cancelBtn.addEventListener("click", (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log("🔴 취소 버튼 클릭됨 - 이벤트:", e);
                 closeGroupMakerModal();
               });
               console.log("✅ 취소 버튼 연결 완료");
@@ -8896,8 +8903,13 @@
             }
 
             if (generateBtn) {
-              generateBtn.addEventListener("click", () => {
-                console.log("🟢 조짜기 시작 버튼 클릭됨");
+              generateBtn.addEventListener("click", (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log("🟢 조짜기 시작 버튼 클릭됨 - 이벤트:", e);
+                console.log("🟢 버튼 요소:", generateBtn);
+                console.log("🟢 이벤트 ID:", eventId);
+                console.log("🟢 참가자 수:", participants.length);
                 generateGroups(eventId, participants);
               });
               console.log("✅ 조짜기 시작 버튼 연결 완료");
@@ -8947,6 +8959,30 @@
             updateLeaderSelectors(participants);
             updateLeaderSelectionVisibility();
             console.log("✅ 조장 선택기 초기화 완료");
+
+            // 추가 안전장치: 전역 이벤트 위임으로 버튼 클릭 처리
+            const globalClickHandler = (e) => {
+              const target = e.target.closest('#group-maker-close, #group-maker-cancel, #group-maker-generate');
+              if (target) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log("🌐 전역 이벤트 위임으로 버튼 클릭 감지:", target.id);
+                
+                if (target.id === 'group-maker-close' || target.id === 'group-maker-cancel') {
+                  console.log("🔴 전역 핸들러로 모달 닫기");
+                  closeGroupMakerModal();
+                } else if (target.id === 'group-maker-generate') {
+                  console.log("🟢 전역 핸들러로 조짜기 시작");
+                  generateGroups(eventId, participants);
+                }
+              }
+            };
+            
+            document.addEventListener('click', globalClickHandler);
+            console.log("🌐 전역 이벤트 위임 핸들러 추가 완료");
+            
+            // 모달 닫기 시 전역 핸들러 제거를 위해 저장
+            window.groupMakerGlobalHandler = globalClickHandler;
           }, 100); // 100ms 지연
 
           console.log("🎉 조짜기 모달 열기 완료!");
@@ -9037,6 +9073,14 @@
       // 조짜기 모달 닫기
       function closeGroupMakerModal() {
         console.log("🔴 조짜기 모달 닫기 호출됨");
+        
+        // 전역 이벤트 핸들러 제거
+        if (window.groupMakerGlobalHandler) {
+          document.removeEventListener('click', window.groupMakerGlobalHandler);
+          delete window.groupMakerGlobalHandler;
+          console.log("🌐 전역 이벤트 핸들러 제거 완료");
+        }
+        
         const modal = document.getElementById("group-maker-modal");
         if (modal) {
           modal.remove();
