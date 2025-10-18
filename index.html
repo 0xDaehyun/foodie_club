@@ -8702,6 +8702,10 @@
       async function openGroupMakerModal(eventId) {
         try {
           console.log("🚀 조짜기 모달 열기 시작:", eventId);
+          
+          // 현재 이벤트 ID 저장 (조장 선택기 재생성을 위해)
+          window.currentGroupMakerEventId = eventId;
+          
           const ev = eventsData.find((e) => e.id === eventId);
           if (!ev) {
             console.error("❌ 이벤트를 찾을 수 없습니다:", eventId);
@@ -9073,9 +9077,9 @@
             console.log("👨‍💼 조장 관련 기능 활성화");
 
             // 조 개수 변경 시 조장 선택기 업데이트
-            const groupCountInput = document.getElementById("group-count");
-            if (groupCountInput) {
-              groupCountInput.addEventListener("input", () => {
+            const groupCountInput1 = document.getElementById("group-count");
+            if (groupCountInput1) {
+              groupCountInput1.addEventListener("input", () => {
                 console.log("📊 조 개수 변경됨");
                 updateLeaderSelectors(participants);
               });
@@ -9151,14 +9155,21 @@
               }
             };
 
-            // 즉시 실행
-            createLeaderSelectors();
-
-            // 지연 후 재실행 (안전장치)
-            setTimeout(createLeaderSelectors, 100);
-            setTimeout(createLeaderSelectors, 500);
-
+            // 조장 선택 UI 즉시 초기화
+            updateLeaderSelectors(participants);
             updateLeaderSelectionVisibility();
+            
+            // 지연 후 재실행 (안전장치)
+            setTimeout(() => {
+              updateLeaderSelectors(participants);
+              updateLeaderSelectionVisibility();
+            }, 100);
+            
+            setTimeout(() => {
+              updateLeaderSelectors(participants);
+              updateLeaderSelectionVisibility();
+            }, 500);
+            
             console.log("✅ 조장 선택기 초기화 완료");
 
             // 추가 안전장치: 전역 이벤트 위임으로 버튼 클릭 처리
@@ -9189,6 +9200,28 @@
 
             document.addEventListener("click", globalClickHandler);
             console.log("🌐 전역 이벤트 위임 핸들러 추가 완료");
+            
+            // 조 개수 변경 시 조장 선택 UI 업데이트
+            const groupCountInput2 = document.getElementById("group-count");
+            if (groupCountInput2) {
+              groupCountInput2.addEventListener("change", () => {
+                console.log("🔄 조 개수 변경 감지, 조장 선택 UI 업데이트");
+                updateLeaderSelectors(participants);
+                updateLeaderSelectionVisibility();
+              });
+            }
+            
+            // 조장 설정 옵션 변경 시 조장 선택 UI 업데이트
+            const leaderSettingInputs = document.querySelectorAll('input[name="leader-setting"]');
+            leaderSettingInputs.forEach(input => {
+              input.addEventListener("change", () => {
+                console.log("🔄 조장 설정 변경 감지:", input.value);
+                updateLeaderSelectionVisibility();
+                if (input.value === "manual") {
+                  updateLeaderSelectors(participants);
+                }
+              });
+            });
 
             // 모달 닫기 시 전역 핸들러 제거를 위해 저장
             window.groupMakerGlobalHandler = globalClickHandler;
@@ -9217,10 +9250,10 @@
       // 조장 선택기 업데이트
       function updateLeaderSelectors(participants) {
         console.log("🔄 조장 선택기 업데이트 시작", participants.length, "명");
-        const groupCountInput = document.getElementById("group-count");
+        const groupCountInput3 = document.getElementById("group-count");
         const container = document.getElementById("leader-selectors");
 
-        if (!groupCountInput) {
+        if (!groupCountInput3) {
           console.error("❌ group-count 요소를 찾을 수 없습니다");
           return;
         }
@@ -9229,7 +9262,7 @@
           return;
         }
 
-        const groupCount = parseInt(groupCountInput.value) || 3;
+        const groupCount = parseInt(groupCountInput3.value) || 3;
         console.log("📊 조장 선택기 생성할 조 개수:", groupCount);
 
         container.innerHTML = "";
@@ -9267,6 +9300,8 @@
       // 조장 선택 UI 표시/숨김
       function updateLeaderSelectionVisibility() {
         console.log("👁️ 조장 선택 UI 표시/숨김 업데이트");
+        
+        // 조장 설정 라디오 버튼 찾기
         const leaderSettingElement = document.querySelector(
           'input[name="leader-setting"]:checked'
         );
@@ -9276,8 +9311,15 @@
 
         if (!leaderSettingElement) {
           console.error("❌ leader-setting 요소를 찾을 수 없습니다");
+          // 기본값으로 "manual" 설정
+          const manualRadio = document.querySelector('input[name="leader-setting"][value="manual"]');
+          if (manualRadio) {
+            manualRadio.checked = true;
+            console.log("🔧 기본값으로 수동 조장 설정 적용");
+          }
           return;
         }
+        
         if (!manualSelection) {
           console.error("❌ manual-leader-selection 요소를 찾을 수 없습니다");
           return;
@@ -9289,6 +9331,48 @@
         if (leaderSetting === "manual") {
           manualSelection.style.display = "block";
           console.log("✅ 수동 조장 선택 UI 표시");
+          
+          // 조장 선택기가 없다면 생성
+          const leaderSelectors = document.getElementById("leader-selectors");
+          if (leaderSelectors && leaderSelectors.children.length === 0) {
+            console.log("🔧 조장 선택기가 비어있어서 재생성");
+            // 참가자 데이터를 다시 가져와서 조장 선택기 생성
+            const eventId = window.currentGroupMakerEventId;
+            if (eventId) {
+              const ev = eventsData.find((e) => e.id === eventId);
+              if (ev) {
+                let participants = [];
+                if (ev.type === "tasting") {
+                  (ev.restaurants || []).forEach((r) => {
+                    (r.reservations || []).forEach((p) => {
+                      participants.push({
+                        name: p.name || "",
+                        studentId: p.studentId || "",
+                        gender: p.gender || "",
+                        year: p.year || "",
+                        college: p.college || "",
+                        department: p.department || "",
+                        phone: p.phone || "",
+                      });
+                    });
+                  });
+                } else {
+                  (ev.applicants || []).forEach((p) => {
+                    participants.push({
+                      name: p.name || "",
+                      studentId: p.studentId || "",
+                      gender: p.gender || "",
+                      year: p.year || "",
+                      college: p.college || "",
+                      department: p.department || "",
+                      phone: p.phone || "",
+                    });
+                  });
+                }
+                updateLeaderSelectors(participants);
+              }
+            }
+          }
         } else {
           manualSelection.style.display = "none";
           console.log("✅ 수동 조장 선택 UI 숨김");
@@ -9298,6 +9382,9 @@
       // 조짜기 모달 닫기
       function closeGroupMakerModal() {
         console.log("🔴 조짜기 모달 닫기 호출됨");
+        
+        // 현재 이벤트 ID 정리
+        window.currentGroupMakerEventId = null;
 
         // 전역 이벤트 핸들러 제거
         if (window.groupMakerGlobalHandler) {
@@ -9323,13 +9410,13 @@
             participantsCount: participants.length,
           });
 
-          const groupCountInput = document.getElementById("group-count");
-          if (!groupCountInput) {
+          const groupCountInput5 = document.getElementById("group-count");
+          if (!groupCountInput5) {
             console.error("❌ group-count 입력 요소를 찾을 수 없습니다");
             return showAlert("😥", "조 개수 입력란을 찾을 수 없습니다.");
           }
 
-          const groupCount = parseInt(groupCountInput.value);
+          const groupCount = parseInt(groupCountInput5.value);
           console.log("📊 조 개수:", groupCount);
 
           if (
@@ -9502,27 +9589,32 @@
         return groups;
       }
 
-      // 성별과 단과대를 모두 고려한 균형 배분 (조장 포함)
+      // 성별과 단과대를 모두 고려한 균형 배분 (조장 포함) - 개선된 알고리즘
       function balanceGroupsByAllFactorsWithLeaders(
         participants,
         groups,
         groupCount,
         manualLeaders
       ) {
-        // 참가자들을 성별과 단과대로 분류 (조장 포함)
+        console.log("🔄 성별+단과대 균형 배분 시작", participants.length, "명,", groupCount, "조");
+        
+        // 1단계: 조장들을 먼저 배치
+        const leaders = participants.filter(p => p.isLeader && p.targetGroup !== undefined);
+        leaders.forEach(leader => {
+          groups[leader.targetGroup].push(leader);
+          console.log(`👑 조장 배치: ${leader.name} → ${leader.targetGroup + 1}조`);
+        });
+
+        // 2단계: 남은 참가자들을 성별과 단과대로 분류
+        const remainingParticipants = participants.filter(p => !p.isLeader);
         const categorizedParticipants = {
           male: {},
           female: {},
           other: {},
         };
 
-        participants.forEach((p) => {
-          const gender =
-            p.gender === "남성"
-              ? "male"
-              : p.gender === "여성"
-              ? "female"
-              : "other";
+        remainingParticipants.forEach((p) => {
+          const gender = p.gender === "남성" ? "male" : p.gender === "여성" ? "female" : "other";
           const college = p.college || "기타";
 
           if (!categorizedParticipants[gender][college]) {
@@ -9531,30 +9623,77 @@
           categorizedParticipants[gender][college].push(p);
         });
 
-        // 각 성별-단과대 조합을 순환하며 배치
-        let currentGroup = 0;
-        const allCategories = [];
+        // 3단계: 각 조의 현재 성별/단과대 구성 확인
+        const groupStats = groups.map(() => ({
+          male: 0, female: 0, other: 0,
+          colleges: {}
+        }));
 
-        // 모든 성별-단과대 조합을 수집
-        Object.keys(categorizedParticipants).forEach((gender) => {
-          Object.keys(categorizedParticipants[gender]).forEach((college) => {
-            const members = categorizedParticipants[gender][college];
-            allCategories.push(...members.sort(() => Math.random() - 0.5));
+        groups.forEach((group, groupIndex) => {
+          group.forEach(member => {
+            const gender = member.gender === "남성" ? "male" : member.gender === "여성" ? "female" : "other";
+            const college = member.college || "기타";
+            groupStats[groupIndex][gender]++;
+            if (!groupStats[groupIndex].colleges[college]) {
+              groupStats[groupIndex].colleges[college] = 0;
+            }
+            groupStats[groupIndex].colleges[college]++;
           });
         });
 
-        // 전체를 섞고 순환 배치
-        allCategories.sort(() => Math.random() - 0.5);
-        allCategories.forEach((participant) => {
-          // 조장은 지정된 조에 배치
-          if (participant.isLeader && participant.targetGroup !== undefined) {
-            groups[participant.targetGroup].push(participant);
-          } else {
-            groups[currentGroup].push(participant);
-            currentGroup = (currentGroup + 1) % groupCount;
-          }
+        // 4단계: 균형잡힌 배치
+        const allMembers = [];
+        Object.keys(categorizedParticipants).forEach((gender) => {
+          Object.keys(categorizedParticipants[gender]).forEach((college) => {
+            const members = categorizedParticipants[gender][college];
+            allMembers.push(...members.sort(() => Math.random() - 0.5));
+          });
         });
 
+        allMembers.sort(() => Math.random() - 0.5);
+
+        // 5단계: 가장 균형잡힌 조에 배치
+        allMembers.forEach((member) => {
+          let bestGroup = 0;
+          let bestScore = Infinity;
+
+          for (let i = 0; i < groupCount; i++) {
+            // 현재 조의 크기 고려 (너무 많은 조는 피하기)
+            const sizePenalty = groups[i].length * 2;
+            
+            // 성별 균형 점수
+            const gender = member.gender === "남성" ? "male" : member.gender === "여성" ? "female" : "other";
+            const genderCount = groupStats[i][gender];
+            const genderPenalty = genderCount * 3;
+            
+            // 단과대 균형 점수
+            const college = member.college || "기타";
+            const collegeCount = groupStats[i].colleges[college] || 0;
+            const collegePenalty = collegeCount * 2;
+            
+            const totalScore = sizePenalty + genderPenalty + collegePenalty;
+            
+            if (totalScore < bestScore) {
+              bestScore = totalScore;
+              bestGroup = i;
+            }
+          }
+
+          groups[bestGroup].push(member);
+          
+          // 통계 업데이트
+          const gender = member.gender === "남성" ? "male" : member.gender === "여성" ? "female" : "other";
+          const college = member.college || "기타";
+          groupStats[bestGroup][gender]++;
+          if (!groupStats[bestGroup].colleges[college]) {
+            groupStats[bestGroup].colleges[college] = 0;
+          }
+          groupStats[bestGroup].colleges[college]++;
+          
+          console.log(`👤 ${member.name} (${member.gender}/${member.college}) → ${bestGroup + 1}조`);
+        });
+
+        console.log("✅ 성별+단과대 균형 배분 완료");
         return groups;
       }
 
@@ -9575,107 +9714,72 @@
         groupCount,
         manualLeaders
       ) {
-        // 1단계: 조장들의 성별 정보를 먼저 파악
-        const leaderGenderInfo = {};
-        participants.forEach((p) => {
-          if (p.isLeader && p.targetGroup !== undefined) {
-            const groupNum = p.targetGroup;
-            if (!leaderGenderInfo[groupNum]) {
-              leaderGenderInfo[groupNum] = { male: 0, female: 0, other: 0 };
-            }
-            if (p.gender === "남성") leaderGenderInfo[groupNum].male++;
-            else if (p.gender === "여성") leaderGenderInfo[groupNum].female++;
-            else leaderGenderInfo[groupNum].other++;
-
-            // 조장을 해당 조에 배치
-            groups[groupNum].push(p);
-          }
+        console.log("🔄 성별 균형 배분 시작", participants.length, "명,", groupCount, "조");
+        
+        // 1단계: 조장들을 먼저 배치
+        const leaders = participants.filter(p => p.isLeader && p.targetGroup !== undefined);
+        leaders.forEach(leader => {
+          groups[leader.targetGroup].push(leader);
+          console.log(`👑 조장 배치: ${leader.name} → ${leader.targetGroup + 1}조`);
         });
 
-        // 2단계: 남은 참가자들을 성별별로 분류
-        const remainingParticipants = participants.filter((p) => !p.isLeader);
-        const males = remainingParticipants
-          .filter((p) => p.gender === "남성")
-          .sort(() => Math.random() - 0.5);
-        const females = remainingParticipants
-          .filter((p) => p.gender === "여성")
-          .sort(() => Math.random() - 0.5);
-        const others = remainingParticipants
-          .filter((p) => p.gender !== "남성" && p.gender !== "여성")
-          .sort(() => Math.random() - 0.5);
+        // 2단계: 각 조의 현재 성별 구성 확인
+        const groupStats = groups.map(() => ({
+          male: 0, female: 0, other: 0
+        }));
 
-        // 3단계: 각 조의 현재 성별 구성 확인
-        const getGroupGenderBalance = (groupIndex) => {
-          const info = leaderGenderInfo[groupIndex] || {
-            male: 0,
-            female: 0,
-            other: 0,
-          };
-          const currentMale = groups[groupIndex].filter(
-            (p) => p.gender === "남성"
-          ).length;
-          const currentFemale = groups[groupIndex].filter(
-            (p) => p.gender === "여성"
-          ).length;
-          return { male: currentMale, female: currentFemale };
-        };
+        groups.forEach((group, groupIndex) => {
+          group.forEach(member => {
+            const gender = member.gender === "남성" ? "male" : member.gender === "여성" ? "female" : "other";
+            groupStats[groupIndex][gender]++;
+          });
+        });
 
-        // 4단계: 균형을 맞추기 위해 참가자 배치
-        let maleIndex = 0,
-          femaleIndex = 0,
-          otherIndex = 0;
+        // 3단계: 남은 참가자들을 성별로 분류
+        const remainingParticipants = participants.filter(p => !p.isLeader);
+        const maleParticipants = remainingParticipants.filter(p => p.gender === "남성");
+        const femaleParticipants = remainingParticipants.filter(p => p.gender === "여성");
+        const otherParticipants = remainingParticipants.filter(p => p.gender !== "남성" && p.gender !== "여성");
 
-        // 남성과 여성을 번갈아가며 배치하되, 각 조의 균형을 고려
-        while (maleIndex < males.length || femaleIndex < females.length) {
-          // 다음에 배치할 조 선택 (가장 균형이 맞지 않은 조)
-          let targetGroup = 0;
-          let minBalance = Infinity;
+        // 각 성별 그룹을 섞기
+        maleParticipants.sort(() => Math.random() - 0.5);
+        femaleParticipants.sort(() => Math.random() - 0.5);
+        otherParticipants.sort(() => Math.random() - 0.5);
+
+        // 4단계: 성별 균형을 고려한 배치
+        const allParticipants = [...maleParticipants, ...femaleParticipants, ...otherParticipants];
+        
+        allParticipants.forEach((member) => {
+          let bestGroup = 0;
+          let bestScore = Infinity;
 
           for (let i = 0; i < groupCount; i++) {
-            const balance = getGroupGenderBalance(i);
-            const balanceDiff = Math.abs(balance.male - balance.female);
-            if (balanceDiff < minBalance) {
-              minBalance = balanceDiff;
-              targetGroup = i;
+            // 현재 조의 크기 고려
+            const sizePenalty = groups[i].length * 2;
+            
+            // 성별 균형 점수
+            const gender = member.gender === "남성" ? "male" : member.gender === "여성" ? "female" : "other";
+            const genderCount = groupStats[i][gender];
+            const genderPenalty = genderCount * 4;
+            
+            const totalScore = sizePenalty + genderPenalty;
+            
+            if (totalScore < bestScore) {
+              bestScore = totalScore;
+              bestGroup = i;
             }
           }
 
-          // 남성과 여성을 번갈아가며 배치
-          if (maleIndex < males.length && femaleIndex < females.length) {
-            // 둘 다 있으면 번갈아가며 배치
-            if (maleIndex <= femaleIndex) {
-              groups[targetGroup].push(males[maleIndex]);
-              maleIndex++;
-            } else {
-              groups[targetGroup].push(females[femaleIndex]);
-              femaleIndex++;
-            }
-          } else if (maleIndex < males.length) {
-            // 남성만 남음
-            groups[targetGroup].push(males[maleIndex]);
-            maleIndex++;
-          } else if (femaleIndex < females.length) {
-            // 여성만 남음
-            groups[targetGroup].push(females[femaleIndex]);
-            femaleIndex++;
-          }
-        }
+          groups[bestGroup].push(member);
+          
+          // 통계 업데이트
+          const gender = member.gender === "남성" ? "male" : member.gender === "여성" ? "female" : "other";
+          groupStats[bestGroup][gender]++;
+          
+          console.log(`👤 ${member.name} (${member.gender}) → ${bestGroup + 1}조`);
+        });
 
-        // 5단계: 기타 성별 처리
-        while (otherIndex < others.length) {
-          // 가장 인원이 적은 조에 배치
-          let targetGroup = 0;
-          let minSize = groups[0].length;
-          for (let i = 1; i < groupCount; i++) {
-            if (groups[i].length < minSize) {
-              minSize = groups[i].length;
-              targetGroup = i;
-            }
-          }
-          groups[targetGroup].push(others[otherIndex]);
-          otherIndex++;
-        }
-
+        console.log("✅ 성별 균형 배분 완료");
         return groups;
       }
 
@@ -9689,22 +9793,39 @@
         );
       }
 
-      // 단과대 균형 배분 (조장 포함)
+      // 단과대 균형 배분 (조장 포함) - 개선된 알고리즘
       function balanceGroupsByCollegeWithLeaders(
         participants,
         groups,
         groupCount,
         manualLeaders
       ) {
-        // 조장들을 먼저 배치
-        participants.forEach((p) => {
-          if (p.isLeader && p.targetGroup !== undefined) {
-            groups[p.targetGroup].push(p);
-          }
+        console.log("🔄 단과대 균형 배분 시작", participants.length, "명,", groupCount, "조");
+        
+        // 1단계: 조장들을 먼저 배치
+        const leaders = participants.filter(p => p.isLeader && p.targetGroup !== undefined);
+        leaders.forEach(leader => {
+          groups[leader.targetGroup].push(leader);
+          console.log(`👑 조장 배치: ${leader.name} → ${leader.targetGroup + 1}조`);
         });
 
-        // 남은 참가자들을 단과대별로 분류
-        const remainingParticipants = participants.filter((p) => !p.isLeader);
+        // 2단계: 각 조의 현재 단과대 구성 확인
+        const groupStats = groups.map(() => ({
+          colleges: {}
+        }));
+
+        groups.forEach((group, groupIndex) => {
+          group.forEach(member => {
+            const college = member.college || "기타";
+            if (!groupStats[groupIndex].colleges[college]) {
+              groupStats[groupIndex].colleges[college] = 0;
+            }
+            groupStats[groupIndex].colleges[college]++;
+          });
+        });
+
+        // 3단계: 남은 참가자들을 단과대별로 분류
+        const remainingParticipants = participants.filter(p => !p.isLeader);
         const collegeGroups = {};
         remainingParticipants.forEach((p) => {
           const college = p.college || "기타";
@@ -9712,20 +9833,53 @@
           collegeGroups[college].push(p);
         });
 
-        let currentGroup = 0;
-        const allColleges = Object.keys(collegeGroups);
-
-        // 각 단과대의 참가자들을 섞고 순환 배치
-        allColleges.forEach((college) => {
-          const members = collegeGroups[college].sort(
-            () => Math.random() - 0.5
-          );
-          members.forEach((member) => {
-            groups[currentGroup].push(member);
-            currentGroup = (currentGroup + 1) % groupCount;
-          });
+        // 각 단과대의 참가자들을 섞기
+        Object.keys(collegeGroups).forEach(college => {
+          collegeGroups[college].sort(() => Math.random() - 0.5);
         });
 
+        // 4단계: 단과대 균형을 고려한 배치
+        const allMembers = [];
+        Object.keys(collegeGroups).forEach(college => {
+          allMembers.push(...collegeGroups[college]);
+        });
+
+        allMembers.sort(() => Math.random() - 0.5);
+
+        allMembers.forEach((member) => {
+          let bestGroup = 0;
+          let bestScore = Infinity;
+
+          for (let i = 0; i < groupCount; i++) {
+            // 현재 조의 크기 고려
+            const sizePenalty = groups[i].length * 2;
+            
+            // 단과대 균형 점수
+            const college = member.college || "기타";
+            const collegeCount = groupStats[i].colleges[college] || 0;
+            const collegePenalty = collegeCount * 3;
+            
+            const totalScore = sizePenalty + collegePenalty;
+            
+            if (totalScore < bestScore) {
+              bestScore = totalScore;
+              bestGroup = i;
+            }
+          }
+
+          groups[bestGroup].push(member);
+          
+          // 통계 업데이트
+          const college = member.college || "기타";
+          if (!groupStats[bestGroup].colleges[college]) {
+            groupStats[bestGroup].colleges[college] = 0;
+          }
+          groupStats[bestGroup].colleges[college]++;
+          
+          console.log(`👤 ${member.name} (${member.college}) → ${bestGroup + 1}조`);
+        });
+
+        console.log("✅ 단과대 균형 배분 완료");
         return groups;
       }
 
@@ -9746,21 +9900,37 @@
         groupCount,
         manualLeaders
       ) {
-        // 조장들을 먼저 배치
-        participants.forEach((p) => {
-          if (p.isLeader && p.targetGroup !== undefined) {
-            groups[p.targetGroup].push(p);
-          }
+        console.log("🔄 무작위 배분 시작", participants.length, "명,", groupCount, "조");
+        
+        // 1단계: 조장들을 먼저 배치
+        const leaders = participants.filter(p => p.isLeader && p.targetGroup !== undefined);
+        leaders.forEach(leader => {
+          groups[leader.targetGroup].push(leader);
+          console.log(`👑 조장 배치: ${leader.name} → ${leader.targetGroup + 1}조`);
         });
 
-        // 남은 참가자들을 무작위로 배치
-        const remainingParticipants = participants.filter((p) => !p.isLeader);
-        const shuffled = [...remainingParticipants].sort(
-          () => Math.random() - 0.5
-        );
+        // 2단계: 남은 참가자들을 무작위로 섞기
+        const remainingParticipants = participants.filter(p => !p.isLeader);
+        const shuffled = [...remainingParticipants].sort(() => Math.random() - 0.5);
+        
+        // 3단계: 조 크기 균형을 고려한 배치
         shuffled.forEach((participant, index) => {
-          groups[index % groupCount].push(participant);
+          // 가장 인원이 적은 조에 배치
+          let targetGroup = 0;
+          let minSize = groups[0].length;
+          
+          for (let i = 1; i < groupCount; i++) {
+            if (groups[i].length < minSize) {
+              minSize = groups[i].length;
+              targetGroup = i;
+            }
+          }
+          
+          groups[targetGroup].push(participant);
+          console.log(`👤 ${participant.name} → ${targetGroup + 1}조`);
         });
+        
+        console.log("✅ 무작위 배분 완료");
         return groups;
       }
 
