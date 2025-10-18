@@ -8862,73 +8862,96 @@
           document.body.insertAdjacentHTML("beforeend", modalHTML);
           console.log("✅ 조짜기 모달 DOM에 추가 완료");
 
-          // 이벤트 리스너 추가
-          console.log("🔗 이벤트 리스너 연결 중...");
-          const closeBtn = document.getElementById("group-maker-close");
-          const cancelBtn = document.getElementById("group-maker-cancel");
-          const generateBtn = document.getElementById("group-maker-generate");
+          // 짧은 지연 후 이벤트 리스너 추가 (DOM 렌더링 완료 대기)
+          setTimeout(() => {
+            console.log("🔗 이벤트 리스너 연결 중...");
+            const closeBtn = document.getElementById("group-maker-close");
+            const cancelBtn = document.getElementById("group-maker-cancel");
+            const generateBtn = document.getElementById("group-maker-generate");
 
-          if (!closeBtn || !cancelBtn || !generateBtn) {
-            console.error("❌ 버튼 요소를 찾을 수 없습니다", {
-              closeBtn,
-              cancelBtn,
-              generateBtn,
+            console.log("🔍 버튼 요소 확인:", {
+              closeBtn: !!closeBtn,
+              cancelBtn: !!cancelBtn,
+              generateBtn: !!generateBtn,
             });
-            return showAlert("😥", "모달 버튼을 찾을 수 없습니다.");
-          }
 
-          closeBtn.addEventListener("click", () => {
-            console.log("🔴 닫기 버튼 클릭됨");
-            closeGroupMakerModal();
-          });
-          cancelBtn.addEventListener("click", () => {
-            console.log("🔴 취소 버튼 클릭됨");
-            closeGroupMakerModal();
-          });
-          generateBtn.addEventListener("click", () => {
-            console.log("🟢 조짜기 시작 버튼 클릭됨");
-            generateGroups(eventId, participants);
-          });
-          console.log("✅ 이벤트 리스너 연결 완료");
-
-          // 관리자만 조장 관련 이벤트 리스너 추가
-          if (currentUser && adminList.includes(currentUser.studentId)) {
-            console.log("👨‍💼 관리자 모드: 조장 관련 기능 활성화");
-
-            // 조 개수 변경 시 조장 선택기 업데이트
-            const groupCountInput = document.getElementById("group-count");
-            if (groupCountInput) {
-              groupCountInput.addEventListener("input", () => {
-                console.log("📊 조 개수 변경됨");
-                updateLeaderSelectors(participants);
+            if (closeBtn) {
+              closeBtn.addEventListener("click", () => {
+                console.log("🔴 닫기 버튼 클릭됨");
+                closeGroupMakerModal();
               });
+              console.log("✅ 닫기 버튼 연결 완료");
+            } else {
+              console.error("❌ 닫기 버튼을 찾을 수 없습니다");
             }
 
-            // 조장 설정 방식 변경 시 UI 업데이트
-            const leaderSettingRadios = document.querySelectorAll(
-              'input[name="leader-setting"]'
-            );
-            console.log(
-              "👑 조장 설정 라디오 버튼 수:",
-              leaderSettingRadios.length
-            );
-            if (leaderSettingRadios.length > 0) {
-              leaderSettingRadios.forEach((radio) => {
-                radio.addEventListener("change", () => {
-                  console.log("👑 조장 설정 방식 변경됨:", radio.value);
-                  updateLeaderSelectionVisibility();
+            if (cancelBtn) {
+              cancelBtn.addEventListener("click", () => {
+                console.log("🔴 취소 버튼 클릭됨");
+                closeGroupMakerModal();
+              });
+              console.log("✅ 취소 버튼 연결 완료");
+            } else {
+              console.error("❌ 취소 버튼을 찾을 수 없습니다");
+            }
+
+            if (generateBtn) {
+              generateBtn.addEventListener("click", () => {
+                console.log("🟢 조짜기 시작 버튼 클릭됨");
+                generateGroups(eventId, participants);
+              });
+              console.log("✅ 조짜기 시작 버튼 연결 완료");
+            } else {
+              console.error("❌ 조짜기 시작 버튼을 찾을 수 없습니다");
+            }
+
+            console.log("✅ 이벤트 리스너 연결 완료");
+
+            // 관리자만 조장 관련 이벤트 리스너 추가
+            if (currentUser && adminList.includes(currentUser.studentId)) {
+              console.log("👨‍💼 관리자 모드: 조장 관련 기능 활성화");
+
+              // 조 개수 변경 시 조장 선택기 업데이트
+              const groupCountInput = document.getElementById("group-count");
+              if (groupCountInput) {
+                groupCountInput.addEventListener("input", () => {
+                  console.log("📊 조 개수 변경됨");
+                  updateLeaderSelectors(participants);
                 });
-              });
-            }
+                console.log("✅ 조 개수 입력 이벤트 연결 완료");
+              } else {
+                console.error("❌ group-count 입력을 찾을 수 없습니다");
+              }
 
-            // 초기 조장 선택기 생성
-            console.log("🔧 초기 조장 선택기 생성 중...");
-            updateLeaderSelectors(participants);
-            updateLeaderSelectionVisibility();
-            console.log("✅ 조장 선택기 초기화 완료");
-          } else {
-            console.log("👤 일반 사용자 모드: 조장 기능 비활성화");
-          }
+              // 조장 설정 방식 변경 시 UI 업데이트
+              const leaderSettingRadios = document.querySelectorAll(
+                'input[name="leader-setting"]'
+              );
+              console.log(
+                "👑 조장 설정 라디오 버튼 수:",
+                leaderSettingRadios.length
+              );
+              if (leaderSettingRadios.length > 0) {
+                leaderSettingRadios.forEach((radio) => {
+                  radio.addEventListener("change", () => {
+                    console.log("👑 조장 설정 방식 변경됨:", radio.value);
+                    updateLeaderSelectionVisibility();
+                  });
+                });
+                console.log("✅ 조장 설정 라디오 이벤트 연결 완료");
+              } else {
+                console.error("❌ 조장 설정 라디오 버튼을 찾을 수 없습니다");
+              }
+
+              // 초기 조장 선택기 생성
+              console.log("🔧 초기 조장 선택기 생성 중...");
+              updateLeaderSelectors(participants);
+              updateLeaderSelectionVisibility();
+              console.log("✅ 조장 선택기 초기화 완료");
+            } else {
+              console.log("👤 일반 사용자 모드: 조장 기능 비활성화");
+            }
+          }, 100); // 100ms 지연
 
           console.log("🎉 조짜기 모달 열기 완료!");
         } catch (error) {
@@ -9043,10 +9066,17 @@
 
           const groupCount = parseInt(groupCountInput.value);
           console.log("📊 조 개수:", groupCount);
-          
-          if (!groupCount || groupCount < 1 || groupCount > participants.length) {
+
+          if (
+            !groupCount ||
+            groupCount < 1 ||
+            groupCount > participants.length
+          ) {
             console.error("❌ 조 개수가 올바르지 않습니다:", groupCount);
-            return showAlert("😥", `조 개수를 1부터 ${participants.length} 사이로 설정해주세요.`);
+            return showAlert(
+              "😥",
+              `조 개수를 1부터 ${participants.length} 사이로 설정해주세요.`
+            );
           }
 
           const genderRatioElement = document.querySelector(
