@@ -6905,7 +6905,10 @@
         if (act === "admin-reopen") return reopenEvent(id);
         if (act === "admin-archive") return archiveEvent(id);
         if (act === "admin-unpost") return unpostEvent(id);
-        if (act === "group-maker") return openGroupMakerModal(id);
+        if (act === "group-maker") {
+          console.log("🎯 조짜기 버튼 클릭됨:", id);
+          return openGroupMakerModal(id);
+        }
         if (act === "admin-delete") return deleteEvent(id);
         if (act === "export-xlsx") return exportApplicantsXLSX(id);
       }
@@ -8556,6 +8559,9 @@
             return showAlert("😥", "이벤트를 찾을 수 없습니다.");
           }
           console.log("✅ 이벤트 찾음:", ev.title);
+          console.log("👤 현재 사용자:", currentUser);
+          console.log("👑 관리자 목록:", adminList);
+          console.log("🔐 관리자 여부:", currentUser && adminList.includes(currentUser.studentId));
 
           // 참가자 데이터 수집
           let participants = [];
@@ -8743,10 +8749,7 @@
                       </div>
                     </div>
 
-                    <!-- 4. 조장 설정 (관리자만) -->
-                    ${
-                      currentUser && adminList.includes(currentUser.studentId)
-                        ? `
+                    <!-- 4. 조장 설정 (모든 사용자) -->
                     <div class="bg-white border-2 border-gray-200 rounded-xl p-5 hover:border-yellow-300 transition-all duration-200">
                       <div class="flex items-center gap-3 mb-4">
                         <div class="bg-yellow-100 rounded-full p-2">
@@ -8801,9 +8804,6 @@
                         </div>
                       </div>
                     </div>
-                    `
-                        : ""
-                    }
 
                     <!-- 참가자 목록 (관리자만) -->
                     ${
@@ -8907,50 +8907,46 @@
 
             console.log("✅ 이벤트 리스너 연결 완료");
 
-            // 관리자만 조장 관련 이벤트 리스너 추가
-            if (currentUser && adminList.includes(currentUser.studentId)) {
-              console.log("👨‍💼 관리자 모드: 조장 관련 기능 활성화");
+            // 조장 관련 이벤트 리스너 추가 (모든 사용자)
+            console.log("👨‍💼 조장 관련 기능 활성화");
 
-              // 조 개수 변경 시 조장 선택기 업데이트
-              const groupCountInput = document.getElementById("group-count");
-              if (groupCountInput) {
-                groupCountInput.addEventListener("input", () => {
-                  console.log("📊 조 개수 변경됨");
-                  updateLeaderSelectors(participants);
-                });
-                console.log("✅ 조 개수 입력 이벤트 연결 완료");
-              } else {
-                console.error("❌ group-count 입력을 찾을 수 없습니다");
-              }
-
-              // 조장 설정 방식 변경 시 UI 업데이트
-              const leaderSettingRadios = document.querySelectorAll(
-                'input[name="leader-setting"]'
-              );
-              console.log(
-                "👑 조장 설정 라디오 버튼 수:",
-                leaderSettingRadios.length
-              );
-              if (leaderSettingRadios.length > 0) {
-                leaderSettingRadios.forEach((radio) => {
-                  radio.addEventListener("change", () => {
-                    console.log("👑 조장 설정 방식 변경됨:", radio.value);
-                    updateLeaderSelectionVisibility();
-                  });
-                });
-                console.log("✅ 조장 설정 라디오 이벤트 연결 완료");
-              } else {
-                console.error("❌ 조장 설정 라디오 버튼을 찾을 수 없습니다");
-              }
-
-              // 초기 조장 선택기 생성
-              console.log("🔧 초기 조장 선택기 생성 중...");
-              updateLeaderSelectors(participants);
-              updateLeaderSelectionVisibility();
-              console.log("✅ 조장 선택기 초기화 완료");
+            // 조 개수 변경 시 조장 선택기 업데이트
+            const groupCountInput = document.getElementById("group-count");
+            if (groupCountInput) {
+              groupCountInput.addEventListener("input", () => {
+                console.log("📊 조 개수 변경됨");
+                updateLeaderSelectors(participants);
+              });
+              console.log("✅ 조 개수 입력 이벤트 연결 완료");
             } else {
-              console.log("👤 일반 사용자 모드: 조장 기능 비활성화");
+              console.error("❌ group-count 입력을 찾을 수 없습니다");
             }
+
+            // 조장 설정 방식 변경 시 UI 업데이트
+            const leaderSettingRadios = document.querySelectorAll(
+              'input[name="leader-setting"]'
+            );
+            console.log(
+              "👑 조장 설정 라디오 버튼 수:",
+              leaderSettingRadios.length
+            );
+            if (leaderSettingRadios.length > 0) {
+              leaderSettingRadios.forEach((radio) => {
+                radio.addEventListener("change", () => {
+                  console.log("👑 조장 설정 방식 변경됨:", radio.value);
+                  updateLeaderSelectionVisibility();
+                });
+              });
+              console.log("✅ 조장 설정 라디오 이벤트 연결 완료");
+            } else {
+              console.error("❌ 조장 설정 라디오 버튼을 찾을 수 없습니다");
+            }
+
+            // 초기 조장 선택기 생성
+            console.log("🔧 초기 조장 선택기 생성 중...");
+            updateLeaderSelectors(participants);
+            updateLeaderSelectionVisibility();
+            console.log("✅ 조장 선택기 초기화 완료");
           }, 100); // 100ms 지연
 
           console.log("🎉 조짜기 모달 열기 완료!");
