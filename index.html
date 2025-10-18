@@ -6672,8 +6672,8 @@
                       ev.type
                     )}">${typeLabel(ev.type)}</span>
                     ${
-                      ev.status === "hidden" && isAdmin
-                        ? '<span class="px-2 py-0.5 rounded bg-gray-200 text-gray-700 text-xs"><i class="fas fa-eye-slash mr-1"></i>숨김 (회장단만 표시)</span>'
+                      ev.status === "archived" && isAdmin
+                        ? '<span class="px-2 py-0.5 rounded bg-yellow-100 text-yellow-800 text-xs font-medium"><i class="fas fa-eye-slash mr-1"></i>보관 (회장단만 표시)</span>'
                         : ""
                     }
                   </div>
@@ -6907,8 +6907,8 @@
                               상태: ${statusLabel(ev.status || "open")}
                             </div>
                             ${
-                              ev.status === "hidden" && isFullAdmin()
-                                ? '<span class="px-2 py-0.5 rounded bg-gray-200 text-gray-700 text-xs"><i class="fas fa-eye-slash mr-1"></i>숨김 (회장단만 표시)</span>'
+                              ev.status === "archived" && isFullAdmin()
+                                ? '<span class="px-2 py-0.5 rounded bg-yellow-100 text-yellow-800 text-xs font-medium"><i class="fas fa-eye-slash mr-1"></i>보관 (회장단만 표시)</span>'
                                 : ""
                             }
                           </div>
@@ -6968,20 +6968,20 @@
         const c = document.getElementById("reservation-tab");
         if (!c) return;
 
-        // 회장단은 숨김 처리된 이벤트도 볼 수 있음, 일반 회원은 숨김 이벤트 제외
+        // 회장단은 보관(숨김) 처리된 이벤트도 볼 수 있음, 일반 회원은 제외
         const activeEvents = eventsData.filter((e) => {
-          // archived와 closed 상태는 제외
-          if (e.status === "archived" || e.status === "closed") return false;
+          // closed 상태는 제외 (마감된 이벤트)
+          if (e.status === "closed") return false;
           
-          // 회장단은 숨김 이벤트도 표시
+          // 회장단은 archived(보관/숨김) 이벤트도 표시
           if (isAdmin) return true;
           
-          // 일반 회원은 숨김 이벤트 제외
-          if (e.status === "hidden") return false;
+          // 일반 회원은 archived(보관/숨김) 이벤트 제외
+          if (e.status === "archived") return false;
           
           return true;
         });
-        
+
         const listHTML =
           activeEvents.length === 0
             ? `<div class="text-center py-12"><i class="fas fa-calendar-xmark text-4xl text-gray-300"></i><p class="mt-3 text-gray-500">진행 중인 이벤트/미식회가 없습니다.</p></div>`
