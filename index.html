@@ -6968,21 +6968,18 @@
         const c = document.getElementById("reservation-tab");
         if (!c) return;
 
-        // 회장단은 보관(숨김) 처리된 이벤트도 볼 수 있음, 일반 회원은 제외
+        // 활성 이벤트와 보관 이벤트를 분리
         const activeEvents = eventsData.filter((e) => {
-          // closed 상태는 제외 (마감된 이벤트)
           if (e.status === "closed") return false;
-          
-          // 회장단은 archived(보관/숨김) 이벤트도 표시
-          if (isAdmin) return true;
-          
-          // 일반 회원은 archived(보관/숨김) 이벤트 제외
           if (e.status === "archived") return false;
-          
           return true;
         });
-
-        const listHTML =
+        
+        const archivedEvents = isAdmin 
+          ? eventsData.filter((e) => e.status === "archived")
+          : [];
+        
+        const activeListHTML =
           activeEvents.length === 0
             ? `<div class="text-center py-12"><i class="fas fa-calendar-xmark text-4xl text-gray-300"></i><p class="mt-3 text-gray-500">진행 중인 이벤트/미식회가 없습니다.</p></div>`
             : `<div id="events-container" class="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6" style="position: relative; z-index: 1; min-height: 200px;">
@@ -6991,8 +6988,95 @@
                   .map(eventCardHTML)
                   .join("")}
                </div>`;
+        
+        // 보관된 이벤트 목록 (회장단만)
+        const archivedListHTML = archivedEvents.length > 0
+          ? `
+          <div class="section mt-6">
+            <div class="bg-yellow-50 border-2 border-yellow-200 rounded-xl overflow-hidden">
+              <button 
+                type="button" 
+                id="archived-events-toggle"
+                class="w-full px-6 py-4 flex items-center justify-between hover:bg-yellow-100 transition-colors"
+              >
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 bg-yellow-200 rounded-full flex items-center justify-center">
+                    <i class="fas fa-archive text-yellow-700"></i>
+                  </div>
+                  <div class="text-left">
+                    <h4 class="text-lg font-bold text-yellow-900">보관된 이벤트</h4>
+                    <p class="text-sm text-yellow-700">회장단만 볼 수 있는 숨김 처리된 ${archivedEvents.length}개의 이벤트</p>
+                  </div>
+                </div>
+                <i class="fas fa-chevron-down text-yellow-700 text-xl transition-transform" id="archived-toggle-icon"></i>
+              </button>
+              <div id="archived-events-content" class="hidden px-6 pb-6">
+                <div class="bg-white rounded-lg p-4 border-2 border-yellow-200">
+                  <div class="space-y-3">
+                    ${archivedEvents
+                      .sort((a, b) => (a.order || 999) - (b.order || 999))
+                      .map((ev) => {
+                        const typeIcon = ev.type === "tasting" 
+                          ? "🍽️" 
+                          : ev.type === "mt" 
+                          ? "🏕️" 
+                          : ev.type === "assembly" 
+                          ? "🎤" 
+                          : "📅";
+                        
+                        return `
+                          <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200">
+                            <div class="flex items-center gap-3 flex-1 min-w-0">
+                              <span class="text-2xl">${typeIcon}</span>
+                              <div class="flex-1 min-w-0">
+                                <h5 class="font-semibold text-gray-800 truncate">${saf(ev.title)}</h5>
+                                <p class="text-xs text-gray-500">
+                                  ${ev.datetime ? new Date(ev.datetime).toLocaleDateString("ko-KR", { month: "long", day: "numeric" }) : "날짜 미정"}
+                                </p>
+                              </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                              <button 
+                                type="button"
+                                class="px-3 py-1 bg-green-500 hover:bg-green-600 text-white text-xs rounded-lg transition-colors"
+                                data-act="admin-unarchive"
+                                data-id="${ev.id}"
+                                title="이벤트 복원"
+                              >
+                                <i class="fas fa-box-open mr-1"></i>복원
+                              </button>
+                              <button 
+                                type="button"
+                                class="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white text-xs rounded-lg transition-colors"
+                                data-act="admin-edit"
+                                data-id="${ev.id}"
+                                title="수정"
+                              >
+                                <i class="fas fa-edit"></i>
+                              </button>
+                              <button 
+                                type="button"
+                                class="px-3 py-1 bg-red-500 hover:bg-red-600 text-white text-xs rounded-lg transition-colors"
+                                data-act="admin-delete"
+                                data-id="${ev.id}"
+                                title="삭제"
+                              >
+                                <i class="fas fa-trash"></i>
+                              </button>
+                            </div>
+                          </div>
+                        `;
+                      })
+                      .join("")}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          `
+          : "";
 
-        // 관리자인 경우: 점선 블록 + 이벤트 목록, 일반 회원: 이벤트 목록만
+        // 관리자인 경우: 점선 블록 + 이벤트 목록 + 보관 목록, 일반 회원: 이벤트 목록만
         c.innerHTML = isAdmin
           ? `
             <div class="section mb-6">
@@ -7029,11 +7113,12 @@
                 <i class="fas fa-list text-gray-600 text-xl"></i>
                 <h4 class="text-xl font-bold text-gray-800">생성된 이벤트 목록</h4>
               </div>
-              ${listHTML}
+              ${activeListHTML}
             </div>
+            ${archivedListHTML}
           `
           : `<div class="section">
-              ${listHTML}
+              ${activeListHTML}
             </div>`;
 
         // 기존 이벤트 리스너 제거 (중복 방지)
@@ -7041,6 +7126,27 @@
 
         // 새로운 이벤트 리스너 등록
         c.addEventListener("click", handleReservationTabClick);
+
+        // 보관된 이벤트 토글 기능
+        if (isAdmin && archivedEvents.length > 0) {
+          const toggleButton = document.getElementById("archived-events-toggle");
+          const toggleIcon = document.getElementById("archived-toggle-icon");
+          const content = document.getElementById("archived-events-content");
+          
+          if (toggleButton && content && toggleIcon) {
+            toggleButton.addEventListener("click", () => {
+              const isHidden = content.classList.contains("hidden");
+              
+              if (isHidden) {
+                content.classList.remove("hidden");
+                toggleIcon.style.transform = "rotate(180deg)";
+              } else {
+                content.classList.add("hidden");
+                toggleIcon.style.transform = "rotate(0deg)";
+              }
+            });
+          }
+        }
 
         // 미식회/이벤트 생성 점선 블록 이벤트 리스너는 전역 이벤트 리스너에서 처리됨
 
