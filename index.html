@@ -2098,18 +2098,27 @@
         <h3 class="text-2xl font-bold text-gray-700 text-center mb-4">
           🔧 게임 수정 중
         </h3>
-        
+
         <div class="text-center py-12">
-          <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gray-100 mb-4">
+          <div
+            class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gray-100 mb-4"
+          >
             <i class="fas fa-tools text-4xl text-gray-400"></i>
           </div>
-          <h4 class="text-xl font-bold text-gray-800 mb-2">개발자가 게임을 수정 중입니다</h4>
-          <p class="text-gray-600 mb-6">더 나은 게임 경험을 위해 업데이트하고 있습니다.<br>곧 다시 만나요! 🚀</p>
-          
+          <h4 class="text-xl font-bold text-gray-800 mb-2">
+            개발자가 게임을 수정 중입니다
+          </h4>
+          <p class="text-gray-600 mb-6">
+            더 나은 게임 경험을 위해 업데이트하고 있습니다.<br />곧 다시 만나요!
+            🚀
+          </p>
+
           <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
             <div class="flex items-center gap-2 mb-2">
               <i class="fas fa-info-circle text-blue-600"></i>
-              <span class="font-semibold text-blue-800">업데이트 예정 기능</span>
+              <span class="font-semibold text-blue-800"
+                >업데이트 예정 기능</span
+              >
             </div>
             <ul class="text-sm text-blue-700 space-y-1 text-left">
               <li>• 새로운 게임 모드 추가</li>
@@ -2118,7 +2127,7 @@
               <li>• 모바일 최적화</li>
             </ul>
           </div>
-          
+
           <button
             id="minigame-close"
             class="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors font-medium"
@@ -13556,10 +13565,10 @@
             <div class="cursor-pointer" onclick="toggleActivityDetails('${
               ev.id
             }')">
-              <div class="flex items-center justify-between p-4">
-                <div class="flex items-center gap-3 flex-1">
+              <div class="p-3 md:p-4">
+                <div class="flex items-start gap-2 md:gap-3">
                   <!-- 이벤트 로고/아이콘 -->
-                  <div class="flex items-center justify-center w-12 h-12 rounded-xl ${typeBadgeClass(
+                  <div class="flex-shrink-0 flex items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-xl ${typeBadgeClass(
                     ev.type
                   )}">
                     <i class="fas ${
@@ -13570,62 +13579,70 @@
                         : ev.type === "meeting"
                         ? "fa-users"
                         : "fa-calendar"
-                    } text-white text-lg"></i>
+                    } text-white text-base md:text-lg"></i>
                   </div>
                   
                   <!-- 중요 정보 -->
-                  <div class="flex-1">
-                    <div class="flex items-center gap-2 mb-1">
-                      <h3 class="text-lg font-bold text-gray-800">${saf(
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-start justify-between gap-2 mb-1">
+                      <h3 class="text-base md:text-lg font-bold text-gray-800 truncate">${saf(
                         ev.title || "(제목 없음)"
                       )}</h3>
-                      <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${typeBadgeClass(
+                      <span class="flex-shrink-0 inline-flex items-center px-1.5 md:px-2 py-0.5 rounded-full text-xs font-medium ${typeBadgeClass(
                         ev.type
                       )}">
                         ${typeLabel(ev.type)}
                       </span>
                     </div>
                     
-                    <!-- 상태 및 일시 -->
-                    <div class="flex items-center gap-3 text-sm text-gray-600">
-                      <div class="flex items-center gap-1">
-                        <i class="fas fa-calendar text-orange-500"></i>
-                        <span>${new Date(ev.datetime).toLocaleDateString(
-                          "ko-KR",
-                          { month: "short", day: "numeric" }
-                        )}</span>
+                    <!-- 상태 및 일시 - 모바일에서 세로 정렬 -->
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 text-xs sm:text-sm text-gray-600">
+                      <div class="flex items-center gap-3">
+                        <div class="flex items-center gap-1 flex-shrink-0">
+                          <i class="fas fa-calendar text-orange-500"></i>
+                          <span class="whitespace-nowrap">${new Date(
+                            ev.datetime
+                          ).toLocaleDateString("ko-KR", {
+                            month: "short",
+                            day: "numeric",
+                          })}</span>
+                        </div>
+                        <div class="flex items-center gap-1 flex-shrink-0">
+                          <i class="fas fa-clock text-blue-500"></i>
+                          <span class="whitespace-nowrap">${new Date(
+                            ev.datetime
+                          ).toLocaleTimeString("ko-KR", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}</span>
+                        </div>
                       </div>
-                      <div class="flex items-center gap-1">
-                        <i class="fas fa-clock text-blue-500"></i>
-                        <span>${new Date(ev.datetime).toLocaleTimeString(
-                          "ko-KR",
-                          { hour: "2-digit", minute: "2-digit" }
-                        )}</span>
+                      <div class="flex items-center gap-1 flex-wrap">
+                        ${
+                          isClosed
+                            ? '<span class="bg-green-100 text-green-800 px-1.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap"><i class="fas fa-check-circle mr-1"></i>확정</span>'
+                            : ""
+                        }
+                        ${
+                          ev.activityStatus === "confirmed"
+                            ? '<span class="bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap"><i class="fas fa-thumbs-up mr-1"></i>완료</span>'
+                            : ""
+                        }
+                        ${
+                          ev.activityStatus === "cancelled"
+                            ? '<span class="bg-red-100 text-red-800 px-1.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap"><i class="fas fa-ban mr-1"></i>취소</span>'
+                            : ""
+                        }
                       </div>
-                      ${
-                        isClosed
-                          ? '<span class="bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs font-medium"><i class="fas fa-check-circle mr-1"></i>확정</span>'
-                          : ""
-                      }
-                      ${
-                        ev.activityStatus === "confirmed"
-                          ? '<span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full text-xs font-medium"><i class="fas fa-thumbs-up mr-1"></i>완료</span>'
-                          : ""
-                      }
-                      ${
-                        ev.activityStatus === "cancelled"
-                          ? '<span class="bg-red-100 text-red-800 px-2 py-0.5 rounded-full text-xs font-medium"><i class="fas fa-ban mr-1"></i>취소</span>'
-                          : ""
-                      }
                     </div>
                   </div>
-                </div>
-                
-                <!-- 펼치기/접기 아이콘 -->
-                <div class="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors">
-                  <i class="fas fa-chevron-down text-gray-600 transition-transform duration-200" id="chevron-${
-                    ev.id
-                  }"></i>
+                  
+                  <!-- 펼치기/접기 아이콘 -->
+                  <div class="flex-shrink-0 flex items-center justify-center w-7 h-7 md:w-8 md:h-8 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors">
+                    <i class="fas fa-chevron-down text-gray-600 transition-transform duration-200 text-sm" id="chevron-${
+                      ev.id
+                    }"></i>
+                  </div>
                 </div>
               </div>
             </div>
