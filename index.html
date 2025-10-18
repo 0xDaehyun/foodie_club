@@ -8956,33 +8956,73 @@
 
             // 초기 조장 선택기 생성
             console.log("🔧 초기 조장 선택기 생성 중...");
+            console.log("🔧 참가자 데이터:", participants);
+            console.log("🔧 참가자 수:", participants.length);
+            
+            // 강제로 조장 선택기 생성
+            setTimeout(() => {
+              console.log("⏰ 지연 후 조장 선택기 재생성 시도");
+              updateLeaderSelectors(participants);
+              updateLeaderSelectionVisibility();
+              
+              // DOM 요소 확인
+              const leaderSelectors = document.getElementById("leader-selectors");
+              const manualSelection = document.getElementById("manual-leader-selection");
+              console.log("🔍 leader-selectors 요소:", leaderSelectors);
+              console.log("🔍 manual-leader-selection 요소:", manualSelection);
+              
+              if (leaderSelectors) {
+                console.log("🔍 leader-selectors 내용:", leaderSelectors.innerHTML);
+              }
+            }, 200);
+            
             updateLeaderSelectors(participants);
             updateLeaderSelectionVisibility();
             console.log("✅ 조장 선택기 초기화 완료");
 
             // 추가 안전장치: 전역 이벤트 위임으로 버튼 클릭 처리
             const globalClickHandler = (e) => {
-              const target = e.target.closest('#group-maker-close, #group-maker-cancel, #group-maker-generate');
+              const target = e.target.closest(
+                "#group-maker-close, #group-maker-cancel, #group-maker-generate"
+              );
               if (target) {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log("🌐 전역 이벤트 위임으로 버튼 클릭 감지:", target.id);
-                
-                if (target.id === 'group-maker-close' || target.id === 'group-maker-cancel') {
+                console.log(
+                  "🌐 전역 이벤트 위임으로 버튼 클릭 감지:",
+                  target.id
+                );
+
+                if (
+                  target.id === "group-maker-close" ||
+                  target.id === "group-maker-cancel"
+                ) {
                   console.log("🔴 전역 핸들러로 모달 닫기");
                   closeGroupMakerModal();
-                } else if (target.id === 'group-maker-generate') {
+                } else if (target.id === "group-maker-generate") {
                   console.log("🟢 전역 핸들러로 조짜기 시작");
                   generateGroups(eventId, participants);
                 }
               }
             };
-            
-            document.addEventListener('click', globalClickHandler);
+
+            document.addEventListener("click", globalClickHandler);
             console.log("🌐 전역 이벤트 위임 핸들러 추가 완료");
-            
+
             // 모달 닫기 시 전역 핸들러 제거를 위해 저장
             window.groupMakerGlobalHandler = globalClickHandler;
+            
+            // 추가: 모달 배경 클릭으로 닫기
+            const modal = document.getElementById("group-maker-modal");
+            if (modal) {
+              modal.addEventListener("click", (e) => {
+                if (e.target === modal) {
+                  console.log("🖱️ 모달 배경 클릭으로 닫기");
+                  closeGroupMakerModal();
+                }
+              });
+              console.log("✅ 모달 배경 클릭 이벤트 연결 완료");
+            }
           }, 100); // 100ms 지연
 
           console.log("🎉 조짜기 모달 열기 완료!");
@@ -9012,8 +9052,10 @@
         console.log("📊 조장 선택기 생성할 조 개수:", groupCount);
 
         container.innerHTML = "";
+        console.log("🧹 컨테이너 내용 초기화 완료");
 
         for (let i = 1; i <= groupCount; i++) {
+          console.log(`🔧 ${i}조 조장 선택기 생성 중...`);
           const selectorHTML = `
             <div class="flex items-center gap-3 bg-white rounded-lg p-3 border-2 border-gray-200 hover:border-yellow-300 transition-colors">
               <div class="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-yellow-400 to-orange-400 rounded-full text-white font-bold">
@@ -9035,8 +9077,10 @@
             </div>
           `;
           container.insertAdjacentHTML("beforeend", selectorHTML);
+          console.log(`✅ ${i}조 조장 선택기 생성 완료`);
         }
         console.log("✅ 조장 선택기 생성 완료:", groupCount, "개");
+        console.log("🔍 최종 컨테이너 내용:", container.innerHTML);
       }
 
       // 조장 선택 UI 표시/숨김
@@ -9073,14 +9117,14 @@
       // 조짜기 모달 닫기
       function closeGroupMakerModal() {
         console.log("🔴 조짜기 모달 닫기 호출됨");
-        
+
         // 전역 이벤트 핸들러 제거
         if (window.groupMakerGlobalHandler) {
-          document.removeEventListener('click', window.groupMakerGlobalHandler);
+          document.removeEventListener("click", window.groupMakerGlobalHandler);
           delete window.groupMakerGlobalHandler;
           console.log("🌐 전역 이벤트 핸들러 제거 완료");
         }
-        
+
         const modal = document.getElementById("group-maker-modal");
         if (modal) {
           modal.remove();
