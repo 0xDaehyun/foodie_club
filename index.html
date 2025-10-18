@@ -1855,7 +1855,6 @@
       <!-- F👀die 로고 -->
       <div class="foodie-logo">F👀die</div>
 
-
       <!-- 웃는 모양 진행바 (더 긴 길이로 조정) -->
       <div class="foodie-loader">
         <svg
@@ -20344,7 +20343,7 @@
 
       // ===================== 이벤트 폼 바인딩 =====================
       function bindEventForm() {
-        // 이벤트 종류 변경 시 회비 섹션 표시/숨김
+        // 이벤트 종류 변경 시 회비 섹션 표시/숨김 및 계좌 정보 자동 로드
         document
           .getElementById("event-type")
           ?.addEventListener("change", (e) => {
@@ -20352,6 +20351,8 @@
             if (paymentSection) {
               if (e.target.value === "mt" || e.target.value === "assembly") {
                 paymentSection.classList.remove("hidden");
+                // 계좌 정보 자동 로드
+                loadDefaultPaymentInfo();
               } else {
                 paymentSection.classList.add("hidden");
               }
@@ -20371,6 +20372,25 @@
           ?.addEventListener("click", () => {
             resetEventForm();
           });
+      }
+
+      // 기본 회비 정보 로드 함수
+      function loadDefaultPaymentInfo() {
+        const d = duesSettings || {};
+        const payBank = document.getElementById("pay-bank");
+        const payNumber = document.getElementById("pay-number");
+        const payHolder = document.getElementById("pay-holder");
+        const payAmount = document.getElementById("pay-amount");
+        const payNote = document.getElementById("pay-note");
+
+        // 기존 값이 없을 때만 기본값으로 채움
+        if (payBank && !payBank.value) payBank.value = d.bank || "";
+        if (payNumber && !payNumber.value) payNumber.value = d.number || "";
+        if (payHolder && !payHolder.value) payHolder.value = d.holder || "";
+        if (payAmount && !payAmount.value) payAmount.value = d.amount || "";
+        if (payNote && !payNote.value) {
+          payNote.value = (d.amount ? `회비 ${formatKRW(d.amount)} ` : "") + (d.note || "");
+        }
       }
 
       // ===================== 미식회 저장 함수 =====================
