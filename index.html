@@ -1890,11 +1890,7 @@
       <header class="text-center mb-6 md:mb-10 relative">
         <div class="flex items-center justify-between gap-3 flex-wrap">
           <div class="flex items-center gap-2 mx-auto md:mx-0">
-            <!-- 뭐먹지 버튼 (맨 왼쪽) -->
-            <button id="header-food-btn" class="speech-bubble-btn">
-              <span style="font-size: 14px;">🍽️</span>
-              <span>뭐먹지?</span>
-            </button>
+            <!-- 로고 제거됨 -->
           </div>
 
           <!-- 접속자 명단과 조모임 순위 - 모든 화면에서 오른쪽 끝으로 밀착 -->
@@ -4445,13 +4441,17 @@
           el.pre.classList.add("hidden");
           el.main.innerHTML = `
             <div class="mb-4 md:mb-6">
-              <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center gap-2 mb-4">
                 <p class="text-gray-700 text-lg md:text-xl font-medium">
                   <span class="text-orange-600 font-bold text-4xl md:text-5xl">F👀die</span> 
                   <b id="userNameDisplay">${saf(
                     currentUser.name
                   )}</b>${getPositionSuffix()}님
                 </p>
+                <button id="food-recommend-button-main" class="speech-bubble-btn">
+                  <span style="font-size: 14px">🍽️</span>
+                  <span>뭐먹지?</span>
+                </button>
               </div>
               
               <!-- 로그인 후 블록 표시 영역 (로드맵 위) -->
@@ -4563,9 +4563,9 @@
                 renderRankList();
               });
           }
-          // 헤더의 뭐먹지 버튼 이벤트 리스너
+          // 메인 화면의 뭐먹지 버튼 이벤트 리스너
           document
-            .getElementById("header-food-btn")
+            .getElementById("food-recommend-button-main")
             .addEventListener("click", () => {
               openFoodRecommendModal();
             });
