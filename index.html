@@ -1835,8 +1835,6 @@
         bottom: 0;
       "
     >
-      <!-- 동아리 설명 제거됨 -->
-
       <!-- 뭐먹지 말풍선 버튼 -->
       <div style="margin-bottom: 20px">
         <button
@@ -1856,6 +1854,11 @@
 
       <!-- F👀die 로고 -->
       <div class="foodie-logo">F👀die</div>
+
+      <!-- 동아리 설명 -->
+      <div style="margin-top: 15px; margin-bottom: 20px; color: #666; font-size: 14px; font-weight: 500;">
+        전북대학교 맛집 탐방 동아리
+      </div>
 
       <!-- 웃는 모양 진행바 (더 긴 길이로 조정) -->
       <div class="foodie-loader">
@@ -1880,18 +1883,13 @@
             stroke-linecap="round"
           />
         </svg>
-      </div>
+          </div>
     </div>
 
     <div
       class="container mx-auto px-3 sm:px-4 md:px-6 py-4 md:py-8 flex-grow max-w-6xl"
     >
       <header class="text-center mb-6 md:mb-10 relative">
-        <!-- 동아리 설명 -->
-        <div class="text-sm md:text-base text-gray-600 mb-4 font-medium">
-          전북대학교 맛집 탐방 동아리
-        </div>
-        
         <div class="flex items-center justify-between gap-3 flex-wrap">
           <div class="flex items-center gap-2 mx-auto md:mx-0">
             <!-- 뭐먹지 버튼 (맨 왼쪽, 조금 아래로) -->
@@ -2233,7 +2231,7 @@
               >
                 뭐먹지?
               </span>
-            </h3>
+        </h3>
             <div
               class="inline-flex items-center gap-2 bg-gradient-to-r from-orange-100 to-red-100 px-3 py-1.5 rounded-full"
             >
@@ -2245,7 +2243,7 @@
                 <!-- 시간대별 카테고리가 여기 표시됩니다 -->
               </p>
             </div>
-          </div>
+        </div>
 
           <!-- 슬롯머신 디스플레이 -->
           <div class="mb-3 md:mb-4">
@@ -2268,13 +2266,13 @@
                   class="absolute bottom-1 left-1 md:bottom-2 md:left-2 text-3xl md:text-5xl"
                 >
                   🍔
-                </div>
+        </div>
                 <div
                   class="absolute bottom-1 right-1 md:bottom-2 md:right-2 text-3xl md:text-5xl"
                 >
                   🍣
-                </div>
-              </div>
+          </div>
+        </div>
 
               <!-- 슬롯 디스플레이 -->
               <div id="slot-display" class="text-center relative z-10">
@@ -2318,7 +2316,7 @@
             >
               <i class="fas fa-times text-base md:text-lg"></i>
             </button>
-          </div>
+        </div>
 
           <!-- 메뉴 히스토리 -->
           <div
@@ -4329,7 +4327,7 @@
             if (e.target.closest("#inquiry-button")) {
               e.preventDefault();
               openInquiryModal();
-            }
+          }
           });
 
           // 자동 로그인 체크박스 이벤트 리스너
@@ -4457,7 +4455,7 @@
                 <p class="text-gray-700 text-lg md:text-xl font-medium">
                   <span class="text-orange-600 font-bold text-4xl md:text-5xl">F👀die</span> 
                   <b id="userNameDisplay">${saf(
-                    currentUser.name
+                  currentUser.name
                   )}</b>${getPositionSuffix()}님
                 </p>
               </div>
@@ -4572,11 +4570,11 @@
               });
           }
           // 헤더의 뭐먹지 버튼 이벤트 리스너
-          document
+            document
             .getElementById("header-food-btn")
-            .addEventListener("click", () => {
+              .addEventListener("click", () => {
               openFoodRecommendModal();
-            });
+              });
 
           document
             .getElementById("rank-close")
@@ -4676,19 +4674,19 @@
         }
         document.getElementById("rank-close").addEventListener("click", () => {
           document.getElementById("rank-modal").classList.add("hidden");
-        });
-        document
-          .getElementById("food-recommend-close")
-          .addEventListener("click", () => {
+              });
             document
+          .getElementById("food-recommend-close")
+              .addEventListener("click", () => {
+                document
               .getElementById("food-recommend-modal")
               .classList.add("hidden");
-          });
+              });
 
         // 메뉴 정하기 버튼
-        document
+          document
           .getElementById("start-slot-btn")
-          .addEventListener("click", () => {
+            .addEventListener("click", () => {
             startSlotMachine();
           });
       }
@@ -6590,17 +6588,17 @@
                       <div class="bg-orange-100 text-orange-800 px-3 py-1.5 rounded-lg flex items-center gap-2 flex-1">
                         <i class="fas fa-calendar-check text-orange-600"></i>
                                     <span class="text-sm font-medium">이벤트 실시일: ${
-                                      ev.datetime
+                        ev.datetime
                                         ? new Date(ev.datetime).toLocaleString(
                                             "ko-KR",
                                             {
-                                              month: "long",
-                                              day: "numeric",
-                                              hour: "2-digit",
-                                              minute: "2-digit",
+                              month: "long",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
                                             }
                                           )
-                                        : "-"
+                          : "-"
                                     }</span>
                                   </div>
                     </div>
@@ -6608,17 +6606,17 @@
                       <div class="bg-red-100 text-red-800 px-3 py-1.5 rounded-lg flex items-center gap-2 flex-1">
                         <i class="fas fa-clock text-red-600"></i>
                                     <span class="text-sm font-medium">신청 마감일: ${
-                                      ev.deadline
+                        ev.deadline
                                         ? new Date(ev.deadline).toLocaleString(
                                             "ko-KR",
                                             {
-                                              month: "long",
-                                              day: "numeric",
-                                              hour: "2-digit",
-                                              minute: "2-digit",
+                              month: "long",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
                                             }
                                           )
-                                        : "미설정"
+                          : "미설정"
                                     }</span>
                                   </div>
                     </div>
@@ -6865,16 +6863,16 @@
                           <div class="bg-orange-100 text-orange-800 px-3 py-1.5 rounded-lg flex items-center gap-2 flex-1">
                             <i class="fas fa-calendar-check text-orange-600"></i>
                                         <span class="text-sm font-medium">이벤트 실시일: ${
-                                          ev.datetime
+                            ev.datetime
                                             ? new Date(
                                                 ev.datetime
                                               ).toLocaleString("ko-KR", {
-                                                month: "long",
-                                                day: "numeric",
-                                                hour: "2-digit",
-                                                minute: "2-digit",
-                                              })
-                                            : "-"
+                                  month: "long",
+                                  day: "numeric",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })
+                              : "-"
                                         }</span>
                                       </div>
                         </div>
@@ -6882,16 +6880,16 @@
                           <div class="bg-red-100 text-red-800 px-3 py-1.5 rounded-lg flex items-center gap-2 flex-1">
                             <i class="fas fa-clock text-red-600"></i>
                                         <span class="text-sm font-medium">신청 마감일: ${
-                                          ev.deadline
+                            ev.deadline
                                             ? new Date(
                                                 ev.deadline
                                               ).toLocaleString("ko-KR", {
-                                                month: "long",
-                                                day: "numeric",
-                                                hour: "2-digit",
-                                                minute: "2-digit",
-                                              })
-                                            : "미설정"
+                                  month: "long",
+                                  day: "numeric",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })
+                              : "미설정"
                                         }</span>
                                       </div>
                         </div>
@@ -8791,7 +8789,7 @@
                                   <div>
                                     <p class="text-sm text-blue-600 font-medium">총 참가자</p>
                                     <p class="text-3xl font-bold text-blue-900">${
-                                      participants.length
+                      participants.length
                                     }<span class="text-lg ml-1">명</span></p>
                                   </div>
                                 </div>
@@ -8996,8 +8994,8 @@
                     </div>
                   </div>
                   `
-                            : ""
-                        }
+                      : ""
+                  }
                               </div>
                 </div>
 
@@ -9067,8 +9065,8 @@
                 console.log("🟢 버튼 요소:", generateBtn);
                 console.log("🟢 이벤트 ID:", eventId);
                 console.log("🟢 참가자 수:", participants.length);
-                generateGroups(eventId, participants);
-              });
+              generateGroups(eventId, participants);
+            });
               console.log("✅ 조짜기 시작 버튼 연결 완료");
             } else {
               console.error("❌ 조짜기 시작 버튼을 찾을 수 없습니다");
@@ -9079,19 +9077,19 @@
             // 조장 관련 이벤트 리스너 추가 (모든 사용자)
             console.log("👨‍💼 조장 관련 기능 활성화");
 
-            // 조 개수 변경 시 조장 선택기 업데이트
+          // 조 개수 변경 시 조장 선택기 업데이트
             const groupCountInput = document.getElementById("group-count");
             if (groupCountInput) {
               groupCountInput.addEventListener("input", () => {
                 console.log("📊 조 개수 변경됨");
-                updateLeaderSelectors(participants);
-              });
+              updateLeaderSelectors(participants);
+            });
               console.log("✅ 조 개수 입력 이벤트 연결 완료");
             } else {
               console.error("❌ group-count 입력을 찾을 수 없습니다");
             }
 
-            // 조장 설정 방식 변경 시 UI 업데이트
+          // 조장 설정 방식 변경 시 UI 업데이트
             const leaderSettingRadios = document.querySelectorAll(
               'input[name="leader-setting"]'
             );
@@ -9101,11 +9099,11 @@
             );
             if (leaderSettingRadios.length > 0) {
               leaderSettingRadios.forEach((radio) => {
-                radio.addEventListener("change", () => {
+              radio.addEventListener("change", () => {
                   console.log("👑 조장 설정 방식 변경됨:", radio.value);
-                  updateLeaderSelectionVisibility();
-                });
+                updateLeaderSelectionVisibility();
               });
+            });
               console.log("✅ 조장 설정 라디오 이벤트 연결 완료");
             } else {
               console.error("❌ 조장 설정 라디오 버튼을 찾을 수 없습니다");
@@ -9165,7 +9163,7 @@
             setTimeout(createLeaderSelectors, 100);
             setTimeout(createLeaderSelectors, 500);
 
-            updateLeaderSelectionVisibility();
+          updateLeaderSelectionVisibility();
             console.log("✅ 조장 선택기 초기화 완료");
 
             // 추가 안전장치: 전역 이벤트 위임으로 버튼 클릭 처리
@@ -9850,7 +9848,7 @@
                                           <div class="flex items-center gap-3">
                                             <div class="bg-white bg-opacity-30 rounded-full px-4 py-2">
                                               <span class="text-2xl font-bold text-white">${
-                                                index + 1
+                      index + 1
                                               }</span>
                                             </div>
                                             <div>
@@ -9884,7 +9882,7 @@
                       .map(
                         (member, memberIndex) => `
                                             <div class="flex items-center gap-3 p-3 rounded-xl transition-all duration-200 ${
-                                              member.isLeader
+                        member.isLeader
                                                 ? "bg-gradient-to-r from-yellow-50 to-amber-50 border-2 border-yellow-300 shadow-md"
                                                 : "bg-gray-50 hover:bg-gray-100 border-2 border-transparent"
                                             }">
@@ -9901,7 +9899,7 @@
                                                 <div class="flex items-center gap-2">
                                                   <span class="font-bold text-gray-800">${
                                                     member.name
-                                                  }</span>
+                        }</span>
                                                   ${
                                                     member.isLeader
                                                       ? '<span class="text-xs bg-yellow-400 text-yellow-900 px-2 py-0.5 rounded-full font-bold">조장</span>'
@@ -13810,8 +13808,8 @@
                                     ev.title || "(제목 없음)"
                                   )}</h3>
                                   <span class="flex-shrink-0 inline-flex items-center px-1.5 md:px-2 py-0.5 rounded-full text-xs font-medium ${typeBadgeClass(
-                                    ev.type
-                                  )}">
+                    ev.type
+                  )}">
                     ${typeLabel(ev.type)}
                   </span>
                                 </div>
