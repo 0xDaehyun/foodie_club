@@ -6809,12 +6809,15 @@
 
         // 로그인된 사용자에게만 버튼 표시
         let btn;
-        
+
         // 신청 시작 시간 체크
         const now = new Date();
-        const registrationStartTime = ev.registrationStart ? new Date(ev.registrationStart) : null;
-        const isBeforeRegistrationStart = registrationStartTime && now < registrationStartTime;
-        
+        const registrationStartTime = ev.registrationStart
+          ? new Date(ev.registrationStart)
+          : null;
+        const isBeforeRegistrationStart =
+          registrationStartTime && now < registrationStartTime;
+
         if (currentUser) {
           if (my === "apply") {
             btn = `<button type="button" class="w-full mt-3 bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition-colors cursor-pointer" data-act="cancel-general" data-id="${ev.id}">신청 취소</button>`;
@@ -6824,13 +6827,21 @@
             // 신청 시작 전 - 카운트다운 표시
             const timeLeft = registrationStartTime - now;
             const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+            const hours = Math.floor(
+              (timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+            );
+            const minutes = Math.floor(
+              (timeLeft % (1000 * 60 * 60)) / (1000 * 60)
+            );
             const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
-            
-            btn = `<button type="button" class="w-full mt-3 bg-gray-400 text-white font-bold py-2 px-4 rounded-lg cursor-not-allowed flex items-center justify-center gap-2" disabled data-countdown="${ev.id}" data-start="${ev.registrationStart}">
+
+            btn = `<button type="button" class="w-full mt-3 bg-gray-400 text-white font-bold py-2 px-4 rounded-lg cursor-not-allowed flex items-center justify-center gap-2" disabled data-countdown="${
+              ev.id
+            }" data-start="${ev.registrationStart}">
               <i class="fas fa-hourglass-half"></i>
-              <span id="countdown-${ev.id}">${days > 0 ? `${days}일 ` : ''}${hours}시간 ${minutes}분 ${seconds}초 후 오픈</span>
+              <span id="countdown-${ev.id}">${
+              days > 0 ? `${days}일 ` : ""
+            }${hours}시간 ${minutes}분 ${seconds}초 후 오픈</span>
             </button>`;
           } else {
             btn = `<button type="button" class="w-full mt-3 ${
@@ -7007,12 +7018,15 @@
             const isInWaiting = (r.waiting || []).some(
               (p) => p.studentId === currentUser?.studentId
             );
-            
+
             // 신청 시작 시간 체크
             const now = new Date();
-            const registrationStartTime = ev.registrationStart ? new Date(ev.registrationStart) : null;
-            const isBeforeRegistrationStart = registrationStartTime && now < registrationStartTime;
-            
+            const registrationStartTime = ev.registrationStart
+              ? new Date(ev.registrationStart)
+              : null;
+            const isBeforeRegistrationStart =
+              registrationStartTime && now < registrationStartTime;
+
             let btn;
             if (currentUser) {
               if (isInReservations) {
@@ -7029,13 +7043,21 @@
                 // 신청 시작 전 - 카운트다운 표시
                 const timeLeft = registrationStartTime - now;
                 const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
-                const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                const hours = Math.floor(
+                  (timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+                );
+                const minutes = Math.floor(
+                  (timeLeft % (1000 * 60 * 60)) / (1000 * 60)
+                );
                 const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
-                
-                btn = `<button type="button" class="w-full bg-gray-400 text-white font-bold py-2 px-4 rounded-lg cursor-not-allowed flex items-center justify-center gap-2" disabled data-countdown="${ev.id}-${r.id}" data-start="${ev.registrationStart}">
+
+                btn = `<button type="button" class="w-full bg-gray-400 text-white font-bold py-2 px-4 rounded-lg cursor-not-allowed flex items-center justify-center gap-2" disabled data-countdown="${
+                  ev.id
+                }-${r.id}" data-start="${ev.registrationStart}">
                   <i class="fas fa-hourglass-half"></i>
-                  <span id="countdown-${ev.id}-${r.id}">${days > 0 ? `${days}일 ` : ''}${hours}시간 ${minutes}분 ${seconds}초 후 오픈</span>
+                  <span id="countdown-${ev.id}-${r.id}">${
+                  days > 0 ? `${days}일 ` : ""
+                }${hours}시간 ${minutes}분 ${seconds}초 후 오픈</span>
                 </button>`;
               } else {
                 btn = `<button type="button" class="w-full ${
@@ -7045,9 +7067,7 @@
                 } text-white font-bold py-2 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-2" data-act="reserve-tasting" data-id="${
                   ev.id
                 }" data-rid="${r.id}">
-                  <i class="fas ${
-                    cnt < cap ? "fa-check" : "fa-clock"
-                  }"></i>
+                  <i class="fas ${cnt < cap ? "fa-check" : "fa-clock"}"></i>
                   <span>${
                     cnt < cap ? "신청하기" : "신청 마감 / 대기하기"
                   }</span>
@@ -7522,20 +7542,22 @@
 
       // 카운트다운 타이머 업데이트 함수
       let countdownIntervals = [];
-      
+
       function startCountdownTimers() {
         // 기존 타이머 모두 제거
-        countdownIntervals.forEach(interval => clearInterval(interval));
+        countdownIntervals.forEach((interval) => clearInterval(interval));
         countdownIntervals = [];
 
         // 모든 카운트다운 버튼 찾기
-        const countdownButtons = document.querySelectorAll('[data-countdown]');
-        
-        countdownButtons.forEach(button => {
+        const countdownButtons = document.querySelectorAll("[data-countdown]");
+
+        countdownButtons.forEach((button) => {
           const eventId = button.dataset.countdown;
           const startTime = new Date(button.dataset.start);
-          const countdownElement = document.getElementById(`countdown-${eventId}`);
-          
+          const countdownElement = document.getElementById(
+            `countdown-${eventId}`
+          );
+
           if (!countdownElement) return;
 
           const interval = setInterval(() => {
@@ -7549,11 +7571,17 @@
             } else {
               // 카운트다운 업데이트
               const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
-              const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-              const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+              const hours = Math.floor(
+                (timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+              );
+              const minutes = Math.floor(
+                (timeLeft % (1000 * 60 * 60)) / (1000 * 60)
+              );
               const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
-              
-              countdownElement.textContent = `${days > 0 ? `${days}일 ` : ''}${hours}시간 ${minutes}분 ${seconds}초 후 오픈`;
+
+              countdownElement.textContent = `${
+                days > 0 ? `${days}일 ` : ""
+              }${hours}시간 ${minutes}분 ${seconds}초 후 오픈`;
             }
           }, 1000);
 
@@ -21353,6 +21381,14 @@
           datetimeInput.value = date.toISOString().slice(0, 16);
         }
 
+        const registrationStartInput = document.getElementById(
+          "tasting-registration-start"
+        );
+        if (registrationStartInput && event.registrationStart) {
+          const date = new Date(event.registrationStart);
+          registrationStartInput.value = date.toISOString().slice(0, 16);
+        }
+
         const deadlineInput = document.getElementById("tasting-deadline");
         if (deadlineInput && event.deadline) {
           const date = new Date(event.deadline);
@@ -21448,6 +21484,19 @@
                     class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all text-base" 
                     required
                   >
+                </div>
+                
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    <i class="fas fa-play text-orange-500 mr-2"></i>
+                    신청 시작일
+                  </label>
+                  <input 
+                    id="tasting-registration-start" 
+                    type="datetime-local" 
+                    class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all text-base"
+                  >
+                  <p class="text-xs text-gray-500 mt-1">🚀 이 시간부터 신청이 시작됩니다 (비워두면 즉시 신청 가능)</p>
                 </div>
                 
                 <div>
@@ -21890,6 +21939,9 @@
       async function saveTastingEvent() {
         const title = document.getElementById("tasting-title")?.value.trim();
         const datetime = document.getElementById("tasting-datetime")?.value;
+        const registrationStart = document.getElementById(
+          "tasting-registration-start"
+        )?.value;
         const deadline = document.getElementById("tasting-deadline")?.value;
         const limit = parseInt(
           document.getElementById("tasting-limit")?.value || "0",
@@ -21898,6 +21950,14 @@
 
         if (!title || !datetime || !deadline || !limit) {
           showAlert("😥", "모든 필수 항목을 입력해주세요.");
+          return;
+        }
+
+        if (
+          registrationStart &&
+          new Date(registrationStart) >= new Date(deadline)
+        ) {
+          showAlert("😥", "신청 시작일은 신청 마감일보다 이전이어야 합니다.");
           return;
         }
 
@@ -21950,6 +22010,7 @@
             await updateDoc(doc(db, "events", editingEventId), {
               title,
               datetime,
+              registrationStart: registrationStart || null,
               deadline,
               limit,
               restaurants,
@@ -21961,6 +22022,7 @@
               type: "tasting",
               title,
               datetime,
+              registrationStart: registrationStart || null,
               deadline,
               limit,
               status: "open",
@@ -21987,7 +22049,9 @@
         const type = document.getElementById("event-type")?.value;
         const title = document.getElementById("event-title")?.value.trim();
         const datetime = document.getElementById("event-datetime")?.value;
-        const registrationStart = document.getElementById("event-registration-start")?.value;
+        const registrationStart = document.getElementById(
+          "event-registration-start"
+        )?.value;
         const deadline = document.getElementById("event-deadline")?.value;
         const limit = parseInt(
           document.getElementById("event-limit")?.value || "0",
@@ -22000,7 +22064,10 @@
           return;
         }
 
-        if (registrationStart && new Date(registrationStart) >= new Date(deadline)) {
+        if (
+          registrationStart &&
+          new Date(registrationStart) >= new Date(deadline)
+        ) {
           showAlert("😥", "신청 시작일은 신청 마감일보다 이전이어야 합니다.");
           return;
         }
@@ -22082,6 +22149,11 @@
         const datetimeInput = document.getElementById("tasting-datetime");
         if (datetimeInput) datetimeInput.value = "";
 
+        const registrationStartInput = document.getElementById(
+          "tasting-registration-start"
+        );
+        if (registrationStartInput) registrationStartInput.value = "";
+
         const deadlineInput = document.getElementById("tasting-deadline");
         if (deadlineInput) deadlineInput.value = "";
 
@@ -22110,7 +22182,9 @@
         const eventDatetime = document.getElementById("event-datetime");
         if (eventDatetime) eventDatetime.value = "";
 
-        const eventRegistrationStart = document.getElementById("event-registration-start");
+        const eventRegistrationStart = document.getElementById(
+          "event-registration-start"
+        );
         if (eventRegistrationStart) eventRegistrationStart.value = "";
 
         const eventDeadline = document.getElementById("event-deadline");
@@ -22357,7 +22431,9 @@
         const eventType = document.getElementById("event-type");
         const eventTitle = document.getElementById("event-title");
         const eventDatetime = document.getElementById("event-datetime");
-        const eventRegistrationStart = document.getElementById("event-registration-start");
+        const eventRegistrationStart = document.getElementById(
+          "event-registration-start"
+        );
         const eventDeadline = document.getElementById("event-deadline");
         const eventLimit = document.getElementById("event-limit");
         const eventStatus = document.getElementById("event-status");
@@ -22365,7 +22441,8 @@
         if (eventType) eventType.value = event.type || "tasting";
         if (eventTitle) eventTitle.value = event.title || "";
         if (eventDatetime) eventDatetime.value = event.datetime || "";
-        if (eventRegistrationStart) eventRegistrationStart.value = event.registrationStart || "";
+        if (eventRegistrationStart)
+          eventRegistrationStart.value = event.registrationStart || "";
         if (eventDeadline) eventDeadline.value = event.deadline || "";
         if (eventLimit) eventLimit.value = event.limit || "";
         if (eventStatus) eventStatus.value = event.status || "open";
