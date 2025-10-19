@@ -4042,9 +4042,21 @@
           if (presenceTimer) clearInterval(presenceTimer);
           presenceTimer = setInterval(ping, 25000);
           const end = () => ping();
+          let hiddenTime = null;
           window.addEventListener("visibilitychange", () => {
-            if (document.visibilityState === "hidden") end();
-            else ping();
+            if (document.visibilityState === "hidden") {
+              hiddenTime = Date.now();
+              end();
+            } else {
+              // 페이지가 다시 보이게 될 때
+              if (hiddenTime && (Date.now() - hiddenTime) > 30000) {
+                // 30초 이상 페이지를 벗어났다가 돌아온 경우 리로드
+                window.location.reload();
+              } else {
+                ping();
+              }
+              hiddenTime = null;
+            }
           });
           window.addEventListener("pagehide", end);
           window.addEventListener("beforeunload", end);
