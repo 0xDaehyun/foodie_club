@@ -3644,37 +3644,54 @@
       // 모든 데이터 로드 완료 검증 함수
       const verifyAllDataLoaded = (retryCount = 0) => {
         console.log("=== 데이터 로드 완전성 검증 ===", retryCount);
-        
+
         const hasRoadmap = roadmapData && roadmapData.length > 0;
         const hasEvents = eventsData && Array.isArray(eventsData);
         const hasBlocks = blocksData && Array.isArray(blocksData);
         const hasMembers = membersData && Array.isArray(membersData);
         const hasAdmins = adminList && Array.isArray(adminList);
-        
+
         console.log("필수 데이터 확인:");
         console.log("- roadmapData:", hasRoadmap, roadmapData?.length || 0);
         console.log("- eventsData:", hasEvents, eventsData?.length || 0);
         console.log("- blocksData:", hasBlocks, blocksData?.length || 0);
         console.log("- membersData:", hasMembers, membersData?.length || 0);
         console.log("- adminList:", hasAdmins, adminList?.length || 0);
-        
+
         // 모든 필수 데이터가 로드되었는지 확인
-        const allDataLoaded = hasRoadmap && hasEvents && hasBlocks && hasMembers && hasAdmins;
-        
+        const allDataLoaded =
+          hasRoadmap && hasEvents && hasBlocks && hasMembers && hasAdmins;
+
         if (allDataLoaded) {
-          console.log("✅ 모든 데이터 로드 완료, 화면 표시");
+          console.log("✅ 모든 컨텐츠가 정상적으로 로드되었습니다.");
+          console.log("📊 최종 데이터 요약:");
+          console.log(`  - 로드맵: ${roadmapData.length}개`);
+          console.log(`  - 이벤트: ${eventsData.length}개`);
+          console.log(`  - 블록: ${blocksData.length}개`);
+          console.log(`  - 회원: ${membersData.length}명`);
+          console.log(`  - 관리자: ${adminList.length}명`);
+          
+          // 이 메시지가 출력된 후에만 로딩 화면 닫기
           hideLoadingScreen();
           checkContentLoaded();
         } else {
-          console.warn("⚠️ 일부 데이터 미로드, 재확인 중...");
+          console.warn(`⚠️ 일부 데이터 미로드 (재확인 ${retryCount + 1}/10)`);
           
+          // 어떤 데이터가 없는지 명시
+          if (!hasRoadmap) console.warn("  ❌ 로드맵 데이터 없음");
+          if (!hasEvents) console.warn("  ❌ 이벤트 데이터 없음");
+          if (!hasBlocks) console.warn("  ❌ 블록 데이터 없음");
+          if (!hasMembers) console.warn("  ❌ 회원 데이터 없음");
+          if (!hasAdmins) console.warn("  ❌ 관리자 데이터 없음");
+
           // 최대 10회(10초)까지 재확인
           if (retryCount < 10) {
             setTimeout(() => {
               verifyAllDataLoaded(retryCount + 1);
             }, 1000);
           } else {
-            console.warn("⚠️ 최대 대기 시간 초과, 현재 상태로 화면 표시");
+            console.error("❌ 최대 대기 시간 초과");
+            console.error("⚠️ 데이터 불완전 상태로 화면 표시");
             hideLoadingScreen();
             checkContentLoaded();
           }
@@ -3790,9 +3807,8 @@
           // 즉시 자동 재접속 (알림 창 없이)
           console.log("🔄 빠른 재접속 실행");
           location.reload();
-        } else {
-          console.log("✅ 모든 컨텐츠가 정상적으로 로드되었습니다.");
         }
+        // 성공 메시지는 verifyAllDataLoaded에서 출력됨
       };
 
       /* ===== 인증 & 권한 ===== */
