@@ -2343,7 +2343,7 @@
           </div>
 
           <!-- 액션 버튼들 -->
-          <div class="flex gap-2 md:gap-3">
+          <div class="flex gap-2 md:gap-3 mb-4">
             <button
               id="spin-roulette-btn"
               class="flex-1 relative overflow-hidden group bg-gradient-to-r from-orange-500 via-orange-600 to-red-600 hover:from-orange-600 hover:via-red-600 hover:to-red-700 text-white font-black py-4 px-6 rounded-2xl transition-all shadow-xl hover:shadow-2xl hover:scale-105"
@@ -2352,8 +2352,8 @@
                 class="absolute inset-0 bg-white/20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"
               ></div>
               <span class="relative flex items-center justify-center gap-2">
-                <i class="fas fa-circle-notch text-2xl"></i>
-                <span class="text-lg">뭐 먹지? (SPIN!)</span>
+                <i class="fas fa-dice text-2xl"></i>
+                <span class="text-lg">메뉴 뽑기</span>
               </span>
             </button>
             <button
@@ -2364,20 +2364,15 @@
             </button>
           </div>
 
-          <!-- 결과 액션 버튼 (숨김 상태로 시작) -->
-          <div id="result-actions" class="hidden flex gap-2 mt-4">
-            <button
-              id="spin-again-btn"
-              class="flex-1 px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-xl transition-colors font-bold"
-            >
-              <i class="fas fa-redo mr-2"></i>다시 돌리기
-            </button>
-            <button
-              id="pass-today-btn"
-              class="flex-1 px-4 py-3 bg-gray-500 hover:bg-gray-600 text-white rounded-xl transition-colors font-bold"
-            >
-              <i class="fas fa-ban mr-2"></i>오늘은 패스
-            </button>
+          <!-- 최근 추천 메뉴 히스토리 -->
+          <div id="menu-history-section" class="hidden bg-gradient-to-r from-orange-50 to-red-50 border-2 border-orange-200 rounded-xl p-4">
+            <h4 class="text-sm font-bold text-orange-800 mb-3 flex items-center gap-2">
+              <i class="fas fa-history text-orange-600"></i>
+              최근 추천 메뉴
+            </h4>
+            <div id="roulette-history" class="flex flex-wrap gap-2">
+              <!-- 히스토리가 여기 표시됩니다 -->
+            </div>
           </div>
         </div>
       </div>
@@ -16806,6 +16801,7 @@
       let selectedCategory = "all";
       let excludedTodayMenus = []; // 오늘 제외된 메뉴들
       let isRouletteSpinning = false;
+      let rouletteHistory = []; // 추천된 메뉴 히스토리
 
       // 메뉴 추천 모달 열기
       function openFoodRecommendModal() {
@@ -16816,15 +16812,15 @@
         loadFoodMenus();
         updateCategoryFilter();
 
-        // 결과 액션 버튼 숨기기
-        document.getElementById("result-actions")?.classList.add("hidden");
-
         // 룰렛 초기 상태로 리셋
         const rouletteEmoji = document.getElementById("roulette-emoji");
         const rouletteText = document.getElementById("roulette-text");
         if (rouletteEmoji) rouletteEmoji.textContent = "🍽️";
         if (rouletteText)
           rouletteText.textContent = "메뉴를 추가하고 버튼을 눌러주세요!";
+        
+        // 히스토리 업데이트
+        updateRouletteHistory();
       }
 
       // Firebase에서 메뉴 로드
@@ -16939,38 +16935,14 @@
             setTimeout(() => (rouletteText.style.animation = ""), 600);
           }
 
-          // 결과 액션 버튼 표시
-          if (resultActions) {
-            resultActions.classList.remove("hidden");
-
-            // 다시 돌리기 버튼
-            document.getElementById("spin-again-btn")?.addEventListener(
-              "click",
-              () => {
-                resultActions.classList.add("hidden");
-                spinRoulette();
-              },
-              { once: true }
-            );
-
-            // 오늘은 패스 버튼
-            document.getElementById("pass-today-btn")?.addEventListener(
-              "click",
-              () => {
-                excludedTodayMenus.push(finalMenu.id);
-                showAlert("✅", `${finalMenu.name}을(를) 오늘은 제외했습니다.`);
-                resultActions.classList.add("hidden");
-                spinRoulette();
-              },
-              { once: true }
-            );
-          }
+          // 히스토리에 추가
+          addToRouletteHistory(finalMenu);
 
           // 버튼 복원
           if (spinBtn) {
             spinBtn.disabled = false;
             spinBtn.querySelector("span").innerHTML =
-              '<i class="fas fa-circle-notch text-2xl"></i><span class="text-lg">뭐 먹지? (SPIN!)</span>';
+              '<i class="fas fa-dice text-2xl"></i><span class="text-lg">메뉴 뽑기</span>';
           }
 
           isRouletteSpinning = false;
@@ -16991,6 +16963,50 @@
           etc: "🍽️",
         };
         return emojiMap[category] || "🍽️";
+      }
+
+      // 히스토리에 메뉴 추가
+      function addToRouletteHistory(menu) {
+        rouletteHistory.unshift({
+          ...menu,
+          timestamp: new Date().toISOString()
+        });
+        
+        // 최대 10개까지만 유지
+        if (rouletteHistory.length > 10) {
+          rouletteHistory = rouletteHistory.slice(0, 10);
+        }
+        
+        updateRouletteHistory();
+      }
+
+      // 히스토리 UI 업데이트
+      function updateRouletteHistory() {
+        const historySection = document.getElementById("menu-history-section");
+        const historyContainer = document.getElementById("roulette-history");
+        
+        if (!historySection || !historyContainer) return;
+        
+        if (rouletteHistory.length === 0) {
+          historySection.classList.add("hidden");
+          return;
+        }
+        
+        historySection.classList.remove("hidden");
+        
+        historyContainer.innerHTML = rouletteHistory.map((menu, index) => {
+          const emoji = getCategoryEmoji(menu.category);
+          const time = new Date(menu.timestamp);
+          const timeStr = `${time.getHours().toString().padStart(2, '0')}:${time.getMinutes().toString().padStart(2, '0')}`;
+          
+          return `
+            <div class="inline-flex items-center gap-2 bg-white px-3 py-2 rounded-lg border-2 border-orange-200 text-sm shadow-sm">
+              <span class="text-lg">${emoji}</span>
+              <span class="font-medium">${menu.name}</span>
+              <span class="text-xs text-gray-400">${timeStr}</span>
+            </div>
+          `;
+        }).join("");
       }
 
       // 메뉴 관리 모달 열기
