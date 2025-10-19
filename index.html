@@ -2237,36 +2237,64 @@
 
           <!-- 카테고리 필터 -->
           <div class="flex gap-2 mb-4 overflow-x-auto pb-2">
-            <button class="category-filter-btn active px-3 py-1.5 rounded-full bg-orange-500 text-white text-sm font-medium whitespace-nowrap" data-category="all">
+            <button
+              class="category-filter-btn active px-3 py-1.5 rounded-full bg-orange-500 text-white text-sm font-medium whitespace-nowrap"
+              data-category="all"
+            >
               전체
             </button>
-            <button class="category-filter-btn px-3 py-1.5 rounded-full bg-gray-200 text-gray-700 text-sm font-medium whitespace-nowrap hover:bg-gray-300" data-category="korean">
+            <button
+              class="category-filter-btn px-3 py-1.5 rounded-full bg-gray-200 text-gray-700 text-sm font-medium whitespace-nowrap hover:bg-gray-300"
+              data-category="korean"
+            >
               한식
             </button>
-            <button class="category-filter-btn px-3 py-1.5 rounded-full bg-gray-200 text-gray-700 text-sm font-medium whitespace-nowrap hover:bg-gray-300" data-category="japanese">
+            <button
+              class="category-filter-btn px-3 py-1.5 rounded-full bg-gray-200 text-gray-700 text-sm font-medium whitespace-nowrap hover:bg-gray-300"
+              data-category="japanese"
+            >
               일식
             </button>
-            <button class="category-filter-btn px-3 py-1.5 rounded-full bg-gray-200 text-gray-700 text-sm font-medium whitespace-nowrap hover:bg-gray-300" data-category="chinese">
+            <button
+              class="category-filter-btn px-3 py-1.5 rounded-full bg-gray-200 text-gray-700 text-sm font-medium whitespace-nowrap hover:bg-gray-300"
+              data-category="chinese"
+            >
               중식
             </button>
-            <button class="category-filter-btn px-3 py-1.5 rounded-full bg-gray-200 text-gray-700 text-sm font-medium whitespace-nowrap hover:bg-gray-300" data-category="western">
+            <button
+              class="category-filter-btn px-3 py-1.5 rounded-full bg-gray-200 text-gray-700 text-sm font-medium whitespace-nowrap hover:bg-gray-300"
+              data-category="western"
+            >
               양식
             </button>
-            <button class="category-filter-btn px-3 py-1.5 rounded-full bg-gray-200 text-gray-700 text-sm font-medium whitespace-nowrap hover:bg-gray-300" data-category="asian">
+            <button
+              class="category-filter-btn px-3 py-1.5 rounded-full bg-gray-200 text-gray-700 text-sm font-medium whitespace-nowrap hover:bg-gray-300"
+              data-category="asian"
+            >
               아시안
             </button>
-            <button class="category-filter-btn px-3 py-1.5 rounded-full bg-gray-200 text-gray-700 text-sm font-medium whitespace-nowrap hover:bg-gray-300" data-category="snack">
+            <button
+              class="category-filter-btn px-3 py-1.5 rounded-full bg-gray-200 text-gray-700 text-sm font-medium whitespace-nowrap hover:bg-gray-300"
+              data-category="snack"
+            >
               분식
             </button>
-            <button class="category-filter-btn px-3 py-1.5 rounded-full bg-gray-200 text-gray-700 text-sm font-medium whitespace-nowrap hover:bg-gray-300" data-category="dessert">
+            <button
+              class="category-filter-btn px-3 py-1.5 rounded-full bg-gray-200 text-gray-700 text-sm font-medium whitespace-nowrap hover:bg-gray-300"
+              data-category="dessert"
+            >
               디저트
             </button>
           </div>
 
           <!-- 룰렛 영역 -->
-          <div class="relative bg-gradient-to-br from-orange-100 via-yellow-50 to-red-100 rounded-3xl p-8 md:p-12 mb-4 border-4 border-orange-300 shadow-inner overflow-hidden">
+          <div
+            class="relative bg-gradient-to-br from-orange-100 via-yellow-50 to-red-100 rounded-3xl p-8 md:p-12 mb-4 border-4 border-orange-300 shadow-inner overflow-hidden"
+          >
             <!-- 장식 요소 -->
-            <div class="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
+            <div
+              class="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none"
+            >
               <div class="absolute top-2 left-2 text-4xl">🍕</div>
               <div class="absolute top-2 right-2 text-4xl">🍜</div>
               <div class="absolute bottom-2 left-2 text-4xl">🍔</div>
@@ -2275,11 +2303,20 @@
 
             <!-- 룰렛 디스플레이 -->
             <div class="relative z-10 text-center">
-              <div id="roulette-display" class="bg-white/90 backdrop-blur-sm rounded-2xl p-6 md:p-8 shadow-xl min-h-[200px] flex flex-col items-center justify-center">
-                <div id="roulette-emoji" class="text-6xl md:text-7xl mb-4 transition-all">
+              <div
+                id="roulette-display"
+                class="bg-white/90 backdrop-blur-sm rounded-2xl p-6 md:p-8 shadow-xl min-h-[200px] flex flex-col items-center justify-center"
+              >
+                <div
+                  id="roulette-emoji"
+                  class="text-6xl md:text-7xl mb-4 transition-all"
+                >
                   🍽️
                 </div>
-                <div id="roulette-text" class="text-xl md:text-2xl font-black text-gray-800">
+                <div
+                  id="roulette-text"
+                  class="text-xl md:text-2xl font-black text-gray-800"
+                >
                   메뉴를 추가하고 버튼을 눌러주세요!
                 </div>
                 <div id="roulette-category" class="text-sm text-gray-500 mt-2">
@@ -2311,7 +2348,9 @@
               id="spin-roulette-btn"
               class="flex-1 relative overflow-hidden group bg-gradient-to-r from-orange-500 via-orange-600 to-red-600 hover:from-orange-600 hover:via-red-600 hover:to-red-700 text-white font-black py-4 px-6 rounded-2xl transition-all shadow-xl hover:shadow-2xl hover:scale-105"
             >
-              <div class="absolute inset-0 bg-white/20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+              <div
+                class="absolute inset-0 bg-white/20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"
+              ></div>
               <span class="relative flex items-center justify-center gap-2">
                 <i class="fas fa-circle-notch text-2xl"></i>
                 <span class="text-lg">뭐 먹지? (SPIN!)</span>
@@ -2349,7 +2388,9 @@
       id="menu-manage-modal"
       class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm flex justify-center items-center px-4 z-50 overflow-y-auto py-4"
     >
-      <div class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full my-auto max-h-[95vh] overflow-y-auto">
+      <div
+        class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full my-auto max-h-[95vh] overflow-y-auto"
+      >
         <div class="p-6">
           <!-- 헤더 -->
           <div class="flex items-center justify-between mb-6">
@@ -2365,11 +2406,14 @@
           </div>
 
           <!-- 메뉴 추가 섹션 -->
-          <div class="bg-gradient-to-r from-orange-50 to-red-50 border-2 border-orange-200 rounded-xl p-4 mb-6">
+          <div
+            class="bg-gradient-to-r from-orange-50 to-red-50 border-2 border-orange-200 rounded-xl p-4 mb-6"
+          >
             <h4 class="font-bold text-gray-800 mb-3">
-              <i class="fas fa-plus-circle text-orange-500 mr-2"></i>메뉴 추가하기
+              <i class="fas fa-plus-circle text-orange-500 mr-2"></i>메뉴
+              추가하기
             </h4>
-            
+
             <div class="mb-3">
               <label class="block text-sm font-medium text-gray-700 mb-2">
                 카테고리 선택
@@ -2420,7 +2464,10 @@
           <div class="mb-4">
             <div class="flex items-center justify-between mb-3">
               <h4 class="font-bold text-gray-800">
-                등록된 메뉴 <span id="menu-count-badge" class="text-sm text-gray-500">(0개)</span>
+                등록된 메뉴
+                <span id="menu-count-badge" class="text-sm text-gray-500"
+                  >(0개)</span
+                >
               </h4>
               <button
                 id="delete-all-menus-btn"
@@ -2431,7 +2478,10 @@
             </div>
 
             <!-- 카테고리별 메뉴 목록 -->
-            <div id="menu-list-container" class="space-y-4 max-h-[400px] overflow-y-auto">
+            <div
+              id="menu-list-container"
+              class="space-y-4 max-h-[400px] overflow-y-auto"
+            >
               <!-- 동적으로 생성됩니다 -->
             </div>
           </div>
@@ -11827,7 +11877,7 @@
             </div>
           </div>
         `;
-        
+
         // 메뉴 추가 버튼 이벤트
         const addBtn = container.querySelector("#admin-add-food-menu-btn");
         if (addBtn) {
@@ -11835,13 +11885,15 @@
             openMenuManageModal();
           });
         }
-        
+
         // 전체 삭제 버튼 이벤트
-        const deleteAllBtn = container.querySelector("#admin-delete-all-menus-btn");
+        const deleteAllBtn = container.querySelector(
+          "#admin-delete-all-menus-btn"
+        );
         if (deleteAllBtn) {
           deleteAllBtn.addEventListener("click", deleteAllMenus);
         }
-        
+
         // 메뉴 로드 및 표시
         loadFoodMenus().then(() => {
           renderAdminMenuList();
@@ -11852,9 +11904,9 @@
       function renderAdminMenuList() {
         const container = document.getElementById("admin-menu-list-container");
         const countBadge = document.getElementById("admin-menu-count-badge");
-        
+
         if (!container) return;
-        
+
         if (countBadge) countBadge.textContent = `(${foodMenusData.length}개)`;
 
         if (foodMenusData.length === 0) {
@@ -11870,7 +11922,7 @@
 
         // 카테고리별로 그룹화
         const groupedMenus = {};
-        foodMenusData.forEach(menu => {
+        foodMenusData.forEach((menu) => {
           if (!groupedMenus[menu.category]) {
             groupedMenus[menu.category] = [];
           }
@@ -11886,11 +11938,11 @@
           snack: "분식",
           dessert: "디저트",
           cafe: "카페",
-          etc: "기타"
+          etc: "기타",
         };
 
         let html = '<div class="space-y-4">';
-        Object.keys(groupedMenus).forEach(category => {
+        Object.keys(groupedMenus).forEach((category) => {
           const emoji = getCategoryEmoji(category);
           const categoryName = categoryNames[category] || category;
           const menus = groupedMenus[category];
@@ -11898,10 +11950,14 @@
           html += `
             <div class="bg-gray-50 rounded-lg p-4 border-2 border-gray-200">
               <h5 class="font-bold text-gray-800 mb-3">
-                ${emoji} ${categoryName} <span class="text-sm text-gray-500">(${menus.length}개)</span>
+                ${emoji} ${categoryName} <span class="text-sm text-gray-500">(${
+            menus.length
+          }개)</span>
               </h5>
               <div class="flex flex-wrap gap-2">
-                ${menus.map(menu => `
+                ${menus
+                  .map(
+                    (menu) => `
                   <span class="inline-flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-gray-300 text-sm">
                     <span>${menu.name}</span>
                     <button
@@ -11912,21 +11968,23 @@
                       <i class="fas fa-times"></i>
                     </button>
                   </span>
-                `).join("")}
+                `
+                  )
+                  .join("")}
               </div>
             </div>
           `;
         });
-        html += '</div>';
+        html += "</div>";
 
         container.innerHTML = html;
 
         // 삭제 버튼 이벤트
-        container.querySelectorAll(".admin-delete-menu-btn").forEach(btn => {
+        container.querySelectorAll(".admin-delete-menu-btn").forEach((btn) => {
           btn.addEventListener("click", async () => {
             const id = btn.dataset.id;
             const name = btn.dataset.name;
-            
+
             if (confirm(`'${name}' 메뉴를 삭제하시겠습니까?`)) {
               try {
                 await deleteDoc(doc(db, "foodMenus", id));
@@ -16753,19 +16811,20 @@
       function openFoodRecommendModal() {
         const modal = document.getElementById("food-recommend-modal");
         if (!modal) return;
-        
+
         modal.classList.remove("hidden");
         loadFoodMenus();
         updateCategoryFilter();
-        
+
         // 결과 액션 버튼 숨기기
         document.getElementById("result-actions")?.classList.add("hidden");
-        
+
         // 룰렛 초기 상태로 리셋
         const rouletteEmoji = document.getElementById("roulette-emoji");
         const rouletteText = document.getElementById("roulette-text");
         if (rouletteEmoji) rouletteEmoji.textContent = "🍽️";
-        if (rouletteText) rouletteText.textContent = "메뉴를 추가하고 버튼을 눌러주세요!";
+        if (rouletteText)
+          rouletteText.textContent = "메뉴를 추가하고 버튼을 눌러주세요!";
       }
 
       // Firebase에서 메뉴 로드
@@ -16776,7 +16835,7 @@
           snapshot.forEach((doc) => {
             foodMenusData.push({
               id: doc.id,
-              ...doc.data()
+              ...doc.data(),
             });
           });
           console.log("메뉴 로드됨:", foodMenusData.length, "개");
@@ -16788,15 +16847,15 @@
       // 카테고리 필터 업데이트
       function updateCategoryFilter() {
         const filterBtns = document.querySelectorAll(".category-filter-btn");
-        filterBtns.forEach(btn => {
+        filterBtns.forEach((btn) => {
           btn.addEventListener("click", () => {
-            filterBtns.forEach(b => {
+            filterBtns.forEach((b) => {
               b.classList.remove("active", "bg-orange-500", "text-white");
               b.classList.add("bg-gray-200", "text-gray-700");
             });
             btn.classList.add("active", "bg-orange-500", "text-white");
             btn.classList.remove("bg-gray-200", "text-gray-700");
-            
+
             selectedCategory = btn.dataset.category;
           });
         });
@@ -16805,11 +16864,14 @@
       // 룰렛 돌리기
       async function spinRoulette() {
         if (isRouletteSpinning) return;
-        
+
         // 필터링된 메뉴 목록 가져오기
-        let availableMenus = foodMenusData.filter(menu => {
+        let availableMenus = foodMenusData.filter((menu) => {
           // 카테고리 필터
-          if (selectedCategory !== "all" && menu.category !== selectedCategory) {
+          if (
+            selectedCategory !== "all" &&
+            menu.category !== selectedCategory
+          ) {
             return false;
           }
           // 오늘 제외 필터
@@ -16820,7 +16882,10 @@
         });
 
         if (availableMenus.length === 0) {
-          showAlert("😥", "선택할 수 있는 메뉴가 없습니다!\n메뉴를 먼저 추가해주세요.");
+          showAlert(
+            "😥",
+            "선택할 수 있는 메뉴가 없습니다!\n메뉴를 먼저 추가해주세요."
+          );
           return;
         }
 
@@ -16833,7 +16898,8 @@
         // 버튼 비활성화
         if (spinBtn) {
           spinBtn.disabled = true;
-          spinBtn.querySelector("span").innerHTML = '<i class="fas fa-spinner fa-spin text-2xl"></i><span class="text-lg">돌리는 중...</span>';
+          spinBtn.querySelector("span").innerHTML =
+            '<i class="fas fa-spinner fa-spin text-2xl"></i><span class="text-lg">돌리는 중...</span>';
         }
 
         // 룰렛 애니메이션 (2초간 빠르게 메뉴 변경)
@@ -16842,7 +16908,8 @@
         let animationInterval;
 
         animationInterval = setInterval(() => {
-          const randomMenu = availableMenus[Math.floor(Math.random() * availableMenus.length)];
+          const randomMenu =
+            availableMenus[Math.floor(Math.random() * availableMenus.length)];
           const emoji = getCategoryEmoji(randomMenu.category);
           if (rouletteEmoji) {
             rouletteEmoji.textContent = emoji;
@@ -16857,43 +16924,53 @@
         setTimeout(() => {
           clearInterval(animationInterval);
 
-          const finalMenu = availableMenus[Math.floor(Math.random() * availableMenus.length)];
+          const finalMenu =
+            availableMenus[Math.floor(Math.random() * availableMenus.length)];
           const emoji = getCategoryEmoji(finalMenu.category);
-          
+
           if (rouletteEmoji) {
             rouletteEmoji.textContent = emoji;
             rouletteEmoji.style.animation = "bounce 0.6s ease";
-            setTimeout(() => rouletteEmoji.style.animation = "", 600);
+            setTimeout(() => (rouletteEmoji.style.animation = ""), 600);
           }
           if (rouletteText) {
-            rouletteText.textContent = `오늘의 추천 메뉴는... ${finalMenu.name}!`;
+            rouletteText.textContent = finalMenu.name;
             rouletteText.style.animation = "pulse 0.6s ease";
-            setTimeout(() => rouletteText.style.animation = "", 600);
+            setTimeout(() => (rouletteText.style.animation = ""), 600);
           }
 
           // 결과 액션 버튼 표시
           if (resultActions) {
             resultActions.classList.remove("hidden");
-            
+
             // 다시 돌리기 버튼
-            document.getElementById("spin-again-btn")?.addEventListener("click", () => {
-              resultActions.classList.add("hidden");
-              spinRoulette();
-            }, { once: true });
-            
+            document.getElementById("spin-again-btn")?.addEventListener(
+              "click",
+              () => {
+                resultActions.classList.add("hidden");
+                spinRoulette();
+              },
+              { once: true }
+            );
+
             // 오늘은 패스 버튼
-            document.getElementById("pass-today-btn")?.addEventListener("click", () => {
-              excludedTodayMenus.push(finalMenu.id);
-              showAlert("✅", `${finalMenu.name}을(를) 오늘은 제외했습니다.`);
-              resultActions.classList.add("hidden");
-              spinRoulette();
-            }, { once: true });
+            document.getElementById("pass-today-btn")?.addEventListener(
+              "click",
+              () => {
+                excludedTodayMenus.push(finalMenu.id);
+                showAlert("✅", `${finalMenu.name}을(를) 오늘은 제외했습니다.`);
+                resultActions.classList.add("hidden");
+                spinRoulette();
+              },
+              { once: true }
+            );
           }
 
           // 버튼 복원
           if (spinBtn) {
             spinBtn.disabled = false;
-            spinBtn.querySelector("span").innerHTML = '<i class="fas fa-circle-notch text-2xl"></i><span class="text-lg">뭐 먹지? (SPIN!)</span>';
+            spinBtn.querySelector("span").innerHTML =
+              '<i class="fas fa-circle-notch text-2xl"></i><span class="text-lg">뭐 먹지? (SPIN!)</span>';
           }
 
           isRouletteSpinning = false;
@@ -16911,7 +16988,7 @@
           snack: "🍢",
           dessert: "🍰",
           cafe: "☕",
-          etc: "🍽️"
+          etc: "🍽️",
         };
         return emojiMap[category] || "🍽️";
       }
@@ -16920,7 +16997,7 @@
       function openMenuManageModal() {
         const modal = document.getElementById("menu-manage-modal");
         if (!modal) return;
-        
+
         modal.classList.remove("hidden");
         loadFoodMenus().then(() => {
           renderMenuList();
@@ -16937,9 +17014,9 @@
       function renderMenuList() {
         const container = document.getElementById("menu-list-container");
         const countBadge = document.getElementById("menu-count-badge");
-        
+
         if (!container) return;
-        
+
         if (countBadge) countBadge.textContent = `(${foodMenusData.length}개)`;
 
         if (foodMenusData.length === 0) {
@@ -16955,7 +17032,7 @@
 
         // 카테고리별로 그룹화
         const groupedMenus = {};
-        foodMenusData.forEach(menu => {
+        foodMenusData.forEach((menu) => {
           if (!groupedMenus[menu.category]) {
             groupedMenus[menu.category] = [];
           }
@@ -16971,11 +17048,11 @@
           snack: "분식",
           dessert: "디저트",
           cafe: "카페",
-          etc: "기타"
+          etc: "기타",
         };
 
         let html = "";
-        Object.keys(groupedMenus).forEach(category => {
+        Object.keys(groupedMenus).forEach((category) => {
           const emoji = getCategoryEmoji(category);
           const categoryName = categoryNames[category] || category;
           const menus = groupedMenus[category];
@@ -16983,10 +17060,14 @@
           html += `
             <div class="bg-gray-50 rounded-lg p-4 border-2 border-gray-200">
               <h5 class="font-bold text-gray-800 mb-3">
-                ${emoji} ${categoryName} <span class="text-sm text-gray-500">(${menus.length}개)</span>
+                ${emoji} ${categoryName} <span class="text-sm text-gray-500">(${
+            menus.length
+          }개)</span>
               </h5>
               <div class="flex flex-wrap gap-2">
-                ${menus.map(menu => `
+                ${menus
+                  .map(
+                    (menu) => `
                   <span class="inline-flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-gray-300 text-sm">
                     <span>${menu.name}</span>
                     <button
@@ -16997,7 +17078,9 @@
                       <i class="fas fa-times"></i>
                     </button>
                   </span>
-                `).join("")}
+                `
+                  )
+                  .join("")}
               </div>
             </div>
           `;
@@ -17006,11 +17089,11 @@
         container.innerHTML = html;
 
         // 삭제 버튼 이벤트
-        container.querySelectorAll(".delete-menu-btn").forEach(btn => {
+        container.querySelectorAll(".delete-menu-btn").forEach((btn) => {
           btn.addEventListener("click", async () => {
             const id = btn.dataset.id;
             const name = btn.dataset.name;
-            
+
             if (confirm(`'${name}' 메뉴를 삭제하시겠습니까?`)) {
               try {
                 await deleteDoc(doc(db, "foodMenus", id));
@@ -17030,18 +17113,18 @@
       async function bulkAddMenus() {
         const textarea = document.getElementById("bulk-menu-input");
         const categorySelect = document.getElementById("menu-category-select");
-        
+
         if (!textarea || !categorySelect) return;
-        
+
         const text = textarea.value.trim();
         if (!text) {
           showAlert("😥", "메뉴를 입력해주세요.");
           return;
         }
 
-        const menuLines = text.split("\n").filter(line => line.trim());
+        const menuLines = text.split("\n").filter((line) => line.trim());
         const category = categorySelect.value;
-        
+
         if (menuLines.length === 0) {
           showAlert("😥", "유효한 메뉴가 없습니다.");
           return;
@@ -17049,16 +17132,16 @@
 
         try {
           const batch = writeBatch(db);
-          menuLines.forEach(menuName => {
+          menuLines.forEach((menuName) => {
             const docRef = doc(collection(db, "foodMenus"));
             batch.set(docRef, {
               name: menuName.trim(),
               category: category,
               createdAt: new Date().toISOString(),
-              createdBy: currentUser?.studentId || "unknown"
+              createdBy: currentUser?.studentId || "unknown",
             });
           });
-          
+
           await batch.commit();
           showAlert("✅", `${menuLines.length}개의 메뉴가 추가되었습니다!`);
           textarea.value = "";
@@ -17074,7 +17157,7 @@
       async function quickAddMenu() {
         const input = document.getElementById("quick-menu-input");
         if (!input) return;
-        
+
         const menuName = input.value.trim();
         if (!menuName) return;
 
@@ -17083,9 +17166,9 @@
             name: menuName,
             category: "etc", // 기본 카테고리: 기타
             createdAt: new Date().toISOString(),
-            createdBy: currentUser?.studentId || "unknown"
+            createdBy: currentUser?.studentId || "unknown",
           });
-          
+
           input.value = "";
           await loadFoodMenus();
           showAlert("✅", `'${menuName}' 메뉴가 추가되었습니다!`);
@@ -17097,18 +17180,22 @@
 
       // 전체 메뉴 삭제
       async function deleteAllMenus() {
-        if (!confirm("정말로 모든 메뉴를 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.")) {
+        if (
+          !confirm(
+            "정말로 모든 메뉴를 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다."
+          )
+        ) {
           return;
         }
 
         try {
           const snapshot = await getDocs(collection(db, "foodMenus"));
           const batch = writeBatch(db);
-          
+
           snapshot.forEach((docSnap) => {
             batch.delete(docSnap.ref);
           });
-          
+
           await batch.commit();
           showAlert("✅", "모든 메뉴가 삭제되었습니다.");
           await loadFoodMenus();
@@ -17122,27 +17209,41 @@
       // 이벤트 리스너 등록 (뭐먹지 기능)
       document.addEventListener("DOMContentLoaded", () => {
         // 룰렛 버튼
-        document.getElementById("spin-roulette-btn")?.addEventListener("click", spinRoulette);
-        
+        document
+          .getElementById("spin-roulette-btn")
+          ?.addEventListener("click", spinRoulette);
+
         // 메뉴 관리 버튼
-        document.getElementById("menu-manage-btn")?.addEventListener("click", openMenuManageModal);
-        document.getElementById("menu-manage-close")?.addEventListener("click", closeMenuManageModal);
-        
+        document
+          .getElementById("menu-manage-btn")
+          ?.addEventListener("click", openMenuManageModal);
+        document
+          .getElementById("menu-manage-close")
+          ?.addEventListener("click", closeMenuManageModal);
+
         // 대량 추가 버튼
-        document.getElementById("bulk-add-menu-btn")?.addEventListener("click", bulkAddMenus);
-        
+        document
+          .getElementById("bulk-add-menu-btn")
+          ?.addEventListener("click", bulkAddMenus);
+
         // 빠른 추가 버튼
-        document.getElementById("quick-add-btn")?.addEventListener("click", quickAddMenu);
-        
+        document
+          .getElementById("quick-add-btn")
+          ?.addEventListener("click", quickAddMenu);
+
         // Enter 키로 빠른 추가
-        document.getElementById("quick-menu-input")?.addEventListener("keypress", (e) => {
-          if (e.key === "Enter") {
-            quickAddMenu();
-          }
-        });
-        
+        document
+          .getElementById("quick-menu-input")
+          ?.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") {
+              quickAddMenu();
+            }
+          });
+
         // 전체 삭제 버튼
-        document.getElementById("delete-all-menus-btn")?.addEventListener("click", deleteAllMenus);
+        document
+          .getElementById("delete-all-menus-btn")
+          ?.addEventListener("click", deleteAllMenus);
       });
 
       // 24시간마다 제외 목록 초기화
