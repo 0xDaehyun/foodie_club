@@ -3607,8 +3607,10 @@
           dataLoadTimeout = setTimeout(() => {
             if (__isInitialLoading && dataLoadRetryCount < MAX_RETRY_COUNT) {
               dataLoadRetryCount++;
-              console.log(`데이터 로딩 재시도 ${dataLoadRetryCount}/${MAX_RETRY_COUNT}`);
-              
+              console.log(
+                `데이터 로딩 재시도 ${dataLoadRetryCount}/${MAX_RETRY_COUNT}`
+              );
+
               // 필수 데이터가 없으면 강제로 다시 로드
               if (!roadmapData || roadmapData.length === 0) {
                 console.log("로드맵 데이터 재로드 시도");
@@ -3631,22 +3633,50 @@
               clearTimeout(dataLoadTimeout);
             }
 
-            // "잘 먹겠습니다" 메시지를 3초간 표시
+            // "잘 먹겠습니다" 메시지를 표시하면서 데이터 완전 로드 확인
             setTimeout(() => {
-              // 필수 데이터 최종 확인
-              const hasEssentialData = roadmapData && roadmapData.length > 0;
-              
-              if (hasEssentialData) {
-                hideLoadingScreen();
-                checkContentLoaded();
-              } else {
-                console.warn("필수 데이터 없음, 1초 더 대기");
-                setTimeout(() => {
-                  hideLoadingScreen();
-                  checkContentLoaded();
-                }, 1000);
-              }
+              verifyAllDataLoaded();
             }, 3000);
+          }
+        }
+      };
+
+      // 모든 데이터 로드 완료 검증 함수
+      const verifyAllDataLoaded = (retryCount = 0) => {
+        console.log("=== 데이터 로드 완전성 검증 ===", retryCount);
+        
+        const hasRoadmap = roadmapData && roadmapData.length > 0;
+        const hasEvents = eventsData && Array.isArray(eventsData);
+        const hasBlocks = blocksData && Array.isArray(blocksData);
+        const hasMembers = membersData && Array.isArray(membersData);
+        const hasAdmins = adminList && Array.isArray(adminList);
+        
+        console.log("필수 데이터 확인:");
+        console.log("- roadmapData:", hasRoadmap, roadmapData?.length || 0);
+        console.log("- eventsData:", hasEvents, eventsData?.length || 0);
+        console.log("- blocksData:", hasBlocks, blocksData?.length || 0);
+        console.log("- membersData:", hasMembers, membersData?.length || 0);
+        console.log("- adminList:", hasAdmins, adminList?.length || 0);
+        
+        // 모든 필수 데이터가 로드되었는지 확인
+        const allDataLoaded = hasRoadmap && hasEvents && hasBlocks && hasMembers && hasAdmins;
+        
+        if (allDataLoaded) {
+          console.log("✅ 모든 데이터 로드 완료, 화면 표시");
+          hideLoadingScreen();
+          checkContentLoaded();
+        } else {
+          console.warn("⚠️ 일부 데이터 미로드, 재확인 중...");
+          
+          // 최대 10회(10초)까지 재확인
+          if (retryCount < 10) {
+            setTimeout(() => {
+              verifyAllDataLoaded(retryCount + 1);
+            }, 1000);
+          } else {
+            console.warn("⚠️ 최대 대기 시간 초과, 현재 상태로 화면 표시");
+            hideLoadingScreen();
+            checkContentLoaded();
           }
         }
       };
@@ -17341,7 +17371,7 @@
       }, 24 * 60 * 60 * 1000);
 
       // 네트워크 재연결 감지
-      window.addEventListener('online', () => {
+      window.addEventListener("online", () => {
         console.log("네트워크 재연결됨, 데이터 새로고침");
         if (currentUser) {
           // 데이터 다시 로드
@@ -17351,9 +17381,12 @@
         }
       });
 
-      window.addEventListener('offline', () => {
+      window.addEventListener("offline", () => {
         console.warn("네트워크 연결 끊김");
-        showAlert("⚠️", "네트워크 연결이 끊겼습니다.\n일부 기능이 제한될 수 있습니다.");
+        showAlert(
+          "⚠️",
+          "네트워크 연결이 끊겼습니다.\n일부 기능이 제한될 수 있습니다."
+        );
       });
 
       // 기존 슬롯머신 관련 함수들 삭제됨
