@@ -21058,11 +21058,11 @@
 
           if (loadingProgress >= 100) {
             progressBar.classList.remove("loading");
-            // 로딩이 100% 완료되면 애니메이션 종료 후 화면 전환
+            // 로딩 애니메이션만 종료, 화면 숨기기는 데이터 로드 완료 시에만
             setTimeout(() => {
               stopLoadingAnimation();
-              hideLoadingScreen();
-            }, 1500); // 마지막 애니메이션이 끝날 때까지 대기
+              // hideLoadingScreen()은 verifyAllDataLoaded에서만 호출됨
+            }, 1500);
           }
         }
 
@@ -21071,7 +21071,7 @@
 
       // 로딩 화면 숨기기 함수
       function hideLoadingScreen() {
-        // __loadingDataCount가 8개를 모두 받았는지 확인 (더 정확한 체크)
+        // 1차 체크: __loadingDataCount가 8개를 모두 받았는지 확인
         if (__loadingDataCount < __expectedDataSources) {
           console.log(
             `⏳ 데이터 로딩 중... ${__loadingDataCount}/${__expectedDataSources} - 로딩 화면 유지`
@@ -21079,7 +21079,21 @@
           return;
         }
 
-        // 모든 리스너가 최소 한 번은 실행되었으므로 로딩 화면 닫기
+        // 2차 체크: 실제 데이터가 배열로 초기화되었는지 확인
+        const hasRequiredData =
+          Array.isArray(roadmapData) &&
+          Array.isArray(eventsData) &&
+          Array.isArray(blocksData) &&
+          Array.isArray(membersData) &&
+          Array.isArray(adminList) &&
+          Array.isArray(foodMenusData);
+
+        if (!hasRequiredData) {
+          console.log("⏳ 데이터 변수 초기화 대기 중... 로딩 화면 유지");
+          return;
+        }
+
+        // 모든 조건 통과: 로딩 화면 닫기
         const loadingScreen = document.getElementById("loading-screen");
         if (loadingScreen && loadingAnimationComplete) {
           console.log("✅ 로딩 화면 숨김 (모든 데이터 소스 응답 완료)");
@@ -21096,19 +21110,31 @@
         renderRoadmap();
         renderBlocks();
 
-        // 페이지 로드 후 20초 뒤에 컨텐츠 상태 재확인 (충분한 시간 대기)
+        // 10초 후: 빠른 실패 감지
         setTimeout(() => {
-          // 데이터가 완전히 로드된 경우에만 체크 (재접속 방지)
-          const hasAllData =
-            roadmapData &&
-            roadmapData.length > 0 &&
-            eventsData &&
-            Array.isArray(eventsData) &&
-            blocksData &&
-            Array.isArray(blocksData);
+          if (__loadingDataCount === 0) {
+            console.error("❌ 10초 경과, 데이터 0개 - 즉시 재접속");
+            location.reload();
+          } else {
+            console.log(
+              `⏳ 10초 체크: ${__loadingDataCount}/${__expectedDataSources} 로드 중...`
+            );
+          }
+        }, 10000);
 
-          // checkContentLoaded 제거 - 불필요한 재접속 완전히 방지
-          console.log("✅ 페이지 로드 완료 - 재접속 체크 안 함");
+        // 20초 후: 최종 확인
+        setTimeout(() => {
+          if (__loadingDataCount < 3) {
+            console.error("❌ 20초 경과, 데이터 부족 - 재접속");
+            console.log(
+              `로드된 데이터: ${__loadingDataCount}/${__expectedDataSources}`
+            );
+            location.reload();
+          } else {
+            console.log(
+              `✅ 페이지 로드 완료 (${__loadingDataCount}/${__expectedDataSources})`
+            );
+          }
         }, 20000);
 
         // 예약된 글들 확인
