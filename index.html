@@ -2236,7 +2236,7 @@
           </div>
 
           <!-- 카테고리 필터 -->
-          <div class="flex gap-2 mb-4 overflow-x-auto pb-2">
+          <div class="flex flex-wrap gap-2 mb-4">
             <button
               class="category-filter-btn active px-3 py-1.5 rounded-full bg-orange-500 text-white text-sm font-medium whitespace-nowrap"
               data-category="all"
@@ -2365,8 +2365,13 @@
           </div>
 
           <!-- 최근 추천 메뉴 히스토리 -->
-          <div id="menu-history-section" class="hidden bg-gradient-to-r from-orange-50 to-red-50 border-2 border-orange-200 rounded-xl p-4">
-            <h4 class="text-sm font-bold text-orange-800 mb-3 flex items-center gap-2">
+          <div
+            id="menu-history-section"
+            class="hidden bg-gradient-to-r from-orange-50 to-red-50 border-2 border-orange-200 rounded-xl p-4"
+          >
+            <h4
+              class="text-sm font-bold text-orange-800 mb-3 flex items-center gap-2"
+            >
               <i class="fas fa-history text-orange-600"></i>
               최근 추천 메뉴
             </h4>
@@ -16818,7 +16823,7 @@
         if (rouletteEmoji) rouletteEmoji.textContent = "🍽️";
         if (rouletteText)
           rouletteText.textContent = "메뉴를 추가하고 버튼을 눌러주세요!";
-        
+
         // 히스토리 업데이트
         updateRouletteHistory();
       }
@@ -16969,14 +16974,14 @@
       function addToRouletteHistory(menu) {
         rouletteHistory.unshift({
           ...menu,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
-        
+
         // 최대 10개까지만 유지
         if (rouletteHistory.length > 10) {
           rouletteHistory = rouletteHistory.slice(0, 10);
         }
-        
+
         updateRouletteHistory();
       }
 
@@ -16984,29 +16989,37 @@
       function updateRouletteHistory() {
         const historySection = document.getElementById("menu-history-section");
         const historyContainer = document.getElementById("roulette-history");
-        
+
         if (!historySection || !historyContainer) return;
-        
+
         if (rouletteHistory.length === 0) {
           historySection.classList.add("hidden");
           return;
         }
-        
+
         historySection.classList.remove("hidden");
-        
-        historyContainer.innerHTML = rouletteHistory.map((menu, index) => {
-          const emoji = getCategoryEmoji(menu.category);
-          const time = new Date(menu.timestamp);
-          const timeStr = `${time.getHours().toString().padStart(2, '0')}:${time.getMinutes().toString().padStart(2, '0')}`;
-          
-          return `
+
+        historyContainer.innerHTML = rouletteHistory
+          .map((menu, index) => {
+            const emoji = getCategoryEmoji(menu.category);
+            const time = new Date(menu.timestamp);
+            const timeStr = `${time
+              .getHours()
+              .toString()
+              .padStart(2, "0")}:${time
+              .getMinutes()
+              .toString()
+              .padStart(2, "0")}`;
+
+            return `
             <div class="inline-flex items-center gap-2 bg-white px-3 py-2 rounded-lg border-2 border-orange-200 text-sm shadow-sm">
               <span class="text-lg">${emoji}</span>
               <span class="font-medium">${menu.name}</span>
               <span class="text-xs text-gray-400">${timeStr}</span>
             </div>
           `;
-        }).join("");
+          })
+          .join("");
       }
 
       // 메뉴 관리 모달 열기
