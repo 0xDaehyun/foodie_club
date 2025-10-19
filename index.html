@@ -6738,12 +6738,15 @@
         const p = ev.payment || {};
         if (!p.bank && !p.number && !p.holder && !p.amount && !p.note)
           return "";
-        
+
         // 신청 시작 시간 체크
         const now = new Date();
-        const registrationStartTime = ev.registrationStart ? new Date(ev.registrationStart) : null;
-        const isBeforeRegistrationStart = registrationStartTime && now < registrationStartTime;
-        
+        const registrationStartTime = ev.registrationStart
+          ? new Date(ev.registrationStart)
+          : null;
+        const isBeforeRegistrationStart =
+          registrationStartTime && now < registrationStartTime;
+
         // 신청 시작 전이면 입금 정보를 숨김
         if (isBeforeRegistrationStart) {
           return `<div class="mt-2 text-sm bg-gray-100 border border-gray-300 rounded p-3">
@@ -6754,7 +6757,7 @@
                     <div class="text-gray-500 text-sm">신청 시작 후 입금 정보가 공개됩니다</div>
                   </div>`;
         }
-        
+
         const line = [p.bank, p.number].filter(Boolean).map(saf).join(" ");
         const accountInfo = line || "";
         const amount = p.amount ? formatKRW(p.amount) : "";
@@ -9035,7 +9038,6 @@
         try {
           await updateDoc(doc(db, "events", id), {
             status: "archived",
-            deadline: null, // 마감일 정보 초기화
             closedAt: new Date().toISOString(),
           });
           showAlert(
@@ -9279,7 +9281,6 @@
           for (const event of expiredEvents) {
             await updateDoc(doc(db, "events", event.id), {
               status: "archived",
-              deadline: null, // 마감일 정보 초기화
               autoClosedAt: new Date().toISOString(),
               autoClosedReason: "deadline_expired",
             });
