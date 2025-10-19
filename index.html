@@ -1824,7 +1824,7 @@
     <!-- Loading -->
     <div
       id="loading-screen"
-      class="fixed inset-0 bg-white flex flex-col justify-center items-center z-40"
+      class="fixed inset-0 bg-white z-40"
       style="
         height: 100vh;
         height: 100dvh;
@@ -1835,8 +1835,8 @@
         bottom: 0;
       "
     >
-      <!-- 뭐먹지 말풍선 버튼 -->
-      <div style="margin-bottom: 20px">
+      <!-- 뭐먹지 말풍선 버튼 (왼쪽 상단) -->
+      <div style="position: absolute; top: 20px; left: 20px;">
         <button
           class="speech-bubble-btn"
           id="loading-food-btn"
@@ -1852,32 +1852,35 @@
         </button>
       </div>
 
-      <!-- F👀die 로고 -->
-      <div class="foodie-logo">F👀die</div>
+      <!-- 로고와 진행바를 감싸는 중앙 컨테이너 -->
+      <div class="flex flex-col justify-center items-center" style="height: 100%;">
+        <!-- F👀die 로고 -->
+        <div class="foodie-logo">F👀die</div>
 
-      <!-- 웃는 모양 진행바 (더 긴 길이로 조정) -->
-      <div class="foodie-loader">
-        <svg
-          width="150"
-          height="60"
-          viewBox="0 0 150 60"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <!-- 배경 호 (연한 주황색) -->
-          <path
-            class="smile-progress-bg"
-            d="M 15 30 Q 75 58 135 30"
-            stroke-linecap="round"
-          />
+        <!-- 웃는 모양 진행바 (더 긴 길이로 조정) -->
+        <div class="foodie-loader">
+          <svg
+            width="150"
+            height="60"
+            viewBox="0 0 150 60"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <!-- 배경 호 (연한 주황색) -->
+            <path
+              class="smile-progress-bg"
+              d="M 15 30 Q 75 58 135 30"
+              stroke-linecap="round"
+            />
 
-          <!-- 진행바 호 (주황색) -->
-          <path
-            id="progress-bar"
-            class="smile-progress-fill loading"
-            d="M 15 30 Q 75 58 135 30"
-            stroke-linecap="round"
-          />
-        </svg>
+            <!-- 진행바 호 (주황색) -->
+            <path
+              id="progress-bar"
+              class="smile-progress-fill loading"
+              d="M 15 30 Q 75 58 135 30"
+              stroke-linecap="round"
+            />
+          </svg>
+        </div>
       </div>
     </div>
 
@@ -6974,11 +6977,11 @@
           if (e.status === "archived") return false;
           return true;
         });
-        
-        const archivedEvents = isAdmin 
+
+        const archivedEvents = isAdmin
           ? eventsData.filter((e) => e.status === "archived")
           : [];
-        
+
         const activeListHTML =
           activeEvents.length === 0
             ? `<div class="text-center py-12"><i class="fas fa-calendar-xmark text-4xl text-gray-300"></i><p class="mt-3 text-gray-500">진행 중인 이벤트/미식회가 없습니다.</p></div>`
@@ -6988,10 +6991,11 @@
                   .map(eventCardHTML)
                   .join("")}
                </div>`;
-        
+
         // 보관된 이벤트 목록 (회장단만)
-        const archivedListHTML = archivedEvents.length > 0
-          ? `
+        const archivedListHTML =
+          archivedEvents.length > 0
+            ? `
           <div class="section mt-6">
             <div class="bg-yellow-50 border-2 border-yellow-200 rounded-xl overflow-hidden">
               <button 
@@ -7005,7 +7009,9 @@
                   </div>
                   <div class="text-left">
                     <h4 class="text-lg font-bold text-yellow-900">보관된 이벤트</h4>
-                    <p class="text-sm text-yellow-700">회장단만 볼 수 있는 숨김 처리된 ${archivedEvents.length}개의 이벤트</p>
+                    <p class="text-sm text-yellow-700">회장단만 볼 수 있는 숨김 처리된 ${
+                      archivedEvents.length
+                    }개의 이벤트</p>
                   </div>
                 </div>
                 <i class="fas fa-chevron-down text-yellow-700 text-xl transition-transform" id="archived-toggle-icon"></i>
@@ -7016,22 +7022,34 @@
                     ${archivedEvents
                       .sort((a, b) => (a.order || 999) - (b.order || 999))
                       .map((ev) => {
-                        const typeIcon = ev.type === "tasting" 
-                          ? "🍽️" 
-                          : ev.type === "mt" 
-                          ? "🏕️" 
-                          : ev.type === "assembly" 
-                          ? "🎤" 
-                          : "📅";
-                        
+                        const typeIcon =
+                          ev.type === "tasting"
+                            ? "🍽️"
+                            : ev.type === "mt"
+                            ? "🏕️"
+                            : ev.type === "assembly"
+                            ? "🎤"
+                            : "📅";
+
                         return `
                           <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200">
                             <div class="flex items-center gap-3 flex-1 min-w-0">
                               <span class="text-2xl">${typeIcon}</span>
                               <div class="flex-1 min-w-0">
-                                <h5 class="font-semibold text-gray-800 truncate">${saf(ev.title)}</h5>
+                                <h5 class="font-semibold text-gray-800 truncate">${saf(
+                                  ev.title
+                                )}</h5>
                                 <p class="text-xs text-gray-500">
-                                  ${ev.datetime ? new Date(ev.datetime).toLocaleDateString("ko-KR", { month: "long", day: "numeric" }) : "날짜 미정"}
+                                  ${
+                                    ev.datetime
+                                      ? new Date(
+                                          ev.datetime
+                                        ).toLocaleDateString("ko-KR", {
+                                          month: "long",
+                                          day: "numeric",
+                                        })
+                                      : "날짜 미정"
+                                  }
                                 </p>
                               </div>
                             </div>
@@ -7074,7 +7092,7 @@
             </div>
           </div>
           `
-          : "";
+            : "";
 
         // 관리자인 경우: 점선 블록 + 이벤트 목록 + 보관 목록, 일반 회원: 이벤트 목록만
         c.innerHTML = isAdmin
@@ -7129,14 +7147,16 @@
 
         // 보관된 이벤트 토글 기능
         if (isAdmin && archivedEvents.length > 0) {
-          const toggleButton = document.getElementById("archived-events-toggle");
+          const toggleButton = document.getElementById(
+            "archived-events-toggle"
+          );
           const toggleIcon = document.getElementById("archived-toggle-icon");
           const content = document.getElementById("archived-events-content");
-          
+
           if (toggleButton && content && toggleIcon) {
             toggleButton.addEventListener("click", () => {
               const isHidden = content.classList.contains("hidden");
-              
+
               if (isHidden) {
                 content.classList.remove("hidden");
                 toggleIcon.style.transform = "rotate(180deg)";
