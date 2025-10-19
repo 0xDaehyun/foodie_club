@@ -21374,7 +21374,8 @@
             // 버튼 텍스트를 수정 모드로 변경
             const saveBtn = document.getElementById("save-tasting-btn");
             if (saveBtn) {
-              saveBtn.innerHTML = '<i class="fas fa-edit mr-2"></i>미식회 수정하기';
+              saveBtn.innerHTML =
+                '<i class="fas fa-edit mr-2"></i>미식회 수정하기';
             }
           }, 0);
         }
@@ -21469,7 +21470,8 @@
             // 버튼 텍스트를 수정 모드로 변경
             const saveBtn = document.getElementById("save-event-btn");
             if (saveBtn) {
-              saveBtn.innerHTML = '<i class="fas fa-edit mr-2"></i>이벤트 수정하기';
+              saveBtn.innerHTML =
+                '<i class="fas fa-edit mr-2"></i>이벤트 수정하기';
             }
           }, 0);
         }
@@ -22021,6 +22023,16 @@
         );
         const restaurants = [];
 
+        // 수정 모드인지 확인 (editingEventId가 있는지 확인)
+        const isEditMode =
+          typeof editingEventId !== "undefined" && editingEventId;
+
+        // 기존 이벤트 데이터 가져오기 (수정 모드일 때만)
+        let existingEvent = null;
+        if (isEditMode) {
+          existingEvent = eventsData.find((e) => e.id === editingEventId);
+        }
+
         for (const row of restaurantRows) {
           const name = row.querySelector("[data-field='name']")?.value.trim();
           const info = row.querySelector("[data-field='info']")?.value.trim();
@@ -22030,16 +22042,25 @@
           );
           const category =
             row.querySelector("[data-field='category']")?.value || "기타";
+          const restaurantId = row.getAttribute("data-id");
 
           if (name && capacity > 0) {
+            // 수정 모드일 때는 기존 식당의 예약 정보를 보존
+            let existingRestaurant = null;
+            if (isEditMode && existingEvent && existingEvent.restaurants) {
+              existingRestaurant = existingEvent.restaurants.find(
+                (r) => r.id === restaurantId
+              );
+            }
+
             restaurants.push({
-              id: row.getAttribute("data-id"),
+              id: restaurantId,
               name,
               info,
               capacity,
               category,
-              reservations: [],
-              waiting: [],
+              reservations: existingRestaurant?.reservations || [],
+              waiting: existingRestaurant?.waiting || [],
             });
           }
         }
@@ -22050,10 +22071,6 @@
         }
 
         try {
-          // 수정 모드인지 확인 (editingEventId가 있는지 확인)
-          const isEditMode =
-            typeof editingEventId !== "undefined" && editingEventId;
-
           if (isEditMode) {
             // 수정 모드
             await updateDoc(doc(db, "events", editingEventId), {
@@ -22126,6 +22143,16 @@
           return;
         }
 
+        // 수정 모드인지 확인 (editingEventId가 있는지 확인)
+        const isEditMode =
+          typeof editingEventId !== "undefined" && editingEventId;
+
+        // 기존 이벤트 데이터 가져오기 (수정 모드일 때만)
+        let existingEvent = null;
+        if (isEditMode) {
+          existingEvent = eventsData.find((e) => e.id === editingEventId);
+        }
+
         const eventData = {
           type,
           title,
@@ -22134,8 +22161,9 @@
           deadline,
           limit,
           status,
-          applicants: [],
-          waiting: [],
+          // 수정 모드일 때는 기존 참가자 정보 보존, 생성 모드일 때는 빈 배열
+          applicants: isEditMode && existingEvent ? (existingEvent.applicants || []) : [],
+          waiting: isEditMode && existingEvent ? (existingEvent.waiting || []) : [],
         };
 
         // MT/총회인 경우 회비 정보 추가
@@ -22158,10 +22186,6 @@
         }
 
         try {
-          // 수정 모드인지 확인 (editingEventId가 있는지 확인)
-          const isEditMode =
-            typeof editingEventId !== "undefined" && editingEventId;
-
           if (isEditMode) {
             // 수정 모드
             await updateDoc(doc(db, "events", editingEventId), eventData);
