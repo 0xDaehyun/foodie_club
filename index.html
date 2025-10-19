@@ -3616,26 +3616,17 @@
           const loadingTimeout = isKakaoTalkInAppBrowser ? 60000 : 40000;
           console.log(`로딩 타임아웃 설정: ${loadingTimeout / 1000}초`);
 
-          // 타임아웃 안에 로딩이 완료되지 않으면 처리
+          // 타임아웃 안에 로딩이 완료되지 않으면 재접속
           dataLoadTimeout = setTimeout(() => {
             if (__isInitialLoading) {
-              console.log("⚠️ 데이터 로딩 시간 초과");
-              // 재접속하지 않고 현재 상태로 표시 (사용자가 새로고침 할 수 있음)
-              __isInitialLoading = false;
-
-              // 일부 데이터라도 있으면 화면 표시
-              if (
-                roadmapData?.length > 0 ||
-                eventsData?.length > 0 ||
-                blocksData?.length > 0
-              ) {
-                console.log("일부 데이터 있음 - 화면 표시");
-                hideLoadingScreen();
-              } else {
-                console.log(
-                  "데이터 없음 - 로딩 화면 유지하고 사용자 새로고침 대기"
-                );
-              }
+              console.error(
+                `⚠️ 데이터 로딩 시간 초과 (${loadingTimeout / 1000}초)`
+              );
+              console.log(
+                `로드된 데이터: ${__loadingDataCount}/${__expectedDataSources}`
+              );
+              // 즉시 재접속
+              location.reload();
             }
           }, loadingTimeout);
 
@@ -21110,32 +21101,35 @@
         renderRoadmap();
         renderBlocks();
 
-        // 10초 후: 빠른 실패 감지
+        // 5초 후: 매우 빠른 실패 감지
         setTimeout(() => {
           if (__loadingDataCount === 0) {
-            console.error("❌ 10초 경과, 데이터 0개 - 즉시 재접속");
+            console.error("❌ 5초 경과, 데이터 0개 - 즉시 재접속");
             location.reload();
-          } else {
-            console.log(
-              `⏳ 10초 체크: ${__loadingDataCount}/${__expectedDataSources} 로드 중...`
-            );
           }
-        }, 10000);
+        }, 5000);
 
-        // 20초 후: 최종 확인
+        // 10초 후: 부족한 데이터 감지
         setTimeout(() => {
-          if (__loadingDataCount < 3) {
-            console.error("❌ 20초 경과, 데이터 부족 - 재접속");
+          if (__loadingDataCount < 2) {
+            console.error("❌ 10초 경과, 데이터 부족 - 재접속");
             console.log(
               `로드된 데이터: ${__loadingDataCount}/${__expectedDataSources}`
             );
             location.reload();
-          } else {
-            console.log(
-              `✅ 페이지 로드 완료 (${__loadingDataCount}/${__expectedDataSources})`
-            );
           }
-        }, 20000);
+        }, 10000);
+
+        // 15초 후: 최종 확인
+        setTimeout(() => {
+          if (__loadingDataCount < 5) {
+            console.error("❌ 15초 경과, 데이터 부족 - 재접속");
+            console.log(
+              `로드된 데이터: ${__loadingDataCount}/${__expectedDataSources}`
+            );
+            location.reload();
+          }
+        }, 15000);
 
         // 예약된 글들 확인
         setTimeout(() => {
