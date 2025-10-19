@@ -4049,7 +4049,7 @@
               end();
             } else {
               // 페이지가 다시 보이게 될 때
-              if (hiddenTime && (Date.now() - hiddenTime) > 30000) {
+              if (hiddenTime && Date.now() - hiddenTime > 30000) {
                 // 30초 이상 페이지를 벗어났다가 돌아온 경우 리로드
                 window.location.reload();
               } else {
@@ -6809,11 +6809,29 @@
 
         // 로그인된 사용자에게만 버튼 표시
         let btn;
+        
+        // 신청 시작 시간 체크
+        const now = new Date();
+        const registrationStartTime = ev.registrationStart ? new Date(ev.registrationStart) : null;
+        const isBeforeRegistrationStart = registrationStartTime && now < registrationStartTime;
+        
         if (currentUser) {
           if (my === "apply") {
             btn = `<button type="button" class="w-full mt-3 bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition-colors cursor-pointer" data-act="cancel-general" data-id="${ev.id}">신청 취소</button>`;
           } else if (my === "wait") {
             btn = `<button type="button" class="w-full mt-3 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition-colors cursor-pointer" data-act="cancel-wait-general" data-id="${ev.id}">대기 취소</button>`;
+          } else if (isBeforeRegistrationStart) {
+            // 신청 시작 전 - 카운트다운 표시
+            const timeLeft = registrationStartTime - now;
+            const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+            
+            btn = `<button type="button" class="w-full mt-3 bg-gray-400 text-white font-bold py-2 px-4 rounded-lg cursor-not-allowed flex items-center justify-center gap-2" disabled data-countdown="${ev.id}" data-start="${ev.registrationStart}">
+              <i class="fas fa-hourglass-half"></i>
+              <span id="countdown-${ev.id}">${days > 0 ? `${days}일 ` : ''}${hours}시간 ${minutes}분 ${seconds}초 후 오픈</span>
+            </button>`;
           } else {
             btn = `<button type="button" class="w-full mt-3 ${
               count < lim
@@ -6989,35 +7007,58 @@
             const isInWaiting = (r.waiting || []).some(
               (p) => p.studentId === currentUser?.studentId
             );
-            const btn = currentUser
-              ? isInReservations
-                ? `<button type="button" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-2" data-act="cancel-tasting" data-id="${ev.id}" data-rid="${r.id}">
-                    <i class="fas fa-times"></i>
-                    <span>신청 취소</span>
-                  </button>`
-                : isInWaiting
-                ? `<button type="button" class="w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-2" data-act="cancel-wait-tasting" data-id="${ev.id}" data-rid="${r.id}">
-                    <i class="fas fa-hourglass-half"></i>
-                    <span>대기 취소</span>
-                  </button>`
-                : `<button type="button" class="w-full ${
-                    cnt < cap
-                      ? "bg-orange-600 hover:bg-orange-700 shadow-orange-200"
-                      : "bg-red-600 hover:bg-red-700 shadow-red-200"
-                  } text-white font-bold py-2 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-2" data-act="reserve-tasting" data-id="${
-                    ev.id
-                  }" data-rid="${r.id}">
-                          <i class="fas ${
-                            cnt < cap ? "fa-check" : "fa-clock"
-                          }"></i>
-                    <span>${
-                      cnt < cap ? "신청하기" : "신청 마감 / 대기하기"
-                    }</span>
-                  </button>`
-              : `<div class="w-full bg-gray-100 text-gray-500 font-bold py-2 px-4 rounded-lg text-center flex items-center justify-center gap-2">
-                  <i class="fas fa-lock"></i>
-                  <span>로그인 필요</span>
-                </div>`;
+            
+            // 신청 시작 시간 체크
+            const now = new Date();
+            const registrationStartTime = ev.registrationStart ? new Date(ev.registrationStart) : null;
+            const isBeforeRegistrationStart = registrationStartTime && now < registrationStartTime;
+            
+            let btn;
+            if (currentUser) {
+              if (isInReservations) {
+                btn = `<button type="button" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-2" data-act="cancel-tasting" data-id="${ev.id}" data-rid="${r.id}">
+                  <i class="fas fa-times"></i>
+                  <span>신청 취소</span>
+                </button>`;
+              } else if (isInWaiting) {
+                btn = `<button type="button" class="w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-2" data-act="cancel-wait-tasting" data-id="${ev.id}" data-rid="${r.id}">
+                  <i class="fas fa-hourglass-half"></i>
+                  <span>대기 취소</span>
+                </button>`;
+              } else if (isBeforeRegistrationStart) {
+                // 신청 시작 전 - 카운트다운 표시
+                const timeLeft = registrationStartTime - now;
+                const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+                
+                btn = `<button type="button" class="w-full bg-gray-400 text-white font-bold py-2 px-4 rounded-lg cursor-not-allowed flex items-center justify-center gap-2" disabled data-countdown="${ev.id}-${r.id}" data-start="${ev.registrationStart}">
+                  <i class="fas fa-hourglass-half"></i>
+                  <span id="countdown-${ev.id}-${r.id}">${days > 0 ? `${days}일 ` : ''}${hours}시간 ${minutes}분 ${seconds}초 후 오픈</span>
+                </button>`;
+              } else {
+                btn = `<button type="button" class="w-full ${
+                  cnt < cap
+                    ? "bg-orange-600 hover:bg-orange-700 shadow-orange-200"
+                    : "bg-red-600 hover:bg-red-700 shadow-red-200"
+                } text-white font-bold py-2 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-2" data-act="reserve-tasting" data-id="${
+                  ev.id
+                }" data-rid="${r.id}">
+                  <i class="fas ${
+                    cnt < cap ? "fa-check" : "fa-clock"
+                  }"></i>
+                  <span>${
+                    cnt < cap ? "신청하기" : "신청 마감 / 대기하기"
+                  }</span>
+                </button>`;
+              }
+            } else {
+              btn = `<div class="w-full bg-gray-100 text-gray-500 font-bold py-2 px-4 rounded-lg text-center flex items-center justify-center gap-2">
+                <i class="fas fa-lock"></i>
+                <span>로그인 필요</span>
+              </div>`;
+            }
             // 학번 마스킹 함수
             const maskStudentId = (studentId) => {
               if (!studentId) return "";
@@ -7471,9 +7512,53 @@
           }
         }
 
+        // 카운트다운 타이머 시작
+        startCountdownTimers();
+
         // 미식회/이벤트 생성 점선 블록 이벤트 리스너는 전역 이벤트 리스너에서 처리됨
 
         // bindAdminEventsPanel은 모달 내부에서만 호출됨
+      }
+
+      // 카운트다운 타이머 업데이트 함수
+      let countdownIntervals = [];
+      
+      function startCountdownTimers() {
+        // 기존 타이머 모두 제거
+        countdownIntervals.forEach(interval => clearInterval(interval));
+        countdownIntervals = [];
+
+        // 모든 카운트다운 버튼 찾기
+        const countdownButtons = document.querySelectorAll('[data-countdown]');
+        
+        countdownButtons.forEach(button => {
+          const eventId = button.dataset.countdown;
+          const startTime = new Date(button.dataset.start);
+          const countdownElement = document.getElementById(`countdown-${eventId}`);
+          
+          if (!countdownElement) return;
+
+          const interval = setInterval(() => {
+            const now = new Date();
+            const timeLeft = startTime - now;
+
+            if (timeLeft <= 0) {
+              // 시간이 지나면 페이지 리로드하여 버튼 활성화
+              clearInterval(interval);
+              window.location.reload();
+            } else {
+              // 카운트다운 업데이트
+              const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+              const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+              const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+              const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+              
+              countdownElement.textContent = `${days > 0 ? `${days}일 ` : ''}${hours}시간 ${minutes}분 ${seconds}초 후 오픈`;
+            }
+          }, 1000);
+
+          countdownIntervals.push(interval);
+        });
       }
 
       // 이벤트 리스너 함수를 별도로 분리
@@ -7581,6 +7666,14 @@
                 </label>
                 <input id="event-datetime" type="datetime-local" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all text-base" required>
                 <p class="text-xs text-gray-500 mt-1 pl-6">📅 이벤트가 실제로 진행되는 날짜와 시간</p>
+              </div>
+              <div>
+                <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                  <i class="fas fa-play text-orange-500"></i>
+                  신청 시작일 (언제부터 신청받나요?)
+                </label>
+                <input id="event-registration-start" type="datetime-local" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all text-base">
+                <p class="text-xs text-gray-500 mt-1 pl-6">🚀 이 시간부터 신청이 시작됩니다 (비워두면 즉시 신청 가능)</p>
               </div>
               <div>
                 <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
@@ -21894,6 +21987,7 @@
         const type = document.getElementById("event-type")?.value;
         const title = document.getElementById("event-title")?.value.trim();
         const datetime = document.getElementById("event-datetime")?.value;
+        const registrationStart = document.getElementById("event-registration-start")?.value;
         const deadline = document.getElementById("event-deadline")?.value;
         const limit = parseInt(
           document.getElementById("event-limit")?.value || "0",
@@ -21906,6 +22000,11 @@
           return;
         }
 
+        if (registrationStart && new Date(registrationStart) >= new Date(deadline)) {
+          showAlert("😥", "신청 시작일은 신청 마감일보다 이전이어야 합니다.");
+          return;
+        }
+
         if (new Date(deadline) >= new Date(datetime)) {
           showAlert("😥", "신청 마감일은 이벤트 날짜보다 이전이어야 합니다.");
           return;
@@ -21915,6 +22014,7 @@
           type,
           title,
           datetime,
+          registrationStart: registrationStart || null,
           deadline,
           limit,
           status,
@@ -22009,6 +22109,9 @@
 
         const eventDatetime = document.getElementById("event-datetime");
         if (eventDatetime) eventDatetime.value = "";
+
+        const eventRegistrationStart = document.getElementById("event-registration-start");
+        if (eventRegistrationStart) eventRegistrationStart.value = "";
 
         const eventDeadline = document.getElementById("event-deadline");
         if (eventDeadline) eventDeadline.value = "";
@@ -22254,6 +22357,7 @@
         const eventType = document.getElementById("event-type");
         const eventTitle = document.getElementById("event-title");
         const eventDatetime = document.getElementById("event-datetime");
+        const eventRegistrationStart = document.getElementById("event-registration-start");
         const eventDeadline = document.getElementById("event-deadline");
         const eventLimit = document.getElementById("event-limit");
         const eventStatus = document.getElementById("event-status");
@@ -22261,6 +22365,7 @@
         if (eventType) eventType.value = event.type || "tasting";
         if (eventTitle) eventTitle.value = event.title || "";
         if (eventDatetime) eventDatetime.value = event.datetime || "";
+        if (eventRegistrationStart) eventRegistrationStart.value = event.registrationStart || "";
         if (eventDeadline) eventDeadline.value = event.deadline || "";
         if (eventLimit) eventLimit.value = event.limit || "";
         if (eventStatus) eventStatus.value = event.status || "open";
