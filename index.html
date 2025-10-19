@@ -8387,10 +8387,12 @@
             ev.applicants ??= [];
             ev.waiting ??= [];
             if (isUserIn([...ev.applicants, ...ev.waiting])) return;
+            const now = new Date().toISOString();
             const entry = {
               ...currentUser,
               ...prof,
-              timestamp: new Date().toISOString(),
+              timestamp: now,
+              appliedAt: now,
             };
             const lim = parseInt(ev.limit || 0, 10) || 0;
             if (lim === 0 || ev.applicants.length < lim)
@@ -8560,10 +8562,12 @@
             r.reservations ??= [];
             r.waiting ??= [];
             const cap = r.capacity ?? ev.limit ?? 0;
+            const now = new Date().toISOString();
             const entry = {
               ...currentUser,
               ...prof,
-              timestamp: new Date().toISOString(),
+              timestamp: now,
+              appliedAt: now,
             };
             if (r.reservations.length < cap) r.reservations.push(entry);
             else r.waiting.push(entry);
@@ -22045,12 +22049,37 @@
           const restaurantId = row.getAttribute("data-id");
 
           if (name && capacity > 0) {
-            // 수정 모드일 때는 기존 식당의 예약 정보를 보존
-            let existingRestaurant = null;
+            let reservations = [];
+            let waiting = [];
+
+            // 수정 모드일 때는 기존 식당의 예약 정보를 보존하고 정원에 맞춰 재배치
             if (isEditMode && existingEvent && existingEvent.restaurants) {
-              existingRestaurant = existingEvent.restaurants.find(
+              const existingRestaurant = existingEvent.restaurants.find(
                 (r) => r.id === restaurantId
               );
+
+              if (existingRestaurant) {
+                // 기존 예약자와 대기자를 모두 합침
+                const allParticipants = [
+                  ...(existingRestaurant.reservations || []),
+                  ...(existingRestaurant.waiting || []),
+                ];
+
+                // 신청 순서대로 정렬 (appliedAt 또는 timestamp 기준)
+                allParticipants.sort((a, b) => {
+                  const timeA = a.appliedAt || a.timestamp
+                    ? new Date(a.appliedAt || a.timestamp).getTime()
+                    : 0;
+                  const timeB = b.appliedAt || b.timestamp
+                    ? new Date(b.appliedAt || b.timestamp).getTime()
+                    : 0;
+                  return timeA - timeB;
+                });
+
+                // 정원에 맞춰 예약자와 대기자 분리
+                reservations = allParticipants.slice(0, capacity);
+                waiting = allParticipants.slice(capacity);
+              }
             }
 
             restaurants.push({
@@ -22059,8 +22088,8 @@
               info,
               capacity,
               category,
-              reservations: existingRestaurant?.reservations || [],
-              waiting: existingRestaurant?.waiting || [],
+              reservations,
+              waiting,
             });
           }
         }
@@ -22153,6 +22182,28 @@
           existingEvent = eventsData.find((e) => e.id === editingEventId);
         }
 
+        let applicants = [];
+        let waiting = [];
+
+        if (isEditMode && existingEvent) {
+          // 수정 모드: 기존 참가자와 대기자를 모두 합침
+          const allParticipants = [
+            ...(existingEvent.applicants || []),
+            ...(existingEvent.waiting || []),
+          ];
+
+          // 신청 순서대로 정렬 (appliedAt 또는 timestamp 기준)
+          allParticipants.sort((a, b) => {
+            const timeA = a.appliedAt || a.timestamp ? new Date(a.appliedAt || a.timestamp).getTime() : 0;
+            const timeB = b.appliedAt || b.timestamp ? new Date(b.appliedAt || b.timestamp).getTime() : 0;
+            return timeA - timeB;
+          });
+
+          // 정원에 맞춰 참가자와 대기자 분리
+          applicants = allParticipants.slice(0, limit);
+          waiting = allParticipants.slice(limit);
+        }
+
         const eventData = {
           type,
           title,
@@ -22161,9 +22212,8 @@
           deadline,
           limit,
           status,
-          // 수정 모드일 때는 기존 참가자 정보 보존, 생성 모드일 때는 빈 배열
-          applicants: isEditMode && existingEvent ? (existingEvent.applicants || []) : [],
-          waiting: isEditMode && existingEvent ? (existingEvent.waiting || []) : [],
+          applicants,
+          waiting,
         };
 
         // MT/총회인 경우 회비 정보 추가
