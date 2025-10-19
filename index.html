@@ -9636,7 +9636,7 @@
                                   <h3 class="text-2xl font-bold text-white">조짜기</h3>
                   <p class="text-purple-100 text-sm">참가자 ${participants.length}명을 조로 나눕니다</p>
                                 </div>
-                <button type="button" onclick="closeGroupMakerModal()" class="text-white hover:bg-white hover:bg-opacity-20 rounded-full p-2">
+                <button type="button" id="group-maker-close-btn" class="text-white hover:bg-white hover:bg-opacity-20 rounded-full p-2 transition-colors">
                     <i class="fas fa-times text-xl"></i>
                   </button>
                 </div>
@@ -9692,10 +9692,10 @@
               </div>
               
               <div class="px-6 py-4 bg-gray-50 border-t flex gap-3">
-                <button type="button" onclick="closeGroupMakerModal()" class="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-white font-semibold">
-                  취소
+                <button type="button" id="group-maker-cancel-btn" class="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-white hover:border-gray-400 transition-colors font-semibold">
+                  <i class="fas fa-times mr-2"></i>취소
                 </button>
-                <button type="button" id="generate-groups-btn" class="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-6 py-3 rounded-xl hover:from-purple-700 hover:to-indigo-700 font-semibold shadow-lg">
+                <button type="button" id="generate-groups-btn" class="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-6 py-3 rounded-xl hover:from-purple-700 hover:to-indigo-700 transition-all font-semibold shadow-lg">
                   <i class="fas fa-magic mr-2"></i>조 짜기 시작!
                 </button>
               </div>
@@ -9708,6 +9708,35 @@
         // 이벤트 리스너 설정
         setTimeout(() => {
           updateLeaderSelectorsNew(participants, 3);
+
+          // 닫기 버튼 이벤트 리스너
+          const closeBtn = document.getElementById("group-maker-close-btn");
+          if (closeBtn) {
+            closeBtn.addEventListener("click", () => {
+              console.log("🔴 닫기 버튼 클릭됨");
+              closeGroupMakerModal();
+            });
+          }
+
+          // 취소 버튼 이벤트 리스너
+          const cancelBtn = document.getElementById("group-maker-cancel-btn");
+          if (cancelBtn) {
+            cancelBtn.addEventListener("click", () => {
+              console.log("🔴 취소 버튼 클릭됨");
+              closeGroupMakerModal();
+            });
+          }
+
+          // 모달 배경 클릭으로 닫기
+          const modal = document.getElementById("group-maker-modal");
+          if (modal) {
+            modal.addEventListener("click", (e) => {
+              if (e.target === modal) {
+                console.log("🔴 모달 배경 클릭으로 닫기");
+                closeGroupMakerModal();
+              }
+            });
+          }
 
           document
             .getElementById("group-count-new")
@@ -22067,12 +22096,14 @@
 
                 // 신청 순서대로 정렬 (appliedAt 또는 timestamp 기준)
                 allParticipants.sort((a, b) => {
-                  const timeA = a.appliedAt || a.timestamp
-                    ? new Date(a.appliedAt || a.timestamp).getTime()
-                    : 0;
-                  const timeB = b.appliedAt || b.timestamp
-                    ? new Date(b.appliedAt || b.timestamp).getTime()
-                    : 0;
+                  const timeA =
+                    a.appliedAt || a.timestamp
+                      ? new Date(a.appliedAt || a.timestamp).getTime()
+                      : 0;
+                  const timeB =
+                    b.appliedAt || b.timestamp
+                      ? new Date(b.appliedAt || b.timestamp).getTime()
+                      : 0;
                   return timeA - timeB;
                 });
 
@@ -22194,8 +22225,14 @@
 
           // 신청 순서대로 정렬 (appliedAt 또는 timestamp 기준)
           allParticipants.sort((a, b) => {
-            const timeA = a.appliedAt || a.timestamp ? new Date(a.appliedAt || a.timestamp).getTime() : 0;
-            const timeB = b.appliedAt || b.timestamp ? new Date(b.appliedAt || b.timestamp).getTime() : 0;
+            const timeA =
+              a.appliedAt || a.timestamp
+                ? new Date(a.appliedAt || a.timestamp).getTime()
+                : 0;
+            const timeB =
+              b.appliedAt || b.timestamp
+                ? new Date(b.appliedAt || b.timestamp).getTime()
+                : 0;
             return timeA - timeB;
           });
 
