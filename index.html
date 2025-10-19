@@ -21441,11 +21441,19 @@
         const content = document.getElementById("event-modal-content");
 
         if (mode === "create") {
+          // 생성 모드: editingEventId 초기화
+          if (typeof editingEventId !== "undefined") {
+            editingEventId = null;
+          }
           title.textContent = "📅 이벤트 만들기";
           content.innerHTML = createEventFormHTML();
           modal.classList.remove("hidden");
           bindEventForm();
         } else if (mode === "edit" && eventId) {
+          // 수정 모드: editingEventId 설정
+          if (typeof editingEventId !== "undefined") {
+            editingEventId = eventId;
+          }
           title.textContent = "📅 이벤트 수정";
           content.innerHTML = createEventFormHTML();
           modal.classList.remove("hidden");
