@@ -2225,12 +2225,20 @@
                 뭐먹지?
               </span>
             </h3>
-            <p class="text-sm text-gray-600">카테고리를 선택하세요</p>
           </div>
 
-          <!-- 카테고리 선택 그리드 -->
-          <div id="food-category-grid" class="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 mb-4">
-            <!-- 카테고리 버튼들이 여기 동적으로 생성됩니다 -->
+          <!-- 서비스 준비중 안내 -->
+          <div class="text-center py-8 md:py-12 mb-4">
+            <div class="inline-block bg-gradient-to-r from-yellow-100 to-orange-100 p-6 md:p-8 rounded-2xl shadow-lg mb-4">
+              <div class="text-5xl md:text-6xl mb-3">🔧</div>
+              <h4 class="text-xl md:text-2xl font-bold text-gray-800 mb-2">서비스 준비중</h4>
+              <p class="text-sm md:text-base text-gray-600">
+                더 나은 메뉴 추천 서비스를 준비하고 있습니다
+              </p>
+              <p class="text-xs md:text-sm text-gray-500 mt-2">
+                곧 만나요! 😊
+              </p>
+            </div>
           </div>
 
           <!-- 닫기 버튼 -->
@@ -4517,12 +4525,7 @@
                 .classList.add("hidden");
             });
 
-          // 메뉴 정하기 버튼
-          document
-            .getElementById("start-slot-btn")
-            .addEventListener("click", () => {
-              startSlotMachine();
-            });
+          // 메뉴 정하기 버튼 이벤트 삭제됨 (카테고리 선택 방식으로 변경)
           document
             .getElementById("h-roadmap-toggle-btn")
             .addEventListener("click", () => {
@@ -11295,6 +11298,9 @@
             <button class="subtab-btn px-3 py-1.5 rounded bg-gray-200" data-sub="system">
               <i class="fas fa-gear mr-1"></i>시스템
             </button>
+            <button class="subtab-btn px-3 py-1.5 rounded bg-gray-200" data-sub="food-menu">
+              <i class="fas fa-utensils mr-1"></i>뭐먹지 메뉴
+            </button>
           <button class="subtab-btn px-3 py-1.5 rounded bg-gray-200" data-sub="inquiries">
             <i class="fas fa-comment-dots mr-1"></i>문의 관리
           </button>
@@ -11339,6 +11345,10 @@
         }
         if (name === "system") {
           renderSystemAdmin(cont);
+          return;
+        }
+        if (name === "food-menu") {
+          renderFoodMenuAdmin(cont);
           return;
         }
         if (name === "inquiries") {
@@ -11588,6 +11598,49 @@
             modal.remove();
           }
         });
+      }
+
+      /* ===== 뭐먹지 메뉴 관리 ===== */
+      function renderFoodMenuAdmin(container) {
+        container.innerHTML = `
+          <div class="section">
+            <h3 class="text-xl font-bold text-gray-800 mb-4">
+              <i class="fas fa-utensils text-orange-500 mr-2"></i>뭐먹지 메뉴 관리
+            </h3>
+            
+            <div class="bg-gradient-to-r from-orange-50 to-red-50 border-2 border-orange-200 rounded-xl p-6 mb-6">
+              <p class="text-sm text-gray-700 mb-4">
+                회원들이 "뭐먹지?" 버튼을 클릭했을 때 보여질 메뉴를 관리할 수 있습니다.
+              </p>
+              
+              <button
+                id="add-food-menu-btn"
+                class="w-full md:w-auto px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold rounded-lg transition-all shadow-lg hover:shadow-xl hover:scale-105"
+              >
+                <i class="fas fa-plus mr-2"></i>메뉴 추가하기
+              </button>
+            </div>
+            
+            <div class="bg-white rounded-lg border-2 border-gray-200 p-6">
+              <h4 class="font-semibold text-gray-800 mb-4">
+                등록된 메뉴 목록
+                <span class="text-sm text-gray-500 ml-2">(준비중)</span>
+              </h4>
+              <div class="text-center py-12 text-gray-400">
+                <i class="fas fa-utensils text-4xl mb-3"></i>
+                <p>메뉴를 추가하면 이곳에 표시됩니다</p>
+              </div>
+            </div>
+          </div>
+        `;
+        
+        // 메뉴 추가 버튼 이벤트
+        const addBtn = container.querySelector("#add-food-menu-btn");
+        if (addBtn) {
+          addBtn.addEventListener("click", () => {
+            showAlert("🔧", "메뉴 추가 기능은 곧 제공될 예정입니다!");
+          });
+        }
       }
 
       /* ===== 직책 관리 ===== */
@@ -16335,60 +16388,136 @@
       // 총 480개 메뉴 (아침 120개, 점심 120개, 저녁 120개, 디저트 30개)
       // 음식 카테고리 정의 (미식회 카테고리와 동일한 스타일)
       const foodCategories = [
-        { id: "korean", name: "한식", emoji: "🍚", color: "from-red-500 to-orange-500" },
-        { id: "japanese", name: "일식", emoji: "🍣", color: "from-pink-500 to-red-500" },
-        { id: "chinese", name: "중식", emoji: "🥟", color: "from-yellow-500 to-red-600" },
-        { id: "western", name: "양식", emoji: "🍝", color: "from-orange-500 to-yellow-500" },
-        { id: "asian", name: "아시안", emoji: "🍜", color: "from-green-500 to-teal-500" },
-        { id: "snack", name: "분식", emoji: "🍢", color: "from-orange-400 to-red-400" },
-        { id: "dessert", name: "디저트", emoji: "🍰", color: "from-purple-500 to-pink-500" },
-        { id: "cafe", name: "카페", emoji: "☕", color: "from-amber-600 to-orange-600" },
-        { id: "fastfood", name: "패스트푸드", emoji: "🍔", color: "from-yellow-600 to-red-600" },
+        {
+          id: "korean",
+          name: "한식",
+          emoji: "🍚",
+          color: "from-red-500 to-orange-500",
+        },
+        {
+          id: "japanese",
+          name: "일식",
+          emoji: "🍣",
+          color: "from-pink-500 to-red-500",
+        },
+        {
+          id: "chinese",
+          name: "중식",
+          emoji: "🥟",
+          color: "from-yellow-500 to-red-600",
+        },
+        {
+          id: "western",
+          name: "양식",
+          emoji: "🍝",
+          color: "from-orange-500 to-yellow-500",
+        },
+        {
+          id: "asian",
+          name: "아시안",
+          emoji: "🍜",
+          color: "from-green-500 to-teal-500",
+        },
+        {
+          id: "snack",
+          name: "분식",
+          emoji: "🍢",
+          color: "from-orange-400 to-red-400",
+        },
+        {
+          id: "dessert",
+          name: "디저트",
+          emoji: "🍰",
+          color: "from-purple-500 to-pink-500",
+        },
+        {
+          id: "cafe",
+          name: "카페",
+          emoji: "☕",
+          color: "from-amber-600 to-orange-600",
+        },
+        {
+          id: "fastfood",
+          name: "패스트푸드",
+          emoji: "🍔",
+          color: "from-yellow-600 to-red-600",
+        },
       ];
 
       // 메뉴 데이터베이스 삭제됨 - 이제 카테고리 선택만 제공
       // (기존 480개 메뉴 삭제)
-      
-      // 메뉴 추천 모달 열기 - 카테고리 버튼 생성
+
+      // 메뉴 추천 모달 열기 - 서비스 준비중
       function openFoodRecommendModal() {
         const modal = document.getElementById("food-recommend-modal");
-        const categoryGrid = document.getElementById("food-category-grid");
-        
-        if (!modal || !categoryGrid) return;
-        
-        // 카테고리 버튼 생성 (미식회 스타일과 동일)
-        categoryGrid.innerHTML = foodCategories.map(category => `
-          <button
-            type="button"
-            class="category-btn relative overflow-hidden group bg-gradient-to-br ${category.color} text-white rounded-xl p-4 md:p-6 transition-all duration-300 hover:scale-105 hover:shadow-xl"
-            data-category="${category.id}"
-          >
-            <div class="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity"></div>
-            <div class="relative flex flex-col items-center justify-center gap-2">
-              <span class="text-3xl md:text-4xl">${category.emoji}</span>
-              <span class="text-sm md:text-base font-bold">${category.name}</span>
-            </div>
-          </button>
-        `).join("");
-        
-        // 카테고리 버튼 클릭 이벤트
-        categoryGrid.querySelectorAll('.category-btn').forEach(btn => {
-          btn.addEventListener('click', () => {
-            const categoryId = btn.dataset.category;
-            const category = foodCategories.find(c => c.id === categoryId);
-            if (category) {
-              showAlert(category.emoji, `${category.name} 카테고리를 선택하셨습니다!`);
-              modal.classList.add("hidden");
-            }
-          });
-        });
+        if (!modal) return;
         
         modal.classList.remove("hidden");
       }
 
       // 기존 슬롯머신 관련 함수들 삭제됨
-      
-      /* ===== 미니게임 (레거시 코드 - 사용 안 함) =====
+
+      /* ===== 미니게임 (레거시 코드 - 사용 안 함) ===== */
+      let currentGame = null;
+      let gameState = {};
+      let gameScores = {}; // 게임 점수 데이터
+
+      function showGameSelection() {
+        document.getElementById("game-selection").classList.remove("hidden");
+        document.getElementById("game-screen").classList.add("hidden");
+        currentGame = null;
+        gameState = {};
+      }
+
+      function showGameScreen() {
+        document.getElementById("game-selection").classList.add("hidden");
+        document.getElementById("game-screen").classList.remove("hidden");
+        document.getElementById("ranking-screen").classList.add("hidden");
+      }
+
+      function showRankingScreen() {
+        document.getElementById("game-selection").classList.add("hidden");
+        document.getElementById("game-screen").classList.add("hidden");
+        document.getElementById("ranking-screen").classList.remove("hidden");
+        renderGameRankings();
+      }
+
+      function showGameSelectionFromRanking() {
+        document.getElementById("game-selection").classList.remove("hidden");
+        document.getElementById("game-screen").classList.add("hidden");
+        document.getElementById("ranking-screen").classList.add("hidden");
+        currentGame = null;
+        gameState = {};
+      }
+
+      // 게임 점수 저장
+      async function saveGameScore(gameType, score, details = {}) {
+        if (!currentUser) return;
+
+        try {
+          // 이름 중복 확인
+          const existingScores = gameScores[gameType] || [];
+          const duplicateName = existingScores.find(
+            (s) => s.name === currentUser.name
+          );
+
+          if (duplicateName) {
+            // 중복된 이름이 있는 경우 기존 기록과 비교
+            let shouldUpdate = false;
+
+            if (gameType === "color-memory") {
+              // 색깔 기억하기: 더 높은 레벨이면 업데이트
+              shouldUpdate =
+                (details.level || 0) > (duplicateName.details.level || 0);
+            } else if (gameType === "car-racing") {
+              // 자동차 레이싱: 더 긴 거리면 업데이트
+              shouldUpdate =
+                (details.distance || 0) > (duplicateName.details.distance || 0);
+            } else if (gameType === "ball-bounce") {
+              // 공 튀기기: 더 높은 점수면 업데이트
+              shouldUpdate =
+                (details.score || 0) > (duplicateName.details.score || 0);
+            } else {
               // 숫자 맞추기: 더 적은 시도 횟수면 업데이트
               shouldUpdate =
                 (details.attempts || 999) <
