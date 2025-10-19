@@ -4763,11 +4763,9 @@
           const logoutContainer = document.getElementById("logout-container");
           if (logoutContainer && currentUser) {
             logoutContainer.innerHTML = `
-              <div class="section max-w-lg mx-auto">
-                <button id="logout-button" type="button" class="w-full bg-white text-red-500 border border-red-300 btn-lg hover:bg-red-50 transition-colors">
-                  <i class="fas fa-right-from-bracket mr-2"></i>로그아웃
-                </button>
-              </div>
+              <button id="logout-button" type="button" class="text-sm md:text-base text-gray-500 hover:text-red-500 bg-white px-4 py-2 rounded-full border shadow-sm transition-all duration-200 hover:shadow-md">
+                로그아웃
+              </button>
             `;
             document
               .getElementById("logout-button")
