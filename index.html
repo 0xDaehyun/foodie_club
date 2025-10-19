@@ -3523,7 +3523,12 @@
           ? "accent-assembly"
           : "accent-general"; /* general */
       const statusLabel = (s) =>
-        ({ open: "공개", archived: "숨김", closed: "마감됨" }[s] || s);
+        ({
+          open: "공개",
+          archived: "숨김",
+          closed: "마감됨",
+          completed: "종료됨",
+        }[s] || s);
       const saf = (x) =>
         window.DOMPurify
           ? DOMPurify.sanitize(String(x ?? ""))
@@ -3544,7 +3549,7 @@
       let __renderQueued = false;
       let __isInitialLoading = true;
       let __loadingDataCount = 0;
-      const __expectedDataSources = 7; // blocks, roadmap, events, members, suggestions, history, positions
+      const __expectedDataSources = 8; // blocks, roadmap, events, members, suggestions, history, positions, foodMenus
 
       const scheduleRender = () => {
         if (__renderQueued) return;
@@ -3578,8 +3583,12 @@
 
       // 데이터 로딩 재시도 카운터
       let dataLoadRetryCount = 0;
-      const MAX_RETRY_COUNT = 3;
+      const MAX_RETRY_COUNT = 5; // 재시도 횟수 증가
       let dataLoadTimeout = null;
+
+      // 카카오톡 인앱 브라우저 감지
+      const isKakaoTalkInAppBrowser = /KAKAOTALK/i.test(navigator.userAgent);
+      console.log("카카오톡 인앱 브라우저:", isKakaoTalkInAppBrowser);
 
       const checkLoadingComplete = () => {
         console.log(
@@ -3603,25 +3612,32 @@
             clearTimeout(dataLoadTimeout);
           }
 
-          // 15초 안에 로딩이 완료되지 않으면 재시도
-          dataLoadTimeout = setTimeout(() => {
-            if (__isInitialLoading && dataLoadRetryCount < MAX_RETRY_COUNT) {
-              dataLoadRetryCount++;
-              console.log(
-                `데이터 로딩 재시도 ${dataLoadRetryCount}/${MAX_RETRY_COUNT}`
-              );
+          // 카카오톡 인앱 브라우저는 60초, 일반 브라우저는 40초로 충분한 시간 제공
+          const loadingTimeout = isKakaoTalkInAppBrowser ? 60000 : 40000;
+          console.log(`로딩 타임아웃 설정: ${loadingTimeout / 1000}초`);
 
-              // 필수 데이터가 없으면 강제로 다시 로드
-              if (!roadmapData || roadmapData.length === 0) {
-                console.log("로드맵 데이터 재로드 시도");
-                location.reload();
-              }
-            } else if (dataLoadRetryCount >= MAX_RETRY_COUNT) {
-              console.log("최대 재시도 횟수 초과, 오프라인 모드로 전환");
+          // 타임아웃 안에 로딩이 완료되지 않으면 처리
+          dataLoadTimeout = setTimeout(() => {
+            if (__isInitialLoading) {
+              console.log("⚠️ 데이터 로딩 시간 초과");
+              // 재접속하지 않고 현재 상태로 표시 (사용자가 새로고침 할 수 있음)
               __isInitialLoading = false;
-              hideLoadingScreen();
+
+              // 일부 데이터라도 있으면 화면 표시
+              if (
+                roadmapData?.length > 0 ||
+                eventsData?.length > 0 ||
+                blocksData?.length > 0
+              ) {
+                console.log("일부 데이터 있음 - 화면 표시");
+                hideLoadingScreen();
+              } else {
+                console.log(
+                  "데이터 없음 - 로딩 화면 유지하고 사용자 새로고침 대기"
+                );
+              }
             }
-          }, 15000);
+          }, loadingTimeout);
 
           if (__loadingDataCount >= __expectedDataSources) {
             __isInitialLoading = false;
@@ -3645,11 +3661,13 @@
       const verifyAllDataLoaded = (retryCount = 0) => {
         console.log("=== 데이터 로드 완전성 검증 ===", retryCount);
 
-        const hasRoadmap = roadmapData && roadmapData.length > 0;
+        // 배열이면 데이터가 로드된 것으로 간주 (빈 배열도 OK)
+        const hasRoadmap = roadmapData && Array.isArray(roadmapData);
         const hasEvents = eventsData && Array.isArray(eventsData);
         const hasBlocks = blocksData && Array.isArray(blocksData);
         const hasMembers = membersData && Array.isArray(membersData);
         const hasAdmins = adminList && Array.isArray(adminList);
+        const hasFoodMenus = foodMenusData && Array.isArray(foodMenusData);
 
         console.log("필수 데이터 확인:");
         console.log("- roadmapData:", hasRoadmap, roadmapData?.length || 0);
@@ -3657,10 +3675,20 @@
         console.log("- blocksData:", hasBlocks, blocksData?.length || 0);
         console.log("- membersData:", hasMembers, membersData?.length || 0);
         console.log("- adminList:", hasAdmins, adminList?.length || 0);
+        console.log(
+          "- foodMenusData:",
+          hasFoodMenus,
+          foodMenusData?.length || 0
+        );
 
-        // 모든 필수 데이터가 로드되었는지 확인
+        // 모든 리스너가 최소 한 번 실행되었는지 확인
         const allDataLoaded =
-          hasRoadmap && hasEvents && hasBlocks && hasMembers && hasAdmins;
+          hasRoadmap &&
+          hasEvents &&
+          hasBlocks &&
+          hasMembers &&
+          hasAdmins &&
+          hasFoodMenus;
 
         if (allDataLoaded) {
           console.log("✅ 모든 컨텐츠가 정상적으로 로드되었습니다.");
@@ -3670,12 +3698,13 @@
           console.log(`  - 블록: ${blocksData.length}개`);
           console.log(`  - 회원: ${membersData.length}명`);
           console.log(`  - 관리자: ${adminList.length}명`);
+          console.log(`  - 뭐먹지 메뉴: ${foodMenusData.length}개`);
 
-          // 이 메시지가 출력된 후에만 로딩 화면 닫기
+          // 모든 데이터가 로드되었으므로 로딩 화면 닫기
           hideLoadingScreen();
-          checkContentLoaded();
+          console.log("🎉 데이터 로딩 완료 - 정상 표시됨");
         } else {
-          console.warn(`⚠️ 일부 데이터 미로드 (재확인 ${retryCount + 1}/10)`);
+          console.warn(`⚠️ 일부 데이터 미로드 (재확인 ${retryCount + 1}/20)`);
 
           // 어떤 데이터가 없는지 명시
           if (!hasRoadmap) console.warn("  ❌ 로드맵 데이터 없음");
@@ -3683,17 +3712,17 @@
           if (!hasBlocks) console.warn("  ❌ 블록 데이터 없음");
           if (!hasMembers) console.warn("  ❌ 회원 데이터 없음");
           if (!hasAdmins) console.warn("  ❌ 관리자 데이터 없음");
+          if (!hasFoodMenus) console.warn("  ❌ 뭐먹지 메뉴 데이터 없음");
 
-          // 최대 10회(10초)까지 재확인
-          if (retryCount < 10) {
+          // 최대 20회(40초)까지 재확인 (충분한 시간 제공)
+          if (retryCount < 20) {
             setTimeout(() => {
               verifyAllDataLoaded(retryCount + 1);
-            }, 1000);
+            }, 2000); // 2초마다 재확인
           } else {
-            console.error("❌ 최대 대기 시간 초과");
-            console.error("⚠️ 데이터 불완전 상태로 화면 표시");
-            hideLoadingScreen();
-            checkContentLoaded();
+            console.error("❌ 최대 대기 시간 초과 (40초)");
+            console.log("⚠️ 로딩 화면 유지 - 사용자가 수동으로 새로고침 필요");
+            // 로딩 화면을 유지하여 빈 화면이 나타나지 않도록 함
           }
         }
       };
@@ -3716,6 +3745,8 @@
         const hasValidEventsData = eventsData && eventsData.length > 0;
         const hasValidBlocksData = blocksData && blocksData.length > 0;
         const hasValidMembersData = membersData && membersData.length > 0;
+        const hasValidFoodMenusData =
+          foodMenusData && Array.isArray(foodMenusData);
 
         console.log("우선순위 데이터 검사:");
         console.log(
@@ -3737,6 +3768,11 @@
           "- membersData:",
           hasValidMembersData,
           membersData?.length || 0
+        );
+        console.log(
+          "- foodMenusData:",
+          hasValidFoodMenusData,
+          foodMenusData?.length || 0
         );
 
         // DOM 요소 확인
@@ -3766,49 +3802,35 @@
         // 로그아웃 상태 확인
         const isLoggedOut = !currentUser;
 
-        // 빠른 재접속 조건 (우선순위 기반) - 더 정확하고 빠른 감지
+        // 재접속 조건 완화 (너무 빠른 재접속 방지)
         const criticalDataMissing =
           !hasValidRoadmapData && !hasValidEventsData && !hasValidBlocksData;
 
-        // UI 가시성 확인 개선
+        // UI 가시성 확인 (더 긴 시간 대기)
         const uiNotVisible = !hasMainContent && !hasPreContent;
-        const stillLoading = isLoadingScreenVisible && pageLoadTime > 6000; // 6초로 단축
-        const networkIssues = !isOnline && pageLoadTime > 3000; // 3초로 단축
+        const stillLoading = isLoadingScreenVisible && pageLoadTime > 15000; // 15초로 증가
+        const networkIssues = !isOnline && pageLoadTime > 10000; // 10초로 증가
 
-        // 컨텐츠가 실제로 표시되지 않는 경우 감지
-        const noContentDisplayed =
-          (!hasMainContent && !hasPreContent) ||
-          (hasMainContent && mainContentEl.innerHTML.trim() === "") ||
-          (hasPreContent && preContentEl.innerHTML.trim() === "");
-
-        // 로그아웃 상태에서는 데이터가 없어도 정상으로 처리
+        // 로그아웃 상태에서는 재접속 안 함
         const needsQuickReconnect =
           !isLoggedOut &&
-          (criticalDataMissing ||
-            (uiNotVisible && pageLoadTime > 2000) || // 2초로 더 단축
-            (noContentDisplayed && pageLoadTime > 4000) || // 새로 추가된 조건
-            stillLoading ||
-            networkIssues);
+          (stillLoading || networkIssues) &&
+          criticalDataMissing;
 
-        console.log("빠른 재접속 조건:");
+        console.log("재접속 조건:");
         console.log("- 핵심 데이터 없음:", criticalDataMissing);
-        console.log("- UI 숨김:", uiNotVisible && pageLoadTime > 2000);
-        console.log(
-          "- 컨텐츠 미표시:",
-          noContentDisplayed && pageLoadTime > 4000
-        );
-        console.log("- 로딩 지연:", stillLoading);
-        console.log("- 네트워크 문제:", networkIssues);
-        console.log("- 최종 판단:", needsQuickReconnect);
+        console.log("- 로딩 지연 (15초 이상):", stillLoading);
+        console.log("- 네트워크 문제 (10초 이상):", networkIssues);
+        console.log("- 재접속 필요:", needsQuickReconnect);
 
+        // 재접속은 매우 드문 경우에만 실행 (15초 이상 로딩 중이고 데이터 없을 때만)
         if (needsQuickReconnect) {
-          console.warn("⚠️ 핵심 컨텐츠 로드 실패! 즉시 재접속을 시도합니다.");
-
-          // 즉시 자동 재접속 (알림 창 없이)
-          console.log("🔄 빠른 재접속 실행");
+          console.warn("⚠️ 장시간 로딩 실패! 재접속을 시도합니다.");
+          console.log("🔄 재접속 실행");
           location.reload();
+        } else {
+          console.log("✅ 재접속 불필요 - 정상 로딩 중");
         }
-        // 성공 메시지는 verifyAllDataLoaded에서 출력됨
       };
 
       /* ===== 인증 & 권한 ===== */
@@ -4455,6 +4477,24 @@
               scheduleRender();
             },
             (err) => console.warn("events:", err?.message)
+          );
+        }
+        if (!unsubPublic.foodMenus) {
+          unsubPublic.foodMenus = onSnapshot(
+            collection(db, "foodMenus"),
+            (snap) => {
+              foodMenusData = snap.docs.map((d) => ({
+                id: d.id,
+                ...d.data(),
+              }));
+              console.log("뭐먹지 메뉴 로드됨:", foodMenusData.length, "개");
+              if (__isInitialLoading) {
+                __loadingDataCount++;
+                checkLoadingComplete();
+              }
+              scheduleRender();
+            },
+            (err) => console.warn("foodMenus:", err?.message)
           );
         }
       }
@@ -6390,6 +6430,12 @@
                   <label class="block text-sm font-medium text-gray-700 mb-1">날짜</label>
                   <input id="roadmap-event-date" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500">
                 </div>
+                <div class="flex items-center gap-2">
+                  <input id="roadmap-event-admin-only" type="checkbox" class="w-4 h-4 text-orange-600 bg-gray-100 border-gray-300 rounded focus:ring-orange-500">
+                  <label for="roadmap-event-admin-only" class="text-sm font-medium text-gray-700">
+                    <i class="fas fa-lock mr-1 text-orange-600"></i>운영진 전용 일정 (일반 회원에게는 보이지 않음)
+                  </label>
+                </div>
               </div>
               <div class="flex gap-3 mt-6">
                 <button id="roadmap-event-add-save" class="flex-1 bg-orange-500 text-white py-2 px-4 rounded-lg hover:bg-orange-600 transition-colors">
@@ -6419,6 +6465,9 @@
               .getElementById("roadmap-event-name")
               .value.trim();
             const date = document.getElementById("roadmap-event-date").value;
+            const isAdminOnly = document.getElementById(
+              "roadmap-event-admin-only"
+            ).checked;
 
             if (!name) {
               showAlert("😥", "일정 제목을 입력해주세요.");
@@ -6436,6 +6485,7 @@
                 activityName: name,
                 activityDate: date,
                 order: ord,
+                isAdminOnly: isAdminOnly,
               });
               showAlert("✅", "로드맵 일정이 추가되었습니다.");
               document.getElementById("roadmap-event-add-modal").remove();
@@ -7213,6 +7263,7 @@
         const activeEvents = eventsData.filter((e) => {
           if (e.status === "closed") return false;
           if (e.status === "archived") return false;
+          if (e.status === "completed") return false;
           return true;
         });
 
@@ -7270,11 +7321,12 @@
                             : "📅";
 
                         return `
-                          <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200">
-                            <div class="flex items-center gap-3 flex-1 min-w-0">
+                          <div class="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200">
+                            <!-- 제목과 날짜 -->
+                            <div class="flex items-center gap-3 mb-3">
                               <span class="text-2xl">${typeIcon}</span>
                               <div class="flex-1 min-w-0">
-                                <h5 class="font-semibold text-gray-800 truncate">${saf(
+                                <h5 class="font-semibold text-gray-800">${saf(
                                   ev.title
                                 )}</h5>
                                 <p class="text-xs text-gray-500">
@@ -7291,10 +7343,11 @@
                                 </p>
                               </div>
                             </div>
-                            <div class="flex items-center gap-2">
+                            <!-- 버튼들 (아래쪽 배치) -->
+                            <div class="flex flex-wrap items-center gap-2 pt-2 border-t border-gray-200">
                               <button 
                                 type="button"
-                                class="px-3 py-1 bg-green-500 hover:bg-green-600 text-white text-xs rounded-lg transition-colors"
+                                class="px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white text-xs rounded-lg transition-colors whitespace-nowrap"
                                 data-act="admin-unarchive"
                                 data-id="${ev.id}"
                                 title="이벤트 복원"
@@ -7303,21 +7356,30 @@
                               </button>
                               <button 
                                 type="button"
-                                class="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white text-xs rounded-lg transition-colors"
+                                class="px-3 py-1.5 bg-purple-500 hover:bg-purple-600 text-white text-xs rounded-lg transition-colors whitespace-nowrap"
+                                data-act="admin-complete"
+                                data-id="${ev.id}"
+                                title="활동 종료 및 완전 삭제"
+                              >
+                                <i class="fas fa-flag-checkered mr-1"></i>활동 종료
+                              </button>
+                              <button 
+                                type="button"
+                                class="px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white text-xs rounded-lg transition-colors whitespace-nowrap"
                                 data-act="admin-edit"
                                 data-id="${ev.id}"
                                 title="수정"
                               >
-                                <i class="fas fa-edit"></i>
+                                <i class="fas fa-edit mr-1"></i>수정
                               </button>
                               <button 
                                 type="button"
-                                class="px-3 py-1 bg-red-500 hover:bg-red-600 text-white text-xs rounded-lg transition-colors"
+                                class="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-xs rounded-lg transition-colors whitespace-nowrap"
                                 data-act="admin-delete"
                                 data-id="${ev.id}"
                                 title="삭제"
                               >
-                                <i class="fas fa-trash"></i>
+                                <i class="fas fa-trash mr-1"></i>삭제
                               </button>
                             </div>
                           </div>
@@ -7440,6 +7502,8 @@
         if (act === "admin-close") return closeEvent(id);
         if (act === "admin-reopen") return reopenEvent(id);
         if (act === "admin-archive") return archiveEvent(id);
+        if (act === "admin-unarchive") return unarchiveEvent(id);
+        if (act === "admin-complete") return completeEvent(id);
         if (act === "admin-unpost") return unpostEvent(id);
         if (act === "group-maker") {
           console.log("🎯 조짜기 버튼 클릭됨:", id);
@@ -8822,20 +8886,20 @@
       async function closeEvent(id) {
         if (
           !confirm(
-            "이벤트 신청을 마감하시겠습니까?\n\n마감된 이벤트는:\n• 신청 탭에서 사라집니다\n• 활동 탭에서 참가자들이 볼 수 있습니다\n• 평점을 매길 수 있게 됩니다"
+            "이벤트 신청을 마감하고 보관하시겠습니까?\n\n• 일반 회원에게는 보이지 않습니다\n• 회장단만 보관된 이벤트 목록에서 볼 수 있습니다\n• 신청자 명단은 모두 보존됩니다\n• 언제든지 복원 버튼으로 다시 공개할 수 있습니다"
           )
         ) {
           return;
         }
         try {
           await updateDoc(doc(db, "events", id), {
-            status: "closed",
+            status: "archived",
             deadline: null, // 마감일 정보 초기화
             closedAt: new Date().toISOString(),
           });
           showAlert(
-            "✅",
-            "이벤트가 마감되었습니다. 활동 탭에서 확인할 수 있습니다."
+            "📦",
+            "이벤트가 마감되고 보관되었습니다. 보관된 이벤트 목록에서 확인할 수 있습니다."
           );
         } catch {
           showAlert("😥", "마감 처리 실패");
@@ -8943,6 +9007,53 @@
         }
       }
 
+      async function unarchiveEvent(id) {
+        if (
+          !confirm(
+            "보관된 이벤트를 다시 공개하시겠습니까?\n\n• 신청 탭에 다시 표시됩니다\n• 기존 신청자 명단이 모두 유지됩니다\n• 회원들이 이벤트를 다시 볼 수 있습니다"
+          )
+        ) {
+          return;
+        }
+        try {
+          await updateDoc(doc(db, "events", id), {
+            status: "open",
+            unarchivedAt: new Date().toISOString(),
+          });
+          showAlert(
+            "✅",
+            "이벤트가 복원되었습니다. 신청 탭에서 확인할 수 있습니다."
+          );
+        } catch {
+          showAlert("😥", "복원 실패");
+        }
+      }
+
+      async function completeEvent(id) {
+        if (
+          !confirm(
+            "활동을 완전히 종료하시겠습니까?\n\n⚠️ 주의사항:\n• 이벤트가 완전히 삭제됩니다\n• 신청자 정보는 모두 보존됩니다 (내 활동에서 계속 표시됨)\n• 보관함에서도 사라집니다\n• 되돌릴 수 없습니다\n\n정말 종료하시겠습니까?"
+          )
+        ) {
+          return;
+        }
+        try {
+          // 이벤트를 완전히 종료 (completed 상태로 변경)
+          await updateDoc(doc(db, "events", id), {
+            status: "completed",
+            completedAt: new Date().toISOString(),
+            completedBy: currentUser?.studentId || "unknown",
+          });
+          showAlert(
+            "✅",
+            "활동이 종료되었습니다. 참가자들은 내 활동에서 계속 확인할 수 있습니다."
+          );
+        } catch (error) {
+          console.error("활동 종료 실패:", error);
+          showAlert("😥", "활동 종료 실패");
+        }
+      }
+
       async function confirmActivity(id) {
         if (
           !confirm(
@@ -9001,10 +9112,11 @@
           for (const eventDoc of eventsSnapshot.docs) {
             const eventData = eventDoc.data();
 
-            // 이미 마감된 이벤트는 제외
+            // 이미 마감된 이벤트, 보관된 이벤트, 완료된 이벤트는 제외
             if (
               eventData.status === "closed" ||
-              eventData.status === "archived"
+              eventData.status === "archived" ||
+              eventData.status === "completed"
             ) {
               continue;
             }
@@ -9022,10 +9134,10 @@
             }
           }
 
-          // 마감일이 지난 이벤트들을 자동 마감 처리
+          // 마감일이 지난 이벤트들을 자동 마감 처리 (보관함으로 이동)
           for (const event of expiredEvents) {
             await updateDoc(doc(db, "events", event.id), {
-              status: "closed",
+              status: "archived",
               deadline: null, // 마감일 정보 초기화
               autoClosedAt: new Date().toISOString(),
               autoClosedReason: "deadline_expired",
@@ -9090,88 +9202,439 @@
           showAlert("😥", `삭제 실패: ${error.message}`);
         }
       }
-      // 조짜기 모달 열기
-      async function openGroupMakerModal(eventId) {
-        try {
-          console.log("🚀 조짜기 모달 열기 시작:", eventId);
+      // ==================== 조짜기 기능 (새 버전 - 간단명료) ====================
 
-          // 현재 이벤트 ID 저장 (조장 선택기 재생성을 위해)
-          window.currentGroupMakerEventId = eventId;
+      // 조장 선택기 업데이트 (먼저 정의)
+      function updateLeaderSelectorsNew(participants, groupCount) {
+        const container = document.getElementById("leader-selectors-new");
+        if (!container) return;
 
-          const ev = eventsData.find((e) => e.id === eventId);
-          if (!ev) {
-            console.error("❌ 이벤트를 찾을 수 없습니다:", eventId);
-            return showAlert("😥", "이벤트를 찾을 수 없습니다.");
-          }
-          console.log("✅ 이벤트 찾음:", ev.title);
-          console.log("👤 현재 사용자:", currentUser);
-          console.log("👑 관리자 목록:", adminList);
-          console.log(
-            "🔐 관리자 여부:",
-            currentUser && adminList.includes(currentUser.studentId)
+        container.innerHTML = "";
+        for (let i = 1; i <= groupCount; i++) {
+          container.innerHTML += `
+            <div class="flex items-center gap-2 p-2 bg-white border rounded-lg">
+              <div class="w-10 h-10 bg-gradient-to-br from-yellow-400 to-orange-400 rounded-full flex items-center justify-center text-white font-bold">
+                ${i}
+              </div>
+              <select class="leader-select-new flex-1 px-3 py-2 border rounded-lg text-sm focus:border-yellow-400" data-group="${i}">
+                <option value="">조장 선택</option>
+                ${participants
+                  .map(
+                    (p) =>
+                      `<option value="${p.studentId}">${p.name} (${p.gender}/${p.college})</option>`
+                  )
+                  .join("")}
+              </select>
+            </div>
+          `;
+        }
+      }
+
+      // 조 생성 알고리즘 (라운드 로빈)
+      function createGroupsNew(
+        participants,
+        groupCount,
+        genderBalance,
+        collegeMix,
+        leaderMode
+      ) {
+        const groups = Array.from({ length: groupCount }, () => []);
+        const members = [...participants];
+
+        // 1. 수동 조장 선택
+        const selectedLeaders = new Set();
+        if (leaderMode === "manual") {
+          document.querySelectorAll(".leader-select-new").forEach((select) => {
+            const leaderStudentId = select.value;
+            if (leaderStudentId && !selectedLeaders.has(leaderStudentId)) {
+              selectedLeaders.add(leaderStudentId);
+              const leaderIdx = members.findIndex(
+                (p) => p.studentId === leaderStudentId
+              );
+              if (leaderIdx >= 0) {
+                const leader = members.splice(leaderIdx, 1)[0];
+                leader.isLeader = true;
+                const groupIdx = parseInt(select.dataset.group) - 1;
+                groups[groupIdx].push(leader);
+              }
+            }
+          });
+        }
+
+        // 2. 나머지 인원 배치
+        if (genderBalance && collegeMix) {
+          // 성별 + 학과 균형
+          const byGenderCollege = {};
+          members.forEach((p) => {
+            const key = `${p.gender}-${p.college || "기타"}`;
+            if (!byGenderCollege[key]) byGenderCollege[key] = [];
+            byGenderCollege[key].push(p);
+          });
+
+          Object.values(byGenderCollege).forEach((list) =>
+            list.sort(() => Math.random() - 0.5)
           );
 
-          // 참가자 데이터 수집
-          let participants = [];
-          if (ev.type === "tasting") {
-            (ev.restaurants || []).forEach((r) => {
-              (r.reservations || []).forEach((p) => {
-                participants.push({
-                  name: p.name || "",
-                  studentId: p.studentId || "",
-                  gender: p.gender || "",
-                  year: p.year || "",
-                  college: p.college || "",
-                  department: p.department || "",
-                  phone: p.phone || "",
-                });
+          let groupIdx = 0;
+          Object.keys(byGenderCollege)
+            .sort()
+            .forEach((key) => {
+              byGenderCollege[key].forEach((member) => {
+                groups[groupIdx % groupCount].push(member);
+                groupIdx++;
               });
             });
-          } else {
-            (ev.applicants || []).forEach((p) => {
-              participants.push({
-                name: p.name || "",
-                studentId: p.studentId || "",
-                gender: p.gender || "",
-                year: p.year || "",
-                college: p.college || "",
-                department: p.department || "",
-                phone: p.phone || "",
+        } else if (genderBalance) {
+          // 성별만 균형
+          const males = members
+            .filter((p) => p.gender === "남성")
+            .sort(() => Math.random() - 0.5);
+          const females = members
+            .filter((p) => p.gender === "여성")
+            .sort(() => Math.random() - 0.5);
+          const others = members
+            .filter((p) => p.gender !== "남성" && p.gender !== "여성")
+            .sort(() => Math.random() - 0.5);
+
+          let groupIdx = 0;
+          [males, females, others].forEach((list) => {
+            list.forEach((member) => {
+              groups[groupIdx % groupCount].push(member);
+              groupIdx++;
+            });
+          });
+        } else if (collegeMix) {
+          // 학과만 균형
+          const byCollege = {};
+          members.forEach((p) => {
+            const college = p.college || "기타";
+            if (!byCollege[college]) byCollege[college] = [];
+            byCollege[college].push(p);
+          });
+
+          Object.values(byCollege).forEach((list) =>
+            list.sort(() => Math.random() - 0.5)
+          );
+
+          let groupIdx = 0;
+          Object.keys(byCollege)
+            .sort()
+            .forEach((college) => {
+              byCollege[college].forEach((member) => {
+                groups[groupIdx % groupCount].push(member);
+                groupIdx++;
               });
             });
+        } else {
+          // 무작위
+          members.sort(() => Math.random() - 0.5);
+          members.forEach((member, idx) => {
+            groups[idx % groupCount].push(member);
+          });
+        }
+
+        // 3. 인원 균형 맞추기
+        for (let iter = 0; iter < 10; iter++) {
+          const sizes = groups.map((g) => g.length);
+          const maxSize = Math.max(...sizes);
+          const minSize = Math.min(...sizes);
+          if (maxSize - minSize <= 1) break;
+
+          const maxIdx = sizes.indexOf(maxSize);
+          const minIdx = sizes.indexOf(minSize);
+          const memberToMove = groups[maxIdx]
+            .slice()
+            .reverse()
+            .find((m) => !m.isLeader);
+
+          if (memberToMove) {
+            groups[maxIdx].splice(groups[maxIdx].indexOf(memberToMove), 1);
+            groups[minIdx].push(memberToMove);
           }
+        }
 
-          console.log("📋 참가자 수집 완료:", participants.length, "명");
+        // 4. 자동 조장 설정
+        if (leaderMode === "auto") {
+          groups.forEach((group) => {
+            if (group.length > 0 && !group.some((m) => m.isLeader)) {
+              group[0].isLeader = true;
+            }
+          });
+        }
 
-          if (participants.length === 0) {
-            console.error("❌ 참가자가 없습니다");
-            return showAlert("😥", "참가자가 없습니다.");
+        // 5. 조장을 맨 앞으로
+        groups.forEach((group) => {
+          const leaderIdx = group.findIndex((m) => m.isLeader);
+          if (leaderIdx > 0) {
+            const [leader] = group.splice(leaderIdx, 1);
+            group.unshift(leader);
           }
+        });
 
-          console.log("🎨 조짜기 모달 HTML 생성 중...");
-          // 조짜기 모달 생성
-          const modalHTML = `
+        return groups;
+      }
+
+      // 결과 표시
+      function showGroupResultsNew(eventId, groups) {
+        const ev = eventsData.find((e) => e.id === eventId);
+        const totalMembers = groups.reduce((sum, g) => sum + g.length, 0);
+
+        const resultsHTML = `
+          <div id="group-results-modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+            <div class="bg-white rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+              <div class="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-4 flex justify-between items-center">
+                <div>
+                  <h3 class="text-2xl font-bold text-white">조 편성 결과</h3>
+                  <p class="text-purple-100 text-sm">${
+                    ev.title
+                  } - 총 ${totalMembers}명 / ${groups.length}개 조</p>
+                </div>
+                <button onclick="document.getElementById('group-results-modal').remove()" class="text-white hover:bg-white hover:bg-opacity-20 rounded-full p-2">
+                  <i class="fas fa-times text-xl"></i>
+                </button>
+              </div>
+              
+              <div class="p-6 overflow-y-auto flex-1">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  ${groups
+                    .map(
+                      (group, idx) => `
+                    <div class="border-2 border-purple-200 rounded-xl p-4 hover:shadow-lg transition-shadow">
+                      <div class="flex items-center justify-between mb-3">
+                        <h4 class="text-xl font-bold text-purple-600">${
+                          idx + 1
+                        }조</h4>
+                        <span class="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-bold">${
+                          group.length
+                        }명</span>
+                      </div>
+                      <div class="space-y-2">
+                        ${group
+                          .map(
+                            (member) => `
+                          <div class="flex items-center gap-2 p-2 bg-gray-50 rounded-lg hover:bg-gray-100">
+                            ${
+                              member.isLeader
+                                ? '<i class="fas fa-crown text-yellow-500 text-lg"></i>'
+                                : '<div class="w-5"></div>'
+                            }
+                            <div class="flex-1 min-w-0">
+                              <div class="font-semibold text-gray-900">${
+                                member.name
+                              }</div>
+                              <div class="text-xs text-gray-500">${
+                                member.gender
+                              } / ${member.college}</div>
+                            </div>
+                          </div>
+                        `
+                          )
+                          .join("")}
+                      </div>
+                    </div>
+                  `
+                    )
+                    .join("")}
+                </div>
+              </div>
+              
+              <div class="px-6 py-4 bg-gray-50 border-t flex gap-3">
+                <button onclick="document.getElementById('group-results-modal').remove(); openGroupMakerModal('${eventId}')" 
+                  class="px-6 py-3 border-2 border-purple-300 text-purple-700 rounded-xl hover:bg-purple-50 font-semibold">
+                  <i class="fas fa-redo mr-2"></i>다시 짜기
+                </button>
+                <button onclick="document.getElementById('group-results-modal').remove()" 
+                  class="flex-1 bg-gray-500 text-white px-6 py-3 rounded-xl hover:bg-gray-600 font-semibold">
+                  <i class="fas fa-check mr-2"></i>확인
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+
+        document.body.insertAdjacentHTML("beforeend", resultsHTML);
+      }
+
+      // 조짜기 모달 열기
+      async function openGroupMakerModal(eventId) {
+        const ev = eventsData.find((e) => e.id === eventId);
+        if (!ev) return showAlert("😥", "이벤트를 찾을 수 없습니다.");
+
+        // 참가자 목록 수집
+        let participants = [];
+        if (ev.type === "tasting") {
+          (ev.restaurants || []).forEach((r) => {
+            (r.reservations || []).forEach((p) => {
+              if (!participants.find((x) => x.studentId === p.studentId)) {
+                participants.push(p);
+              }
+            });
+          });
+        } else {
+          participants = ev.applicants || [];
+        }
+
+        if (participants.length === 0) {
+          return showAlert("😥", "참가자가 없습니다.");
+        }
+
+        // 기존 모달 제거
+        document.getElementById("group-maker-modal")?.remove();
+
+        // 간단한 모달 HTML
+        const modalHTML = `
                         <div id="group-maker-modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
-                          <div class="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[95vh] overflow-hidden flex flex-col">
-                            <!-- 헤더 -->
+            <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
                             <div class="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-4 flex justify-between items-center">
-                              <div class="flex items-center gap-3">
-                                <div class="bg-white bg-opacity-20 rounded-full p-2">
-                                  <i class="fas fa-users text-white text-xl"></i>
-                                </div>
                                 <div>
                                   <h3 class="text-2xl font-bold text-white">조짜기</h3>
-                                  <p class="text-purple-100 text-sm">참가자를 조로 나누어보세요</p>
+                  <p class="text-purple-100 text-sm">참가자 ${participants.length}명을 조로 나눕니다</p>
                                 </div>
-                              </div>
-                              <button type="button" id="group-maker-close" class="text-white hover:bg-white hover:bg-opacity-20 rounded-full p-2 transition-all duration-200">
+                <button type="button" onclick="closeGroupMakerModal()" class="text-white hover:bg-white hover:bg-opacity-20 rounded-full p-2">
                     <i class="fas fa-times text-xl"></i>
                   </button>
                 </div>
                 
-                            <!-- 컨텐츠 영역 -->
-                            <div class="overflow-y-auto flex-1 px-6 py-6">
-                              <!-- 참가자 정보 -->
+              <div class="p-6 overflow-y-auto flex-1 space-y-4">
+                <div class="border-2 border-gray-200 rounded-xl p-4">
+                  <label class="block text-lg font-bold text-gray-800 mb-2">
+                    <i class="fas fa-users mr-2 text-purple-600"></i>조 개수
+                  </label>
+                  <input type="number" id="group-count-new" min="2" max="10" value="3" 
+                    class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg text-lg font-bold focus:border-purple-500">
+                </div>
+                
+                <div class="border-2 border-gray-200 rounded-xl p-4">
+                  <label class="block text-lg font-bold text-gray-800 mb-3">
+                    <i class="fas fa-balance-scale mr-2 text-blue-600"></i>균형 옵션
+                  </label>
+                  <div class="space-y-2">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                      <input type="checkbox" id="gender-balance-new" checked class="w-5 h-5">
+                      <span>성별 균형 맞추기</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                      <input type="checkbox" id="college-mix-new" checked class="w-5 h-5">
+                      <span>학과 고르게 섞기</span>
+                    </label>
+                  </div>
+                </div>
+                
+                <div class="border-2 border-gray-200 rounded-xl p-4">
+                  <label class="block text-lg font-bold text-gray-800 mb-3">
+                    <i class="fas fa-crown mr-2 text-yellow-600"></i>조장 설정
+                  </label>
+                  <div class="space-y-2 mb-3">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                      <input type="radio" name="leader-mode-new" value="manual" checked class="w-5 h-5">
+                      <span>수동으로 선택</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                      <input type="radio" name="leader-mode-new" value="auto" class="w-5 h-5">
+                      <span>자동 설정 (각 조 첫 번째 사람)</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                      <input type="radio" name="leader-mode-new" value="none" class="w-5 h-5">
+                      <span>조장 없음</span>
+                    </label>
+                  </div>
+                  
+                  <div id="manual-leader-area-new">
+                    <div id="leader-selectors-new" class="space-y-2 max-h-60 overflow-y-auto"></div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="px-6 py-4 bg-gray-50 border-t flex gap-3">
+                <button type="button" onclick="closeGroupMakerModal()" class="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-white font-semibold">
+                  취소
+                </button>
+                <button type="button" id="generate-groups-btn" class="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-6 py-3 rounded-xl hover:from-purple-700 hover:to-indigo-700 font-semibold shadow-lg">
+                  <i class="fas fa-magic mr-2"></i>조 짜기 시작!
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+
+        document.body.insertAdjacentHTML("beforeend", modalHTML);
+
+        // 이벤트 리스너 설정
+        setTimeout(() => {
+          updateLeaderSelectorsNew(participants, 3);
+
+          document
+            .getElementById("group-count-new")
+            ?.addEventListener("input", (e) => {
+              updateLeaderSelectorsNew(
+                participants,
+                parseInt(e.target.value) || 3
+              );
+            });
+
+          document
+            .querySelectorAll('input[name="leader-mode-new"]')
+            .forEach((radio) => {
+              radio.addEventListener("change", () => {
+                const area = document.getElementById("manual-leader-area-new");
+                area.style.display =
+                  radio.value === "manual" ? "block" : "none";
+                if (radio.value === "manual") {
+                  updateLeaderSelectorsNew(
+                    participants,
+                    parseInt(
+                      document.getElementById("group-count-new").value
+                    ) || 3
+                  );
+                }
+              });
+            });
+
+          // 조 짜기 버튼
+          document
+            .getElementById("generate-groups-btn")
+            ?.addEventListener("click", () => {
+              console.log("🔵 조 짜기 버튼 클릭됨");
+
+              // 옵셔널 체이닝과 기본값 사용으로 안전하게 처리
+              const groupCount =
+                parseInt(document.getElementById("group-count-new")?.value) ||
+                3;
+              const genderBalance =
+                document.getElementById("gender-balance-new")?.checked ?? true;
+              const collegeMix =
+                document.getElementById("college-mix-new")?.checked ?? true;
+              const leaderMode =
+                document.querySelector('input[name="leader-mode-new"]:checked')
+                  ?.value || "none";
+
+              console.log("✅ 조 짜기 설정:", {
+                groupCount,
+                genderBalance,
+                collegeMix,
+                leaderMode,
+              });
+
+              const groups = createGroupsNew(
+                participants,
+                groupCount,
+                genderBalance,
+                collegeMix,
+                leaderMode
+              );
+              closeGroupMakerModal();
+              showGroupResultsNew(eventId, groups);
+            });
+        }, 50);
+      }
+
+      // 모달 닫기
+      function closeGroupMakerModal() {
+        document.getElementById("group-maker-modal")?.remove();
+      }
+
+      // 기존 복잡한 조짜기 관련 함수들은 아래에 주석 처리됨 (사용 안함)
+      /*
                               <div class="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200">
                                 <div class="flex items-center gap-3">
                                   <div class="bg-blue-600 rounded-full p-3">
@@ -9547,17 +10010,25 @@
               }
             };
 
-            // 조장 선택 UI 즉시 초기화
+            // 조장 선택 UI 즉시 초기화 - 먼저 생성하고 visibility 설정
+            console.log("🔧 1차 조장 선택기 생성");
+            createLeaderSelectors(); // 즉시 생성
+
+            console.log("🔧 2차 조장 선택기 업데이트");
             updateLeaderSelectors(participants);
+
+            console.log("🔧 조장 선택 UI 가시성 업데이트");
             updateLeaderSelectionVisibility();
 
             // 지연 후 재실행 (안전장치)
             setTimeout(() => {
+              console.log("🔧 100ms 후 재생성");
               updateLeaderSelectors(participants);
               updateLeaderSelectionVisibility();
             }, 100);
 
             setTimeout(() => {
+              console.log("🔧 500ms 후 재생성");
               updateLeaderSelectors(participants);
               updateLeaderSelectionVisibility();
             }, 500);
@@ -9633,16 +10104,11 @@
             }
           }, 100); // 100ms 지연
 
-          console.log("🎉 조짜기 모달 열기 완료!");
-        } catch (error) {
-          console.error("❌ 조짜기 모달 오류:", error);
-          console.error("에러 스택:", error.stack);
-          showAlert("😥", `조짜기 모달을 열 수 없습니다: ${error.message}`);
-        }
-      }
+      */
+      // 기존 조짜기 관련 함수들 (주석 처리됨)
 
-      // 조장 선택기 업데이트
-      function updateLeaderSelectors(participants) {
+      // 조장 선택기 업데이트 - OLD VERSION (사용안함)
+      function updateLeaderSelectors_OLD(participants) {
         console.log("🔄 조장 선택기 업데이트 시작", participants.length, "명");
         const groupCountInput3 = document.getElementById("group-count");
         const container = document.getElementById("leader-selectors");
@@ -9691,8 +10157,8 @@
         console.log("🔍 최종 컨테이너 내용:", container.innerHTML);
       }
 
-      // 조장 선택 UI 표시/숨김
-      function updateLeaderSelectionVisibility() {
+      // 조장 선택 UI 표시/숨김 - OLD VERSION (사용안함)
+      function updateLeaderSelectionVisibility_OLD() {
         console.log("👁️ 조장 선택 UI 표시/숨김 업데이트");
 
         // 조장 설정 라디오 버튼 찾기
@@ -9775,8 +10241,8 @@
         }
       }
 
-      // 조짜기 모달 닫기
-      function closeGroupMakerModal() {
+      // 조짜기 모달 닫기 - OLD VERSION (사용안함)
+      function closeGroupMakerModal_OLD2() {
         console.log("🔴 조짜기 모달 닫기 호출됨");
 
         // 현재 이벤트 ID 정리
@@ -9897,8 +10363,8 @@
         }
       }
 
-      // 조 생성 알고리즘 - 균형 잡힌 배분 (조장 포함)
-      function createGroups(
+      // 조 생성 알고리즘 - OLD VERSION (사용안함)
+      function createGroups_OLD(
         participants,
         groupCount,
         genderRatio,
@@ -10059,71 +10525,105 @@
           });
         });
 
-        // 4단계: 균형잡힌 배치
-        const allMembers = [];
-        Object.keys(categorizedParticipants).forEach((gender) => {
-          Object.keys(categorizedParticipants[gender]).forEach((college) => {
-            const members = categorizedParticipants[gender][college];
-            allMembers.push(...members.sort(() => Math.random() - 0.5));
+        // 4단계: 성별과 학과별로 균등 배분 (라운드 로빈 방식)
+        // 성별별로 분류
+        const malesByCollege = {};
+        const femalesByCollege = {};
+        const othersByCollege = {};
+
+        remainingParticipants.forEach((p) => {
+          const college = p.college || "기타";
+          const target =
+            p.gender === "남성"
+              ? malesByCollege
+              : p.gender === "여성"
+              ? femalesByCollege
+              : othersByCollege;
+          if (!target[college]) target[college] = [];
+          target[college].push(p);
+        });
+
+        // 각 학과별 인원을 섞기
+        Object.values(malesByCollege).forEach((arr) =>
+          arr.sort(() => Math.random() - 0.5)
+        );
+        Object.values(femalesByCollege).forEach((arr) =>
+          arr.sort(() => Math.random() - 0.5)
+        );
+        Object.values(othersByCollege).forEach((arr) =>
+          arr.sort(() => Math.random() - 0.5)
+        );
+
+        // 5단계: 학과별, 성별별로 라운드 로빈 배치
+        const distributeByCollege = (membersByCollege, genderLabel) => {
+          const colleges = Object.keys(membersByCollege);
+          colleges.forEach((college) => {
+            const members = membersByCollege[college];
+            members.forEach((member, idx) => {
+              // 라운드 로빈: 각 학과의 사람들을 순서대로 각 조에 배치
+              const targetGroup = idx % groupCount;
+              groups[targetGroup].push(member);
+
+              // 통계 업데이트
+              const gender =
+                member.gender === "남성"
+                  ? "male"
+                  : member.gender === "여성"
+                  ? "female"
+                  : "other";
+              groupStats[targetGroup][gender]++;
+              if (!groupStats[targetGroup].colleges[college]) {
+                groupStats[targetGroup].colleges[college] = 0;
+              }
+              groupStats[targetGroup].colleges[college]++;
+
+              console.log(
+                `👤 ${member.name} (${member.gender}/${member.college}) → ${
+                  targetGroup + 1
+                }조 [${genderLabel} 라운드 로빈]`
+              );
+            });
           });
-        });
+        };
 
-        allMembers.sort(() => Math.random() - 0.5);
+        // 남성 배치
+        distributeByCollege(malesByCollege, "남성");
+        // 여성 배치
+        distributeByCollege(femalesByCollege, "여성");
+        // 기타 성별 배치
+        distributeByCollege(othersByCollege, "기타");
 
-        // 5단계: 가장 균형잡힌 조에 배치
-        allMembers.forEach((member) => {
-          let bestGroup = 0;
-          let bestScore = Infinity;
+        // 6단계: 조 인원 균형 맞추기 (인원 차이가 2명 이상 나면 재배치)
+        const maxIterations = 10;
+        for (let iter = 0; iter < maxIterations; iter++) {
+          const sizes = groups.map((g) => g.length);
+          const maxSize = Math.max(...sizes);
+          const minSize = Math.min(...sizes);
 
-          for (let i = 0; i < groupCount; i++) {
-            // 현재 조의 크기 고려 (너무 많은 조는 피하기)
-            const sizePenalty = groups[i].length * 2;
+          if (maxSize - minSize <= 1) break; // 차이가 1 이하면 균형 잡힘
 
-            // 성별 균형 점수
-            const gender =
-              member.gender === "남성"
-                ? "male"
-                : member.gender === "여성"
-                ? "female"
-                : "other";
-            const genderCount = groupStats[i][gender];
-            const genderPenalty = genderCount * 3;
+          // 가장 큰 조에서 가장 작은 조로 이동
+          const maxGroupIdx = sizes.indexOf(maxSize);
+          const minGroupIdx = sizes.indexOf(minSize);
 
-            // 단과대 균형 점수
-            const college = member.college || "기타";
-            const collegeCount = groupStats[i].colleges[college] || 0;
-            const collegePenalty = collegeCount * 2;
+          // 조장이 아닌 마지막 멤버를 이동
+          const maxGroup = groups[maxGroupIdx];
+          const memberToMove = maxGroup
+            .slice()
+            .reverse()
+            .find((m) => !m.isLeader);
 
-            const totalScore = sizePenalty + genderPenalty + collegePenalty;
-
-            if (totalScore < bestScore) {
-              bestScore = totalScore;
-              bestGroup = i;
-            }
+          if (memberToMove) {
+            const idx = maxGroup.indexOf(memberToMove);
+            maxGroup.splice(idx, 1);
+            groups[minGroupIdx].push(memberToMove);
+            console.log(
+              `⚖️ 균형 조정: ${memberToMove.name} ${maxGroupIdx + 1}조 → ${
+                minGroupIdx + 1
+              }조`
+            );
           }
-
-          groups[bestGroup].push(member);
-
-          // 통계 업데이트
-          const gender =
-            member.gender === "남성"
-              ? "male"
-              : member.gender === "여성"
-              ? "female"
-              : "other";
-          const college = member.college || "기타";
-          groupStats[bestGroup][gender]++;
-          if (!groupStats[bestGroup].colleges[college]) {
-            groupStats[bestGroup].colleges[college] = 0;
-          }
-          groupStats[bestGroup].colleges[college]++;
-
-          console.log(
-            `👤 ${member.name} (${member.gender}/${member.college}) → ${
-              bestGroup + 1
-            }조`
-          );
-        });
+        }
 
         console.log("✅ 성별+단과대 균형 배분 완료");
         return groups;
@@ -10201,54 +10701,62 @@
         femaleParticipants.sort(() => Math.random() - 0.5);
         otherParticipants.sort(() => Math.random() - 0.5);
 
-        // 4단계: 성별 균형을 고려한 배치
-        const allParticipants = [
-          ...maleParticipants,
-          ...femaleParticipants,
-          ...otherParticipants,
-        ];
+        // 4단계: 성별 균형을 고려한 라운드 로빈 배치
+        const distributeGender = (members, genderLabel) => {
+          members.forEach((member, idx) => {
+            const targetGroup = idx % groupCount;
+            groups[targetGroup].push(member);
 
-        allParticipants.forEach((member) => {
-          let bestGroup = 0;
-          let bestScore = Infinity;
-
-          for (let i = 0; i < groupCount; i++) {
-            // 현재 조의 크기 고려
-            const sizePenalty = groups[i].length * 2;
-
-            // 성별 균형 점수
             const gender =
               member.gender === "남성"
                 ? "male"
                 : member.gender === "여성"
                 ? "female"
                 : "other";
-            const genderCount = groupStats[i][gender];
-            const genderPenalty = genderCount * 4;
+            groupStats[targetGroup][gender]++;
 
-            const totalScore = sizePenalty + genderPenalty;
+            console.log(
+              `👤 ${member.name} (${member.gender}) → ${
+                targetGroup + 1
+              }조 [${genderLabel} 라운드 로빈]`
+            );
+          });
+        };
 
-            if (totalScore < bestScore) {
-              bestScore = totalScore;
-              bestGroup = i;
-            }
+        // 남성, 여성, 기타 순서로 라운드 로빈 배치
+        distributeGender(maleParticipants, "남성");
+        distributeGender(femaleParticipants, "여성");
+        distributeGender(otherParticipants, "기타");
+
+        // 5단계: 조 인원 균형 맞추기
+        const maxIterations = 10;
+        for (let iter = 0; iter < maxIterations; iter++) {
+          const sizes = groups.map((g) => g.length);
+          const maxSize = Math.max(...sizes);
+          const minSize = Math.min(...sizes);
+
+          if (maxSize - minSize <= 1) break;
+
+          const maxGroupIdx = sizes.indexOf(maxSize);
+          const minGroupIdx = sizes.indexOf(minSize);
+
+          const maxGroup = groups[maxGroupIdx];
+          const memberToMove = maxGroup
+            .slice()
+            .reverse()
+            .find((m) => !m.isLeader);
+
+          if (memberToMove) {
+            const idx = maxGroup.indexOf(memberToMove);
+            maxGroup.splice(idx, 1);
+            groups[minGroupIdx].push(memberToMove);
+            console.log(
+              `⚖️ 균형 조정: ${memberToMove.name} ${maxGroupIdx + 1}조 → ${
+                minGroupIdx + 1
+              }조`
+            );
           }
-
-          groups[bestGroup].push(member);
-
-          // 통계 업데이트
-          const gender =
-            member.gender === "남성"
-              ? "male"
-              : member.gender === "여성"
-              ? "female"
-              : "other";
-          groupStats[bestGroup][gender]++;
-
-          console.log(
-            `👤 ${member.name} (${member.gender}) → ${bestGroup + 1}조`
-          );
-        });
+        }
 
         console.log("✅ 성별 균형 배분 완료");
         return groups;
@@ -10319,48 +10827,56 @@
           collegeGroups[college].sort(() => Math.random() - 0.5);
         });
 
-        // 4단계: 단과대 균형을 고려한 배치
-        const allMembers = [];
+        // 4단계: 단과대별 라운드 로빈 배치
         Object.keys(collegeGroups).forEach((college) => {
-          allMembers.push(...collegeGroups[college]);
-        });
+          const members = collegeGroups[college];
+          members.forEach((member, idx) => {
+            const targetGroup = idx % groupCount;
+            groups[targetGroup].push(member);
 
-        allMembers.sort(() => Math.random() - 0.5);
-
-        allMembers.forEach((member) => {
-          let bestGroup = 0;
-          let bestScore = Infinity;
-
-          for (let i = 0; i < groupCount; i++) {
-            // 현재 조의 크기 고려
-            const sizePenalty = groups[i].length * 2;
-
-            // 단과대 균형 점수
-            const college = member.college || "기타";
-            const collegeCount = groupStats[i].colleges[college] || 0;
-            const collegePenalty = collegeCount * 3;
-
-            const totalScore = sizePenalty + collegePenalty;
-
-            if (totalScore < bestScore) {
-              bestScore = totalScore;
-              bestGroup = i;
+            // 통계 업데이트
+            if (!groupStats[targetGroup].colleges[college]) {
+              groupStats[targetGroup].colleges[college] = 0;
             }
-          }
+            groupStats[targetGroup].colleges[college]++;
 
-          groups[bestGroup].push(member);
-
-          // 통계 업데이트
-          const college = member.college || "기타";
-          if (!groupStats[bestGroup].colleges[college]) {
-            groupStats[bestGroup].colleges[college] = 0;
-          }
-          groupStats[bestGroup].colleges[college]++;
-
-          console.log(
-            `👤 ${member.name} (${member.college}) → ${bestGroup + 1}조`
-          );
+            console.log(
+              `👤 ${member.name} (${member.college}) → ${
+                targetGroup + 1
+              }조 [${college} 라운드 로빈]`
+            );
+          });
         });
+
+        // 5단계: 조 인원 균형 맞추기
+        const maxIterations = 10;
+        for (let iter = 0; iter < maxIterations; iter++) {
+          const sizes = groups.map((g) => g.length);
+          const maxSize = Math.max(...sizes);
+          const minSize = Math.min(...sizes);
+
+          if (maxSize - minSize <= 1) break;
+
+          const maxGroupIdx = sizes.indexOf(maxSize);
+          const minGroupIdx = sizes.indexOf(minSize);
+
+          const maxGroup = groups[maxGroupIdx];
+          const memberToMove = maxGroup
+            .slice()
+            .reverse()
+            .find((m) => !m.isLeader);
+
+          if (memberToMove) {
+            const idx = maxGroup.indexOf(memberToMove);
+            maxGroup.splice(idx, 1);
+            groups[minGroupIdx].push(memberToMove);
+            console.log(
+              `⚖️ 균형 조정: ${memberToMove.name} ${maxGroupIdx + 1}조 → ${
+                minGroupIdx + 1
+              }조`
+            );
+          }
+        }
 
         console.log("✅ 단과대 균형 배분 완료");
         return groups;
@@ -10439,8 +10955,8 @@
         );
       }
 
-      // 조 결과 표시 모달
-      function showGroupResults(eventId, groups, participants) {
+      // 조 결과 표시 모달 - OLD VERSION (사용안함)
+      function showGroupResults_OLD(eventId, groups, participants) {
         console.log("🎊 조 결과 모달 표시 시작", {
           eventId,
           groupsCount: groups.length,
@@ -12083,7 +12599,7 @@
               try {
                 await deleteDoc(doc(db, "foodMenus", id));
                 showAlert("✅", "메뉴가 삭제되었습니다.");
-                await loadFoodMenus();
+                // onSnapshot이 자동으로 업데이트하므로 loadFoodMenus() 불필요
                 renderAdminMenuList();
               } catch (error) {
                 console.error("메뉴 삭제 오류:", error);
@@ -14525,8 +15041,11 @@
 
           const isParticipant = isApplicant || isRestaurantApplicant;
 
-          // 마감된 이벤트 또는 이미 지난 이벤트
-          const isClosed = ev.status === "closed";
+          // 마감된 이벤트, 보관된 이벤트, 완료된 이벤트, 또는 이미 지난 이벤트
+          const isClosed =
+            ev.status === "closed" ||
+            ev.status === "archived" ||
+            ev.status === "completed";
           const eventDate = new Date(ev.datetime);
           const today = new Date();
           const isPastEvent = eventDate < today;
@@ -14567,7 +15086,7 @@
             );
 
             // 이벤트 상태 확인
-            const isClosed = ev.status === "closed";
+            const isClosed = ev.status === "closed" || ev.status === "archived";
             const eventDateTime = new Date(ev.datetime);
             const today = new Date();
             const isPastEvent = eventDateTime < today;
@@ -14668,7 +15187,9 @@
                                   </div>
                                   <div class="flex items-center gap-1 flex-wrap">
                   ${
-                    isClosed
+                    ev.status === "completed"
+                      ? '<span class="bg-purple-100 text-purple-800 px-1.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap"><i class="fas fa-flag-checkered mr-1"></i>종료됨</span>'
+                      : isClosed
                       ? '<span class="bg-green-100 text-green-800 px-1.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap"><i class="fas fa-check-circle mr-1"></i>확정</span>'
                       : ""
                   }
@@ -17237,7 +17758,7 @@
               try {
                 await deleteDoc(doc(db, "foodMenus", id));
                 showAlert("✅", "메뉴가 삭제되었습니다.");
-                await loadFoodMenus();
+                // onSnapshot이 자동으로 업데이트하므로 loadFoodMenus() 불필요
                 renderMenuList();
               } catch (error) {
                 console.error("메뉴 삭제 오류:", error);
@@ -17284,7 +17805,7 @@
           await batch.commit();
           showAlert("✅", `${menuLines.length}개의 메뉴가 추가되었습니다!`);
           textarea.value = "";
-          await loadFoodMenus();
+          // onSnapshot이 자동으로 업데이트하므로 loadFoodMenus() 불필요
           renderMenuList();
         } catch (error) {
           console.error("메뉴 추가 오류:", error);
@@ -17309,7 +17830,7 @@
           });
 
           input.value = "";
-          await loadFoodMenus();
+          // onSnapshot이 자동으로 업데이트하므로 loadFoodMenus() 불필요
           showAlert("✅", `'${menuName}' 메뉴가 추가되었습니다!`);
         } catch (error) {
           console.error("빠른 메뉴 추가 오류:", error);
@@ -17337,7 +17858,7 @@
 
           await batch.commit();
           showAlert("✅", "모든 메뉴가 삭제되었습니다.");
-          await loadFoodMenus();
+          // onSnapshot이 자동으로 업데이트하므로 loadFoodMenus() 불필요
           renderMenuList();
         } catch (error) {
           console.error("전체 삭제 오류:", error);
@@ -20550,8 +21071,18 @@
 
       // 로딩 화면 숨기기 함수
       function hideLoadingScreen() {
+        // __loadingDataCount가 8개를 모두 받았는지 확인 (더 정확한 체크)
+        if (__loadingDataCount < __expectedDataSources) {
+          console.log(
+            `⏳ 데이터 로딩 중... ${__loadingDataCount}/${__expectedDataSources} - 로딩 화면 유지`
+          );
+          return;
+        }
+
+        // 모든 리스너가 최소 한 번은 실행되었으므로 로딩 화면 닫기
         const loadingScreen = document.getElementById("loading-screen");
         if (loadingScreen && loadingAnimationComplete) {
+          console.log("✅ 로딩 화면 숨김 (모든 데이터 소스 응답 완료)");
           loadingScreen.classList.add("hidden");
         }
       }
@@ -20565,10 +21096,20 @@
         renderRoadmap();
         renderBlocks();
 
-        // 페이지 로드 후 2초 뒤에 컨텐츠 상태 재확인 (더 빠른 검사)
+        // 페이지 로드 후 20초 뒤에 컨텐츠 상태 재확인 (충분한 시간 대기)
         setTimeout(() => {
-          checkContentLoaded();
-        }, 2000);
+          // 데이터가 완전히 로드된 경우에만 체크 (재접속 방지)
+          const hasAllData =
+            roadmapData &&
+            roadmapData.length > 0 &&
+            eventsData &&
+            Array.isArray(eventsData) &&
+            blocksData &&
+            Array.isArray(blocksData);
+
+          // checkContentLoaded 제거 - 불필요한 재접속 완전히 방지
+          console.log("✅ 페이지 로드 완료 - 재접속 체크 안 함");
+        }, 20000);
 
         // 예약된 글들 확인
         setTimeout(() => {
