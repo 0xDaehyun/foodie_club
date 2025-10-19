@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" style="height: 100%; height: -webkit-fill-available;">
   <head>
     <meta charset="UTF-8" />
     <meta
@@ -1820,19 +1820,23 @@
       }
     </style>
   </head>
-  <body class="bg-gray-100 flex flex-col min-h-screen">
+  <body class="bg-gray-100 flex flex-col min-h-screen" style="min-height: 100vh; min-height: -webkit-fill-available;">
     <!-- Loading -->
     <div
       id="loading-screen"
-      class="fixed inset-0 bg-white flex flex-col justify-center items-center z-40"
+      class="fixed bg-white flex flex-col justify-center items-center"
       style="
-        height: 100vh;
-        height: 100dvh;
-        width: 100vw;
+        position: fixed;
         top: 0;
         left: 0;
         right: 0;
         bottom: 0;
+        width: 100%;
+        height: 100%;
+        min-height: 100vh;
+        min-height: -webkit-fill-available;
+        z-index: 9999;
+        overflow: hidden;
       "
     >
       <!-- 뭐먹지 말풍선 버튼 -->
@@ -2229,15 +2233,17 @@
 
           <!-- 서비스 준비중 안내 -->
           <div class="text-center py-8 md:py-12 mb-4">
-            <div class="inline-block bg-gradient-to-r from-yellow-100 to-orange-100 p-6 md:p-8 rounded-2xl shadow-lg mb-4">
+            <div
+              class="inline-block bg-gradient-to-r from-yellow-100 to-orange-100 p-6 md:p-8 rounded-2xl shadow-lg mb-4"
+            >
               <div class="text-5xl md:text-6xl mb-3">🔧</div>
-              <h4 class="text-xl md:text-2xl font-bold text-gray-800 mb-2">서비스 준비중</h4>
+              <h4 class="text-xl md:text-2xl font-bold text-gray-800 mb-2">
+                서비스 준비중
+              </h4>
               <p class="text-sm md:text-base text-gray-600">
                 더 나은 메뉴 추천 서비스를 준비하고 있습니다
               </p>
-              <p class="text-xs md:text-sm text-gray-500 mt-2">
-                곧 만나요! 😊
-              </p>
+              <p class="text-xs md:text-sm text-gray-500 mt-2">곧 만나요! 😊</p>
             </div>
           </div>
 
@@ -11633,7 +11639,7 @@
             </div>
           </div>
         `;
-        
+
         // 메뉴 추가 버튼 이벤트
         const addBtn = container.querySelector("#add-food-menu-btn");
         if (addBtn) {
@@ -16451,7 +16457,7 @@
       function openFoodRecommendModal() {
         const modal = document.getElementById("food-recommend-modal");
         if (!modal) return;
-        
+
         modal.classList.remove("hidden");
       }
 
