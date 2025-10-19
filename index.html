@@ -2229,7 +2229,7 @@
             </h3>
             <button
               id="menu-manage-btn"
-              class="px-3 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-colors text-sm font-medium"
+              class="hidden px-3 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-colors text-sm font-medium"
             >
               <i class="fas fa-cog mr-1"></i>메뉴 관리
             </button>
@@ -2326,12 +2326,12 @@
             </div>
           </div>
 
-          <!-- 빠른 메뉴 추가 -->
-          <div class="flex gap-2 mb-4">
+          <!-- 빠른 메뉴 추가 (회장단만) -->
+          <div id="quick-add-section" class="hidden flex gap-2 mb-4">
             <input
               id="quick-menu-input"
               type="text"
-              placeholder="빠르게 메뉴 추가 (Enter)"
+              placeholder="빠르게 메뉴 추가 (Enter) - 회장단 전용"
               class="flex-1 px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-orange-400 focus:ring-2 focus:ring-orange-200 transition-all"
             />
             <button
@@ -16817,13 +16817,28 @@
         loadFoodMenus();
         updateCategoryFilter();
 
+        // 회장단 권한 확인
+        const isAdmin = currentUser && adminList.includes(currentUser.studentId);
+        
+        // 빠른 메뉴 추가와 메뉴 관리 버튼은 회장단만 표시
+        const quickAddSection = document.getElementById("quick-add-section");
+        const menuManageBtn = document.getElementById("menu-manage-btn");
+        
+        if (isAdmin) {
+          if (quickAddSection) quickAddSection.classList.remove("hidden");
+          if (menuManageBtn) menuManageBtn.classList.remove("hidden");
+        } else {
+          if (quickAddSection) quickAddSection.classList.add("hidden");
+          if (menuManageBtn) menuManageBtn.classList.add("hidden");
+        }
+
         // 룰렛 초기 상태로 리셋
         const rouletteEmoji = document.getElementById("roulette-emoji");
         const rouletteText = document.getElementById("roulette-text");
         if (rouletteEmoji) rouletteEmoji.textContent = "🍽️";
         if (rouletteText)
           rouletteText.textContent = "메뉴를 추가하고 버튼을 눌러주세요!";
-
+        
         // 히스토리 업데이트
         updateRouletteHistory();
       }
