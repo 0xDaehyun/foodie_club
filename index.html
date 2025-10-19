@@ -21371,6 +21371,11 @@
           // DOM이 렌더링된 후 폼 로드
           setTimeout(() => {
             loadTastingToForm(eventId);
+            // 버튼 텍스트를 수정 모드로 변경
+            const saveBtn = document.getElementById("save-tasting-btn");
+            if (saveBtn) {
+              saveBtn.innerHTML = '<i class="fas fa-edit mr-2"></i>미식회 수정하기';
+            }
           }, 0);
         }
       }
@@ -21461,6 +21466,11 @@
           // DOM이 렌더링된 후 폼 로드
           setTimeout(() => {
             loadEventToForm(eventId);
+            // 버튼 텍스트를 수정 모드로 변경
+            const saveBtn = document.getElementById("save-event-btn");
+            if (saveBtn) {
+              saveBtn.innerHTML = '<i class="fas fa-edit mr-2"></i>이벤트 수정하기';
+            }
           }, 0);
         }
       }
