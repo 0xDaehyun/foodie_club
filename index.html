@@ -1878,7 +1878,7 @@
             stroke-linecap="round"
           />
         </svg>
-          </div>
+      </div>
     </div>
 
     <div
@@ -2212,7 +2212,7 @@
       >
         <div class="bg-white/95 backdrop-blur-md p-4 md:p-6 rounded-3xl">
           <!-- 헤더 -->
-          <div class="text-center mb-3 md:mb-4">
+          <div class="text-center mb-4 md:mb-6">
             <div
               class="inline-block bg-gradient-to-r from-orange-500 to-red-500 p-2 md:p-3 rounded-2xl shadow-lg mb-2"
             >
@@ -2224,107 +2224,22 @@
               >
                 뭐먹지?
               </span>
-        </h3>
-            <div
-              class="inline-flex items-center gap-2 bg-gradient-to-r from-orange-100 to-red-100 px-3 py-1.5 rounded-full"
-            >
-              <i class="fas fa-clock text-orange-600 text-xs"></i>
-              <p
-                class="text-xs md:text-sm font-bold text-orange-800"
-                id="meal-time-category"
-              >
-                <!-- 시간대별 카테고리가 여기 표시됩니다 -->
-              </p>
-            </div>
-        </div>
-
-          <!-- 슬롯머신 디스플레이 -->
-          <div class="mb-3 md:mb-4">
-            <div
-              class="relative bg-gradient-to-br from-orange-100 via-amber-50 to-red-100 rounded-2xl md:rounded-3xl p-4 md:p-6 border-2 md:border-4 border-orange-400 shadow-inner overflow-hidden"
-            >
-              <!-- 장식 요소 (모바일에서는 작게) -->
-              <div class="absolute top-0 left-0 w-full h-full opacity-10">
-                <div
-                  class="absolute top-1 left-1 md:top-2 md:left-2 text-3xl md:text-5xl"
-                >
-                  🍕
-                </div>
-                <div
-                  class="absolute top-1 right-1 md:top-2 md:right-2 text-3xl md:text-5xl"
-                >
-                  🍜
-                </div>
-                <div
-                  class="absolute bottom-1 left-1 md:bottom-2 md:left-2 text-3xl md:text-5xl"
-                >
-                  🍔
-        </div>
-                <div
-                  class="absolute bottom-1 right-1 md:bottom-2 md:right-2 text-3xl md:text-5xl"
-                >
-                  🍣
-          </div>
-        </div>
-
-              <!-- 슬롯 디스플레이 -->
-              <div id="slot-display" class="text-center relative z-10">
-                <div
-                  class="text-4xl md:text-6xl mb-2 md:mb-3 drop-shadow-lg"
-                  id="slot-emoji"
-                >
-                  🍽️
-                </div>
-                <div
-                  class="bg-white/80 backdrop-blur-sm rounded-xl md:rounded-2xl py-2 md:py-3 px-4 md:px-6 shadow-lg"
-                >
-                  <div
-                    class="text-lg md:text-2xl font-black text-gray-800 min-h-[30px] md:min-h-[40px] flex items-center justify-center"
-                    id="slot-text"
-                  >
-                    메뉴 정하기를 눌러주세요!
-                  </div>
-                </div>
-              </div>
-            </div>
+            </h3>
+            <p class="text-sm text-gray-600">카테고리를 선택하세요</p>
           </div>
 
-          <!-- 버튼 영역 -->
-          <div class="flex gap-2 md:gap-3 mb-3 md:mb-4">
-            <button
-              id="start-slot-btn"
-              class="flex-1 relative overflow-hidden group bg-gradient-to-r from-orange-500 via-orange-600 to-red-600 hover:from-orange-600 hover:via-red-600 hover:to-red-700 text-white font-black py-3 md:py-4 px-4 md:px-6 rounded-xl md:rounded-2xl transition-all shadow-xl hover:shadow-2xl hover:scale-105 text-sm md:text-base"
-            >
-              <div
-                class="absolute inset-0 bg-white/20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"
-              ></div>
-              <span class="relative flex items-center justify-center gap-2">
-                <i class="fas fa-dice text-lg md:text-xl"></i>
-                <span>메뉴 정하기</span>
-              </span>
-            </button>
-            <button
-              id="food-recommend-close"
-              class="px-4 md:px-6 py-3 md:py-4 bg-gradient-to-br from-gray-100 to-gray-200 text-gray-700 hover:from-gray-200 hover:to-gray-300 rounded-xl md:rounded-2xl transition-all shadow-md hover:shadow-lg font-bold"
-            >
-              <i class="fas fa-times text-base md:text-lg"></i>
-            </button>
-        </div>
+          <!-- 카테고리 선택 그리드 -->
+          <div id="food-category-grid" class="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 mb-4">
+            <!-- 카테고리 버튼들이 여기 동적으로 생성됩니다 -->
+          </div>
 
-          <!-- 메뉴 히스토리 -->
-          <div
-            class="bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl md:rounded-2xl p-3 md:p-4 border border-orange-200"
+          <!-- 닫기 버튼 -->
+          <button
+            id="food-recommend-close"
+            class="w-full px-4 md:px-6 py-3 md:py-4 bg-gradient-to-br from-gray-100 to-gray-200 text-gray-700 hover:from-gray-200 hover:to-gray-300 rounded-xl md:rounded-2xl transition-all shadow-md hover:shadow-lg font-bold"
           >
-            <h4
-              class="text-xs md:text-sm font-black text-orange-800 mb-2 flex items-center gap-2"
-            >
-              <i class="fas fa-history text-orange-600"></i>
-              최근 추천 메뉴
-            </h4>
-            <div id="menu-history" class="flex flex-wrap gap-1.5 md:gap-2">
-              <!-- 최근 메뉴들이 여기 표시됩니다 -->
-            </div>
-          </div>
+            <i class="fas fa-times mr-2"></i>닫기
+          </button>
         </div>
       </div>
     </div>
@@ -3833,7 +3748,7 @@
           "game-buttons-container"
         );
         const headerFoodBtn = document.getElementById("header-food-btn");
-        
+
         if (!gameButtonsContainer) return;
 
         // currentUser가 있으면 로그인 상태, 없으면 로그아웃 상태
@@ -4324,7 +4239,7 @@
             if (e.target.closest("#inquiry-button")) {
               e.preventDefault();
               openInquiryModal();
-          }
+            }
           });
 
           // 자동 로그인 체크박스 이벤트 리스너
@@ -4452,7 +4367,7 @@
                 <p class="text-gray-700 text-lg md:text-xl font-medium">
                   <span class="text-orange-600 font-bold text-4xl md:text-5xl">F👀die</span> 
                   <b id="userNameDisplay">${saf(
-                  currentUser.name
+                    currentUser.name
                   )}</b>${getPositionSuffix()}님
                 </p>
               </div>
@@ -4567,11 +4482,11 @@
               });
           }
           // 헤더의 뭐먹지 버튼 이벤트 리스너
-            document
+          document
             .getElementById("header-food-btn")
-              .addEventListener("click", () => {
+            .addEventListener("click", () => {
               openFoodRecommendModal();
-              });
+            });
 
           document
             .getElementById("rank-close")
@@ -4671,21 +4586,16 @@
         }
         document.getElementById("rank-close").addEventListener("click", () => {
           document.getElementById("rank-modal").classList.add("hidden");
-              });
-            document
+        });
+        document
           .getElementById("food-recommend-close")
-              .addEventListener("click", () => {
-                document
+          .addEventListener("click", () => {
+            document
               .getElementById("food-recommend-modal")
               .classList.add("hidden");
-              });
-
-        // 메뉴 정하기 버튼
-          document
-          .getElementById("start-slot-btn")
-            .addEventListener("click", () => {
-            startSlotMachine();
           });
+
+        // 메뉴 정하기 버튼 이벤트 리스너 삭제됨 (카테고리 선택 방식으로 변경)
       }
       const showTab = (name) => {
         currentMainTab = name; // 현재 탭 저장
@@ -6585,17 +6495,17 @@
                       <div class="bg-orange-100 text-orange-800 px-3 py-1.5 rounded-lg flex items-center gap-2 flex-1">
                         <i class="fas fa-calendar-check text-orange-600"></i>
                                     <span class="text-sm font-medium">이벤트 실시일: ${
-                        ev.datetime
+                                      ev.datetime
                                         ? new Date(ev.datetime).toLocaleString(
                                             "ko-KR",
                                             {
-                              month: "long",
-                              day: "numeric",
-                              hour: "2-digit",
-                              minute: "2-digit",
+                                              month: "long",
+                                              day: "numeric",
+                                              hour: "2-digit",
+                                              minute: "2-digit",
                                             }
                                           )
-                          : "-"
+                                        : "-"
                                     }</span>
                                   </div>
                     </div>
@@ -6603,17 +6513,17 @@
                       <div class="bg-red-100 text-red-800 px-3 py-1.5 rounded-lg flex items-center gap-2 flex-1">
                         <i class="fas fa-clock text-red-600"></i>
                                     <span class="text-sm font-medium">신청 마감일: ${
-                        ev.deadline
+                                      ev.deadline
                                         ? new Date(ev.deadline).toLocaleString(
                                             "ko-KR",
                                             {
-                              month: "long",
-                              day: "numeric",
-                              hour: "2-digit",
-                              minute: "2-digit",
+                                              month: "long",
+                                              day: "numeric",
+                                              hour: "2-digit",
+                                              minute: "2-digit",
                                             }
                                           )
-                          : "미설정"
+                                        : "미설정"
                                     }</span>
                                   </div>
                     </div>
@@ -6865,16 +6775,16 @@
                           <div class="bg-orange-100 text-orange-800 px-3 py-1.5 rounded-lg flex items-center gap-2 flex-1">
                             <i class="fas fa-calendar-check text-orange-600"></i>
                                         <span class="text-sm font-medium">이벤트 실시일: ${
-                            ev.datetime
+                                          ev.datetime
                                             ? new Date(
                                                 ev.datetime
                                               ).toLocaleString("ko-KR", {
-                                  month: "long",
-                                  day: "numeric",
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                })
-                              : "-"
+                                                month: "long",
+                                                day: "numeric",
+                                                hour: "2-digit",
+                                                minute: "2-digit",
+                                              })
+                                            : "-"
                                         }</span>
                                       </div>
                         </div>
@@ -6882,16 +6792,16 @@
                           <div class="bg-red-100 text-red-800 px-3 py-1.5 rounded-lg flex items-center gap-2 flex-1">
                             <i class="fas fa-clock text-red-600"></i>
                                         <span class="text-sm font-medium">신청 마감일: ${
-                            ev.deadline
+                                          ev.deadline
                                             ? new Date(
                                                 ev.deadline
                                               ).toLocaleString("ko-KR", {
-                                  month: "long",
-                                  day: "numeric",
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                })
-                              : "미설정"
+                                                month: "long",
+                                                day: "numeric",
+                                                hour: "2-digit",
+                                                minute: "2-digit",
+                                              })
+                                            : "미설정"
                                         }</span>
                                       </div>
                         </div>
@@ -8936,7 +8846,7 @@
                                   <div>
                                     <p class="text-sm text-blue-600 font-medium">총 참가자</p>
                                     <p class="text-3xl font-bold text-blue-900">${
-                      participants.length
+                                      participants.length
                                     }<span class="text-lg ml-1">명</span></p>
                                   </div>
                                 </div>
@@ -9141,8 +9051,8 @@
                     </div>
                   </div>
                   `
-                      : ""
-                  }
+                            : ""
+                        }
                               </div>
                 </div>
 
@@ -9212,8 +9122,8 @@
                 console.log("🟢 버튼 요소:", generateBtn);
                 console.log("🟢 이벤트 ID:", eventId);
                 console.log("🟢 참가자 수:", participants.length);
-              generateGroups(eventId, participants);
-            });
+                generateGroups(eventId, participants);
+              });
               console.log("✅ 조짜기 시작 버튼 연결 완료");
             } else {
               console.error("❌ 조짜기 시작 버튼을 찾을 수 없습니다");
@@ -9224,19 +9134,19 @@
             // 조장 관련 이벤트 리스너 추가 (모든 사용자)
             console.log("👨‍💼 조장 관련 기능 활성화");
 
-          // 조 개수 변경 시 조장 선택기 업데이트
+            // 조 개수 변경 시 조장 선택기 업데이트
             const groupCountInput1 = document.getElementById("group-count");
             if (groupCountInput1) {
               groupCountInput1.addEventListener("input", () => {
                 console.log("📊 조 개수 변경됨");
-              updateLeaderSelectors(participants);
-            });
+                updateLeaderSelectors(participants);
+              });
               console.log("✅ 조 개수 입력 이벤트 연결 완료");
             } else {
               console.error("❌ group-count 입력을 찾을 수 없습니다");
             }
 
-          // 조장 설정 방식 변경 시 UI 업데이트
+            // 조장 설정 방식 변경 시 UI 업데이트
             const leaderSettingRadios = document.querySelectorAll(
               'input[name="leader-setting"]'
             );
@@ -9246,11 +9156,11 @@
             );
             if (leaderSettingRadios.length > 0) {
               leaderSettingRadios.forEach((radio) => {
-              radio.addEventListener("change", () => {
+                radio.addEventListener("change", () => {
                   console.log("👑 조장 설정 방식 변경됨:", radio.value);
-                updateLeaderSelectionVisibility();
+                  updateLeaderSelectionVisibility();
+                });
               });
-            });
               console.log("✅ 조장 설정 라디오 이벤트 연결 완료");
             } else {
               console.error("❌ 조장 설정 라디오 버튼을 찾을 수 없습니다");
@@ -9304,8 +9214,8 @@
             };
 
             // 조장 선택 UI 즉시 초기화
-          updateLeaderSelectors(participants);
-          updateLeaderSelectionVisibility();
+            updateLeaderSelectors(participants);
+            updateLeaderSelectionVisibility();
 
             // 지연 후 재실행 (안전장치)
             setTimeout(() => {
@@ -9923,9 +9833,9 @@
 
         // 2단계: 각 조의 현재 성별 구성 확인
         const groupStats = groups.map(() => ({
-            male: 0,
-            female: 0,
-            other: 0,
+          male: 0,
+          female: 0,
+          other: 0,
         }));
 
         groups.forEach((group, groupIndex) => {
@@ -9943,10 +9853,10 @@
         // 3단계: 남은 참가자들을 성별로 분류
         const remainingParticipants = participants.filter((p) => !p.isLeader);
         const maleParticipants = remainingParticipants.filter(
-            (p) => p.gender === "남성"
+          (p) => p.gender === "남성"
         );
         const femaleParticipants = remainingParticipants.filter(
-            (p) => p.gender === "여성"
+          (p) => p.gender === "여성"
         );
         const otherParticipants = remainingParticipants.filter(
           (p) => p.gender !== "남성" && p.gender !== "여성"
@@ -10264,7 +10174,7 @@
                                           <div class="flex items-center gap-3">
                                             <div class="bg-white bg-opacity-30 rounded-full px-4 py-2">
                                               <span class="text-2xl font-bold text-white">${
-                      index + 1
+                                                index + 1
                                               }</span>
                                             </div>
                                             <div>
@@ -10298,7 +10208,7 @@
                       .map(
                         (member, memberIndex) => `
                                             <div class="flex items-center gap-3 p-3 rounded-xl transition-all duration-200 ${
-                        member.isLeader
+                                              member.isLeader
                                                 ? "bg-gradient-to-r from-yellow-50 to-amber-50 border-2 border-yellow-300 shadow-md"
                                                 : "bg-gray-50 hover:bg-gray-100 border-2 border-transparent"
                                             }">
@@ -10315,7 +10225,7 @@
                                                 <div class="flex items-center gap-2">
                                                   <span class="font-bold text-gray-800">${
                                                     member.name
-                        }</span>
+                                                  }</span>
                                                   ${
                                                     member.isLeader
                                                       ? '<span class="text-xs bg-yellow-400 text-yellow-900 px-2 py-0.5 rounded-full font-bold">조장</span>'
@@ -14224,8 +14134,8 @@
                                     ev.title || "(제목 없음)"
                                   )}</h3>
                                   <span class="flex-shrink-0 inline-flex items-center px-1.5 md:px-2 py-0.5 rounded-full text-xs font-medium ${typeBadgeClass(
-                    ev.type
-                  )}">
+                                    ev.type
+                                  )}">
                     ${typeLabel(ev.type)}
                   </span>
                                 </div>
@@ -16423,648 +16333,62 @@
 
       // 메뉴 데이터베이스 (한식·일식·중식·양식 + 디저트)
       // 총 480개 메뉴 (아침 120개, 점심 120개, 저녁 120개, 디저트 30개)
-      const menuDatabase = {
-        breakfast: [
-          // 한식 아침 30개
-          { name: "에그드랍 토스트", emoji: "🍳" },
-          { name: "계란말이 김밥", emoji: "🍙" },
-          { name: "참치마요 주먹밥", emoji: "🍙" },
-          { name: "햄치즈 토스트", emoji: "🥪" },
-          { name: "소고기미역국+밥", emoji: "🍲" },
-          { name: "북어국+밥", emoji: "🍲" },
-          { name: "누룽지 솥밥", emoji: "🍚" },
-          { name: "김치볶음밥", emoji: "🍚" },
-          { name: "스팸구이 반상", emoji: "🍱" },
-          { name: "순두부찌개 아침정식", emoji: "🍲" },
-          { name: "전복죽", emoji: "🥣" },
-          { name: "소고기야채죽", emoji: "🥣" },
-          { name: "곰탕 한그릇", emoji: "🍲" },
-          { name: "설렁탕", emoji: "🍲" },
-          { name: "감자조림 도시락", emoji: "🍱" },
-          { name: "멸치볶음·계란후라이 반상", emoji: "🍱" },
-          { name: "김치찌개 소반", emoji: "🍲" },
-          { name: "된장국·시래기나물 정식", emoji: "🍲" },
-          { name: "잡곡밥·구운김·김치", emoji: "🍚" },
-          { name: "콩나물국밥", emoji: "🍲" },
-          { name: "선지해장국", emoji: "🍲" },
-          { name: "바지락칼국수", emoji: "🍜" },
-          { name: "잔치국수", emoji: "🍜" },
-          { name: "들깨수제비", emoji: "🥟" },
-          { name: "비빔국수(순한맛)", emoji: "🍜" },
-          { name: "고구마구이·우유", emoji: "🍠" },
-          { name: "옥수수밥·나물", emoji: "🌽" },
-          { name: "달걀국·밥", emoji: "🍲" },
-          { name: "오징어젓갈 주먹밥", emoji: "🍙" },
-          { name: "닭가슴살 샐러드&현미밥", emoji: "🥗" },
-          // 일식 아침 30개
-          { name: "오니기리(연어)", emoji: "🍙" },
-          { name: "오니기리(참치마요)", emoji: "🍙" },
-          { name: "오니기리(우메보시)", emoji: "🍙" },
-          { name: "유부초밥", emoji: "🍣" },
-          { name: "타마고 산도", emoji: "🥪" },
-          { name: "낫토 정식", emoji: "🍱" },
-          { name: "미소시루·구운연어 세트", emoji: "🍱" },
-          { name: "오차즈케", emoji: "🍵" },
-          { name: "야키오니기리", emoji: "🍙" },
-          { name: "시오 연어구이 정식", emoji: "🐟" },
-          { name: "작은 규동(미니)", emoji: "🍚" },
-          { name: "사바된장구이 정식", emoji: "🐟" },
-          { name: "새우 텐무스", emoji: "🍤" },
-          { name: "멘타이코 토스트", emoji: "🍞" },
-          { name: "츠케모노와 밥 세트", emoji: "🍱" },
-          { name: "타마고카케고항", emoji: "🍚" },
-          { name: "소바(자루) 미니세트", emoji: "🍜" },
-          { name: "우동(가케) 미니세트", emoji: "🍜" },
-          { name: "온센타마고 덮밥", emoji: "🍳" },
-          { name: "아보카도 계란덮밥", emoji: "🥑" },
-          { name: "토로로고항", emoji: "🍚" },
-          { name: "야키소바빵", emoji: "🥖" },
-          { name: "멜론빵&우유", emoji: "🍞" },
-          { name: "오차즈케(연어)", emoji: "🍵" },
-          { name: "금부도후 정식", emoji: "🍱" },
-          { name: "오차즈케(타라코)", emoji: "🍵" },
-          { name: "니쿠자가와 밥", emoji: "🍚" },
-          { name: "사케마요 오니기리", emoji: "🍙" },
-          { name: "치킨 가라아게 샌드", emoji: "🥪" },
-          { name: "스시 롤(아침 사이즈)", emoji: "🍣" },
-          // 중식 아침 30개
-          { name: "피탄죽", emoji: "🥣" },
-          { name: "양지죽", emoji: "🥣" },
-          { name: "삼선죽", emoji: "🥣" },
-          { name: "완탕 수프", emoji: "🥟" },
-          { name: "새우완탕면(라이트)", emoji: "🍜" },
-          { name: "샤오롱바오(아침 사이즈)", emoji: "🥟" },
-          { name: "찐만두(바오즈)", emoji: "🥟" },
-          { name: "하가우", emoji: "🥟" },
-          { name: "쇼마이", emoji: "🥟" },
-          { name: "두유·요우티아오", emoji: "🥛" },
-          { name: "얇은 지에가오(찹쌀떡)", emoji: "🍡" },
-          { name: "지우차이바오", emoji: "🥟" },
-          { name: "차오판(라이트 볶음밥)", emoji: "🍚" },
-          { name: "탄탄면(순한맛)", emoji: "🍜" },
-          { name: "마장면(순한맛)", emoji: "🍜" },
-          { name: "지에탄 죽(야채죽)", emoji: "🥣" },
-          { name: "닭고기 콘지", emoji: "🥣" },
-          { name: "돼지고기 콘지", emoji: "🥣" },
-          { name: "야채 바오즈", emoji: "🥟" },
-          { name: "당면국(라이트)", emoji: "🍜" },
-          { name: "우육면(미니)", emoji: "🍜" },
-          { name: "우롱차&빵 세트", emoji: "🍵" },
-          { name: "우롱콩자면", emoji: "🍜" },
-          { name: "꿔바로우(라이트)", emoji: "🍖" },
-          { name: "토마토계란볶음·밥", emoji: "🍅" },
-          { name: "지삼선(가지감자볶음)·밥", emoji: "🍆" },
-          { name: "청경채볶음·밥", emoji: "🥬" },
-          { name: "샤브샤브 죽", emoji: "🥣" },
-          { name: "소룡포&죽 세트", emoji: "🥟" },
-          { name: "차슈바오", emoji: "🥟" },
-          // 양식 아침 30개
-          { name: "아메리칸 브렉퍼스트", emoji: "🍳" },
-          { name: "오믈렛", emoji: "🍳" },
-          { name: "에그 베네딕트", emoji: "🍳" },
-          { name: "팬케이크", emoji: "🥞" },
-          { name: "프렌치토스트", emoji: "🍞" },
-          { name: "요거트 그래놀라 볼", emoji: "🥣" },
-          { name: "아보카도 토스트", emoji: "🥑" },
-          { name: "베이글&크림치즈", emoji: "🥯" },
-          { name: "잉글리시 머핀 샌드위치", emoji: "🥪" },
-          { name: "브렉퍼스트 부리토", emoji: "🌯" },
-          { name: "브렉퍼스트 랩", emoji: "🌯" },
-          { name: "크루아상 샌드위치", emoji: "🥐" },
-          { name: "시리얼&우유", emoji: "🥣" },
-          { name: "스무디 볼", emoji: "🥤" },
-          { name: "과일 플레이트", emoji: "🍓" },
-          { name: "치아씨드 푸딩", emoji: "🍮" },
-          { name: "포리지(오트밀)", emoji: "🥣" },
-          { name: "퀴노아 샐러드 볼", emoji: "🥗" },
-          { name: "훈제연어 베이글", emoji: "🥯" },
-          { name: "터키샌드위치(라이트)", emoji: "🥪" },
-          { name: "허니버터 토스트", emoji: "🍞" },
-          { name: "버터 스콘&잼", emoji: "🧈" },
-          { name: "그릭요거트 꿀·호두", emoji: "🍯" },
-          { name: "바나나 피넛버터 토스트", emoji: "🍌" },
-          { name: "햄치즈 바게트", emoji: "🥖" },
-          { name: "미네스트로네 수프&빵", emoji: "🍲" },
-          { name: "머핀(블루베리)", emoji: "🧁" },
-          { name: "베리 파르페", emoji: "🍓" },
-          { name: "과일 요거트 컵", emoji: "🍓" },
-          { name: "토마토 모차렐라 샌드", emoji: "🥪" },
-        ],
-        lunch: [
-          // 한식 점심 30개
-          { name: "비빔밥", emoji: "🍚" },
-          { name: "제육덮밥", emoji: "🍚" },
-          { name: "불고기덮밥", emoji: "🍚" },
-          { name: "닭갈비덮밥", emoji: "🍚" },
-          { name: "대패삼겹 덮밥", emoji: "🍚" },
-          { name: "김치찌개", emoji: "🍲" },
-          { name: "된장찌개", emoji: "🍲" },
-          { name: "순두부찌개", emoji: "🍲" },
-          { name: "부대찌개", emoji: "🍲" },
-          { name: "갈비탕", emoji: "🍲" },
-          { name: "감자탕", emoji: "🍲" },
-          { name: "육개장", emoji: "🍲" },
-          { name: "콩나물국밥", emoji: "🍲" },
-          { name: "뚝배기불고기", emoji: "🍲" },
-          { name: "치킨마요 덮밥", emoji: "🍚" },
-          { name: "육회비빔밥", emoji: "🍚" },
-          { name: "낙지덮밥", emoji: "🍚" },
-          { name: "참치마요 김밥", emoji: "🍙" },
-          { name: "떡볶이·튀김·순대 세트", emoji: "🍢" },
-          { name: "라면·김밥 세트", emoji: "🍜" },
-          { name: "분식 모둠", emoji: "🍢" },
-          { name: "간장계란밥", emoji: "🍚" },
-          { name: "쌈밥 정식", emoji: "🥬" },
-          { name: "뼈해장국", emoji: "🍲" },
-          { name: "갈비찜 정식", emoji: "🍖" },
-          { name: "오징어볶음 정식", emoji: "🦑" },
-          { name: "장어덮밥", emoji: "🍚" },
-          { name: "삼계탕", emoji: "🍲" },
-          { name: "한방보쌈 정식", emoji: "🥓" },
-          { name: "꼬막비빔밥", emoji: "🍚" },
-          // 일식 점심 30개
-          { name: "규동", emoji: "🍚" },
-          { name: "가츠동", emoji: "🍚" },
-          { name: "오야코동", emoji: "🍚" },
-          { name: "텐동", emoji: "🍚" },
-          { name: "사케동(연어덮밥)", emoji: "🍣" },
-          { name: "가라아게 정식", emoji: "🍗" },
-          { name: "규카츠 정식", emoji: "🥩" },
-          { name: "우동(카레우동)", emoji: "🍜" },
-          { name: "소바(텐자루)", emoji: "🍜" },
-          { name: "쇼유라멘", emoji: "🍜" },
-          { name: "미소라멘", emoji: "🍜" },
-          { name: "돈코츠라멘", emoji: "🍜" },
-          { name: "츠케멘", emoji: "🍜" },
-          { name: "가츠카레", emoji: "🍛" },
-          { name: "하이라이스", emoji: "🍛" },
-          { name: "오므라이스", emoji: "🍳" },
-          { name: "사시미 정식", emoji: "🍣" },
-          { name: "스시(특선 10P)", emoji: "🍣" },
-          { name: "모둠텐푸라 정식", emoji: "🍤" },
-          { name: "야키소바", emoji: "🍜" },
-          { name: "부타쇼가야키 정식", emoji: "🥩" },
-          { name: "니쿠우동", emoji: "🍜" },
-          { name: "차슈동", emoji: "🍚" },
-          { name: "에비카츠 버거", emoji: "🍔" },
-          { name: "다코야키 세트", emoji: "🐙" },
-          { name: "오코노미야키", emoji: "🥞" },
-          { name: "에비후라이 정식", emoji: "🍤" },
-          { name: "치킨난반 정식", emoji: "🍗" },
-          { name: "모츠니코미 정식", emoji: "🍲" },
-          { name: "참치타타키 덮밥", emoji: "🍣" },
-          // 중식 점심 30개
-          { name: "짜장면", emoji: "🍜" },
-          { name: "짬뽕", emoji: "🍜" },
-          { name: "탕수육", emoji: "🍖" },
-          { name: "깐풍기", emoji: "🍗" },
-          { name: "라조기", emoji: "🍗" },
-          { name: "마파두부", emoji: "🌶️" },
-          { name: "마라탕", emoji: "🌶️" },
-          { name: "마라샹궈", emoji: "🌶️" },
-          { name: "꿔바로우", emoji: "🍖" },
-          { name: "탄탄면", emoji: "🍜" },
-          { name: "고추잡채·꽃빵", emoji: "🌶️" },
-          { name: "유산슬", emoji: "🦑" },
-          { name: "양장피", emoji: "🥗" },
-          { name: "동파육", emoji: "🥓" },
-          { name: "칠리새우", emoji: "🍤" },
-          { name: "새우볶음밥", emoji: "🍚" },
-          { name: "양주식 볶음밥", emoji: "🍚" },
-          { name: "잡채밥", emoji: "🍚" },
-          { name: "해물울면", emoji: "🍜" },
-          { name: "고기만두", emoji: "🥟" },
-          { name: "군만두", emoji: "🥟" },
-          { name: "샤오롱바오", emoji: "🥟" },
-          { name: "삼선짬뽕", emoji: "🍜" },
-          { name: "쟁반짜장", emoji: "🍜" },
-          { name: "치킨탕수육", emoji: "🍗" },
-          { name: "쇠고기 고추볶음", emoji: "🌶️" },
-          { name: "가지덮밥", emoji: "🍆" },
-          { name: "토마토계란볶음 덮밥", emoji: "🍅" },
-          { name: "마늘소스 가지튀김", emoji: "🍆" },
-          { name: "베이징덕(하프)", emoji: "🦆" },
-          // 양식 점심 30개
-          { name: "치즈버거", emoji: "🍔" },
-          { name: "더블버거", emoji: "🍔" },
-          { name: "치킨버거", emoji: "🍔" },
-          { name: "클럽 샌드위치", emoji: "🥪" },
-          { name: "터키 아보카도 샌드", emoji: "🥪" },
-          { name: "시저 샐러드", emoji: "🥗" },
-          { name: "쉬림프 아보카도 샐러드", emoji: "🥗" },
-          { name: "마르게리타 피자", emoji: "🍕" },
-          { name: "페퍼로니 피자", emoji: "🍕" },
-          { name: "하와이안 피자", emoji: "🍕" },
-          { name: "까르보나라", emoji: "🍝" },
-          { name: "알리오 올리오", emoji: "🍝" },
-          { name: "볼로네제", emoji: "🍝" },
-          { name: "라자냐", emoji: "🍝" },
-          { name: "버섯 리소토", emoji: "🍚" },
-          { name: "해산물 리소토", emoji: "🍚" },
-          { name: "파니니(카프레제)", emoji: "🥪" },
-          { name: "파니니(BBQ치킨)", emoji: "🥪" },
-          { name: "수프&샌드 세트", emoji: "🍲" },
-          { name: "피쉬&칩스", emoji: "🐟" },
-          { name: "프라이드 치킨 샐러드", emoji: "🥗" },
-          { name: "포케 볼", emoji: "🥗" },
-          { name: "그릭 샐러드", emoji: "🥗" },
-          { name: "브루스케타 3종", emoji: "🍞" },
-          { name: "미트볼 파스타", emoji: "🍝" },
-          { name: "스테이크 샐러드", emoji: "🥗" },
-          { name: "칠리치즈 프라이", emoji: "🍟" },
-          { name: "크림수프&빵 세트", emoji: "🍲" },
-          { name: "페스토 파스타", emoji: "🍝" },
-          { name: "새우 로제 파스타", emoji: "🍝" },
-        ],
-        dinner: [
-          // 한식 저녁 30개
-          { name: "삼겹살 구이", emoji: "🥓" },
-          { name: "목살 스테이크", emoji: "🥩" },
-          { name: "제육볶음", emoji: "🍖" },
-          { name: "닭갈비", emoji: "🍗" },
-          { name: "안동찜닭", emoji: "🍗" },
-          { name: "보쌈", emoji: "🥓" },
-          { name: "족발", emoji: "🥓" },
-          { name: "곱창전골", emoji: "🍲" },
-          { name: "소곱창구이", emoji: "🍖" },
-          { name: "부대찌개", emoji: "🍲" },
-          { name: "김치찜", emoji: "🍲" },
-          { name: "아귀찜", emoji: "🐟" },
-          { name: "낙지볶음", emoji: "🦑" },
-          { name: "골뱅이무침·소면", emoji: "🐚" },
-          { name: "감자탕", emoji: "🍲" },
-          { name: "육회", emoji: "🥩" },
-          { name: "해물파전·막걸리 세트", emoji: "🥞" },
-          { name: "동태찌개", emoji: "🍲" },
-          { name: "꼬막무침·비빔국수", emoji: "🐚" },
-          { name: "꼬리곰탕", emoji: "🍲" },
-          { name: "추어탕", emoji: "🍲" },
-          { name: "매운갈비찜", emoji: "🍖" },
-          { name: "도시락(반찬 7종)", emoji: "🍱" },
-          { name: "찌개 2인 세트", emoji: "🍲" },
-          { name: "황태해장국", emoji: "🍲" },
-          { name: "고등어구이 정식", emoji: "🐟" },
-          { name: "갈비살 구이", emoji: "🥩" },
-          { name: "쭈꾸미볶음", emoji: "🦑" },
-          { name: "소갈비찜", emoji: "🍖" },
-          { name: "회덮밥", emoji: "🍣" },
-          // 일식 저녁 30개
-          { name: "스시 세트", emoji: "🍣" },
-          { name: "스시 롤 모듬", emoji: "🍣" },
-          { name: "사시미 모둠", emoji: "🍣" },
-          { name: "스키야키", emoji: "🍲" },
-          { name: "샤부샤부", emoji: "🍲" },
-          { name: "야키토리 모리아와세", emoji: "🍢" },
-          { name: "사케구이", emoji: "🐟" },
-          { name: "아부리연어롤", emoji: "🍣" },
-          { name: "규카츠", emoji: "🥩" },
-          { name: "텐푸라 모듬", emoji: "🍤" },
-          { name: "모츠나베", emoji: "🍲" },
-          { name: "버터간장 옥수수", emoji: "🌽" },
-          { name: "니기리 세트", emoji: "🍣" },
-          { name: "가케우동·덴푸라 세트", emoji: "🍜" },
-          { name: "가라아게&맥주 세트", emoji: "🍗" },
-          { name: "참치타다키", emoji: "🍣" },
-          { name: "규탄 구이", emoji: "🥩" },
-          { name: "소고기 스지니", emoji: "🥩" },
-          { name: "쯔쿠네 꼬치", emoji: "🍢" },
-          { name: "이카야끼", emoji: "🦑" },
-          { name: "가리비버터구이", emoji: "🦪" },
-          { name: "히야시추카", emoji: "🍜" },
-          { name: "치즈 돈카츠", emoji: "🍛" },
-          { name: "에비마요", emoji: "🍤" },
-          { name: "아지후라이", emoji: "🐟" },
-          { name: "사바쇼유 니", emoji: "🐟" },
-          { name: "샐먼아보카도 롤", emoji: "🍣" },
-          { name: "우나기동(장어덮밥)", emoji: "🍚" },
-          { name: "우나기 가바야키", emoji: "🦎" },
-          { name: "카이센동(해물덮밥)", emoji: "🍣" },
-          // 중식 저녁 30개
-          { name: "훠궈", emoji: "🍲" },
-          { name: "마라샹궈 대자", emoji: "🌶️" },
-          { name: "베이징덕(풀 세트)", emoji: "🦆" },
-          { name: "양꼬치", emoji: "🍢" },
-          { name: "동파육", emoji: "🥓" },
-          { name: "파오차이와 삼겹 수육", emoji: "🥓" },
-          { name: "지삼선", emoji: "🍆" },
-          { name: "어향육사", emoji: "🍖" },
-          { name: "꿔바로우 대접시", emoji: "🍖" },
-          { name: "라즈지", emoji: "🍗" },
-          { name: "팔보채", emoji: "🥘" },
-          { name: "해물누룽지탕", emoji: "🍲" },
-          { name: "사천식 탕수육", emoji: "🍖" },
-          { name: "산라탕", emoji: "🍲" },
-          { name: "마라훠궈", emoji: "🌶️" },
-          { name: "샤브샤브 중국식", emoji: "🍲" },
-          { name: "대하소금구이", emoji: "🦐" },
-          { name: "홍소우육", emoji: "🥩" },
-          { name: "깐쇼새우", emoji: "🍤" },
-          { name: "사천식 수육", emoji: "🥓" },
-          { name: "양주식 누들", emoji: "🍜" },
-          { name: "카오유(생선구이)", emoji: "🐟" },
-          { name: "마파두부 정식", emoji: "🌶️" },
-          { name: "샤오미엔", emoji: "🍜" },
-          { name: "꽁보로우", emoji: "🍗" },
-          { name: "향라대하", emoji: "🦐" },
-          { name: "후난식 매운생선", emoji: "🐟" },
-          { name: "지에모가이", emoji: "🍗" },
-          { name: "차돌볶음면", emoji: "🍜" },
-          { name: "크랩 칠리소스", emoji: "🦀" },
-          // 양식 저녁 30개
-          { name: "립아이 스테이크", emoji: "🥩" },
-          { name: "안심 스테이크", emoji: "🥩" },
-          { name: "살몬 스테이크", emoji: "🐟" },
-          { name: "바베큐 폭립", emoji: "🍖" },
-          { name: "로스트 치킨", emoji: "🍗" },
-          { name: "빠에야(시푸드)", emoji: "🥘" },
-          { name: "감바스 알 아히요", emoji: "🦐" },
-          { name: "치킨 알프레도 파스타", emoji: "🍝" },
-          { name: "트러플 크림 파스타", emoji: "🍝" },
-          { name: "바질 페스토 파스타", emoji: "🍝" },
-          { name: "부라타 샐러드", emoji: "🧀" },
-          { name: "브루스케타 모둠", emoji: "🍞" },
-          { name: "미트볼 마리나라", emoji: "🍝" },
-          { name: "양갈비 구이", emoji: "🥩" },
-          { name: "뇨키 고르곤졸라", emoji: "🧀" },
-          { name: "수비드 돼지목살 스테이크", emoji: "🥩" },
-          { name: "감자 그라탱", emoji: "🥔" },
-          { name: "크림 머쉬룸 수프&빵", emoji: "🍲" },
-          { name: "리코타 샐러드", emoji: "🥗" },
-          { name: "치킨 파르마", emoji: "🍗" },
-          { name: "해산물 크림 리소토", emoji: "🍚" },
-          { name: "볼로네제 라자냐", emoji: "🍝" },
-          { name: "문어 그릴", emoji: "🐙" },
-          { name: "버터갈릭 새우", emoji: "🦐" },
-          { name: "베이비백립&코울슬로", emoji: "🍖" },
-          { name: "스파게티 아라비아타", emoji: "🍝" },
-          { name: "머쉬룸 리조또 트러플", emoji: "🍚" },
-          { name: "프로슈토&루꼴라 피자", emoji: "🍕" },
-          { name: "스윗칠리 쉬림프", emoji: "🦐" },
-          { name: "치즈 플래터", emoji: "🧀" },
-        ],
-        dessert: [
-          { name: "티라미수", emoji: "🍰" },
-          { name: "바스크 치즈케이크", emoji: "🍰" },
-          { name: "뉴욕 치즈케이크", emoji: "🍰" },
-          { name: "가나슈 초콜릿 케이크", emoji: "🍫" },
-          { name: "레몬 타르트", emoji: "🍋" },
-          { name: "애플파이", emoji: "🥧" },
-          { name: "브라우니", emoji: "🍫" },
-          { name: "마카롱", emoji: "🍬" },
-          { name: "다쿠아즈", emoji: "🍪" },
-          { name: "카눌레", emoji: "🧁" },
-          { name: "에클레어", emoji: "🍩" },
-          { name: "크렘 브륄레", emoji: "🍮" },
-          { name: "푸딩", emoji: "🍮" },
-          { name: "판나코타", emoji: "🍮" },
-          { name: "젤라토", emoji: "🍨" },
-          { name: "소프트 아이스크림", emoji: "🍦" },
-          { name: "선데 아이스크림", emoji: "🍨" },
-          { name: "밀크셰이크", emoji: "🥤" },
-          { name: "쿠키 세트", emoji: "🍪" },
-          { name: "스콘", emoji: "🧁" },
-          { name: "글레이즈드 도넛", emoji: "🍩" },
-          { name: "크루아상", emoji: "🥐" },
-          { name: "초코 크루아상", emoji: "🥐" },
-          { name: "망고 빙수", emoji: "🍧" },
-          { name: "인절미 빙수", emoji: "🍧" },
-          { name: "팥빙수", emoji: "🍧" },
-          { name: "와플 아이스크림", emoji: "🧇" },
-          { name: "크레이프", emoji: "🥞" },
-          { name: "레드벨벳 케이크", emoji: "🍰" },
-          { name: "타르트 타탱", emoji: "🥧" },
-        ],
-      };
+      // 음식 카테고리 정의 (미식회 카테고리와 동일한 스타일)
+      const foodCategories = [
+        { id: "korean", name: "한식", emoji: "🍚", color: "from-red-500 to-orange-500" },
+        { id: "japanese", name: "일식", emoji: "🍣", color: "from-pink-500 to-red-500" },
+        { id: "chinese", name: "중식", emoji: "🥟", color: "from-yellow-500 to-red-600" },
+        { id: "western", name: "양식", emoji: "🍝", color: "from-orange-500 to-yellow-500" },
+        { id: "asian", name: "아시안", emoji: "🍜", color: "from-green-500 to-teal-500" },
+        { id: "snack", name: "분식", emoji: "🍢", color: "from-orange-400 to-red-400" },
+        { id: "dessert", name: "디저트", emoji: "🍰", color: "from-purple-500 to-pink-500" },
+        { id: "cafe", name: "카페", emoji: "☕", color: "from-amber-600 to-orange-600" },
+        { id: "fastfood", name: "패스트푸드", emoji: "🍔", color: "from-yellow-600 to-red-600" },
+      ];
 
-      let menuHistory = [];
-      let isSlotRunning = false;
-
-      // 시간대별 메뉴 카테고리 결정
-      function getMealTimeCategory() {
-        const hour = new Date().getHours();
-
-        if (hour >= 4 && hour < 10) {
-          return { category: "breakfast", label: "아메추 (아침 메뉴 추천)" };
-        } else if (hour >= 10 && hour < 14) {
-          return { category: "lunch", label: "점메추 (점심 메뉴 추천)" };
-        } else if (hour >= 16 && hour < 21) {
-          return { category: "dinner", label: "저메추 (저녁 메뉴 추천)" };
-        } else {
-          // 나머지 시간대는 전체 메뉴에서 랜덤
-          return { category: "all", label: "메뉴 추천" };
-        }
-      }
-
-      // 메뉴 추천 모달 열기
+      // 메뉴 데이터베이스 삭제됨 - 이제 카테고리 선택만 제공
+      // (기존 480개 메뉴 삭제)
+      
+      // 메뉴 추천 모달 열기 - 카테고리 버튼 생성
       function openFoodRecommendModal() {
         const modal = document.getElementById("food-recommend-modal");
-        if (!modal) return;
-
+        const categoryGrid = document.getElementById("food-category-grid");
+        
+        if (!modal || !categoryGrid) return;
+        
+        // 카테고리 버튼 생성 (미식회 스타일과 동일)
+        categoryGrid.innerHTML = foodCategories.map(category => `
+          <button
+            type="button"
+            class="category-btn relative overflow-hidden group bg-gradient-to-br ${category.color} text-white rounded-xl p-4 md:p-6 transition-all duration-300 hover:scale-105 hover:shadow-xl"
+            data-category="${category.id}"
+          >
+            <div class="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity"></div>
+            <div class="relative flex flex-col items-center justify-center gap-2">
+              <span class="text-3xl md:text-4xl">${category.emoji}</span>
+              <span class="text-sm md:text-base font-bold">${category.name}</span>
+            </div>
+          </button>
+        `).join("");
+        
+        // 카테고리 버튼 클릭 이벤트
+        categoryGrid.querySelectorAll('.category-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const categoryId = btn.dataset.category;
+            const category = foodCategories.find(c => c.id === categoryId);
+            if (category) {
+              showAlert(category.emoji, `${category.name} 카테고리를 선택하셨습니다!`);
+              modal.classList.add("hidden");
+            }
+          });
+        });
+        
         modal.classList.remove("hidden");
-
-        // 시간대별 카테고리 표시
-        const mealTime = getMealTimeCategory();
-        const categoryEl = document.getElementById("meal-time-category");
-        if (categoryEl) {
-          categoryEl.textContent = mealTime.label;
-        }
-
-        // 초기 상태로 리셋
-        const slotEmoji = document.getElementById("slot-emoji");
-        const slotText = document.getElementById("slot-text");
-        const startBtn = document.getElementById("start-slot-btn");
-
-        if (slotEmoji) slotEmoji.textContent = "🍽️";
-        if (slotText) slotText.textContent = "메뉴 정하기를 눌러주세요!";
-        if (startBtn) {
-          startBtn.disabled = false;
-          startBtn.innerHTML =
-            '<div class="absolute inset-0 bg-white/20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div><span class="relative flex items-center justify-center gap-2"><i class="fas fa-dice text-2xl"></i><span>메뉴 정하기</span></span>';
-        }
-
-        // 히스토리 업데이트
-        updateMenuHistory();
       }
 
-      // 슬롯머신 애니메이션
-      async function startSlotMachine() {
-        if (isSlotRunning) return;
-
-        isSlotRunning = true;
-        const startBtn = document.getElementById("start-slot-btn");
-        const slotEmoji = document.getElementById("slot-emoji");
-        const slotText = document.getElementById("slot-text");
-
-        if (startBtn) {
-          startBtn.disabled = true;
-          startBtn.innerHTML =
-            '<span class="relative flex items-center justify-center gap-2"><i class="fas fa-spinner fa-spin text-2xl"></i><span>메뉴 결정 중...</span></span>';
-        }
-
-        // 메뉴 리스트 가져오기
-        const mealTime = getMealTimeCategory();
-        let menuList;
-
-        if (mealTime.category === "all") {
-          // 모든 메뉴 합치기 (디저트 포함)
-          menuList = [
-            ...menuDatabase.breakfast,
-            ...menuDatabase.lunch,
-            ...menuDatabase.dinner,
-            ...menuDatabase.dessert,
-          ];
-        } else {
-          // 시간대별 메뉴에 디저트도 10% 확률로 추가
-          const timeMenu = menuDatabase[mealTime.category];
-          const dessertCount = Math.floor(menuDatabase.dessert.length * 0.1);
-          const randomDesserts = menuDatabase.dessert
-            .sort(() => 0.5 - Math.random())
-            .slice(0, dessertCount);
-          menuList = [...timeMenu, ...randomDesserts];
-        }
-
-        // 슬롯머신 애니메이션 (빠르게 메뉴 돌리기)
-        const animationDuration = 2000; // 2초
-        const intervalTime = 100; // 0.1초마다 변경
-        const startTime = Date.now();
-
-        const animation = setInterval(() => {
-          const randomMenu =
-            menuList[Math.floor(Math.random() * menuList.length)];
-          if (slotEmoji) slotEmoji.textContent = randomMenu.emoji;
-          if (slotText) slotText.textContent = randomMenu.name;
-        }, intervalTime);
-
-        // 애니메이션 종료 후 최종 메뉴 선택
-        setTimeout(() => {
-          clearInterval(animation);
-
-          // 최종 메뉴 선택
-          const finalMenu =
-            menuList[Math.floor(Math.random() * menuList.length)];
-          if (slotEmoji) {
-            slotEmoji.textContent = finalMenu.emoji;
-            slotEmoji.style.animation = "bounce 0.5s ease";
-          }
-          if (slotText) {
-            slotText.textContent = finalMenu.name;
-            slotText.style.animation = "pulse 0.5s ease";
-          }
-
-          // 히스토리에 추가
-          addToMenuHistory(finalMenu);
-
-          // 버튼 상태 복원
-          if (startBtn) {
-            startBtn.disabled = false;
-            startBtn.innerHTML =
-              '<div class="absolute inset-0 bg-white/20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div><span class="relative flex items-center justify-center gap-2"><i class="fas fa-redo text-2xl"></i><span>다시 뽑기</span></span>';
-          }
-
-          isSlotRunning = false;
-
-          // 애니메이션 클래스 제거
-          setTimeout(() => {
-            if (slotEmoji) slotEmoji.style.animation = "";
-            if (slotText) slotText.style.animation = "";
-          }, 500);
-        }, animationDuration);
-      }
-
-      // 메뉴 히스토리 추가
-      function addToMenuHistory(menu) {
-        menuHistory.unshift(menu);
-        if (menuHistory.length > 5) {
-          menuHistory = menuHistory.slice(0, 5);
-        }
-        updateMenuHistory();
-      }
-
-      // 메뉴 히스토리 업데이트
-      function updateMenuHistory() {
-        const historyEl = document.getElementById("menu-history");
-        if (!historyEl) return;
-
-        if (menuHistory.length === 0) {
-          historyEl.innerHTML =
-            '<p class="text-sm text-gray-400">아직 추천받은 메뉴가 없습니다</p>';
-          return;
-        }
-
-        historyEl.innerHTML = menuHistory
-          .map(
-            (menu, index) =>
-              `<span class="inline-flex items-center gap-2 bg-gradient-to-r from-orange-100 to-red-100 text-orange-900 px-4 py-2 rounded-full text-sm font-bold shadow-md hover:shadow-lg transition-all hover:scale-105 border-2 border-orange-200" style="animation: fadeIn 0.3s ease-out ${
-                index * 0.1
-              }s backwards;">
-                        <span class="text-lg">${menu.emoji}</span>
-                        <span>${menu.name}</span>
-                      </span>`
-          )
-          .join("");
-      }
-
-      /* ===== 미니게임 (레거시 코드 - 사용 안 함) ===== */
-      let currentGame = null;
-      let gameState = {};
-      let gameScores = {}; // 게임 점수 데이터
-
-      function showGameSelection() {
-        document.getElementById("game-selection").classList.remove("hidden");
-        document.getElementById("game-screen").classList.add("hidden");
-        currentGame = null;
-        gameState = {};
-      }
-
-      function showGameScreen() {
-        document.getElementById("game-selection").classList.add("hidden");
-        document.getElementById("game-screen").classList.remove("hidden");
-        document.getElementById("ranking-screen").classList.add("hidden");
-      }
-
-      function showRankingScreen() {
-        document.getElementById("game-selection").classList.add("hidden");
-        document.getElementById("game-screen").classList.add("hidden");
-        document.getElementById("ranking-screen").classList.remove("hidden");
-        renderGameRankings();
-      }
-
-      function showGameSelectionFromRanking() {
-        document.getElementById("game-selection").classList.remove("hidden");
-        document.getElementById("game-screen").classList.add("hidden");
-        document.getElementById("ranking-screen").classList.add("hidden");
-        currentGame = null;
-        gameState = {};
-      }
-
-      // 게임 점수 저장
-      async function saveGameScore(gameType, score, details = {}) {
-        if (!currentUser) return;
-
-        try {
-          // 이름 중복 확인
-          const existingScores = gameScores[gameType] || [];
-          const duplicateName = existingScores.find(
-            (s) => s.name === currentUser.name
-          );
-
-          if (duplicateName) {
-            // 중복된 이름이 있는 경우 기존 기록과 비교
-            let shouldUpdate = false;
-
-            if (gameType === "color-memory") {
-              // 색깔 기억하기: 더 높은 레벨이면 업데이트
-              shouldUpdate =
-                (details.level || 0) > (duplicateName.details.level || 0);
-            } else if (gameType === "car-racing") {
-              // 자동차 레이싱: 더 긴 거리면 업데이트
-              shouldUpdate =
-                (details.distance || 0) > (duplicateName.details.distance || 0);
-            } else if (gameType === "ball-bounce") {
-              // 공 튀기기: 더 높은 점수면 업데이트
-              shouldUpdate =
-                (details.score || 0) > (duplicateName.details.score || 0);
-            } else {
+      // 기존 슬롯머신 관련 함수들 삭제됨
+      
+      /* ===== 미니게임 (레거시 코드 - 사용 안 함) =====
               // 숫자 맞추기: 더 적은 시도 횟수면 업데이트
               shouldUpdate =
                 (details.attempts || 999) <
@@ -20974,8 +20298,8 @@
             showAlert("🎉", "이벤트가 성공적으로 수정되었습니다!");
           } else {
             // 생성 모드
-          await addDoc(collection(db, "events"), eventData);
-          showAlert("🎉", "이벤트가 성공적으로 생성되었습니다!");
+            await addDoc(collection(db, "events"), eventData);
+            showAlert("🎉", "이벤트가 성공적으로 생성되었습니다!");
           }
 
           closeEventModal();
