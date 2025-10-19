@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko" style="height: 100%; height: -webkit-fill-available;">
+<html lang="ko" style="height: 100%; height: -webkit-fill-available">
   <head>
     <meta charset="UTF-8" />
     <meta
@@ -1820,7 +1820,10 @@
       }
     </style>
   </head>
-  <body class="bg-gray-100 flex flex-col min-h-screen" style="min-height: 100vh; min-height: -webkit-fill-available;">
+  <body
+    class="bg-gray-100 flex flex-col min-h-screen"
+    style="min-height: 100vh; min-height: -webkit-fill-available"
+  >
     <!-- Loading -->
     <div
       id="loading-screen"
@@ -2216,44 +2219,222 @@
       >
         <div class="bg-white/95 backdrop-blur-md p-4 md:p-6 rounded-3xl">
           <!-- 헤더 -->
-          <div class="text-center mb-4 md:mb-6">
-            <div
-              class="inline-block bg-gradient-to-r from-orange-500 to-red-500 p-2 md:p-3 rounded-2xl shadow-lg mb-2"
-            >
-              <span class="text-3xl md:text-4xl">🍽️</span>
-            </div>
-            <h3 class="text-2xl md:text-3xl font-black mb-1 md:mb-2">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-2xl md:text-3xl font-black">
               <span
                 class="bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent"
               >
-                뭐먹지?
+                🍽️ 뭐먹지?
               </span>
             </h3>
+            <button
+              id="menu-manage-btn"
+              class="px-3 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-colors text-sm font-medium"
+            >
+              <i class="fas fa-cog mr-1"></i>메뉴 관리
+            </button>
           </div>
 
-          <!-- 서비스 준비중 안내 -->
-          <div class="text-center py-8 md:py-12 mb-4">
-            <div
-              class="inline-block bg-gradient-to-r from-yellow-100 to-orange-100 p-6 md:p-8 rounded-2xl shadow-lg mb-4"
-            >
-              <div class="text-5xl md:text-6xl mb-3">🔧</div>
-              <h4 class="text-xl md:text-2xl font-bold text-gray-800 mb-2">
-                서비스 준비중
-              </h4>
-              <p class="text-sm md:text-base text-gray-600">
-                더 나은 메뉴 추천 서비스를 준비하고 있습니다
-              </p>
-              <p class="text-xs md:text-sm text-gray-500 mt-2">곧 만나요! 😊</p>
+          <!-- 카테고리 필터 -->
+          <div class="flex gap-2 mb-4 overflow-x-auto pb-2">
+            <button class="category-filter-btn active px-3 py-1.5 rounded-full bg-orange-500 text-white text-sm font-medium whitespace-nowrap" data-category="all">
+              전체
+            </button>
+            <button class="category-filter-btn px-3 py-1.5 rounded-full bg-gray-200 text-gray-700 text-sm font-medium whitespace-nowrap hover:bg-gray-300" data-category="korean">
+              한식
+            </button>
+            <button class="category-filter-btn px-3 py-1.5 rounded-full bg-gray-200 text-gray-700 text-sm font-medium whitespace-nowrap hover:bg-gray-300" data-category="japanese">
+              일식
+            </button>
+            <button class="category-filter-btn px-3 py-1.5 rounded-full bg-gray-200 text-gray-700 text-sm font-medium whitespace-nowrap hover:bg-gray-300" data-category="chinese">
+              중식
+            </button>
+            <button class="category-filter-btn px-3 py-1.5 rounded-full bg-gray-200 text-gray-700 text-sm font-medium whitespace-nowrap hover:bg-gray-300" data-category="western">
+              양식
+            </button>
+            <button class="category-filter-btn px-3 py-1.5 rounded-full bg-gray-200 text-gray-700 text-sm font-medium whitespace-nowrap hover:bg-gray-300" data-category="asian">
+              아시안
+            </button>
+            <button class="category-filter-btn px-3 py-1.5 rounded-full bg-gray-200 text-gray-700 text-sm font-medium whitespace-nowrap hover:bg-gray-300" data-category="snack">
+              분식
+            </button>
+            <button class="category-filter-btn px-3 py-1.5 rounded-full bg-gray-200 text-gray-700 text-sm font-medium whitespace-nowrap hover:bg-gray-300" data-category="dessert">
+              디저트
+            </button>
+          </div>
+
+          <!-- 룰렛 영역 -->
+          <div class="relative bg-gradient-to-br from-orange-100 via-yellow-50 to-red-100 rounded-3xl p-8 md:p-12 mb-4 border-4 border-orange-300 shadow-inner overflow-hidden">
+            <!-- 장식 요소 -->
+            <div class="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
+              <div class="absolute top-2 left-2 text-4xl">🍕</div>
+              <div class="absolute top-2 right-2 text-4xl">🍜</div>
+              <div class="absolute bottom-2 left-2 text-4xl">🍔</div>
+              <div class="absolute bottom-2 right-2 text-4xl">🍣</div>
+            </div>
+
+            <!-- 룰렛 디스플레이 -->
+            <div class="relative z-10 text-center">
+              <div id="roulette-display" class="bg-white/90 backdrop-blur-sm rounded-2xl p-6 md:p-8 shadow-xl min-h-[200px] flex flex-col items-center justify-center">
+                <div id="roulette-emoji" class="text-6xl md:text-7xl mb-4 transition-all">
+                  🍽️
+                </div>
+                <div id="roulette-text" class="text-xl md:text-2xl font-black text-gray-800">
+                  메뉴를 추가하고 버튼을 눌러주세요!
+                </div>
+                <div id="roulette-category" class="text-sm text-gray-500 mt-2">
+                  <!-- 카테고리 표시 -->
+                </div>
+              </div>
             </div>
           </div>
 
-          <!-- 닫기 버튼 -->
-          <button
-            id="food-recommend-close"
-            class="w-full px-4 md:px-6 py-3 md:py-4 bg-gradient-to-br from-gray-100 to-gray-200 text-gray-700 hover:from-gray-200 hover:to-gray-300 rounded-xl md:rounded-2xl transition-all shadow-md hover:shadow-lg font-bold"
-          >
-            <i class="fas fa-times mr-2"></i>닫기
-          </button>
+          <!-- 빠른 메뉴 추가 -->
+          <div class="flex gap-2 mb-4">
+            <input
+              id="quick-menu-input"
+              type="text"
+              placeholder="빠르게 메뉴 추가 (Enter)"
+              class="flex-1 px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-orange-400 focus:ring-2 focus:ring-orange-200 transition-all"
+            />
+            <button
+              id="quick-add-btn"
+              class="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors font-medium"
+            >
+              <i class="fas fa-plus"></i>
+            </button>
+          </div>
+
+          <!-- 액션 버튼들 -->
+          <div class="flex gap-2 md:gap-3">
+            <button
+              id="spin-roulette-btn"
+              class="flex-1 relative overflow-hidden group bg-gradient-to-r from-orange-500 via-orange-600 to-red-600 hover:from-orange-600 hover:via-red-600 hover:to-red-700 text-white font-black py-4 px-6 rounded-2xl transition-all shadow-xl hover:shadow-2xl hover:scale-105"
+            >
+              <div class="absolute inset-0 bg-white/20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+              <span class="relative flex items-center justify-center gap-2">
+                <i class="fas fa-circle-notch text-2xl"></i>
+                <span class="text-lg">뭐 먹지? (SPIN!)</span>
+              </span>
+            </button>
+            <button
+              id="food-recommend-close"
+              class="px-6 py-4 bg-gradient-to-br from-gray-100 to-gray-200 text-gray-700 hover:from-gray-200 hover:to-gray-300 rounded-2xl transition-all shadow-md hover:shadow-lg font-bold"
+            >
+              <i class="fas fa-times text-lg"></i>
+            </button>
+          </div>
+
+          <!-- 결과 액션 버튼 (숨김 상태로 시작) -->
+          <div id="result-actions" class="hidden flex gap-2 mt-4">
+            <button
+              id="spin-again-btn"
+              class="flex-1 px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-xl transition-colors font-bold"
+            >
+              <i class="fas fa-redo mr-2"></i>다시 돌리기
+            </button>
+            <button
+              id="pass-today-btn"
+              class="flex-1 px-4 py-3 bg-gray-500 hover:bg-gray-600 text-white rounded-xl transition-colors font-bold"
+            >
+              <i class="fas fa-ban mr-2"></i>오늘은 패스
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 메뉴 관리 Modal -->
+    <div
+      id="menu-manage-modal"
+      class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm flex justify-center items-center px-4 z-50 overflow-y-auto py-4"
+    >
+      <div class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full my-auto max-h-[95vh] overflow-y-auto">
+        <div class="p-6">
+          <!-- 헤더 -->
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="text-2xl font-black text-gray-800">
+              <i class="fas fa-list-ul text-orange-500 mr-2"></i>메뉴 관리
+            </h3>
+            <button
+              id="menu-manage-close"
+              class="text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <i class="fas fa-times text-2xl"></i>
+            </button>
+          </div>
+
+          <!-- 메뉴 추가 섹션 -->
+          <div class="bg-gradient-to-r from-orange-50 to-red-50 border-2 border-orange-200 rounded-xl p-4 mb-6">
+            <h4 class="font-bold text-gray-800 mb-3">
+              <i class="fas fa-plus-circle text-orange-500 mr-2"></i>메뉴 추가하기
+            </h4>
+            
+            <div class="mb-3">
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                카테고리 선택
+              </label>
+              <select
+                id="menu-category-select"
+                class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-orange-400 focus:ring-2 focus:ring-orange-200"
+              >
+                <option value="korean">한식</option>
+                <option value="japanese">일식</option>
+                <option value="chinese">중식</option>
+                <option value="western">양식</option>
+                <option value="asian">아시안</option>
+                <option value="snack">분식</option>
+                <option value="dessert">디저트</option>
+                <option value="cafe">카페</option>
+                <option value="etc">기타</option>
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                메뉴 입력 (한 줄에 하나씩)
+              </label>
+              <textarea
+                id="bulk-menu-input"
+                rows="6"
+                placeholder="메뉴를 한 줄에 하나씩 입력해 주세요. (Enter 키로 줄 바꿈)
+
+예:
+김치찌개
+초밥
+파스타
+떡볶이"
+                class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-400 focus:ring-2 focus:ring-orange-200 resize-none"
+              ></textarea>
+            </div>
+
+            <button
+              id="bulk-add-menu-btn"
+              class="w-full px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold rounded-lg transition-all shadow-lg hover:shadow-xl"
+            >
+              <i class="fas fa-plus mr-2"></i>메뉴 추가하기
+            </button>
+          </div>
+
+          <!-- 메뉴 목록 -->
+          <div class="mb-4">
+            <div class="flex items-center justify-between mb-3">
+              <h4 class="font-bold text-gray-800">
+                등록된 메뉴 <span id="menu-count-badge" class="text-sm text-gray-500">(0개)</span>
+              </h4>
+              <button
+                id="delete-all-menus-btn"
+                class="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-sm rounded-lg transition-colors"
+              >
+                <i class="fas fa-trash mr-1"></i>전체 삭제
+              </button>
+            </div>
+
+            <!-- 카테고리별 메뉴 목록 -->
+            <div id="menu-list-container" class="space-y-4 max-h-[400px] overflow-y-auto">
+              <!-- 동적으로 생성됩니다 -->
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -11616,11 +11797,11 @@
             
             <div class="bg-gradient-to-r from-orange-50 to-red-50 border-2 border-orange-200 rounded-xl p-6 mb-6">
               <p class="text-sm text-gray-700 mb-4">
-                회원들이 "뭐먹지?" 버튼을 클릭했을 때 보여질 메뉴를 관리할 수 있습니다.
+                회원들이 "뭐먹지?" 룰렛에 표시될 메뉴를 관리할 수 있습니다. 한 줄에 하나씩 입력하면 여러 메뉴를 한 번에 추가할 수 있습니다.
               </p>
               
               <button
-                id="add-food-menu-btn"
+                id="admin-add-food-menu-btn"
                 class="w-full md:w-auto px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold rounded-lg transition-all shadow-lg hover:shadow-xl hover:scale-105"
               >
                 <i class="fas fa-plus mr-2"></i>메뉴 추가하기
@@ -11628,25 +11809,137 @@
             </div>
             
             <div class="bg-white rounded-lg border-2 border-gray-200 p-6">
-              <h4 class="font-semibold text-gray-800 mb-4">
-                등록된 메뉴 목록
-                <span class="text-sm text-gray-500 ml-2">(준비중)</span>
-              </h4>
-              <div class="text-center py-12 text-gray-400">
-                <i class="fas fa-utensils text-4xl mb-3"></i>
-                <p>메뉴를 추가하면 이곳에 표시됩니다</p>
+              <div class="flex items-center justify-between mb-4">
+                <h4 class="font-semibold text-gray-800">
+                  등록된 메뉴 목록
+                  <span id="admin-menu-count-badge" class="text-sm text-gray-500 ml-2">(로딩중...)</span>
+                </h4>
+                <button
+                  id="admin-delete-all-menus-btn"
+                  class="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-sm rounded-lg transition-colors"
+                >
+                  <i class="fas fa-trash mr-1"></i>전체 삭제
+                </button>
+              </div>
+              <div id="admin-menu-list-container">
+                <!-- 동적으로 생성됩니다 -->
               </div>
             </div>
           </div>
         `;
-
+        
         // 메뉴 추가 버튼 이벤트
-        const addBtn = container.querySelector("#add-food-menu-btn");
+        const addBtn = container.querySelector("#admin-add-food-menu-btn");
         if (addBtn) {
           addBtn.addEventListener("click", () => {
-            showAlert("🔧", "메뉴 추가 기능은 곧 제공될 예정입니다!");
+            openMenuManageModal();
           });
         }
+        
+        // 전체 삭제 버튼 이벤트
+        const deleteAllBtn = container.querySelector("#admin-delete-all-menus-btn");
+        if (deleteAllBtn) {
+          deleteAllBtn.addEventListener("click", deleteAllMenus);
+        }
+        
+        // 메뉴 로드 및 표시
+        loadFoodMenus().then(() => {
+          renderAdminMenuList();
+        });
+      }
+
+      // 관리자 페이지 메뉴 목록 렌더링
+      function renderAdminMenuList() {
+        const container = document.getElementById("admin-menu-list-container");
+        const countBadge = document.getElementById("admin-menu-count-badge");
+        
+        if (!container) return;
+        
+        if (countBadge) countBadge.textContent = `(${foodMenusData.length}개)`;
+
+        if (foodMenusData.length === 0) {
+          container.innerHTML = `
+            <div class="text-center py-12 text-gray-400">
+              <i class="fas fa-utensils text-4xl mb-3"></i>
+              <p>등록된 메뉴가 없습니다</p>
+              <p class="text-sm">메뉴 추가하기 버튼을 눌러 메뉴를 추가해보세요!</p>
+            </div>
+          `;
+          return;
+        }
+
+        // 카테고리별로 그룹화
+        const groupedMenus = {};
+        foodMenusData.forEach(menu => {
+          if (!groupedMenus[menu.category]) {
+            groupedMenus[menu.category] = [];
+          }
+          groupedMenus[menu.category].push(menu);
+        });
+
+        const categoryNames = {
+          korean: "한식",
+          japanese: "일식",
+          chinese: "중식",
+          western: "양식",
+          asian: "아시안",
+          snack: "분식",
+          dessert: "디저트",
+          cafe: "카페",
+          etc: "기타"
+        };
+
+        let html = '<div class="space-y-4">';
+        Object.keys(groupedMenus).forEach(category => {
+          const emoji = getCategoryEmoji(category);
+          const categoryName = categoryNames[category] || category;
+          const menus = groupedMenus[category];
+
+          html += `
+            <div class="bg-gray-50 rounded-lg p-4 border-2 border-gray-200">
+              <h5 class="font-bold text-gray-800 mb-3">
+                ${emoji} ${categoryName} <span class="text-sm text-gray-500">(${menus.length}개)</span>
+              </h5>
+              <div class="flex flex-wrap gap-2">
+                ${menus.map(menu => `
+                  <span class="inline-flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-gray-300 text-sm">
+                    <span>${menu.name}</span>
+                    <button
+                      class="admin-delete-menu-btn text-red-500 hover:text-red-700 transition-colors"
+                      data-id="${menu.id}"
+                      data-name="${menu.name}"
+                    >
+                      <i class="fas fa-times"></i>
+                    </button>
+                  </span>
+                `).join("")}
+              </div>
+            </div>
+          `;
+        });
+        html += '</div>';
+
+        container.innerHTML = html;
+
+        // 삭제 버튼 이벤트
+        container.querySelectorAll(".admin-delete-menu-btn").forEach(btn => {
+          btn.addEventListener("click", async () => {
+            const id = btn.dataset.id;
+            const name = btn.dataset.name;
+            
+            if (confirm(`'${name}' 메뉴를 삭제하시겠습니까?`)) {
+              try {
+                await deleteDoc(doc(db, "foodMenus", id));
+                showAlert("✅", "메뉴가 삭제되었습니다.");
+                await loadFoodMenus();
+                renderAdminMenuList();
+              } catch (error) {
+                console.error("메뉴 삭제 오류:", error);
+                showAlert("😥", "메뉴 삭제 중 오류가 발생했습니다.");
+              }
+            }
+          });
+        });
       }
 
       /* ===== 직책 관리 ===== */
@@ -16450,16 +16743,413 @@
         },
       ];
 
-      // 메뉴 데이터베이스 삭제됨 - 이제 카테고리 선택만 제공
-      // (기존 480개 메뉴 삭제)
+      // 뭐먹지 메뉴 데이터 (Firebase에서 로드)
+      let foodMenusData = [];
+      let selectedCategory = "all";
+      let excludedTodayMenus = []; // 오늘 제외된 메뉴들
+      let isRouletteSpinning = false;
 
-      // 메뉴 추천 모달 열기 - 서비스 준비중
+      // 메뉴 추천 모달 열기
       function openFoodRecommendModal() {
         const modal = document.getElementById("food-recommend-modal");
         if (!modal) return;
-
+        
         modal.classList.remove("hidden");
+        loadFoodMenus();
+        updateCategoryFilter();
+        
+        // 결과 액션 버튼 숨기기
+        document.getElementById("result-actions")?.classList.add("hidden");
+        
+        // 룰렛 초기 상태로 리셋
+        const rouletteEmoji = document.getElementById("roulette-emoji");
+        const rouletteText = document.getElementById("roulette-text");
+        if (rouletteEmoji) rouletteEmoji.textContent = "🍽️";
+        if (rouletteText) rouletteText.textContent = "메뉴를 추가하고 버튼을 눌러주세요!";
       }
+
+      // Firebase에서 메뉴 로드
+      async function loadFoodMenus() {
+        try {
+          const snapshot = await getDocs(collection(db, "foodMenus"));
+          foodMenusData = [];
+          snapshot.forEach((doc) => {
+            foodMenusData.push({
+              id: doc.id,
+              ...doc.data()
+            });
+          });
+          console.log("메뉴 로드됨:", foodMenusData.length, "개");
+        } catch (error) {
+          console.error("메뉴 로드 오류:", error);
+        }
+      }
+
+      // 카테고리 필터 업데이트
+      function updateCategoryFilter() {
+        const filterBtns = document.querySelectorAll(".category-filter-btn");
+        filterBtns.forEach(btn => {
+          btn.addEventListener("click", () => {
+            filterBtns.forEach(b => {
+              b.classList.remove("active", "bg-orange-500", "text-white");
+              b.classList.add("bg-gray-200", "text-gray-700");
+            });
+            btn.classList.add("active", "bg-orange-500", "text-white");
+            btn.classList.remove("bg-gray-200", "text-gray-700");
+            
+            selectedCategory = btn.dataset.category;
+          });
+        });
+      }
+
+      // 룰렛 돌리기
+      async function spinRoulette() {
+        if (isRouletteSpinning) return;
+        
+        // 필터링된 메뉴 목록 가져오기
+        let availableMenus = foodMenusData.filter(menu => {
+          // 카테고리 필터
+          if (selectedCategory !== "all" && menu.category !== selectedCategory) {
+            return false;
+          }
+          // 오늘 제외 필터
+          if (excludedTodayMenus.includes(menu.id)) {
+            return false;
+          }
+          return true;
+        });
+
+        if (availableMenus.length === 0) {
+          showAlert("😥", "선택할 수 있는 메뉴가 없습니다!\n메뉴를 먼저 추가해주세요.");
+          return;
+        }
+
+        isRouletteSpinning = true;
+        const spinBtn = document.getElementById("spin-roulette-btn");
+        const rouletteEmoji = document.getElementById("roulette-emoji");
+        const rouletteText = document.getElementById("roulette-text");
+        const resultActions = document.getElementById("result-actions");
+
+        // 버튼 비활성화
+        if (spinBtn) {
+          spinBtn.disabled = true;
+          spinBtn.querySelector("span").innerHTML = '<i class="fas fa-spinner fa-spin text-2xl"></i><span class="text-lg">돌리는 중...</span>';
+        }
+
+        // 룰렛 애니메이션 (2초간 빠르게 메뉴 변경)
+        const animationDuration = 2000;
+        const intervalTime = 100;
+        let animationInterval;
+
+        animationInterval = setInterval(() => {
+          const randomMenu = availableMenus[Math.floor(Math.random() * availableMenus.length)];
+          const emoji = getCategoryEmoji(randomMenu.category);
+          if (rouletteEmoji) {
+            rouletteEmoji.textContent = emoji;
+            rouletteEmoji.style.animation = "pulse 0.1s ease";
+          }
+          if (rouletteText) {
+            rouletteText.textContent = randomMenu.name;
+          }
+        }, intervalTime);
+
+        // 최종 메뉴 선택
+        setTimeout(() => {
+          clearInterval(animationInterval);
+
+          const finalMenu = availableMenus[Math.floor(Math.random() * availableMenus.length)];
+          const emoji = getCategoryEmoji(finalMenu.category);
+          
+          if (rouletteEmoji) {
+            rouletteEmoji.textContent = emoji;
+            rouletteEmoji.style.animation = "bounce 0.6s ease";
+            setTimeout(() => rouletteEmoji.style.animation = "", 600);
+          }
+          if (rouletteText) {
+            rouletteText.textContent = `오늘의 추천 메뉴는... ${finalMenu.name}!`;
+            rouletteText.style.animation = "pulse 0.6s ease";
+            setTimeout(() => rouletteText.style.animation = "", 600);
+          }
+
+          // 결과 액션 버튼 표시
+          if (resultActions) {
+            resultActions.classList.remove("hidden");
+            
+            // 다시 돌리기 버튼
+            document.getElementById("spin-again-btn")?.addEventListener("click", () => {
+              resultActions.classList.add("hidden");
+              spinRoulette();
+            }, { once: true });
+            
+            // 오늘은 패스 버튼
+            document.getElementById("pass-today-btn")?.addEventListener("click", () => {
+              excludedTodayMenus.push(finalMenu.id);
+              showAlert("✅", `${finalMenu.name}을(를) 오늘은 제외했습니다.`);
+              resultActions.classList.add("hidden");
+              spinRoulette();
+            }, { once: true });
+          }
+
+          // 버튼 복원
+          if (spinBtn) {
+            spinBtn.disabled = false;
+            spinBtn.querySelector("span").innerHTML = '<i class="fas fa-circle-notch text-2xl"></i><span class="text-lg">뭐 먹지? (SPIN!)</span>';
+          }
+
+          isRouletteSpinning = false;
+        }, animationDuration);
+      }
+
+      // 카테고리별 이모지 반환
+      function getCategoryEmoji(category) {
+        const emojiMap = {
+          korean: "🍚",
+          japanese: "🍣",
+          chinese: "🥟",
+          western: "🍝",
+          asian: "🍜",
+          snack: "🍢",
+          dessert: "🍰",
+          cafe: "☕",
+          etc: "🍽️"
+        };
+        return emojiMap[category] || "🍽️";
+      }
+
+      // 메뉴 관리 모달 열기
+      function openMenuManageModal() {
+        const modal = document.getElementById("menu-manage-modal");
+        if (!modal) return;
+        
+        modal.classList.remove("hidden");
+        loadFoodMenus().then(() => {
+          renderMenuList();
+        });
+      }
+
+      // 메뉴 관리 모달 닫기
+      function closeMenuManageModal() {
+        const modal = document.getElementById("menu-manage-modal");
+        if (modal) modal.classList.add("hidden");
+      }
+
+      // 메뉴 목록 렌더링
+      function renderMenuList() {
+        const container = document.getElementById("menu-list-container");
+        const countBadge = document.getElementById("menu-count-badge");
+        
+        if (!container) return;
+        
+        if (countBadge) countBadge.textContent = `(${foodMenusData.length}개)`;
+
+        if (foodMenusData.length === 0) {
+          container.innerHTML = `
+            <div class="text-center py-8 text-gray-400">
+              <i class="fas fa-utensils text-4xl mb-3"></i>
+              <p>등록된 메뉴가 없습니다</p>
+              <p class="text-sm">위에서 메뉴를 추가해보세요!</p>
+            </div>
+          `;
+          return;
+        }
+
+        // 카테고리별로 그룹화
+        const groupedMenus = {};
+        foodMenusData.forEach(menu => {
+          if (!groupedMenus[menu.category]) {
+            groupedMenus[menu.category] = [];
+          }
+          groupedMenus[menu.category].push(menu);
+        });
+
+        const categoryNames = {
+          korean: "한식",
+          japanese: "일식",
+          chinese: "중식",
+          western: "양식",
+          asian: "아시안",
+          snack: "분식",
+          dessert: "디저트",
+          cafe: "카페",
+          etc: "기타"
+        };
+
+        let html = "";
+        Object.keys(groupedMenus).forEach(category => {
+          const emoji = getCategoryEmoji(category);
+          const categoryName = categoryNames[category] || category;
+          const menus = groupedMenus[category];
+
+          html += `
+            <div class="bg-gray-50 rounded-lg p-4 border-2 border-gray-200">
+              <h5 class="font-bold text-gray-800 mb-3">
+                ${emoji} ${categoryName} <span class="text-sm text-gray-500">(${menus.length}개)</span>
+              </h5>
+              <div class="flex flex-wrap gap-2">
+                ${menus.map(menu => `
+                  <span class="inline-flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-gray-300 text-sm">
+                    <span>${menu.name}</span>
+                    <button
+                      class="delete-menu-btn text-red-500 hover:text-red-700 transition-colors"
+                      data-id="${menu.id}"
+                      data-name="${menu.name}"
+                    >
+                      <i class="fas fa-times"></i>
+                    </button>
+                  </span>
+                `).join("")}
+              </div>
+            </div>
+          `;
+        });
+
+        container.innerHTML = html;
+
+        // 삭제 버튼 이벤트
+        container.querySelectorAll(".delete-menu-btn").forEach(btn => {
+          btn.addEventListener("click", async () => {
+            const id = btn.dataset.id;
+            const name = btn.dataset.name;
+            
+            if (confirm(`'${name}' 메뉴를 삭제하시겠습니까?`)) {
+              try {
+                await deleteDoc(doc(db, "foodMenus", id));
+                showAlert("✅", "메뉴가 삭제되었습니다.");
+                await loadFoodMenus();
+                renderMenuList();
+              } catch (error) {
+                console.error("메뉴 삭제 오류:", error);
+                showAlert("😥", "메뉴 삭제 중 오류가 발생했습니다.");
+              }
+            }
+          });
+        });
+      }
+
+      // 대량 메뉴 추가
+      async function bulkAddMenus() {
+        const textarea = document.getElementById("bulk-menu-input");
+        const categorySelect = document.getElementById("menu-category-select");
+        
+        if (!textarea || !categorySelect) return;
+        
+        const text = textarea.value.trim();
+        if (!text) {
+          showAlert("😥", "메뉴를 입력해주세요.");
+          return;
+        }
+
+        const menuLines = text.split("\n").filter(line => line.trim());
+        const category = categorySelect.value;
+        
+        if (menuLines.length === 0) {
+          showAlert("😥", "유효한 메뉴가 없습니다.");
+          return;
+        }
+
+        try {
+          const batch = writeBatch(db);
+          menuLines.forEach(menuName => {
+            const docRef = doc(collection(db, "foodMenus"));
+            batch.set(docRef, {
+              name: menuName.trim(),
+              category: category,
+              createdAt: new Date().toISOString(),
+              createdBy: currentUser?.studentId || "unknown"
+            });
+          });
+          
+          await batch.commit();
+          showAlert("✅", `${menuLines.length}개의 메뉴가 추가되었습니다!`);
+          textarea.value = "";
+          await loadFoodMenus();
+          renderMenuList();
+        } catch (error) {
+          console.error("메뉴 추가 오류:", error);
+          showAlert("😥", "메뉴 추가 중 오류가 발생했습니다.");
+        }
+      }
+
+      // 빠른 메뉴 추가
+      async function quickAddMenu() {
+        const input = document.getElementById("quick-menu-input");
+        if (!input) return;
+        
+        const menuName = input.value.trim();
+        if (!menuName) return;
+
+        try {
+          await addDoc(collection(db, "foodMenus"), {
+            name: menuName,
+            category: "etc", // 기본 카테고리: 기타
+            createdAt: new Date().toISOString(),
+            createdBy: currentUser?.studentId || "unknown"
+          });
+          
+          input.value = "";
+          await loadFoodMenus();
+          showAlert("✅", `'${menuName}' 메뉴가 추가되었습니다!`);
+        } catch (error) {
+          console.error("빠른 메뉴 추가 오류:", error);
+          showAlert("😥", "메뉴 추가 중 오류가 발생했습니다.");
+        }
+      }
+
+      // 전체 메뉴 삭제
+      async function deleteAllMenus() {
+        if (!confirm("정말로 모든 메뉴를 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.")) {
+          return;
+        }
+
+        try {
+          const snapshot = await getDocs(collection(db, "foodMenus"));
+          const batch = writeBatch(db);
+          
+          snapshot.forEach((docSnap) => {
+            batch.delete(docSnap.ref);
+          });
+          
+          await batch.commit();
+          showAlert("✅", "모든 메뉴가 삭제되었습니다.");
+          await loadFoodMenus();
+          renderMenuList();
+        } catch (error) {
+          console.error("전체 삭제 오류:", error);
+          showAlert("😥", "삭제 중 오류가 발생했습니다.");
+        }
+      }
+
+      // 이벤트 리스너 등록 (뭐먹지 기능)
+      document.addEventListener("DOMContentLoaded", () => {
+        // 룰렛 버튼
+        document.getElementById("spin-roulette-btn")?.addEventListener("click", spinRoulette);
+        
+        // 메뉴 관리 버튼
+        document.getElementById("menu-manage-btn")?.addEventListener("click", openMenuManageModal);
+        document.getElementById("menu-manage-close")?.addEventListener("click", closeMenuManageModal);
+        
+        // 대량 추가 버튼
+        document.getElementById("bulk-add-menu-btn")?.addEventListener("click", bulkAddMenus);
+        
+        // 빠른 추가 버튼
+        document.getElementById("quick-add-btn")?.addEventListener("click", quickAddMenu);
+        
+        // Enter 키로 빠른 추가
+        document.getElementById("quick-menu-input")?.addEventListener("keypress", (e) => {
+          if (e.key === "Enter") {
+            quickAddMenu();
+          }
+        });
+        
+        // 전체 삭제 버튼
+        document.getElementById("delete-all-menus-btn")?.addEventListener("click", deleteAllMenus);
+      });
+
+      // 24시간마다 제외 목록 초기화
+      setInterval(() => {
+        excludedTodayMenus = [];
+        console.log("오늘 제외 목록 초기화됨");
+      }, 24 * 60 * 60 * 1000);
 
       // 기존 슬롯머신 관련 함수들 삭제됨
 
