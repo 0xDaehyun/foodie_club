@@ -6697,9 +6697,13 @@
         if (!container) return;
 
         const hiddenSection = container.querySelector(".participants-hidden");
+        if (!hiddenSection) return;
+        
         const isExpanded = container.dataset.expanded === "true";
         const icon = button.querySelector("i");
         const text = button.querySelector("span");
+        
+        if (!icon || !text) return;
 
         if (isExpanded) {
           // 접기
@@ -6987,7 +6991,7 @@
                 <div class="participants-hidden hidden">${hiddenItems}</div>
               </div>
               <button 
-                class="mt-2 text-xs text-orange-600 hover:text-orange-700 font-semibold flex items-center gap-1"
+                class="mt-2 w-full text-sm text-orange-600 hover:text-orange-700 font-semibold py-2 px-3 bg-orange-50 hover:bg-orange-100 rounded-lg transition-all flex items-center justify-center gap-2 border border-orange-200"
                 onclick="toggleParticipants('${ev.id}', this)">
                 <i class="fas fa-chevron-down"></i>
                 <span>외 ${items.length - 4}명 더보기</span>
@@ -7235,7 +7239,7 @@
                     <div class="participants-hidden hidden">${hiddenItems}</div>
                   </div>
                   <button 
-                    class="mt-2 text-xs text-orange-600 hover:text-orange-700 font-semibold flex items-center gap-1"
+                    class="mt-2 w-full text-sm text-orange-600 hover:text-orange-700 font-semibold py-2 px-3 bg-orange-50 hover:bg-orange-100 rounded-lg transition-all flex items-center justify-center gap-2 border border-orange-200"
                     onclick="toggleParticipants('${containerId}', this)">
                     <i class="fas fa-chevron-down"></i>
                     <span>외 ${items.length - 4}명 더보기</span>
@@ -12477,15 +12481,11 @@
         c.innerHTML = `<div class="section">
           <h2 class="text-2xl font-bold text-gray-800 mb-4">관리자 대시보드</h2>
           <div class="flex flex-wrap gap-2 mb-4">
-            <!-- 이벤트 탭 제거(요청사항 4) -->
             <button class="subtab-btn px-3 py-1.5 rounded bg-gray-200" data-sub="members">
               <i class="fas fa-users mr-1"></i>회원
             </button>
             <button class="subtab-btn px-3 py-1.5 rounded bg-gray-200" data-sub="positions">
               <i class="fas fa-user-tie mr-1"></i>임원 관리
-            </button>
-            <button class="subtab-btn px-3 py-1.5 rounded bg-gray-200" data-sub="homeblocks">
-              <i class="fas fa-house-chimney mr-1"></i>홈 블록·로드맵
             </button>
             <button class="subtab-btn px-3 py-1.5 rounded bg-gray-200" data-sub="system">
               <i class="fas fa-gear mr-1"></i>시스템
@@ -12493,9 +12493,9 @@
             <button class="subtab-btn px-3 py-1.5 rounded bg-gray-200" data-sub="food-menu">
               <i class="fas fa-utensils mr-1"></i>뭐먹지 메뉴
             </button>
-          <button class="subtab-btn px-3 py-1.5 rounded bg-gray-200" data-sub="inquiries">
-            <i class="fas fa-comment-dots mr-1"></i>문의 관리
-          </button>
+            <button class="subtab-btn px-3 py-1.5 rounded bg-gray-200" data-sub="inquiries">
+              <i class="fas fa-comment-dots mr-1"></i>문의 관리
+            </button>
           </div>
           <div id="subtab-container"></div>
         </div>`;
@@ -12523,10 +12523,6 @@
       }
       function showSubtab(name) {
         const cont = document.getElementById("subtab-container");
-        if (name === "homeblocks") {
-          renderHomeBlocksAdmin(cont);
-          return;
-        }
         if (name === "members") {
           renderMembersAdmin(cont);
           return;
@@ -21131,109 +21127,177 @@
         const admins = adminList || [];
 
         container.innerHTML = `
-          <div class="grid grid-cols-1 gap-4">
+          <div class="grid grid-cols-1 gap-6">
+            <!-- 회원가입 설정 -->
             <div class="section">
-              <h3 class="text-xl font-bold text-gray-800 mb-2">회원가입 설정</h3>
-              <div class="flex items-center gap-4">
-                <div class="flex items-center gap-2">
-                  <input type="radio" id="signup-closed" name="signup-status" value="closed" ${
-                    !signup.open ? "checked" : ""
-                  } class="text-orange-500">
-                  <label for="signup-closed" class="text-gray-700 font-medium">닫기</label>
+              <div class="flex items-center gap-3 mb-3">
+                <i class="fas fa-user-plus text-2xl text-orange-500"></i>
+                <div>
+                  <h3 class="text-xl font-bold text-gray-800">회원가입 설정</h3>
+                  <p class="text-sm text-gray-600">새로운 회원의 가입 신청 허용 여부를 관리합니다</p>
                 </div>
-                <div class="flex items-center gap-2">
-                  <input type="radio" id="signup-open" name="signup-status" value="open" ${
-                    signup.open ? "checked" : ""
-                  } class="text-orange-500">
-                  <label for="signup-open" class="text-gray-700 font-medium">열기</label>
-                </div>
-                <button id="set-signup-save" class="px-4 py-2 bg-orange-500 text-white rounded-lg font-semibold hover:bg-orange-600 transition-colors">저장</button>
               </div>
-              <p class="text-xs text-gray-500 mt-2">* "열기" 선택 시 회원가입이 가능합니다.</p>
-            </div>
-
-            <div class="section">
-              <h3 class="text-xl font-bold text-gray-800 mb-2">회비/계좌 설정</h3>
-              <div class="grid grid-cols-1 md:grid-cols-6 gap-2">
-                <select id="set-dues-enabled" class="px-3 py-2 border rounded bg-white text-gray-900 border-gray-300">
-                  <option value="false" ${
-                    dues.enabled ? "" : "selected"
-                  }>사용 안 함</option>
-                  <option value="true" ${
-                    dues.enabled ? "selected" : ""
-                  }>사용</option>
-                </select>
-                <input id="set-dues-bank"   class="px-3 py-2 border rounded bg-white  text-gray-900  border-gray-300  placeholder="은행" value="${saf(
-                  dues.bank || ""
-                )}">
-                <input id="set-dues-number" class="px-3 py-2 border rounded bg-white  text-gray-900  border-gray-300  placeholder="계좌번호" value="${saf(
-                  dues.number || ""
-                )}">
-                <input id="set-dues-holder" class="px-3 py-2 border rounded bg-white  text-gray-900  border-gray-300  placeholder="예금주" value="${saf(
-                  dues.holder || ""
-                )}">
-                <input id="set-dues-amount" class="px-3 py-2 border rounded bg-white  text-gray-900  border-gray-300  placeholder="금액(숫자)" value="${saf(
-                  dues.amount || ""
-                )}">
-                <input id="set-dues-note"   class="px-3 py-2 border rounded bg-white  text-gray-900  border-gray-300  md:col-span-2" placeholder="안내 문구" value="${saf(
-                  dues.note || ""
-                )}">
-                <button id="set-dues-save" class="px-3 py-2 bg-orange-500 text-white rounded md:col-span-1">저장</button>
-              </div>
-            </div>
-
-            <div class="section">
-              <h3 class="text-xl font-bold text-gray-800 mb-2">관리자</h3>
-              <div class="flex items-center gap-2 mb-2">
-                <input id="admin-add-id" class="px-3 py-2 border rounded bg-white  text-gray-900  border-gray-300  flex-1" placeholder="학번 입력">
-                <button id="admin-add-btn" class="px-3 py-2 bg-gray-800 text-white rounded">추가</button>
-              </div>
-              <div class="border rounded divide-y bg-white">
-                ${
-                  (admins || []).length
-                    ? admins
-                        .map(
-                          (id) => `
-                  <div class="flex items-center justify-between px-3 py-2">
-                    <div class="font-mono">${saf(id)}</div>
-                    <button class="text-red-600 text-sm" data-act="admin-remove" data-id="${saf(
-                      id
-                    )}"><i class="fas fa-trash"></i> 제거</button>
+              <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-4">
+                <div class="flex">
+                  <div class="flex-shrink-0">
+                    <i class="fas fa-info-circle text-blue-400"></i>
                   </div>
-                `
-                        )
-                        .join("")
-                    : `<div class="px-3 py-2 text-gray-400">등록된 관리자가 없습니다.</div>`
-                }
+                  <div class="ml-3">
+                    <p class="text-sm text-blue-700">
+                      <strong>닫기:</strong> 회원가입 페이지에서 가입 버튼이 비활성화되며, 신규 회원이 가입할 수 없습니다<br>
+                      <strong>열기:</strong> 회원가입이 활성화되어 누구나 가입 신청을 할 수 있습니다 (관리자 승인 필요)
+                    </p>
+                  </div>
+                </div>
               </div>
-              <p class="text-xs text-gray-500 mt-2">* 비상시: 로그인 화면에서 학번에 <b>${saf(
-                MASTER_CODE
-              )}</b> 입력 후 이름을 입력하면 즉시 관리자 권한으로 로그인됩니다.</p>
+              <div class="flex items-center gap-4">
+                <button type="button" id="signup-closed-btn" class="flex-1 py-3 px-4 rounded-lg font-semibold transition-all border-2 ${
+                  !signup.open
+                    ? "bg-red-500 text-white border-red-500"
+                    : "bg-white text-gray-700 border-gray-300 hover:border-red-300"
+                }">
+                  <i class="fas fa-lock mr-2"></i>가입 닫기
+                </button>
+                <button type="button" id="signup-open-btn" class="flex-1 py-3 px-4 rounded-lg font-semibold transition-all border-2 ${
+                  signup.open
+                    ? "bg-green-500 text-white border-green-500"
+                    : "bg-white text-gray-700 border-gray-300 hover:border-green-300"
+                }">
+                  <i class="fas fa-lock-open mr-2"></i>가입 열기
+                </button>
+              </div>
+              <div class="mt-3 text-sm ${
+                signup.open ? "text-green-700 bg-green-50" : "text-red-700 bg-red-50"
+              } px-4 py-2 rounded-lg border ${
+                signup.open ? "border-green-200" : "border-red-200"
+              }">
+                <i class="fas ${
+                  signup.open ? "fa-check-circle" : "fa-times-circle"
+                } mr-2"></i>
+                현재 상태: <strong>${
+                  signup.open ? "가입 가능" : "가입 불가"
+                }</strong>
+              </div>
+            </div>
+
+            <!-- 회비/계좌 설정 -->
+            <div class="section">
+              <div class="flex items-center gap-3 mb-3">
+                <i class="fas fa-credit-card text-2xl text-orange-500"></i>
+                <div>
+                  <h3 class="text-xl font-bold text-gray-800">회비 계좌 설정</h3>
+                  <p class="text-sm text-gray-600">이벤트 신청 시 회원들에게 표시될 회비 입금 정보를 설정합니다</p>
+                </div>
+              </div>
+              <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-4">
+                <div class="flex">
+                  <div class="flex-shrink-0">
+                    <i class="fas fa-info-circle text-blue-400"></i>
+                  </div>
+                  <div class="ml-3">
+                    <p class="text-sm text-blue-700">
+                      <strong>용도:</strong> 이벤트 참가비 또는 동아리 회비를 수납할 때 사용합니다<br>
+                      <strong>표시 위치:</strong> 이벤트 신청 화면에서 자동으로 계좌 정보가 표시됩니다<br>
+                      <strong>안내 문구:</strong> 입금 관련 추가 안내사항을 입력할 수 있습니다 (예: "입금자명은 본인 이름으로 해주세요")
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">
+                    <i class="fas fa-toggle-on mr-1 text-orange-500"></i>사용 여부
+                  </label>
+                  <select id="set-dues-enabled" class="w-full px-3 py-2 border-2 rounded-lg bg-white text-gray-900 border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-200">
+                    <option value="false" ${
+                      dues.enabled ? "" : "selected"
+                    }>사용 안 함</option>
+                    <option value="true" ${
+                      dues.enabled ? "selected" : ""
+                    }>사용</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">
+                    <i class="fas fa-university mr-1 text-orange-500"></i>은행명
+                  </label>
+                  <input id="set-dues-bank" class="w-full px-3 py-2 border-2 rounded-lg bg-white text-gray-900 border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-200" placeholder="예: 카카오뱅크" value="${saf(
+                    dues.bank || ""
+                  )}">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">
+                    <i class="fas fa-hashtag mr-1 text-orange-500"></i>계좌번호
+                  </label>
+                  <input id="set-dues-number" class="w-full px-3 py-2 border-2 rounded-lg bg-white text-gray-900 border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-200" placeholder="예: 3333-12-1234567" value="${saf(
+                    dues.number || ""
+                  )}">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">
+                    <i class="fas fa-user mr-1 text-orange-500"></i>예금주
+                  </label>
+                  <input id="set-dues-holder" class="w-full px-3 py-2 border-2 rounded-lg bg-white text-gray-900 border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-200" placeholder="예: 홍길동" value="${saf(
+                    dues.holder || ""
+                  )}">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">
+                    <i class="fas fa-won-sign mr-1 text-orange-500"></i>금액 (선택)
+                  </label>
+                  <input id="set-dues-amount" class="w-full px-3 py-2 border-2 rounded-lg bg-white text-gray-900 border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-200" placeholder="예: 10000" value="${saf(
+                    dues.amount || ""
+                  )}">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">
+                    <i class="fas fa-comment-dots mr-1 text-orange-500"></i>안내 문구 (선택)
+                  </label>
+                  <input id="set-dues-note" class="w-full px-3 py-2 border-2 rounded-lg bg-white text-gray-900 border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-200" placeholder="예: 입금자명은 본인 이름으로" value="${saf(
+                    dues.note || ""
+                  )}">
+                </div>
+              </div>
+              <button id="set-dues-save" class="mt-4 w-full md:w-auto px-6 py-3 bg-orange-500 text-white rounded-lg font-semibold hover:bg-orange-600 transition-colors shadow-md">
+                <i class="fas fa-save mr-2"></i>회비 정보 저장
+              </button>
             </div>
           </div>
         `;
 
-        // 회원 수동 추가 버튼 이벤트는 renderMembersAdmin에서 처리됨
+        // 회원가입 설정 버튼 핸들러
+        const signupClosedBtn = container.querySelector("#signup-closed-btn");
+        const signupOpenBtn = container.querySelector("#signup-open-btn");
 
-        // 저장 핸들러
-        container.querySelector("#set-signup-save").onclick = async () => {
-          const status = container.querySelector(
-            'input[name="signup-status"]:checked'
-          ).value;
-          const open = status === "open";
+        signupClosedBtn.onclick = async () => {
           try {
             await setDoc(
               doc(db, "settings", "signup"),
-              { open },
+              { open: false },
               { merge: true }
             );
-            showAlert("✅", "회원가입 설정이 저장되었습니다.");
+            showAlert("✅", "회원가입이 닫혔습니다.");
           } catch (e) {
             console.warn(e);
             showAlert("😥", "저장 실패");
           }
         };
 
+        signupOpenBtn.onclick = async () => {
+          try {
+            await setDoc(
+              doc(db, "settings", "signup"),
+              { open: true },
+              { merge: true }
+            );
+            showAlert("✅", "회원가입이 열렸습니다.");
+          } catch (e) {
+            console.warn(e);
+            showAlert("😥", "저장 실패");
+          }
+        };
+
+        // 회비 설정 저장 핸들러
         container.querySelector("#set-dues-save").onclick = async () => {
           const enabled =
             container.querySelector("#set-dues-enabled").value === "true";
@@ -21258,45 +21322,6 @@
           } catch (e) {
             console.warn(e);
             showAlert("😥", "저장 실패");
-          }
-        };
-
-        // 관리자 추가/제거
-        container.querySelector("#admin-add-btn").onclick = async () => {
-          const sid = container.querySelector("#admin-add-id").value.trim();
-          if (!sid) return showAlert("😥", "학번을 입력하세요.");
-          try {
-            await runTransaction(db, async (tx) => {
-              const ref = doc(db, "admins", "list");
-              const snap = await tx.get(ref);
-              const arr = snap.exists() ? snap.data().studentIds || [] : [];
-              if (!arr.includes(sid)) arr.push(sid);
-              tx.set(ref, { studentIds: arr }, { merge: true });
-            });
-            container.querySelector("#admin-add-id").value = "";
-            showAlert("✅", "관리자가 추가되었습니다.");
-          } catch (e) {
-            console.warn(e);
-            showAlert("😥", "추가 실패");
-          }
-        };
-        container.onclick = async (e) => {
-          const b = e.target.closest("button[data-act='admin-remove']");
-          if (!b) return;
-          const sid = b.dataset.id;
-          if (!confirm(`관리자에서 제거할까요?\n${sid}`)) return;
-          try {
-            await runTransaction(db, async (tx) => {
-              const ref = doc(db, "admins", "list");
-              const snap = await tx.get(ref);
-              const arr = snap.exists() ? snap.data().studentIds || [] : [];
-              const next = arr.filter((x) => x !== sid);
-              tx.set(ref, { studentIds: next }, { merge: true });
-            });
-            showAlert("✅", "제거되었습니다.");
-          } catch (e) {
-            console.warn(e);
-            showAlert("😥", "제거 실패");
           }
         };
       }
