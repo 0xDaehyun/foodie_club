@@ -107,21 +107,29 @@
       /* 부드러운 페이드 효과 애니메이션 */
       @keyframes smoothFade {
         0% {
-          opacity: 1;
-          transform: translateY(0);
+          opacity: 0;
+          transform: translateY(10px) scale(0.95);
+        }
+        15% {
+          opacity: 0;
+          transform: translateY(10px) scale(0.95);
         }
         50% {
-          opacity: 0;
-          transform: translateY(-10px);
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+        85% {
+          opacity: 1;
+          transform: translateY(0) scale(1);
         }
         100% {
-          opacity: 1;
-          transform: translateY(0);
+          opacity: 0;
+          transform: translateY(-10px) scale(0.95);
         }
       }
 
       .smooth-fade {
-        animation: smoothFade 1.2s ease-in-out;
+        animation: smoothFade 2.5s ease-in-out;
         display: inline-block;
       }
 
@@ -6681,6 +6689,33 @@
           });
       };
 
+      /* ===================== 참가자 더보기 토글 ===================== */
+      function toggleParticipants(containerId, button) {
+        const container = document.querySelector(`.participants-container-${containerId}`);
+        if (!container) return;
+        
+        const hiddenSection = container.querySelector('.participants-hidden');
+        const isExpanded = container.dataset.expanded === 'true';
+        const icon = button.querySelector('i');
+        const text = button.querySelector('span');
+        
+        if (isExpanded) {
+          // 접기
+          hiddenSection.classList.add('hidden');
+          container.dataset.expanded = 'false';
+          icon.className = 'fas fa-chevron-down';
+          // 숨긴 개수 계산
+          const hiddenCount = hiddenSection.querySelectorAll('span.bg-orange-100, span.bg-orange-200').length;
+          text.textContent = `외 ${hiddenCount}명 더보기`;
+        } else {
+          // 펼치기
+          hiddenSection.classList.remove('hidden');
+          container.dataset.expanded = 'true';
+          icon.className = 'fas fa-chevron-up';
+          text.textContent = '접기';
+        }
+      }
+
       /* ===================== 신청 탭 ===================== */
       function computeEventStats(ev) {
         const getAll = () => {
@@ -6920,28 +6955,51 @@
           return studentId.substring(0, 4) + "*".repeat(studentId.length - 4);
         };
 
-        const namesList = (ev.applicants || [])
-          .map(
+        // 참가자 목록 생성 (4명 이상일 때 더보기 버튼)
+        const applicantsList = ev.applicants || [];
+        const waitingListArr = ev.waiting || [];
+        
+        const createParticipantsList = (list, bgColor, textColor) => {
+          const items = list.map(
             (a) =>
-              `<span class="bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs flex items-center gap-1">
+              `<span class="${bgColor} ${textColor} px-2 py-1 rounded-full text-xs flex items-center gap-1">
               <span class="text-xs">${saf(a.name)}</span>
-              <span class="text-orange-600 font-mono text-xs">(${maskStudentId(
+              <span class="${textColor} font-mono text-xs">(${maskStudentId(
                 a.studentId
               )})</span>
             </span>`
-          )
-          .join("");
-        const waitingList = (ev.waiting || [])
-          .map(
-            (a) =>
-              `<span class="bg-orange-200 text-orange-900 px-2 py-1 rounded-full text-xs flex items-center gap-1">
-              <span class="text-xs">${saf(a.name)}</span>
-              <span class="text-orange-700 font-mono text-xs">(${maskStudentId(
-                a.studentId
-              )})</span>
-            </span>`
-          )
-          .join("");
+          );
+          
+          if (items.length <= 4) {
+            return items.join("");
+          } else {
+            const visibleItems = items.slice(0, 4).join("");
+            const hiddenItems = items.slice(4).join("");
+            return `
+              <div class="participants-container-${ev.id}" data-expanded="false">
+                <div class="participants-visible">${visibleItems}</div>
+                <div class="participants-hidden hidden">${hiddenItems}</div>
+              </div>
+              <button 
+                class="mt-2 text-xs text-orange-600 hover:text-orange-700 font-semibold flex items-center gap-1"
+                onclick="toggleParticipants('${ev.id}', this)">
+                <i class="fas fa-chevron-down"></i>
+                <span>외 ${items.length - 4}명 더보기</span>
+              </button>
+            `;
+          }
+        };
+        
+        const namesList = createParticipantsList(
+          applicantsList, 
+          "bg-orange-100", 
+          "text-orange-800"
+        );
+        const waitingList = createParticipantsList(
+          waitingListArr, 
+          "bg-orange-200", 
+          "text-orange-900"
+        );
         const isAdmin =
           currentUser && adminList.includes(currentUser.studentId);
         return `<div class="section card-hover ${typeAccentClass(
@@ -7139,6 +7197,41 @@
               );
             };
 
+            // 참가자 목록 생성 (4명 이상일 때 더보기 버튼)
+            const createRestaurantParticipantsList = (list, bgColor, textColor, restaurantId, type) => {
+              const items = list.map(
+                (a) =>
+                  `<span class="${bgColor} ${textColor} px-2 py-1 rounded-full text-xs flex items-center gap-1">
+                    <span class="text-xs">${saf(a.name)}</span>
+                    <span class="${textColor} font-mono text-xs">(${maskStudentId(
+                      a.studentId
+                    )})</span>
+                  </span>`
+              );
+              
+              if (items.length === 0) return "";
+              
+              if (items.length <= 4) {
+                return items.join("");
+              } else {
+                const visibleItems = items.slice(0, 4).join("");
+                const hiddenItems = items.slice(4).join("");
+                const containerId = `${restaurantId}-${type}`;
+                return `
+                  <div class="participants-container-${containerId}" data-expanded="false">
+                    <div class="participants-visible">${visibleItems}</div>
+                    <div class="participants-hidden hidden">${hiddenItems}</div>
+                  </div>
+                  <button 
+                    class="mt-2 text-xs text-orange-600 hover:text-orange-700 font-semibold flex items-center gap-1"
+                    onclick="toggleParticipants('${containerId}', this)">
+                    <i class="fas fa-chevron-down"></i>
+                    <span>외 ${items.length - 4}명 더보기</span>
+                  </button>
+                `;
+              }
+            };
+            
             const namesList =
               (r.reservations || []).length > 0
                 ? `<div class="mt-2 text-xs text-gray-600">
@@ -7146,19 +7239,15 @@
                     (r.reservations || []).length
                   }명)</div>
                   <div class="flex flex-wrap gap-1">
-                    ${(r.reservations || [])
-                      .map(
-                        (a) =>
-                          `<span class="bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs flex items-center gap-1">
-                            <span class="text-xs">${saf(a.name)}</span>
-                            <span class="text-orange-600 font-mono text-xs">(${maskStudentId(
-                              a.studentId
-                            )})</span>
-                          </span>`
-                      )
-                      .join("")}
-                    </div>
-                  </div>`
+                    ${createRestaurantParticipantsList(
+                      r.reservations || [],
+                      "bg-orange-100",
+                      "text-orange-800",
+                      r.id,
+                      "reservations"
+                    )}
+                  </div>
+                </div>`
                 : "";
             const waitingList =
               (r.waiting || []).length > 0
@@ -7167,17 +7256,13 @@
                     (r.waiting || []).length
                   }명)</div>
                   <div class="flex flex-wrap gap-1">
-                    ${(r.waiting || [])
-                      .map(
-                        (a) =>
-                          `<span class="bg-orange-200 text-orange-900 px-2 py-1 rounded-full text-xs flex items-center gap-1">
-                            <span class="text-xs">${saf(a.name)}</span>
-                            <span class="text-orange-700 font-mono text-xs">(${maskStudentId(
-                              a.studentId
-                            )})</span>
-                          </span>`
-                      )
-                      .join("")}
+                    ${createRestaurantParticipantsList(
+                      r.waiting || [],
+                      "bg-orange-200",
+                      "text-orange-900",
+                      r.id,
+                      "waiting"
+                    )}
                   </div>
                 </div>`
                 : "";
@@ -21234,35 +21319,45 @@
       // 자연스러운 시간대 전환 애니메이션 (한 번만 랜덤 선택)
       let mealTimeAnimationInterval = null;
       let loadingAnimationComplete = false;
-      let selectedMealTime = null; // 로딩마다 한 번만 선택
+      let selectedMealTime = null;
+      let currentMealIndex = 0;
+      const mealTimes = ["아침", "점심", "저녁", "간식"];
 
       function updateMealTimeCube() {
         const cubeElement = document.getElementById("meal-time-cube");
         if (!cubeElement) return;
 
+        // 다음 텍스트로 순환
+        currentMealIndex = (currentMealIndex + 1) % mealTimes.length;
+        selectedMealTime = mealTimes[currentMealIndex];
+
         // 애니메이션 시작
+        cubeElement.classList.remove("smooth-fade");
+        // 강제 리플로우로 애니메이션 재시작
+        void cubeElement.offsetWidth;
         cubeElement.classList.add("smooth-fade");
         cubeElement.textContent = selectedMealTime;
-
-        // 애니메이션 클래스 제거
-        setTimeout(() => {
-          cubeElement.classList.remove("smooth-fade");
-        }, 1200);
       }
 
       // 로딩 애니메이션 시작
       function startLoadingAnimation() {
         loadingAnimationComplete = false;
 
-        // 로딩 시작할 때 한 번만 랜덤으로 시간대 선택
-        const mealTimes = ["아침", "점심", "저녁", "간식"];
-        selectedMealTime =
-          mealTimes[Math.floor(Math.random() * mealTimes.length)];
+        // 랜덤한 시작 인덱스 선택
+        currentMealIndex = Math.floor(Math.random() * mealTimes.length);
+        selectedMealTime = mealTimes[currentMealIndex];
 
         const cubeElement = document.getElementById("meal-time-cube");
         if (cubeElement) {
-          // 애니메이션 없이 즉시 표시
+          // 첫 번째 텍스트 표시
           cubeElement.textContent = selectedMealTime;
+          cubeElement.classList.add("smooth-fade");
+
+          // 2.5초마다 텍스트 변경
+          if (mealTimeAnimationInterval) {
+            clearInterval(mealTimeAnimationInterval);
+          }
+          mealTimeAnimationInterval = setInterval(updateMealTimeCube, 2500);
         }
       }
 
