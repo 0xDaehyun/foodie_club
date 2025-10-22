@@ -9,12 +9,25 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 /**
- * 관리자 목록 1회 로드 (onSnapshot로 지속 구독 필요하면 바꿔도 됨)
+ * 관리자 목록 및 직책 정보 1회 로드
  */
 async function loadAdminListOnce() {
   try {
     const snap = await getDoc(doc(db, "admins", "list"));
     state.adminList = snap.exists() ? snap.data().studentIds || [] : [];
+    const adminPositions = snap.exists() ? snap.data().positions || {} : {};
+
+    // 현재 사용자가 관리자인 경우 직책 설정
+    if (
+      state.currentUser &&
+      state.adminList.includes(state.currentUser.studentId)
+    ) {
+      state.currentUser.position =
+        adminPositions[state.currentUser.studentId] || "일반 회원";
+      console.log("=== 사용자 직책 설정 ===");
+      console.log("studentId:", state.currentUser.studentId);
+      console.log("설정된 직책:", state.currentUser.position);
+    }
   } catch (e) {
     console.warn("[auth] admins/list load failed:", e?.message || e);
     state.adminList = [];
