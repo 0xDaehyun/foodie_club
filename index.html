@@ -7566,9 +7566,8 @@
                </div>`;
 
         // 보관된 이벤트 목록 (회장단만)
-        const archivedListHTML =
-          archivedEvents.length > 0
-            ? `
+        const archivedListHTML = isAdmin
+          ? `
           <div class="section mt-6">
             <div class="bg-yellow-50 border-2 border-yellow-200 rounded-xl overflow-hidden">
               <button 
@@ -7590,93 +7589,67 @@
                 <i class="fas fa-chevron-down text-yellow-700 text-xl transition-transform" id="archived-toggle-icon"></i>
               </button>
               <div id="archived-events-content" class="hidden px-6 pb-6">
-                <div class="bg-white rounded-lg p-4 border-2 border-yellow-200">
-                  <div class="space-y-3">
-                    ${archivedEvents
-                      .sort((a, b) => (a.order || 999) - (b.order || 999))
-                      .map((ev) => {
-                        const typeIcon =
-                          ev.type === "tasting"
-                            ? "🍽️"
-                            : ev.type === "mt"
-                            ? "🏕️"
-                            : ev.type === "assembly"
-                            ? "🎤"
-                            : "📅";
+                ${archivedEvents.length > 0
+                  ? `<div class="bg-white rounded-lg p-4 border-2 border-yellow-200">
+                      <div class="space-y-3">
+                        ${archivedEvents
+                          .sort((a, b) => (a.order || 999) - (b.order || 999))
+                          .map((ev) => {
+                            const typeIcon =
+                              ev.type === "tasting"
+                                ? "🍽️"
+                                : ev.type === "mt"
+                                ? "🏕️"
+                                : ev.type === "assembly"
+                                ? "🎤"
+                                : "📅";
 
-                        return `
-                          <div class="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200">
-                            <!-- 제목과 날짜 -->
-                            <div class="flex items-center gap-3 mb-3">
-                              <span class="text-2xl">${typeIcon}</span>
-                              <div class="flex-1 min-w-0">
-                                <h5 class="font-semibold text-gray-800">${saf(
-                                  ev.title
-                                )}</h5>
-                                <p class="text-xs text-gray-500">
-                                  ${
-                                    ev.datetime
-                                      ? new Date(
-                                          ev.datetime
-                                        ).toLocaleDateString("ko-KR", {
-                                          month: "long",
-                                          day: "numeric",
-                                        })
-                                      : "날짜 미정"
-                                  }
-                                </p>
+                            return `
+                              <div class="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200">
+                                <!-- 제목과 날짜 -->
+                                <div class="flex items-center gap-3 mb-3">
+                                  <span class="text-2xl">${typeIcon}</span>
+                                  <div class="flex-1 min-w-0">
+                                    <h5 class="font-semibold text-gray-800">${saf(
+                                      ev.title
+                                    )}</h5>
+                                    <p class="text-xs text-gray-500">
+                                      ${new Date(ev.datetime).toLocaleDateString(
+                                        "ko-KR"
+                                      )} ${new Date(ev.datetime).toLocaleTimeString(
+                                        "ko-KR",
+                                        { hour: "2-digit", minute: "2-digit" }
+                                      )}
+                                    </p>
+                                  </div>
+                                </div>
+                                
+                                <!-- 참가자 수 -->
+                                <div class="flex items-center justify-between text-sm text-gray-600 mb-3">
+                                  <span>참가자: ${ev.applicants?.length || 0}명</span>
+                                  <button 
+                                    type="button" 
+                                    class="text-blue-600 hover:text-blue-800 font-medium"
+                                    data-act="admin-unarchive" 
+                                    data-id="${ev.id}"
+                                  >
+                                    <i class="fas fa-rotate-left mr-1"></i>재게시
+                                  </button>
+                                </div>
                               </div>
-                            </div>
-                            <!-- 버튼들 (아래쪽 배치) -->
-                            <div class="flex flex-wrap items-center gap-2 pt-2 border-t border-gray-200">
-                              <button 
-                                type="button"
-                                class="px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white text-xs rounded-lg transition-colors whitespace-nowrap"
-                                data-act="admin-unarchive"
-                                data-id="${ev.id}"
-                                title="이벤트 복원"
-                              >
-                                <i class="fas fa-box-open mr-1"></i>복원
-                              </button>
-                              <button 
-                                type="button"
-                                class="px-3 py-1.5 bg-purple-500 hover:bg-purple-600 text-white text-xs rounded-lg transition-colors whitespace-nowrap"
-                                data-act="admin-complete"
-                                data-id="${ev.id}"
-                                title="활동 종료 및 완전 삭제"
-                              >
-                                <i class="fas fa-flag-checkered mr-1"></i>활동 종료
-                              </button>
-                              <button 
-                                type="button"
-                                class="px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white text-xs rounded-lg transition-colors whitespace-nowrap"
-                                data-act="admin-edit"
-                                data-id="${ev.id}"
-                                title="수정"
-                              >
-                                <i class="fas fa-edit mr-1"></i>수정
-                              </button>
-                              <button 
-                                type="button"
-                                class="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-xs rounded-lg transition-colors whitespace-nowrap"
-                                data-act="admin-delete"
-                                data-id="${ev.id}"
-                                title="삭제"
-                              >
-                                <i class="fas fa-trash mr-1"></i>삭제
-                              </button>
-                            </div>
-                          </div>
-                        `;
-                      })
-                      .join("")}
-                  </div>
-                </div>
+                            `;
+                          })
+                          .join("")}
+                      </div>
+                    </div>`
+                  : `<div class="text-center py-8 text-gray-500">
+                      <i class="fas fa-inbox text-3xl mb-2"></i>
+                      <p>보관된 이벤트가 없습니다.</p>
+                    </div>`}
               </div>
             </div>
-          </div>
-          `
-            : "";
+          </div>`
+          : "";
 
         // 관리자인 경우: 점선 블록 + 이벤트 목록 + 보관 목록, 일반 회원: 이벤트 목록만
         c.innerHTML = isAdmin
@@ -7730,7 +7703,7 @@
         c.addEventListener("click", handleReservationTabClick);
 
         // 보관된 이벤트 토글 기능
-        if (isAdmin && archivedEvents.length > 0) {
+        if (isAdmin) {
           const toggleButton = document.getElementById(
             "archived-events-toggle"
           );
