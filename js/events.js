@@ -131,6 +131,8 @@ function generalCardHTML(ev) {
           ev.id
         }">${count < lim ? "신청하기" : "대기 신청"}</button>`;
   const namesList = (ev.applicants || [])
+    .slice()
+    .reverse()
     .map(
       (a) =>
         `<div class="flex items-center gap-2"><span class="font-mono text-[11px] text-gray-500">${
@@ -139,6 +141,8 @@ function generalCardHTML(ev) {
     )
     .join("");
   const waitingList = (ev.waiting || [])
+    .slice()
+    .reverse()
     .map(
       (a) =>
         `<div class="flex items-center gap-2"><span class="font-mono text-[11px] text-gray-500">${
@@ -202,6 +206,8 @@ function tastingCardHTML(ev) {
             ev.id
           }" data-rid="${r.id}">${cnt < cap ? "신청" : "대기"}</button>`;
       const namesList = (r.reservations || [])
+        .slice()
+        .reverse()
         .map(
           (a) =>
             `<div class="flex items-center gap-2"><span class="font-mono text-[11px] text-gray-500">${
@@ -210,6 +216,8 @@ function tastingCardHTML(ev) {
         )
         .join("");
       const waitingList = (r.waiting || [])
+        .slice()
+        .reverse()
         .map(
           (a) =>
             `<div class="flex items-center gap-2"><span class="font-mono text-[11px] text-gray-500">${

@@ -6985,9 +6985,9 @@
           return studentId.substring(0, 4) + "*".repeat(studentId.length - 4);
         };
 
-        // 참가자 목록 생성 (4명 이상일 때 더보기 버튼)
-        const applicantsList = ev.applicants || [];
-        const waitingListArr = ev.waiting || [];
+        // 참가자 목록 생성 (4명 이상일 때 더보기 버튼) - 최신 신청자부터 표시
+        const applicantsList = (ev.applicants || []).slice().reverse();
+        const waitingListArr = (ev.waiting || []).slice().reverse();
 
         const createParticipantsList = (list, bgColor, textColor) => {
           const items = list.map(
@@ -7268,7 +7268,7 @@
               );
             };
 
-            // 참가자 목록 생성 (4명 이상일 때 더보기 버튼)
+            // 참가자 목록 생성 (4명 이상일 때 더보기 버튼) - 최신 신청자부터 표시
             const createRestaurantParticipantsList = (
               list,
               bgColor,
@@ -7276,15 +7276,18 @@
               restaurantId,
               type
             ) => {
-              const items = list.map(
-                (a) =>
-                  `<span class="${bgColor} ${textColor} px-2 py-1 rounded-full text-xs flex items-center gap-1">
+              const items = list
+                .slice()
+                .reverse()
+                .map(
+                  (a) =>
+                    `<span class="${bgColor} ${textColor} px-2 py-1 rounded-full text-xs flex items-center gap-1">
                     <span class="text-xs">${saf(a.name)}</span>
                     <span class="${textColor} font-mono text-xs">(${maskStudentId(
-                    a.studentId
-                  )})</span>
+                      a.studentId
+                    )})</span>
                   </span>`
-              );
+                );
 
               if (items.length === 0) return "";
 
@@ -10320,6 +10323,7 @@
                                   <div class="max-h-48 overflow-y-auto border-2 border-gray-200 rounded-xl p-3 bg-gray-50">
                                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         ${participants
+                          .slice().reverse()
                           .map(
                             (p, idx) => `
                                         <div class="flex items-center justify-between p-2 bg-white rounded-lg text-sm hover:shadow-sm transition-shadow">
@@ -16081,7 +16085,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
 
                         <!-- 아코디언 내용 (접혀있음) -->
                         <div class="hidden" id="details-${ev.id}">
-                          <div class="px-4 pb-4 border-t border-gray-200">
+                          <div class="px-4 pb-4 border-t border-gray-200 pt-4">
             
             <!-- 이벤트 상세 정보 - PC에서 더 나은 레이아웃 -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
@@ -16187,7 +16191,9 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                   ${
                     ev.restaurants
                       ?.find((r) => r.name === restaurantName)
-                      ?.reservations?.map(
+                      ?.reservations?.slice()
+                      .reverse()
+                      .map(
                         (res, idx) => `
                     <div class="flex items-center justify-between bg-white rounded px-3 py-2 text-sm">
                       <div class="flex items-center gap-2">
@@ -16212,7 +16218,9 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                 <div class="space-y-1">
                   ${
                     ev.applicants
-                      ?.map(
+                      ?.slice()
+                      .reverse()
+                      .map(
                         (app, idx) => `
                     <div class="flex items-center justify-between bg-white rounded px-3 py-2 text-sm">
                       <div class="flex items-center gap-2">
