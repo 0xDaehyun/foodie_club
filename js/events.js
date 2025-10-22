@@ -64,7 +64,7 @@ export function computeEventStats(ev) {
       pct: total ? Math.round((cnt / total) * 1000) / 10 : 0,
     }))
     .sort((a, b) => b.cnt - a.cnt);
-  return { total, genderPct, colleges };
+  return { total, genderPct, genderCount, colleges };
 }
 function adminStatsHTML(ev) {
   const isAdmin =
@@ -73,8 +73,8 @@ function adminStatsHTML(ev) {
   const st = computeEventStats(ev);
   const gLine =
     st.total > 0
-      ? `남 ${st.genderPct.남}% · 여 ${st.genderPct.여}%${
-          st.genderPct.기타 ? ` · 기타 ${st.genderPct.기타}%` : ""
+      ? `남 ${st.genderCount.남}명 · 여 ${st.genderCount.여}명${
+          st.genderCount.기타 ? ` · 기타 ${st.genderCount.기타}명` : ""
         }`
       : "자료 없음";
   const colleges =
