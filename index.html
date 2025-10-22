@@ -9468,13 +9468,39 @@
         console.log("자동 신청 마감 스케줄러가 설정되었습니다.");
       }
       async function deleteEvent(id) {
-        if (!confirm("정말로 삭제하시겠어요? 이 작업은 되돌릴 수 없습니다."))
+        const event = eventsData.find(e => e.id === id);
+        if (!event) {
+          showAlert("😥", "이벤트를 찾을 수 없습니다.");
           return;
+        }
+
+        // 미식회이고 리뷰가 있는 경우 삭제 방지
+        if (event.type === "tasting" && event.reviews && event.reviews.length > 0) {
+          showAlert(
+            "⛔", 
+            `<div class="text-left">
+              <p class="font-bold mb-2">미식회 후기가 있어 삭제할 수 없습니다</p>
+              <p class="text-sm">• 현재 <strong>${event.reviews.length}개의 후기</strong>가 작성되어 있습니다</p>
+              <p class="text-sm">• 미식회 후기는 회원들의 소중한 기록입니다</p>
+              <p class="text-sm mt-2 text-gray-600">💡 Tip: 후기를 모두 삭제한 후 이벤트를 삭제할 수 있습니다</p>
+            </div>`
+          );
+          return;
+        }
+
+        if (!confirm(
+          `정말로 삭제하시겠어요?\n\n⚠️ 주의:\n• 이벤트가 완전히 삭제됩니다\n• 내 활동 탭에서도 보이지 않게 됩니다\n• 이 작업은 되돌릴 수 없습니다\n\n계속하시겠습니까?`
+        )) {
+          return;
+        }
+
         try {
-          await deleteDoc(doc(db, "events", id));
-          showAlert("🗑️", "삭제되었습니다.");
-          // 이벤트 목록 새로고침 (전체 페이지 렌더링)
-          renderAll();
+          // status를 'deleted'로 변경 (완전 삭제가 아닌 숨김)
+          await updateDoc(doc(db, "events", id), {
+            status: "deleted",
+            deletedAt: new Date().toISOString()
+          });
+          showAlert("🗑️", "이벤트가 삭제되었습니다. (내 활동에서도 보이지 않습니다)");
         } catch (error) {
           console.error("이벤트 삭제 오류:", error);
           showAlert("😥", `삭제 실패: ${error.message}`);
@@ -12224,39 +12250,83 @@
             if (existingMember) {
               // 변경사항 확인
               const changeDetails = [];
-              
+
               if (memberData.name && memberData.name !== existingMember.name) {
-                changeDetails.push({ field: '이름', old: existingMember.name, new: memberData.name });
+                changeDetails.push({
+                  field: "이름",
+                  old: existingMember.name,
+                  new: memberData.name,
+                });
               }
-              if (memberData.gender && memberData.gender !== existingMember.gender) {
-                changeDetails.push({ field: '성별', old: existingMember.gender, new: memberData.gender });
+              if (
+                memberData.gender &&
+                memberData.gender !== existingMember.gender
+              ) {
+                changeDetails.push({
+                  field: "성별",
+                  old: existingMember.gender,
+                  new: memberData.gender,
+                });
               }
               if (memberData.year && memberData.year !== existingMember.year) {
-                changeDetails.push({ field: '학년', old: existingMember.year, new: memberData.year });
+                changeDetails.push({
+                  field: "학년",
+                  old: existingMember.year,
+                  new: memberData.year,
+                });
               }
-              if (memberData.college && memberData.college !== existingMember.college) {
-                changeDetails.push({ field: '단과대', old: existingMember.college, new: memberData.college });
+              if (
+                memberData.college &&
+                memberData.college !== existingMember.college
+              ) {
+                changeDetails.push({
+                  field: "단과대",
+                  old: existingMember.college,
+                  new: memberData.college,
+                });
               }
-              if (memberData.department && memberData.department !== existingMember.department) {
-                changeDetails.push({ field: '학과', old: existingMember.department, new: memberData.department });
+              if (
+                memberData.department &&
+                memberData.department !== existingMember.department
+              ) {
+                changeDetails.push({
+                  field: "학과",
+                  old: existingMember.department,
+                  new: memberData.department,
+                });
               }
-              if (memberData.phone && memberData.phone !== existingMember.phone) {
-                changeDetails.push({ field: '전화번호', old: existingMember.phone, new: memberData.phone });
+              if (
+                memberData.phone &&
+                memberData.phone !== existingMember.phone
+              ) {
+                changeDetails.push({
+                  field: "전화번호",
+                  old: existingMember.phone,
+                  new: memberData.phone,
+                });
               }
-              
+
               // 상태는 활동중이 아닌 경우에만 변경 가능하도록 표시
-              if (convertedStatus && convertedStatus !== existingMember.status) {
+              if (
+                convertedStatus &&
+                convertedStatus !== existingMember.status
+              ) {
                 const statusDisplay = {
-                  active: '활동중',
-                  pending: '승인대기',
-                  rejected: '거절됨',
-                  blocked: '차단됨'
+                  active: "활동중",
+                  pending: "승인대기",
+                  rejected: "거절됨",
+                  blocked: "차단됨",
                 };
-                changeDetails.push({ 
-                  field: '상태', 
-                  old: statusDisplay[existingMember.status] || existingMember.status, 
+                changeDetails.push({
+                  field: "상태",
+                  old:
+                    statusDisplay[existingMember.status] ||
+                    existingMember.status,
                   new: statusDisplay[convertedStatus] || convertedStatus,
-                  warning: existingMember.status === 'active' ? '⚠️ 활동중 회원의 상태 변경' : null
+                  warning:
+                    existingMember.status === "active"
+                      ? "⚠️ 활동중 회원의 상태 변경"
+                      : null,
                 });
               }
 
@@ -12268,14 +12338,14 @@
                   changes: changeDetails,
                   existingMember: existingMember,
                   newData: memberData,
-                  convertedStatus: convertedStatus
+                  convertedStatus: convertedStatus,
                 });
               }
             } else {
               // 새 회원
               newMembers.push({
                 ...memberData,
-                status: convertedStatus || 'pending'
+                status: convertedStatus || "pending",
               });
             }
           } catch (error) {
@@ -12299,21 +12369,21 @@
         for (const change of approvedChanges) {
           try {
             const updateData = { lastUpdated: new Date().toISOString() };
-            
+
             // 승인된 변경사항만 적용
             for (const detail of change.changes) {
               const fieldMap = {
-                '이름': 'name',
-                '성별': 'gender',
-                '학년': 'year',
-                '단과대': 'college',
-                '학과': 'department',
-                '전화번호': 'phone',
-                '상태': 'status'
+                이름: "name",
+                성별: "gender",
+                학년: "year",
+                단과대: "college",
+                학과: "department",
+                전화번호: "phone",
+                상태: "status",
               };
-              
+
               const dbField = fieldMap[detail.field];
-              if (dbField === 'status') {
+              if (dbField === "status") {
                 updateData[dbField] = change.convertedStatus;
               } else {
                 updateData[dbField] = detail.new;
@@ -12324,7 +12394,9 @@
             batch.update(memberRef, updateData);
             updatedCount++;
           } catch (error) {
-            errors.push(`${change.name} (${change.studentId}) 업데이트 오류: ${error.message}`);
+            errors.push(
+              `${change.name} (${change.studentId}) 업데이트 오류: ${error.message}`
+            );
             errorCount++;
           }
         }
@@ -12362,11 +12434,15 @@
               </div>
               
               <div class="p-6 overflow-y-auto flex-1">
-                ${changes.length > 0 ? `
+                ${
+                  changes.length > 0
+                    ? `
                   <div class="mb-6">
                     <div class="flex items-center justify-between mb-3">
                       <h4 class="text-lg font-bold text-gray-800">
-                        <i class="fas fa-edit mr-2 text-blue-600"></i>기존 회원 변경사항 (${changes.length}건)
+                        <i class="fas fa-edit mr-2 text-blue-600"></i>기존 회원 변경사항 (${
+                          changes.length
+                        }건)
                       </h4>
                       <div class="flex gap-2">
                         <button onclick="selectAllChanges(true)" class="text-sm px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200">전체 선택</button>
@@ -12374,38 +12450,72 @@
                       </div>
                     </div>
                     <div class="space-y-3">
-                      ${changes.map((change, idx) => `
-                        <div class="border-2 rounded-lg p-4 ${change.currentStatus === 'active' ? 'border-green-200 bg-green-50' : 'border-gray-200 bg-white'}">
+                      ${changes
+                        .map(
+                          (change, idx) => `
+                        <div class="border-2 rounded-lg p-4 ${
+                          change.currentStatus === "active"
+                            ? "border-green-200 bg-green-50"
+                            : "border-gray-200 bg-white"
+                        }">
                           <label class="flex items-start gap-3 cursor-pointer">
                             <input type="checkbox" class="change-checkbox mt-1 w-5 h-5" data-change-index="${idx}" checked>
                             <div class="flex-1">
                               <div class="font-bold text-gray-800 mb-1">
                                 ${saf(change.name)} (${saf(change.studentId)})
-                                ${change.currentStatus === 'active' ? '<span class="ml-2 text-xs bg-green-500 text-white px-2 py-0.5 rounded-full">활동중</span>' : ''}
+                                ${
+                                  change.currentStatus === "active"
+                                    ? '<span class="ml-2 text-xs bg-green-500 text-white px-2 py-0.5 rounded-full">활동중</span>'
+                                    : ""
+                                }
                               </div>
                               <div class="text-sm space-y-1">
-                                ${change.changes.map(detail => `
+                                ${change.changes
+                                  .map(
+                                    (detail) => `
                                   <div class="flex items-center gap-2">
-                                    <span class="text-gray-600">${detail.field}:</span>
-                                    <span class="line-through text-gray-400">${saf(detail.old || '없음')}</span>
+                                    <span class="text-gray-600">${
+                                      detail.field
+                                    }:</span>
+                                    <span class="line-through text-gray-400">${saf(
+                                      detail.old || "없음"
+                                    )}</span>
                                     <i class="fas fa-arrow-right text-xs text-gray-400"></i>
-                                    <span class="font-semibold ${detail.warning ? 'text-red-600' : 'text-blue-600'}">${saf(detail.new)}</span>
-                                    ${detail.warning ? `<span class="text-xs text-red-500">${detail.warning}</span>` : ''}
+                                    <span class="font-semibold ${
+                                      detail.warning
+                                        ? "text-red-600"
+                                        : "text-blue-600"
+                                    }">${saf(detail.new)}</span>
+                                    ${
+                                      detail.warning
+                                        ? `<span class="text-xs text-red-500">${detail.warning}</span>`
+                                        : ""
+                                    }
                                   </div>
-                                `).join('')}
+                                `
+                                  )
+                                  .join("")}
                               </div>
                             </div>
                           </label>
                         </div>
-                      `).join('')}
+                      `
+                        )
+                        .join("")}
                     </div>
                   </div>
-                ` : ''}
+                `
+                    : ""
+                }
 
-                ${newMembers.length > 0 ? `
+                ${
+                  newMembers.length > 0
+                    ? `
                   <div class="mb-6">
                     <h4 class="text-lg font-bold text-gray-800 mb-3">
-                      <i class="fas fa-user-plus mr-2 text-green-600"></i>새 회원 추가 (${newMembers.length}명)
+                      <i class="fas fa-user-plus mr-2 text-green-600"></i>새 회원 추가 (${
+                        newMembers.length
+                      }명)
                     </h4>
                     <div class="bg-green-50 border border-green-200 rounded-lg p-4">
                       <p class="text-sm text-green-700 mb-2">
@@ -12413,27 +12523,41 @@
                         새 회원은 모두 <strong>승인대기</strong> 상태로 추가됩니다.
                       </p>
                       <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-                        ${newMembers.map(m => `
+                        ${newMembers
+                          .map(
+                            (m) => `
                           <div class="bg-white p-2 rounded border border-green-200">
                             <span class="font-semibold">${saf(m.name)}</span>
-                            <span class="text-gray-600 ml-1">(${saf(m.studentId)})</span>
+                            <span class="text-gray-600 ml-1">(${saf(
+                              m.studentId
+                            )})</span>
                           </div>
-                        `).join('')}
+                        `
+                          )
+                          .join("")}
                       </div>
                     </div>
                   </div>
-                ` : ''}
+                `
+                    : ""
+                }
 
-                ${errors.length > 0 ? `
+                ${
+                  errors.length > 0
+                    ? `
                   <div class="mb-4">
                     <h4 class="text-lg font-bold text-red-800 mb-3">
-                      <i class="fas fa-exclamation-triangle mr-2"></i>오류 (${errors.length}건)
+                      <i class="fas fa-exclamation-triangle mr-2"></i>오류 (${
+                        errors.length
+                      }건)
                     </h4>
                     <div class="bg-red-50 border border-red-200 rounded-lg p-4 text-sm text-red-700 space-y-1">
-                      ${errors.map(err => `<div>• ${err}</div>`).join('')}
+                      ${errors.map((err) => `<div>• ${err}</div>`).join("")}
                     </div>
                   </div>
-                ` : ''}
+                `
+                    : ""
+                }
               </div>
               
               <div class="px-6 py-4 bg-gray-50 border-t flex gap-3">
@@ -12448,30 +12572,35 @@
           </div>
         `;
 
-        document.body.insertAdjacentHTML('beforeend', modalHTML);
-        
+        document.body.insertAdjacentHTML("beforeend", modalHTML);
+
         // 전역 변수에 저장 (applySelectedChanges에서 사용)
         window.__pendingChanges = changes;
         window.__pendingNewMembers = newMembers;
       }
 
       // 전체 선택/해제
-      window.selectAllChanges = function(select) {
-        document.querySelectorAll('.change-checkbox').forEach(cb => {
+      window.selectAllChanges = function (select) {
+        document.querySelectorAll(".change-checkbox").forEach((cb) => {
           cb.checked = select;
         });
       };
 
       // 선택한 변경사항 적용
-      window.applySelectedChanges = async function() {
-        const selectedIndexes = [...document.querySelectorAll('.change-checkbox:checked')]
-          .map(cb => parseInt(cb.dataset.changeIndex));
-        
-        const selectedChanges = window.__pendingChanges.filter((_, idx) => 
+      window.applySelectedChanges = async function () {
+        const selectedIndexes = [
+          ...document.querySelectorAll(".change-checkbox:checked"),
+        ].map((cb) => parseInt(cb.dataset.changeIndex));
+
+        const selectedChanges = window.__pendingChanges.filter((_, idx) =>
           selectedIndexes.includes(idx)
         );
-        
-        if (selectedChanges.length === 0 && (!window.__pendingNewMembers || window.__pendingNewMembers.length === 0)) {
+
+        if (
+          selectedChanges.length === 0 &&
+          (!window.__pendingNewMembers ||
+            window.__pendingNewMembers.length === 0)
+        ) {
           showAlert("ℹ️", "적용할 변경사항이 없습니다.");
           return;
         }
@@ -12483,13 +12612,13 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
 
 적용하시겠습니까?
         `.trim();
-        
+
         if (!confirm(confirmMsg)) return;
 
         try {
           // 로딩 표시
-          const modal = document.getElementById('change-confirmation-modal');
-          modal.querySelector('.px-6.py-4.bg-gray-50').innerHTML = `
+          const modal = document.getElementById("change-confirmation-modal");
+          modal.querySelector(".px-6.py-4.bg-gray-50").innerHTML = `
             <div class="text-center py-4">
               <i class="fas fa-spinner fa-spin text-3xl text-orange-500"></i>
               <p class="mt-2 text-gray-600">변경사항 적용 중...</p>
@@ -12498,24 +12627,24 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
 
           // 변경사항 적용
           const batch = writeBatch(db);
-          
+
           // 기존 회원 업데이트
           for (const change of selectedChanges) {
             const updateData = { lastUpdated: new Date().toISOString() };
-            
+
             for (const detail of change.changes) {
               const fieldMap = {
-                '이름': 'name',
-                '성별': 'gender',
-                '학년': 'year',
-                '단과대': 'college',
-                '학과': 'department',
-                '전화번호': 'phone',
-                '상태': 'status'
+                이름: "name",
+                성별: "gender",
+                학년: "year",
+                단과대: "college",
+                학과: "department",
+                전화번호: "phone",
+                상태: "status",
               };
-              
+
               const dbField = fieldMap[detail.field];
-              if (dbField === 'status') {
+              if (dbField === "status") {
                 updateData[dbField] = change.convertedStatus;
               } else {
                 updateData[dbField] = detail.new;
@@ -12531,7 +12660,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
             const memberRef = doc(db, "members", newMember.studentId);
             batch.set(memberRef, {
               ...newMember,
-              status: 'pending', // 새 회원은 항상 대기 상태
+              status: "pending", // 새 회원은 항상 대기 상태
               createdAt: new Date().toISOString(),
               lastUpdated: new Date().toISOString(),
             });
@@ -12540,15 +12669,17 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
           await batch.commit();
 
           // 성공 알림
-          showAlert("✅", `${selectedChanges.length}명 업데이트, ${window.__pendingNewMembers.length}명 추가되었습니다.`);
-          
+          showAlert(
+            "✅",
+            `${selectedChanges.length}명 업데이트, ${window.__pendingNewMembers.length}명 추가되었습니다.`
+          );
+
           // 모달 닫기
           modal.remove();
-          
+
           // 전역 변수 정리
           delete window.__pendingChanges;
           delete window.__pendingNewMembers;
-
         } catch (error) {
           console.error("변경사항 적용 오류:", error);
           showAlert("😥", `적용 실패: ${error.message}`);
@@ -15640,9 +15771,12 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
         const c = document.getElementById("history-tab");
         if (!c) return;
 
-        // 참가한 이벤트 목록 가져오기 (마감된 이벤트 또는 완료된 이벤트)
+        // 참가한 이벤트 목록 가져오기 (삭제되지 않은 마감/보관 이벤트만)
         const participatedEvents = eventsData.filter((ev) => {
           if (!currentUser) return false;
+
+          // 삭제된 이벤트는 제외
+          if (ev.status === "deleted") return false;
 
           // 신청자 목록에서 현재 사용자 확인
           const isApplicant = ev.applicants?.some(
@@ -20471,7 +20605,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                           )}" data-show-all="false">
                           ${restaurant.reviews
                             .filter((r) => r.comment && r.comment.trim())
-                            .slice(0, 3)
+                            .slice(0, 2)
                             .map(
                               (r) => `
                             <div class="bg-white rounded-xl p-4 sm:p-5 border-2 border-orange-100 shadow-md hover:shadow-lg transition-shadow relative review-item mb-3">
@@ -20511,7 +20645,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                         ${
                           restaurant.reviews.filter(
                             (r) => r.comment && r.comment.trim()
-                          ).length > 3
+                          ).length > 2
                             ? `<button 
                                 class="w-full text-base sm:text-lg text-orange-600 hover:text-orange-700 font-bold text-center mt-3 py-4 sm:py-3 bg-orange-50 hover:bg-orange-100 rounded-xl transition-colors border-2 border-orange-200 shadow-sm"
                                 data-action="toggle-reviews"
@@ -20523,7 +20657,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                                 외 ${
                                   restaurant.reviews.filter(
                                     (r) => r.comment && r.comment.trim()
-                                  ).length - 3
+                                  ).length - 2
                                 }개 후기 더 보기
                               </button>`
                             : ""
@@ -20601,7 +20735,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                       </p>
                       ${ev.reviews
                         .filter((r) => r.comment && r.comment.trim())
-                        .slice(0, 3)
+                        .slice(0, 2)
                         .map(
                           (r) => `
                         <div class="bg-white rounded-xl p-4 sm:p-5 border-2 border-orange-100 shadow-md hover:shadow-lg transition-shadow mb-3">
@@ -20623,13 +20757,13 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                         .join("")}
                       ${
                         ev.reviews.filter((r) => r.comment && r.comment.trim())
-                          .length > 3
+                          .length > 2
                           ? `<button class="w-full text-base sm:text-lg text-orange-600 hover:text-orange-700 font-bold text-center mt-3 py-4 sm:py-3 bg-orange-50 hover:bg-orange-100 rounded-xl transition-colors border-2 border-orange-200 shadow-sm">
                               <i class="fas fa-chevron-down mr-2"></i>
                               외 ${
                                 ev.reviews.filter(
                                   (r) => r.comment && r.comment.trim()
-                                ).length - 3
+                                ).length - 2
                               }개 후기 더 보기
                             </button>`
                           : ""
@@ -21099,9 +21233,9 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
             );
 
             if (isShowingAll) {
-              // 접기 - 3개만 보여주기
+              // 접기 - 2개만 보여주기
               reviewList.innerHTML = allReviews
-                .slice(0, 3)
+                .slice(0, 2)
                 .map(
                   (r) => `
                   <div class="bg-white rounded-xl p-4 sm:p-5 border-2 border-orange-100 shadow-md hover:shadow-lg transition-shadow relative review-item mb-3">
@@ -21139,7 +21273,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                 .join("");
               reviewList.dataset.showAll = "false";
               toggleBtn.innerHTML = `<i class="fas fa-chevron-down mr-2"></i>외 ${
-                allReviews.length - 3
+                allReviews.length - 2
               }개 후기 더 보기`;
             } else {
               // 펼치기 - 모든 후기 보여주기

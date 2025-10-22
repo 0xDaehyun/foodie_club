@@ -71,6 +71,7 @@ function showSubtab(name) {
 
 /* ================= 관리자용 명예의 전당(보관) ================= */
 function renderHOFAdmin(container) {
+  // archived 상태이면서 deleted가 아닌 이벤트만
   const archived = (state.eventsData || []).filter(
     (e) => e.status === "archived"
   );
@@ -96,7 +97,27 @@ function renderHOFAdmin(container) {
       if (btn.dataset.act === "unarchive") {
         await unarchiveEvent(id);
       } else if (btn.dataset.act === "delete") {
-        if (!confirm("해당 항목을 삭제하시겠어요? 되돌릴 수 없습니다.")) return;
+        // 삭제하려는 이벤트 찾기
+        const event = (state.eventsData || []).find(ev => ev.id === id);
+        
+        // 미식회이고 리뷰가 있는 경우 삭제 방지
+        if (event && event.type === "tasting" && event.reviews && event.reviews.length > 0) {
+          showAlert(
+            "⛔", 
+            `<div class="text-left">
+              <p class="font-bold mb-2">미식회 후기가 있어 삭제할 수 없습니다</p>
+              <p class="text-sm">• 현재 <strong>${event.reviews.length}개의 후기</strong>가 작성되어 있습니다</p>
+              <p class="text-sm">• 미식회 후기는 회원들의 소중한 기록입니다</p>
+              <p class="text-sm mt-2 text-gray-600">💡 Tip: 후기를 모두 삭제한 후 이벤트를 삭제할 수 있습니다</p>
+            </div>`
+          );
+          return;
+        }
+        
+        if (!confirm(
+          `정말로 삭제하시겠어요?\n\n⚠️ 주의:\n• 이벤트가 완전히 삭제됩니다\n• 내 활동 탭에서도 보이지 않게 됩니다\n• 이 작업은 되돌릴 수 없습니다\n\n계속하시겠습니까?`
+        )) return;
+        
         await deleteEvent(id);
       }
     },
