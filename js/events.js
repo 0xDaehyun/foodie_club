@@ -164,6 +164,9 @@ function generalCardHTML(ev) {
             </div>
             ${adminStatsHTML(ev)}
             ${btn}
+            ${
+              state.currentUser && state.adminList.includes(state.currentUser.studentId)
+                ? `
             <div class="mt-3">
               <div class="text-xs font-semibold text-gray-600 mb-1">참가자</div>
               <div class="max-h-28 overflow-y-auto border rounded bg-gray-50 p-2">${
@@ -179,6 +182,9 @@ function generalCardHTML(ev) {
               }</div>
               <div class="text-[11px] text-amber-700 mt-1">※ 빈자리가 생기면 <b>신청 순서대로 자동 승급</b>돼요.</div>
             </div>
+            `
+                : ""
+            }
             <div class="text-[11px] text-gray-400 mt-2">상태: ${statusLabel(
               ev.status || "open"
             )}</div>
@@ -244,6 +250,9 @@ function tastingCardHTML(ev) {
               <div class="w-full bg-gray-200 rounded-full h-3 mt-2"><div class="bg-green-500 h-3 rounded-full" style="width:${
                 cap ? Math.min(100, Math.round((cnt / cap) * 100)) : 0
               }%"></div></div>
+              ${
+                state.currentUser && state.adminList.includes(state.currentUser.studentId)
+                  ? `
               <div class="mt-2"><div class="text-xs font-semibold text-gray-600 mb-1">참가자</div><div class="max-h-20 overflow-y-auto border rounded bg-gray-50 p-2">${
                 namesList ||
                 '<div class="text-xs text-gray-400">아직 없음</div>'
@@ -253,6 +262,9 @@ function tastingCardHTML(ev) {
                 '<div class="text-xs text-amber-400">대기자 없음</div>'
               }</div>
                 <div class="text-[11px] text-amber-700 mt-1">※ 자리가 비면 자동으로 <b>대기 → 참가</b>로 전환돼요.</div></div>
+              `
+                  : ""
+              }
               ${btn}
             </div>`;
     })
