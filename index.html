@@ -9661,6 +9661,8 @@
 
         // 1. 수동 조장 선택
         const selectedLeaders = new Set();
+        const manualLeaderAssignments = []; // 조장 할당 정보 저장
+        
         if (leaderMode === "manual") {
           document.querySelectorAll(".leader-select-new").forEach((select) => {
             const leaderStudentId = select.value;
@@ -9673,10 +9675,24 @@
                 const leader = members.splice(leaderIdx, 1)[0];
                 leader.isLeader = true;
                 const groupIdx = parseInt(select.dataset.group) - 1;
-                groups[groupIdx].push(leader);
+                
+                // 조장을 맨 앞에 배치
+                groups[groupIdx].unshift(leader);
+                
+                manualLeaderAssignments.push({
+                  studentId: leaderStudentId,
+                  name: leader.name,
+                  groupIdx: groupIdx
+                });
+                
+                console.log(`👑 조장 배치: ${leader.name} → ${groupIdx + 1}조 (맨 앞)`);
               }
             }
           });
+          
+          if (manualLeaderAssignments.length > 0) {
+            console.log('✅ 수동 조장 배치 완료:', manualLeaderAssignments);
+          }
         }
 
         // 2. 나머지 인원 배치
@@ -9773,20 +9789,31 @@
 
         // 4. 자동 조장 설정 (또는 수동 모드에서 조장 미선택 시 자동 설정)
         if (leaderMode === "auto" || leaderMode === "manual") {
-          groups.forEach((group) => {
+          groups.forEach((group, idx) => {
             if (group.length > 0 && !group.some((m) => m.isLeader)) {
               group[0].isLeader = true;
+              console.log(`👑 자동 조장 설정: ${group[0].name} → ${idx + 1}조`);
             }
           });
         }
 
-        // 5. 조장을 맨 앞으로
-        groups.forEach((group) => {
+        // 5. 조장을 맨 앞으로 (안전장치)
+        groups.forEach((group, idx) => {
           const leaderIdx = group.findIndex((m) => m.isLeader);
           if (leaderIdx > 0) {
+            console.log(`⚠️ 조장이 ${leaderIdx + 1}번째에 있음. 맨 앞으로 이동: ${group[leaderIdx].name} (${idx + 1}조)`);
             const [leader] = group.splice(leaderIdx, 1);
             group.unshift(leader);
+          } else if (leaderIdx === 0) {
+            console.log(`✅ ${idx + 1}조 조장 확인: ${group[0].name} (이미 맨 앞)`);
           }
+        });
+
+        // 최종 결과 로그
+        console.log('🎯 최종 조 편성 결과:');
+        groups.forEach((group, idx) => {
+          const leader = group.find(m => m.isLeader);
+          console.log(`${idx + 1}조 (${group.length}명): 조장=${leader?.name || '없음'}, 멤버=[${group.map(m => m.name).join(', ')}]`);
         });
 
         return groups;
@@ -9874,7 +9901,7 @@
       }
 
       // 조짜기 모달 열기
-      async function openGroupMakerModal(eventId) {
+      window.openGroupMakerModal = async function (eventId) {
         const ev = eventsData.find((e) => e.id === eventId);
         if (!ev) return showAlert("😥", "이벤트를 찾을 수 없습니다.");
 
@@ -10075,12 +10102,12 @@
               showGroupResultsNew(eventId, groups);
             });
         }, 50);
-      }
+      };
 
       // 모달 닫기
-      function closeGroupMakerModal() {
+      window.closeGroupMakerModal = function () {
         document.getElementById("group-maker-modal")?.remove();
-      }
+      };
 
       // 기존 복잡한 조짜기 관련 함수들은 아래에 주석 처리됨 (사용 안함)
       /*
