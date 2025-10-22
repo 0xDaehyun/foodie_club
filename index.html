@@ -6690,31 +6690,35 @@
       };
 
       /* ===================== 참가자 더보기 토글 ===================== */
-      function toggleParticipants(containerId, button) {
-        const container = document.querySelector(`.participants-container-${containerId}`);
+      window.toggleParticipants = function (containerId, button) {
+        const container = document.querySelector(
+          `.participants-container-${containerId}`
+        );
         if (!container) return;
-        
-        const hiddenSection = container.querySelector('.participants-hidden');
-        const isExpanded = container.dataset.expanded === 'true';
-        const icon = button.querySelector('i');
-        const text = button.querySelector('span');
-        
+
+        const hiddenSection = container.querySelector(".participants-hidden");
+        const isExpanded = container.dataset.expanded === "true";
+        const icon = button.querySelector("i");
+        const text = button.querySelector("span");
+
         if (isExpanded) {
           // 접기
-          hiddenSection.classList.add('hidden');
-          container.dataset.expanded = 'false';
-          icon.className = 'fas fa-chevron-down';
+          hiddenSection.classList.add("hidden");
+          container.dataset.expanded = "false";
+          icon.className = "fas fa-chevron-down";
           // 숨긴 개수 계산
-          const hiddenCount = hiddenSection.querySelectorAll('span.bg-orange-100, span.bg-orange-200').length;
+          const hiddenCount = hiddenSection.querySelectorAll(
+            "span.bg-orange-100, span.bg-orange-200"
+          ).length;
           text.textContent = `외 ${hiddenCount}명 더보기`;
         } else {
           // 펼치기
-          hiddenSection.classList.remove('hidden');
-          container.dataset.expanded = 'true';
-          icon.className = 'fas fa-chevron-up';
-          text.textContent = '접기';
+          hiddenSection.classList.remove("hidden");
+          container.dataset.expanded = "true";
+          icon.className = "fas fa-chevron-up";
+          text.textContent = "접기";
         }
-      }
+      };
 
       /* ===================== 신청 탭 ===================== */
       function computeEventStats(ev) {
@@ -6958,7 +6962,7 @@
         // 참가자 목록 생성 (4명 이상일 때 더보기 버튼)
         const applicantsList = ev.applicants || [];
         const waitingListArr = ev.waiting || [];
-        
+
         const createParticipantsList = (list, bgColor, textColor) => {
           const items = list.map(
             (a) =>
@@ -6969,14 +6973,16 @@
               )})</span>
             </span>`
           );
-          
+
           if (items.length <= 4) {
             return items.join("");
           } else {
             const visibleItems = items.slice(0, 4).join("");
             const hiddenItems = items.slice(4).join("");
             return `
-              <div class="participants-container-${ev.id}" data-expanded="false">
+              <div class="participants-container-${
+                ev.id
+              }" data-expanded="false">
                 <div class="participants-visible">${visibleItems}</div>
                 <div class="participants-hidden hidden">${hiddenItems}</div>
               </div>
@@ -6989,15 +6995,15 @@
             `;
           }
         };
-        
+
         const namesList = createParticipantsList(
-          applicantsList, 
-          "bg-orange-100", 
+          applicantsList,
+          "bg-orange-100",
           "text-orange-800"
         );
         const waitingList = createParticipantsList(
-          waitingListArr, 
-          "bg-orange-200", 
+          waitingListArr,
+          "bg-orange-200",
           "text-orange-900"
         );
         const isAdmin =
@@ -7198,19 +7204,25 @@
             };
 
             // 참가자 목록 생성 (4명 이상일 때 더보기 버튼)
-            const createRestaurantParticipantsList = (list, bgColor, textColor, restaurantId, type) => {
+            const createRestaurantParticipantsList = (
+              list,
+              bgColor,
+              textColor,
+              restaurantId,
+              type
+            ) => {
               const items = list.map(
                 (a) =>
                   `<span class="${bgColor} ${textColor} px-2 py-1 rounded-full text-xs flex items-center gap-1">
                     <span class="text-xs">${saf(a.name)}</span>
                     <span class="${textColor} font-mono text-xs">(${maskStudentId(
-                      a.studentId
-                    )})</span>
+                    a.studentId
+                  )})</span>
                   </span>`
               );
-              
+
               if (items.length === 0) return "";
-              
+
               if (items.length <= 4) {
                 return items.join("");
               } else {
@@ -7231,7 +7243,7 @@
                 `;
               }
             };
-            
+
             const namesList =
               (r.reservations || []).length > 0
                 ? `<div class="mt-2 text-xs text-gray-600">
