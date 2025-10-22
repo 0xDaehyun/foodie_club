@@ -94,11 +94,11 @@ function renderReservationTab(isAdmin) {
   const c = document.getElementById("reservation-tab");
   if (!c) return;
   const runningList =
-    state.eventsData.filter((e) => e.status !== "archived").length === 0
+    state.eventsData.filter((e) => e.status !== "archived" && e.status !== "deleted").length === 0
       ? `<div class="text-center py-12"><i class="fas fa-calendar-xmark text-4xl text-gray-300"></i><p class="mt-3 text-gray-500">진행 중인 이벤트/미식회가 없습니다.</p></div>`
       : `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           ${state.eventsData
-            .filter((e) => e.status !== "archived")
+            .filter((e) => e.status !== "archived" && e.status !== "deleted")
             .map(eventCardHTML)
             .join("")}
         </div>`;
