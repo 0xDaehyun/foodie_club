@@ -6690,37 +6690,33 @@
       };
 
       /* ===================== 참가자 더보기 토글 ===================== */
-      window.toggleParticipants = function (containerId, button) {
-        const container = document.querySelector(
-          `.participants-container-${containerId}`
-        );
-        if (!container) return;
-
-        const hiddenSection = container.querySelector(".participants-hidden");
-        if (!hiddenSection) return;
-
-        const isExpanded = container.dataset.expanded === "true";
+      window.toggleParticipantsList = function (uniqueId, hiddenCount, button) {
+        const hiddenDiv = document.getElementById(`${uniqueId}-hidden`);
+        if (!hiddenDiv) {
+          console.error('숨겨진 참가자 목록을 찾을 수 없습니다:', uniqueId);
+          return;
+        }
+        
         const icon = button.querySelector("i");
         const text = button.querySelector("span");
+        
+        if (!icon || !text) {
+          console.error('버튼 요소를 찾을 수 없습니다');
+          return;
+        }
 
-        if (!icon || !text) return;
+        const isHidden = hiddenDiv.classList.contains("hidden");
 
-        if (isExpanded) {
-          // 접기
-          hiddenSection.classList.add("hidden");
-          container.dataset.expanded = "false";
-          icon.className = "fas fa-chevron-down";
-          // 숨긴 개수 계산
-          const hiddenCount = hiddenSection.querySelectorAll(
-            "span.bg-orange-100, span.bg-orange-200"
-          ).length;
-          text.textContent = `외 ${hiddenCount}명 더보기`;
-        } else {
+        if (isHidden) {
           // 펼치기
-          hiddenSection.classList.remove("hidden");
-          container.dataset.expanded = "true";
+          hiddenDiv.classList.remove("hidden");
           icon.className = "fas fa-chevron-up";
           text.textContent = "접기";
+        } else {
+          // 접기
+          hiddenDiv.classList.add("hidden");
+          icon.className = "fas fa-chevron-down";
+          text.textContent = `외 ${hiddenCount}명 더보기`;
         }
       };
 
@@ -6983,16 +6979,15 @@
           } else {
             const visibleItems = items.slice(0, 4).join("");
             const hiddenItems = items.slice(4).join("");
+            const uniqueId = `participants-${ev.id}`;
             return `
-              <div class="participants-container-${
-                ev.id
-              }" data-expanded="false">
-                <div class="participants-visible">${visibleItems}</div>
-                <div class="participants-hidden hidden">${hiddenItems}</div>
+              ${visibleItems}
+              <div id="${uniqueId}-hidden" class="hidden flex flex-wrap gap-1">
+                ${hiddenItems}
               </div>
               <button 
                 class="mt-2 w-full text-sm text-orange-600 hover:text-orange-700 font-semibold py-2 px-3 bg-orange-50 hover:bg-orange-100 rounded-lg transition-all flex items-center justify-center gap-2 border border-orange-200"
-                onclick="toggleParticipants('${ev.id}', this)">
+                onclick="toggleParticipantsList('${uniqueId}', ${items.length - 4}, this)">
                 <i class="fas fa-chevron-down"></i>
                 <span>외 ${items.length - 4}명 더보기</span>
               </button>
@@ -7005,7 +7000,41 @@
           "bg-orange-100",
           "text-orange-800"
         );
-        const waitingList = createParticipantsList(
+        
+        // 대기자용 별도 함수 (다른 ID 사용)
+        const createWaitingList = (list, bgColor, textColor) => {
+          const items = list.map(
+            (a) =>
+              `<span class="${bgColor} ${textColor} px-2 py-1 rounded-full text-xs flex items-center gap-1">
+              <span class="text-xs">${saf(a.name)}</span>
+              <span class="${textColor} font-mono text-xs">(${maskStudentId(
+                a.studentId
+              )})</span>
+            </span>`
+          );
+
+          if (items.length <= 4) {
+            return items.join("");
+          } else {
+            const visibleItems = items.slice(0, 4).join("");
+            const hiddenItems = items.slice(4).join("");
+            const uniqueId = `waiting-${ev.id}`;
+            return `
+              ${visibleItems}
+              <div id="${uniqueId}-hidden" class="hidden flex flex-wrap gap-1">
+                ${hiddenItems}
+              </div>
+              <button 
+                class="mt-2 w-full text-sm text-orange-600 hover:text-orange-700 font-semibold py-2 px-3 bg-orange-50 hover:bg-orange-100 rounded-lg transition-all flex items-center justify-center gap-2 border border-orange-200"
+                onclick="toggleParticipantsList('${uniqueId}', ${items.length - 4}, this)">
+                <i class="fas fa-chevron-down"></i>
+                <span>외 ${items.length - 4}명 더보기</span>
+              </button>
+            `;
+          }
+        };
+        
+        const waitingList = createWaitingList(
           waitingListArr,
           "bg-orange-200",
           "text-orange-900"
@@ -7226,21 +7255,21 @@
               );
 
               if (items.length === 0) return "";
-
+              
               if (items.length <= 4) {
                 return items.join("");
               } else {
                 const visibleItems = items.slice(0, 4).join("");
                 const hiddenItems = items.slice(4).join("");
-                const containerId = `${restaurantId}-${type}`;
+                const uniqueId = `restaurant-${restaurantId}-${type}`;
                 return `
-                  <div class="participants-container-${containerId}" data-expanded="false">
-                    <div class="participants-visible">${visibleItems}</div>
-                    <div class="participants-hidden hidden">${hiddenItems}</div>
+                  ${visibleItems}
+                  <div id="${uniqueId}-hidden" class="hidden flex flex-wrap gap-1">
+                    ${hiddenItems}
                   </div>
                   <button 
                     class="mt-2 w-full text-sm text-orange-600 hover:text-orange-700 font-semibold py-2 px-3 bg-orange-50 hover:bg-orange-100 rounded-lg transition-all flex items-center justify-center gap-2 border border-orange-200"
-                    onclick="toggleParticipants('${containerId}', this)">
+                    onclick="toggleParticipantsList('${uniqueId}', ${items.length - 4}, this)">
                     <i class="fas fa-chevron-down"></i>
                     <span>외 ${items.length - 4}명 더보기</span>
                   </button>
