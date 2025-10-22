@@ -6695,7 +6695,7 @@
           event.preventDefault();
           event.stopPropagation();
         }
-        
+
         const hiddenDiv = document.getElementById(`${uniqueId}-hidden`);
         if (!hiddenDiv) {
           console.error("숨겨진 참가자 목록을 찾을 수 없습니다:", uniqueId);
@@ -6703,13 +6703,13 @@
         }
 
         // event.target 또는 event.currentTarget 사용
-        let button = event ? (event.currentTarget || event.target) : null;
-        
+        let button = event ? event.currentTarget || event.target : null;
+
         // 버튼이 클릭된 요소가 아니라면 가장 가까운 button 찾기
-        if (button && button.tagName !== 'BUTTON') {
-          button = button.closest('button');
+        if (button && button.tagName !== "BUTTON") {
+          button = button.closest("button");
         }
-        
+
         if (!button) {
           console.error("버튼을 찾을 수 없습니다");
           return;
@@ -6719,8 +6719,7 @@
         const text = button.querySelector("span");
 
         if (!icon || !text) {
-          console.error("버튼 내부 요소를 찾을 수 없습니다", button);
-          // innerHTML로 직접 변경
+          // 폴백: innerHTML로 직접 변경 (정상 작동)
           const isHidden = hiddenDiv.classList.contains("hidden");
           if (isHidden) {
             hiddenDiv.classList.remove("hidden");
