@@ -6698,11 +6698,11 @@
 
         const hiddenSection = container.querySelector(".participants-hidden");
         if (!hiddenSection) return;
-        
+
         const isExpanded = container.dataset.expanded === "true";
         const icon = button.querySelector("i");
         const text = button.querySelector("span");
-        
+
         if (!icon || !text) return;
 
         if (isExpanded) {
@@ -11957,7 +11957,7 @@
             throw new Error("파일에 유효한 데이터가 없습니다.");
           }
 
-          // 데이터 검증 및 처리 (유연한 파싱)
+          // 데이터 검증
           const validationResult = validateFileData(data);
           console.log("검증 결과:", validationResult);
 
@@ -11967,26 +11967,24 @@
             );
           }
 
-          // 회원 정보 처리
-          const processResult = await processMemberData(data);
+          // 변경사항 분석
+          const analysis = analyzeMemberData(data);
+          console.log("변경사항 분석:", analysis);
 
-          // 결과 표시
-          showUploadResult(processResult);
+          // 진행 상태 숨기기
+          progressDiv.classList.add("hidden");
+
+          // 변경사항이 있으면 확인 모달 표시
+          if (analysis.changes.length > 0 || analysis.newMembers.length > 0) {
+            showChangeConfirmationModal(analysis, data);
+          } else {
+            showAlert("ℹ️", "변경사항이 없습니다.");
+          }
         } catch (error) {
           console.error("파일 업로드 오류:", error);
 
           // 진행 상태 숨기기
           progressDiv.classList.add("hidden");
-
-          // 오류 결과 표시
-          const errorResult = {
-            success: false,
-            updatedCount: 0,
-            newCount: 0,
-            errorCount: 1,
-            errors: [error.message],
-          };
-          showUploadResult(errorResult);
 
           // 오류 알림
           showAlert("😥", `파일 업로드 실패: ${error.message}`);
@@ -12160,18 +12158,15 @@
         return mapping;
       }
 
-      // 회원 데이터 처리 (유연한 헤더 매핑)
-      async function processMemberData(data) {
+      // 회원 데이터 분석 (변경사항 프리뷰)
+      function analyzeMemberData(data) {
         const headers = data[0];
         const rows = data.slice(1);
         const headerMapping = findHeaderMapping(headers);
 
-        let updatedCount = 0;
-        let newCount = 0;
-        let errorCount = 0;
+        const changes = [];
+        const newMembers = [];
         const errors = [];
-
-        const batch = writeBatch(db);
 
         for (let i = 0; i < rows.length; i++) {
           const row = rows[i];
@@ -12210,19 +12205,16 @@
                 headerMapping.status !== -1
                   ? row[headerMapping.status]?.toString().trim()
                   : "",
-              lastUpdated: new Date().toISOString(),
             };
 
             // 필수 필드 확인
             if (!memberData.name || !memberData.studentId) {
               errors.push(`${i + 2}번째 행: 이름과 학번은 필수입니다.`);
-              errorCount++;
               continue;
             }
 
             // 상태값 변환 (한국어 → 영어)
-            memberData.status =
-              convertStatusToEnglish(memberData.status) || "pending";
+            const convertedStatus = convertStatusToEnglish(memberData.status);
 
             // 기존 회원 확인
             const existingMember = membersData.find(
@@ -12230,33 +12222,109 @@
             );
 
             if (existingMember) {
-              // 기존 회원 업데이트 (빈 값이 아닌 경우만 업데이트)
-              const updateData = { lastUpdated: memberData.lastUpdated };
+              // 변경사항 확인
+              const changeDetails = [];
+              
+              if (memberData.name && memberData.name !== existingMember.name) {
+                changeDetails.push({ field: '이름', old: existingMember.name, new: memberData.name });
+              }
+              if (memberData.gender && memberData.gender !== existingMember.gender) {
+                changeDetails.push({ field: '성별', old: existingMember.gender, new: memberData.gender });
+              }
+              if (memberData.year && memberData.year !== existingMember.year) {
+                changeDetails.push({ field: '학년', old: existingMember.year, new: memberData.year });
+              }
+              if (memberData.college && memberData.college !== existingMember.college) {
+                changeDetails.push({ field: '단과대', old: existingMember.college, new: memberData.college });
+              }
+              if (memberData.department && memberData.department !== existingMember.department) {
+                changeDetails.push({ field: '학과', old: existingMember.department, new: memberData.department });
+              }
+              if (memberData.phone && memberData.phone !== existingMember.phone) {
+                changeDetails.push({ field: '전화번호', old: existingMember.phone, new: memberData.phone });
+              }
+              
+              // 상태는 활동중이 아닌 경우에만 변경 가능하도록 표시
+              if (convertedStatus && convertedStatus !== existingMember.status) {
+                const statusDisplay = {
+                  active: '활동중',
+                  pending: '승인대기',
+                  rejected: '거절됨',
+                  blocked: '차단됨'
+                };
+                changeDetails.push({ 
+                  field: '상태', 
+                  old: statusDisplay[existingMember.status] || existingMember.status, 
+                  new: statusDisplay[convertedStatus] || convertedStatus,
+                  warning: existingMember.status === 'active' ? '⚠️ 활동중 회원의 상태 변경' : null
+                });
+              }
 
-              if (memberData.name) updateData.name = memberData.name;
-              if (memberData.gender) updateData.gender = memberData.gender;
-              if (memberData.year) updateData.year = memberData.year;
-              if (memberData.college) updateData.college = memberData.college;
-              if (memberData.department)
-                updateData.department = memberData.department;
-              if (memberData.phone) updateData.phone = memberData.phone;
-              if (memberData.status) updateData.status = memberData.status;
-
-              const memberRef = doc(db, "members", existingMember.id);
-              batch.update(memberRef, updateData);
-              updatedCount++;
+              if (changeDetails.length > 0) {
+                changes.push({
+                  studentId: existingMember.studentId,
+                  name: existingMember.name,
+                  currentStatus: existingMember.status,
+                  changes: changeDetails,
+                  existingMember: existingMember,
+                  newData: memberData,
+                  convertedStatus: convertedStatus
+                });
+              }
             } else {
-              // 새 회원 추가
-              const memberRef = doc(collection(db, "members"));
-              batch.set(memberRef, {
+              // 새 회원
+              newMembers.push({
                 ...memberData,
-                status: "pending", // 새 회원은 항상 대기 상태
-                createdAt: new Date().toISOString(),
+                status: convertedStatus || 'pending'
               });
-              newCount++;
             }
           } catch (error) {
             errors.push(`${i + 2}번째 행 처리 오류: ${error.message}`);
+          }
+        }
+
+        return { changes, newMembers, errors };
+      }
+
+      // 회원 데이터 처리 (승인된 변경사항만 적용)
+      async function processMemberData(data, approvedChanges = []) {
+        let updatedCount = 0;
+        let newCount = 0;
+        let errorCount = 0;
+        const errors = [];
+
+        const batch = writeBatch(db);
+
+        // 승인된 변경사항 적용
+        for (const change of approvedChanges) {
+          try {
+            const updateData = { lastUpdated: new Date().toISOString() };
+            
+            // 승인된 변경사항만 적용
+            for (const detail of change.changes) {
+              const fieldMap = {
+                '이름': 'name',
+                '성별': 'gender',
+                '학년': 'year',
+                '단과대': 'college',
+                '학과': 'department',
+                '전화번호': 'phone',
+                '상태': 'status'
+              };
+              
+              const dbField = fieldMap[detail.field];
+              if (dbField === 'status') {
+                updateData[dbField] = change.convertedStatus;
+              } else {
+                updateData[dbField] = detail.new;
+              }
+            }
+
+            const memberRef = doc(db, "members", change.existingMember.id);
+            batch.update(memberRef, updateData);
+            updatedCount++;
+          } catch (error) {
+            errors.push(`${change.name} (${change.studentId}) 업데이트 오류: ${error.message}`);
             errorCount++;
           }
         }
@@ -12275,6 +12343,217 @@
           throw new Error(`데이터베이스 저장 실패: ${error.message}`);
         }
       }
+
+      // 변경사항 확인 모달 표시
+      function showChangeConfirmationModal(analysis, originalData) {
+        const { changes, newMembers, errors } = analysis;
+
+        const modalHTML = `
+          <div id="change-confirmation-modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+            <div class="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+              <div class="bg-gradient-to-r from-orange-500 to-orange-600 px-6 py-4 flex justify-between items-center">
+                <div>
+                  <h3 class="text-2xl font-bold text-white">변경사항 확인</h3>
+                  <p class="text-orange-100 text-sm">변경사항을 검토하고 적용할 항목을 선택하세요</p>
+                </div>
+                <button type="button" onclick="document.getElementById('change-confirmation-modal').remove()" class="text-white hover:bg-white hover:bg-opacity-20 rounded-full p-2">
+                  <i class="fas fa-times text-xl"></i>
+                </button>
+              </div>
+              
+              <div class="p-6 overflow-y-auto flex-1">
+                ${changes.length > 0 ? `
+                  <div class="mb-6">
+                    <div class="flex items-center justify-between mb-3">
+                      <h4 class="text-lg font-bold text-gray-800">
+                        <i class="fas fa-edit mr-2 text-blue-600"></i>기존 회원 변경사항 (${changes.length}건)
+                      </h4>
+                      <div class="flex gap-2">
+                        <button onclick="selectAllChanges(true)" class="text-sm px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200">전체 선택</button>
+                        <button onclick="selectAllChanges(false)" class="text-sm px-3 py-1 bg-gray-100 text-gray-700 rounded hover:bg-gray-200">전체 해제</button>
+                      </div>
+                    </div>
+                    <div class="space-y-3">
+                      ${changes.map((change, idx) => `
+                        <div class="border-2 rounded-lg p-4 ${change.currentStatus === 'active' ? 'border-green-200 bg-green-50' : 'border-gray-200 bg-white'}">
+                          <label class="flex items-start gap-3 cursor-pointer">
+                            <input type="checkbox" class="change-checkbox mt-1 w-5 h-5" data-change-index="${idx}" checked>
+                            <div class="flex-1">
+                              <div class="font-bold text-gray-800 mb-1">
+                                ${saf(change.name)} (${saf(change.studentId)})
+                                ${change.currentStatus === 'active' ? '<span class="ml-2 text-xs bg-green-500 text-white px-2 py-0.5 rounded-full">활동중</span>' : ''}
+                              </div>
+                              <div class="text-sm space-y-1">
+                                ${change.changes.map(detail => `
+                                  <div class="flex items-center gap-2">
+                                    <span class="text-gray-600">${detail.field}:</span>
+                                    <span class="line-through text-gray-400">${saf(detail.old || '없음')}</span>
+                                    <i class="fas fa-arrow-right text-xs text-gray-400"></i>
+                                    <span class="font-semibold ${detail.warning ? 'text-red-600' : 'text-blue-600'}">${saf(detail.new)}</span>
+                                    ${detail.warning ? `<span class="text-xs text-red-500">${detail.warning}</span>` : ''}
+                                  </div>
+                                `).join('')}
+                              </div>
+                            </div>
+                          </label>
+                        </div>
+                      `).join('')}
+                    </div>
+                  </div>
+                ` : ''}
+
+                ${newMembers.length > 0 ? `
+                  <div class="mb-6">
+                    <h4 class="text-lg font-bold text-gray-800 mb-3">
+                      <i class="fas fa-user-plus mr-2 text-green-600"></i>새 회원 추가 (${newMembers.length}명)
+                    </h4>
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                      <p class="text-sm text-green-700 mb-2">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        새 회원은 모두 <strong>승인대기</strong> 상태로 추가됩니다.
+                      </p>
+                      <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                        ${newMembers.map(m => `
+                          <div class="bg-white p-2 rounded border border-green-200">
+                            <span class="font-semibold">${saf(m.name)}</span>
+                            <span class="text-gray-600 ml-1">(${saf(m.studentId)})</span>
+                          </div>
+                        `).join('')}
+                      </div>
+                    </div>
+                  </div>
+                ` : ''}
+
+                ${errors.length > 0 ? `
+                  <div class="mb-4">
+                    <h4 class="text-lg font-bold text-red-800 mb-3">
+                      <i class="fas fa-exclamation-triangle mr-2"></i>오류 (${errors.length}건)
+                    </h4>
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-4 text-sm text-red-700 space-y-1">
+                      ${errors.map(err => `<div>• ${err}</div>`).join('')}
+                    </div>
+                  </div>
+                ` : ''}
+              </div>
+              
+              <div class="px-6 py-4 bg-gray-50 border-t flex gap-3">
+                <button type="button" onclick="document.getElementById('change-confirmation-modal').remove()" class="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-white font-semibold">
+                  <i class="fas fa-times mr-2"></i>취소
+                </button>
+                <button type="button" onclick="applySelectedChanges()" class="flex-1 bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-3 rounded-xl hover:from-orange-600 hover:to-orange-700 font-semibold shadow-lg">
+                  <i class="fas fa-check mr-2"></i>선택한 변경사항 적용
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        
+        // 전역 변수에 저장 (applySelectedChanges에서 사용)
+        window.__pendingChanges = changes;
+        window.__pendingNewMembers = newMembers;
+      }
+
+      // 전체 선택/해제
+      window.selectAllChanges = function(select) {
+        document.querySelectorAll('.change-checkbox').forEach(cb => {
+          cb.checked = select;
+        });
+      };
+
+      // 선택한 변경사항 적용
+      window.applySelectedChanges = async function() {
+        const selectedIndexes = [...document.querySelectorAll('.change-checkbox:checked')]
+          .map(cb => parseInt(cb.dataset.changeIndex));
+        
+        const selectedChanges = window.__pendingChanges.filter((_, idx) => 
+          selectedIndexes.includes(idx)
+        );
+        
+        if (selectedChanges.length === 0 && (!window.__pendingNewMembers || window.__pendingNewMembers.length === 0)) {
+          showAlert("ℹ️", "적용할 변경사항이 없습니다.");
+          return;
+        }
+
+        // 확인 메시지
+        const confirmMsg = `
+총 ${selectedChanges.length}명의 회원 정보 변경
+${window.__pendingNewMembers.length}명의 새 회원 추가
+
+적용하시겠습니까?
+        `.trim();
+        
+        if (!confirm(confirmMsg)) return;
+
+        try {
+          // 로딩 표시
+          const modal = document.getElementById('change-confirmation-modal');
+          modal.querySelector('.px-6.py-4.bg-gray-50').innerHTML = `
+            <div class="text-center py-4">
+              <i class="fas fa-spinner fa-spin text-3xl text-orange-500"></i>
+              <p class="mt-2 text-gray-600">변경사항 적용 중...</p>
+            </div>
+          `;
+
+          // 변경사항 적용
+          const batch = writeBatch(db);
+          
+          // 기존 회원 업데이트
+          for (const change of selectedChanges) {
+            const updateData = { lastUpdated: new Date().toISOString() };
+            
+            for (const detail of change.changes) {
+              const fieldMap = {
+                '이름': 'name',
+                '성별': 'gender',
+                '학년': 'year',
+                '단과대': 'college',
+                '학과': 'department',
+                '전화번호': 'phone',
+                '상태': 'status'
+              };
+              
+              const dbField = fieldMap[detail.field];
+              if (dbField === 'status') {
+                updateData[dbField] = change.convertedStatus;
+              } else {
+                updateData[dbField] = detail.new;
+              }
+            }
+
+            const memberRef = doc(db, "members", change.existingMember.id);
+            batch.update(memberRef, updateData);
+          }
+
+          // 새 회원 추가
+          for (const newMember of window.__pendingNewMembers) {
+            const memberRef = doc(db, "members", newMember.studentId);
+            batch.set(memberRef, {
+              ...newMember,
+              status: 'pending', // 새 회원은 항상 대기 상태
+              createdAt: new Date().toISOString(),
+              lastUpdated: new Date().toISOString(),
+            });
+          }
+
+          await batch.commit();
+
+          // 성공 알림
+          showAlert("✅", `${selectedChanges.length}명 업데이트, ${window.__pendingNewMembers.length}명 추가되었습니다.`);
+          
+          // 모달 닫기
+          modal.remove();
+          
+          // 전역 변수 정리
+          delete window.__pendingChanges;
+          delete window.__pendingNewMembers;
+
+        } catch (error) {
+          console.error("변경사항 적용 오류:", error);
+          showAlert("😥", `적용 실패: ${error.message}`);
+        }
+      };
 
       // 상태값 변환 (한국어 → 영어)
       function convertStatusToEnglish(status) {
@@ -21167,10 +21446,12 @@
                 </button>
               </div>
               <div class="mt-3 text-sm ${
-                signup.open ? "text-green-700 bg-green-50" : "text-red-700 bg-red-50"
+                signup.open
+                  ? "text-green-700 bg-green-50"
+                  : "text-red-700 bg-red-50"
               } px-4 py-2 rounded-lg border ${
-                signup.open ? "border-green-200" : "border-red-200"
-              }">
+          signup.open ? "border-green-200" : "border-red-200"
+        }">
                 <i class="fas ${
                   signup.open ? "fa-check-circle" : "fa-times-circle"
                 } mr-2"></i>
