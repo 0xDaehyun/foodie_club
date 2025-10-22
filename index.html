@@ -9662,7 +9662,7 @@
         // 1. 수동 조장 선택
         const selectedLeaders = new Set();
         const manualLeaderAssignments = []; // 조장 할당 정보 저장
-        
+
         if (leaderMode === "manual") {
           document.querySelectorAll(".leader-select-new").forEach((select) => {
             const leaderStudentId = select.value;
@@ -9675,23 +9675,25 @@
                 const leader = members.splice(leaderIdx, 1)[0];
                 leader.isLeader = true;
                 const groupIdx = parseInt(select.dataset.group) - 1;
-                
+
                 // 조장을 맨 앞에 배치
                 groups[groupIdx].unshift(leader);
-                
+
                 manualLeaderAssignments.push({
                   studentId: leaderStudentId,
                   name: leader.name,
-                  groupIdx: groupIdx
+                  groupIdx: groupIdx,
                 });
-                
-                console.log(`👑 조장 배치: ${leader.name} → ${groupIdx + 1}조 (맨 앞)`);
+
+                console.log(
+                  `👑 조장 배치: ${leader.name} → ${groupIdx + 1}조 (맨 앞)`
+                );
               }
             }
           });
-          
+
           if (manualLeaderAssignments.length > 0) {
-            console.log('✅ 수동 조장 배치 완료:', manualLeaderAssignments);
+            console.log("✅ 수동 조장 배치 완료:", manualLeaderAssignments);
           }
         }
 
@@ -9801,19 +9803,29 @@
         groups.forEach((group, idx) => {
           const leaderIdx = group.findIndex((m) => m.isLeader);
           if (leaderIdx > 0) {
-            console.log(`⚠️ 조장이 ${leaderIdx + 1}번째에 있음. 맨 앞으로 이동: ${group[leaderIdx].name} (${idx + 1}조)`);
+            console.log(
+              `⚠️ 조장이 ${leaderIdx + 1}번째에 있음. 맨 앞으로 이동: ${
+                group[leaderIdx].name
+              } (${idx + 1}조)`
+            );
             const [leader] = group.splice(leaderIdx, 1);
             group.unshift(leader);
           } else if (leaderIdx === 0) {
-            console.log(`✅ ${idx + 1}조 조장 확인: ${group[0].name} (이미 맨 앞)`);
+            console.log(
+              `✅ ${idx + 1}조 조장 확인: ${group[0].name} (이미 맨 앞)`
+            );
           }
         });
 
         // 최종 결과 로그
-        console.log('🎯 최종 조 편성 결과:');
+        console.log("🎯 최종 조 편성 결과:");
         groups.forEach((group, idx) => {
-          const leader = group.find(m => m.isLeader);
-          console.log(`${idx + 1}조 (${group.length}명): 조장=${leader?.name || '없음'}, 멤버=[${group.map(m => m.name).join(', ')}]`);
+          const leader = group.find((m) => m.isLeader);
+          console.log(
+            `${idx + 1}조 (${group.length}명): 조장=${
+              leader?.name || "없음"
+            }, 멤버=[${group.map((m) => m.name).join(", ")}]`
+          );
         });
 
         return groups;
@@ -9923,8 +9935,9 @@
           return showAlert("😥", "참가자가 없습니다.");
         }
 
-        // 기존 모달 제거
+        // 기존 모달들 모두 제거
         document.getElementById("group-maker-modal")?.remove();
+        document.getElementById("group-results-modal")?.remove();
 
         // 간단한 모달 HTML
         const modalHTML = `
@@ -15152,8 +15165,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
           <h3 class="text-xl font-bold text-gray-800 mb-2">회원 관리</h3>
 
           <div class="flex flex-wrap items-center gap-2 mb-3">
-            <input id="member-search" class="px-3 py-2 border rounded bg-white  text-gray-900  border-gray-300  flex-1 min-w-[200px]" placeholder="이름/학번/학과 검색">
-                        <button id="add-member-btn" class="px-3 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors" title="새로운 회원을 수동으로 추가합니다">
+            <button id="add-member-btn" class="px-3 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors" title="새로운 회원을 수동으로 추가합니다">
               <i class="fas fa-user-plus mr-1"></i>회원 수동 추가
             </button>
           </div>
@@ -15248,6 +15260,9 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                   <i class="fas fa-file-csv mr-1"></i>전체명단 다운로드
                 </button>
               </div>
+              <div class="mb-2">
+                <input id="member-search" class="w-full px-3 py-2 border-2 border-emerald-200 rounded-lg bg-white text-gray-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200" placeholder="🔍 이름/학번/학과 검색...">
+              </div>
               <div class="overflow-auto border rounded">
                 <table class="min-w-full text-sm">
                   <thead class="bg-gray-50">
@@ -15288,19 +15303,14 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
           </div>
         </div>`;
 
-        // 검색
+        // 검색 (활동중 회원만)
         const searchInput = container.querySelector("#member-search");
         searchInput.value = memberSearchTerm;
         searchInput.addEventListener("input", (e) => {
           memberSearchTerm = e.target.value;
-          const pendingSetNow = (membersData || []).filter(
-            (m) => (m.status || "pending") !== "active"
-          );
           const activeSetNow = (membersData || []).filter(
             (m) => (m.status || "pending") === "active"
           );
-          container.querySelector("#members-tbody-pending").innerHTML =
-            membersRowsHTMLGrouped(pendingSetNow, true, memberSearchTerm);
           container.querySelector("#members-tbody-active").innerHTML =
             membersRowsHTMLGrouped(activeSetNow, false, memberSearchTerm);
         });
