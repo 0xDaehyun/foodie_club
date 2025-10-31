@@ -4,7 +4,6 @@ import { registerRenderer, scheduleRender, saf } from "./utils.js";
 import { loginWithStudent, verifyAutoLogin, logoutUser } from "./auth.js";
 import {
   renderReservationTab,
-  renderHistoryTab,
   renderSuggestionsTab,
   renderDashboardTab,
 } from "./tabs.js";
@@ -40,9 +39,6 @@ function renderAll() {
         <button type="button" data-tab="reservation" class="tab-btn flex-1 py-2 px-3 sm:px-4 rounded-md font-semibold text-gray-700 active">
           <i class="fas fa-plane-departure mr-2"></i>신청하기
         </button>
-        <button type="button" data-tab="history" class="tab-btn flex-1 py-2 px-3 sm:px-4 rounded-md font-semibold text-gray-700">
-          <i class="fas fa-box-archive mr-2"></i>보관(명예의 전당)
-        </button>
         <button type="button" data-tab="suggestions" class="tab-btn flex-1 py-2 px-3 sm:px-4 rounded-md font-semibold text-gray-700">
           <i class="fas fa-lightbulb mr-2"></i>아이디어 건의
         </button>
@@ -55,7 +51,6 @@ function renderAll() {
 
       <div id="tab-content-container">
         <div id="reservation-tab" class="tab-content active"></div>
-        <div id="history-tab" class="tab-content"></div>
         <div id="suggestions-tab" class="tab-content"></div>
         <div id="dashboard-tab" class="tab-content"></div>
       </div>
@@ -77,11 +72,28 @@ function renderAll() {
         .querySelectorAll(".tab-content")
         .forEach((t) => t.classList.remove("active"));
       document.getElementById(`${name}-tab`)?.classList.add("active");
+
+      // 신청하기 탭이 활성화될 때 renderReservationTab 호출
+      if (name === "reservation") {
+        renderReservationTab(isAdmin);
+      }
     });
 
     // 탭 렌더
-    renderReservationTab(isAdmin);
-    renderHistoryTab(isAdmin);
+    console.log("js/main.js에서 renderReservationTab 호출");
+
+    // js/tabs.js의 renderReservationTab 함수를 직접 호출
+    console.log("js/tabs.js의 renderReservationTab 함수를 직접 호출합니다");
+
+    // renderReservationTab 함수를 직접 정의하여 js/tabs.js의 함수를 사용
+    const originalRenderReservationTab = renderReservationTab;
+
+    setTimeout(() => {
+      console.log("setTimeout으로 renderReservationTab 재호출");
+      if (originalRenderReservationTab) {
+        originalRenderReservationTab(isAdmin);
+      }
+    }, 1000);
     renderSuggestionsTab(isAdmin);
     if (isAdmin) renderDashboardTab();
 

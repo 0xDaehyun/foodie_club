@@ -450,6 +450,43 @@
           opacity: 1;
         }
       }
+
+      /* 조모임 버튼 그라데이션 빛 효과 (2초마다 반복) */
+      .rank-button-glow {
+        position: relative;
+        overflow: hidden;
+      }
+
+      .rank-button-glow::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -150%;
+        width: 150%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent 0%,
+          rgba(255, 255, 255, 0.4) 30%,
+          rgba(255, 255, 255, 0.6) 50%,
+          rgba(255, 255, 255, 0.4) 70%,
+          transparent 100%
+        );
+        animation: rank-shine 2s ease-in-out infinite;
+      }
+
+      @keyframes rank-shine {
+        0%,
+        75% {
+          left: -150%;
+        }
+        90% {
+          left: 100%;
+        }
+        100% {
+          left: 100%;
+        }
+      }
       .tab-btn {
         position: relative;
         overflow: hidden;
@@ -1926,7 +1963,7 @@
             <!-- 조모임 순위(모두 보임) -->
             <button
               id="rank-button"
-              class="text-sm md:text-base bg-orange-500 text-white rounded-full px-3 py-1 hover:bg-orange-600"
+              class="text-sm md:text-base bg-orange-500 text-white rounded-full px-3 py-1 hover:bg-orange-600 rank-button-glow"
             >
               🏅 조모임
             </button>
@@ -3603,6 +3640,8 @@
               // 현재 열려있는 대시보드 서브탭만 다시 렌더링
               if (currentDashboardTab === "members") {
                 renderMembersAdmin(subtabContainer);
+              } else if (currentDashboardTab === "groups") {
+                renderGroupsAdmin(subtabContainer);
               } else {
                 // 다른 탭들은 전체 렌더링 필요
                 renderAll();
@@ -13656,6 +13695,9 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
             <button class="subtab-btn px-3 py-1.5 rounded bg-gray-200" data-sub="members">
               <i class="fas fa-users mr-1"></i>회원
             </button>
+            <button class="subtab-btn px-3 py-1.5 rounded bg-gray-200" data-sub="groups">
+              <i class="fas fa-users-cog mr-1"></i>조모임 관리
+            </button>
             <button class="subtab-btn px-3 py-1.5 rounded bg-gray-200" data-sub="positions">
               <i class="fas fa-user-tie mr-1"></i>임원 관리
             </button>
@@ -13699,6 +13741,10 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
           renderMembersAdmin(cont);
           return;
         }
+        if (name === "groups") {
+          renderGroupsAdmin(cont);
+          return;
+        }
         if (name === "positions") {
           renderPositionsAdmin(cont);
           return;
@@ -13716,6 +13762,713 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
           return;
         }
       }
+
+      /* ===== 조모임 관리 ===== */
+      function renderGroupsAdmin(container) {
+        // 조모임 데이터를 점수순으로 정렬
+        const sortedGroups = [...groupsData]
+          .filter((g) => g.name && g.score !== undefined)
+          .sort((a, b) => (b.score || 0) - (a.score || 0));
+
+        container.innerHTML = `
+          <div class="section">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-xl font-bold text-gray-800">🏅 조모임 관리</h3>
+              <button
+                type="button"
+                class="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors"
+                onclick="openGroupAddModal()"
+              >
+                <i class="fas fa-plus mr-1"></i>조모임 추가
+              </button>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              ${
+                sortedGroups.length > 0
+                  ? sortedGroups
+                      .map((group, index) => {
+                        const members = group.members || [];
+                        // members가 문자열 배열인지 객체 배열인지 확인 필요
+                        // 일단 문자열로 가정하고, 객체면 studentId로 찾아야 함
+
+                        return `
+                        <div class="bg-white border-2 border-gray-200 rounded-xl p-4 shadow-md hover:shadow-lg transition-shadow">
+                          <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center gap-3">
+                              <div class="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                                ${index + 1}
+                              </div>
+                              <div>
+                                <h4 class="text-lg font-bold text-gray-800">${saf(
+                                  group.name
+                                )}</h4>
+                                <p class="text-sm text-gray-600">${
+                                  group.score || 0
+                                }점</p>
+                              </div>
+                            </div>
+                            <div class="flex gap-2">
+                              <button
+                                type="button"
+                                class="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-sm transition-colors"
+                                onclick="openGroupManageModal('${
+                                  group.id
+                                }', '${saf(group.name).replace(/'/g, "\\'")}')"
+                                title="회원 관리"
+                              >
+                                <i class="fas fa-users-cog mr-1"></i>관리
+                              </button>
+                              <button
+                                type="button"
+                                class="px-3 py-1 bg-gray-500 hover:bg-gray-600 text-white rounded text-sm transition-colors"
+                                onclick="openGroupEditModal('${
+                                  group.id
+                                }', '${saf(group.name).replace(
+                          /'/g,
+                          "\\'"
+                        )}', ${group.score || 0})"
+                                title="수정"
+                              >
+                                <i class="fas fa-edit"></i>
+                              </button>
+                            </div>
+                          </div>
+                          
+                          <div class="mt-3 space-y-2">
+                            <div class="text-sm font-semibold text-gray-700 mb-2">
+                              <i class="fas fa-users mr-1"></i>회원 (${
+                                members.length
+                              }명)
+                            </div>
+                            ${
+                              members.length > 0
+                                ? `<div class="flex flex-wrap gap-2">
+                                    ${members
+                                      .map((member) => {
+                                        // member가 문자열이면 그대로, 객체면 name 표시
+                                        const memberName =
+                                          typeof member === "string"
+                                            ? member
+                                            : member.name ||
+                                              member.studentId ||
+                                              "알 수 없음";
+                                        const memberStudentId =
+                                          typeof member === "object"
+                                            ? member.studentId
+                                            : null;
+                                        const isLeader =
+                                          typeof member === "object"
+                                            ? member.role === "leader" ||
+                                              member.isLeader
+                                            : false;
+                                        const isSubLeader =
+                                          typeof member === "object"
+                                            ? member.role === "subleader"
+                                            : false;
+
+                                        return `
+                                          <span class="px-2 py-1 rounded-full text-xs ${
+                                            isLeader
+                                              ? "bg-yellow-100 text-yellow-800 font-semibold"
+                                              : isSubLeader
+                                              ? "bg-orange-100 text-orange-800 font-semibold"
+                                              : "bg-gray-100 text-gray-700"
+                                          }">
+                                            ${saf(memberName)}${
+                                          isLeader
+                                            ? " 👑"
+                                            : isSubLeader
+                                            ? " ⭐"
+                                            : ""
+                                        }
+                                          </span>
+                                        `;
+                                      })
+                                      .join("")}
+                                  </div>`
+                                : `<p class="text-sm text-gray-400 italic">회원이 없습니다</p>`
+                            }
+                          </div>
+                        </div>
+                      `;
+                      })
+                      .join("")
+                  : `<div class="col-span-2 text-center py-12 text-gray-400">
+                    <i class="fas fa-users text-4xl mb-3"></i>
+                    <p>아직 조모임이 없습니다.</p>
+                    <p class="text-sm mt-1">조모임을 추가하여 시작하세요.</p>
+                  </div>`
+              }
+            </div>
+          </div>
+        `;
+      }
+
+      // 조모임 회원 관리 모달 열기
+      window.openGroupManageModal = function (groupId, groupName) {
+        const group = groupsData.find((g) => g.id === groupId);
+        if (!group) {
+          showAlert("😥", "조모임을 찾을 수 없습니다.");
+          return;
+        }
+
+        const modalHTML = `
+          <div id="group-manage-modal" class="fixed inset-0 bg-black/60 flex justify-center items-center px-4 z-50">
+            <div class="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+              <div class="p-6 border-b border-gray-200 flex-shrink-0">
+                <div class="flex items-center justify-between mb-4">
+                  <h3 class="text-2xl font-bold text-gray-800">🏅 ${saf(
+                    groupName
+                  )} 회원 관리</h3>
+                  <button
+                    type="button"
+                    class="text-gray-500 hover:text-gray-700 p-2"
+                    onclick="document.getElementById('group-manage-modal').remove()"
+                  >
+                    <i class="fas fa-times text-xl"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="flex-1 overflow-y-auto p-6">
+                <!-- 현재 회원 목록 -->
+                <div class="mb-6">
+                  <h4 class="text-lg font-semibold text-gray-800 mb-3">
+                    <i class="fas fa-users mr-2"></i>현재 회원 (${
+                      (group.members || []).length
+                    }명)
+                  </h4>
+                  <div id="group-current-members" class="space-y-2">
+                    ${renderGroupMembersList(group.members || [], groupId)}
+                  </div>
+                </div>
+
+                <!-- 회원 추가 -->
+                <div class="border-t border-gray-200 pt-6">
+                  <h4 class="text-lg font-semibold text-gray-800 mb-3">
+                    <i class="fas fa-user-plus mr-2"></i>회원 추가
+                  </h4>
+                  <div class="mb-4">
+                    <input
+                      type="text"
+                      id="group-member-search"
+                      placeholder="이름 또는 학번으로 검색..."
+                      class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200"
+                      oninput="searchMembersForGroup(this.value, '${groupId}')"
+                    />
+                  </div>
+                  <div id="group-member-search-results" class="space-y-2 max-h-64 overflow-y-auto">
+                    <p class="text-sm text-gray-400 text-center py-4">검색어를 입력하여 회원을 찾아주세요</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        // 기존 모달이 있으면 제거
+        const existingModal = document.getElementById("group-manage-modal");
+        if (existingModal) existingModal.remove();
+
+        document.body.insertAdjacentHTML("beforeend", modalHTML);
+
+        // 모달 외부 클릭 시 닫기
+        document
+          .getElementById("group-manage-modal")
+          .addEventListener("click", (e) => {
+            if (e.target.id === "group-manage-modal") {
+              document.getElementById("group-manage-modal").remove();
+            }
+          });
+      };
+
+      // 조모임 회원 목록 렌더링
+      function renderGroupMembersList(members, groupId) {
+        if (members.length === 0) {
+          return '<p class="text-sm text-gray-400 italic">회원이 없습니다</p>';
+        }
+
+        return members
+          .map((member, index) => {
+            const memberData =
+              typeof member === "object"
+                ? member
+                : { name: member, studentId: null };
+            const memberName =
+              memberData.name || memberData.studentId || member || "알 수 없음";
+            const memberStudentId = memberData.studentId || null;
+            const isLeader =
+              memberData.role === "leader" || memberData.isLeader === true;
+            const isSubLeader = memberData.role === "subleader";
+
+            // 회원 정보 가져오기 (membersData에서)
+            const fullMemberInfo = membersData.find(
+              (m) =>
+                (memberStudentId && m.studentId === memberStudentId) ||
+                (!memberStudentId && m.name === memberName)
+            );
+
+            return `
+              <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                <div class="flex items-center gap-3 flex-1">
+                  <div class="w-8 h-8 rounded-full flex items-center justify-center ${
+                    isLeader
+                      ? "bg-yellow-400 text-yellow-900"
+                      : isSubLeader
+                      ? "bg-orange-400 text-orange-900"
+                      : "bg-gray-300 text-gray-700"
+                  } font-bold text-sm">
+                    ${isLeader ? "👑" : isSubLeader ? "⭐" : index + 1}
+                  </div>
+                  <div class="flex-1">
+                    <div class="font-semibold text-gray-800">${saf(
+                      memberName
+                    )}</div>
+                    ${
+                      fullMemberInfo
+                        ? `<div class="text-xs text-gray-500">${
+                            fullMemberInfo.studentId || ""
+                          } · ${fullMemberInfo.college || ""}</div>`
+                        : ""
+                    }
+                  </div>
+                  <div class="flex gap-2">
+                    ${
+                      !isLeader
+                        ? `
+                      <button
+                        type="button"
+                        class="px-2 py-1 bg-yellow-500 hover:bg-yellow-600 text-white rounded text-xs transition-colors"
+                        onclick="setGroupMemberRole('${groupId}', '${
+                            memberStudentId || saf(memberName)
+                          }', 'leader')"
+                        title="조장으로 임명"
+                      >
+                        <i class="fas fa-crown mr-1"></i>조장
+                      </button>
+                    `
+                        : ""
+                    }
+                    ${
+                      !isSubLeader && !isLeader
+                        ? `
+                      <button
+                        type="button"
+                        class="px-2 py-1 bg-orange-500 hover:bg-orange-600 text-white rounded text-xs transition-colors"
+                        onclick="setGroupMemberRole('${groupId}', '${
+                            memberStudentId || saf(memberName)
+                          }', 'subleader')"
+                        title="부조장으로 임명"
+                      >
+                        <i class="fas fa-star mr-1"></i>부조장
+                      </button>
+                    `
+                        : ""
+                    }
+                    ${
+                      isLeader || isSubLeader
+                        ? `
+                      <button
+                        type="button"
+                        class="px-2 py-1 bg-gray-500 hover:bg-gray-600 text-white rounded text-xs transition-colors"
+                        onclick="setGroupMemberRole('${groupId}', '${
+                            memberStudentId || saf(memberName)
+                          }', 'member')"
+                        title="일반 회원으로 변경"
+                      >
+                        <i class="fas fa-user mr-1"></i>일반
+                      </button>
+                    `
+                        : ""
+                    }
+                    <button
+                      type="button"
+                      class="px-2 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-xs transition-colors"
+                      onclick="removeGroupMember('${groupId}', '${
+              memberStudentId || saf(memberName)
+            }')"
+                      title="조에서 제거"
+                    >
+                      <i class="fas fa-times"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            `;
+          })
+          .join("");
+      }
+
+      // 회원 검색 (조모임에 추가용)
+      window.searchMembersForGroup = function (searchTerm, groupId) {
+        const searchResults = document.getElementById(
+          "group-member-search-results"
+        );
+        if (!searchResults) return;
+
+        if (!searchTerm.trim()) {
+          searchResults.innerHTML =
+            '<p class="text-sm text-gray-400 text-center py-4">검색어를 입력하여 회원을 찾아주세요</p>';
+          return;
+        }
+
+        const group = groupsData.find((g) => g.id === groupId);
+        const currentMembers = (group?.members || []).map((m) =>
+          typeof m === "object" ? m.studentId || m.name : m
+        );
+
+        // 띄어쓰기로 구분된 여러 검색어 처리
+        const searchKeywords = searchTerm
+          .trim()
+          .split(/\s+/)
+          .filter((keyword) => keyword.length > 0)
+          .map((keyword) => keyword.toLowerCase());
+
+        // 각 검색어에 매칭되는 회원들을 찾기
+        const matchedMembers = new Map(); // 중복 제거를 위한 Map 사용
+
+        searchKeywords.forEach((keyword) => {
+          (membersData || []).forEach((m) => {
+            const nameMatch = m.name?.toLowerCase().includes(keyword);
+            const idMatch = m.studentId?.toLowerCase().includes(keyword);
+            const isAlreadyMember = currentMembers.includes(
+              m.studentId || m.name
+            );
+            const isActive = (m.status || "pending") === "active";
+
+            if ((nameMatch || idMatch) && !isAlreadyMember && isActive) {
+              // Map에 추가 (학번을 키로 사용하여 중복 제거)
+              matchedMembers.set(m.studentId || m.name, m);
+            }
+          });
+        });
+
+        // Map을 배열로 변환 (최대 50개까지 표시)
+        const filtered = Array.from(matchedMembers.values()).slice(0, 50);
+
+        if (filtered.length === 0) {
+          searchResults.innerHTML =
+            '<p class="text-sm text-gray-400 text-center py-4">검색 결과가 없습니다</p>';
+          return;
+        }
+
+        // 매칭된 검색어 정보 추가 (어떤 검색어로 매칭되었는지 표시)
+        searchResults.innerHTML = filtered
+          .map((member) => {
+            // 어떤 검색어에 매칭되었는지 찾기
+            const matchedKeywords = searchKeywords.filter(
+              (keyword) =>
+                member.name?.toLowerCase().includes(keyword) ||
+                member.studentId?.toLowerCase().includes(keyword)
+            );
+
+            return `
+            <div class="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 font-bold">
+                  ${member.name?.charAt(0) || "?"}
+                </div>
+                <div>
+                  <div class="font-semibold text-gray-800">${saf(
+                    member.name || "알 수 없음"
+                  )}</div>
+                  <div class="text-xs text-gray-500">${
+                    member.studentId || ""
+                  } · ${member.college || ""}</div>
+                  ${
+                    matchedKeywords.length > 0
+                      ? `<div class="text-xs text-orange-500 mt-0.5">
+                          <i class="fas fa-search mr-1"></i>${matchedKeywords.join(
+                            ", "
+                          )} 검색어로 매칭
+                        </div>`
+                      : ""
+                  }
+                </div>
+              </div>
+              <button
+                type="button"
+                class="px-3 py-1 bg-orange-500 hover:bg-orange-600 text-white rounded text-sm transition-colors"
+                onclick="addMemberToGroup('${groupId}', '${
+              member.studentId
+            }', '${saf(member.name).replace(/'/g, "\\'")}')"
+              >
+                <i class="fas fa-plus mr-1"></i>추가
+              </button>
+            </div>
+          `;
+          })
+          .join("");
+      };
+
+      // 조모임에 회원 추가
+      window.addMemberToGroup = async function (
+        groupId,
+        studentId,
+        memberName
+      ) {
+        try {
+          const groupRef = doc(db, "groups", groupId);
+          const groupDoc = await getDoc(groupRef);
+
+          if (!groupDoc.exists()) {
+            showAlert("😥", "조모임을 찾을 수 없습니다.");
+            return;
+          }
+
+          const groupData = groupDoc.data();
+          const currentMembers = groupData.members || [];
+
+          // 이미 포함되어 있는지 확인
+          const isAlreadyMember = currentMembers.some(
+            (m) =>
+              (typeof m === "object" && m.studentId === studentId) ||
+              (typeof m === "string" && m === studentId) ||
+              (typeof m === "string" && m === memberName)
+          );
+
+          if (isAlreadyMember) {
+            showAlert("😥", "이미 해당 조에 소속된 회원입니다.");
+            return;
+          }
+
+          // 회원 추가 (객체 형태로 저장: {studentId, name, role: 'member'})
+          const newMember = {
+            studentId: studentId,
+            name: memberName,
+            role: "member",
+          };
+
+          await updateDoc(groupRef, {
+            members: [...currentMembers, newMember],
+            lastUpdated: new Date().toISOString(),
+          });
+
+          showAlert("✅", `${memberName} 회원이 추가되었습니다.`);
+
+          // groupsData 새로고침 (onSnapshot이 자동으로 업데이트해줌)
+          // 모달 새로고침을 위해 잠시 대기
+          setTimeout(() => {
+            const group = groupsData.find((g) => g.id === groupId);
+            if (group) {
+              const currentMembersDiv = document.getElementById(
+                "group-current-members"
+              );
+              if (currentMembersDiv) {
+                currentMembersDiv.innerHTML = renderGroupMembersList(
+                  group.members || [],
+                  groupId
+                );
+              }
+              // 검색 결과에서 제거
+              searchMembersForGroup(
+                document.getElementById("group-member-search")?.value || "",
+                groupId
+              );
+            }
+          }, 500);
+        } catch (error) {
+          console.error("회원 추가 오류:", error);
+          showAlert("😥", "회원 추가에 실패했습니다.");
+        }
+      };
+
+      // 조모임에서 회원 제거
+      window.removeGroupMember = async function (groupId, memberIdentifier) {
+        if (!confirm("정말로 이 회원을 조에서 제거하시겠습니까?")) {
+          return;
+        }
+
+        try {
+          const groupRef = doc(db, "groups", groupId);
+          const groupDoc = await getDoc(groupRef);
+
+          if (!groupDoc.exists()) {
+            showAlert("😥", "조모임을 찾을 수 없습니다.");
+            return;
+          }
+
+          const groupData = groupDoc.data();
+          const currentMembers = groupData.members || [];
+
+          // 회원 제거 (studentId 또는 name으로 매칭)
+          const updatedMembers = currentMembers.filter((m) => {
+            if (typeof m === "object") {
+              return (
+                m.studentId !== memberIdentifier && m.name !== memberIdentifier
+              );
+            }
+            return m !== memberIdentifier;
+          });
+
+          await updateDoc(groupRef, {
+            members: updatedMembers,
+            lastUpdated: new Date().toISOString(),
+          });
+
+          showAlert("✅", "회원이 제거되었습니다.");
+
+          // groupsData 새로고침 (onSnapshot이 자동으로 업데이트해줌)
+          // 모달 새로고침을 위해 잠시 대기
+          setTimeout(() => {
+            const group = groupsData.find((g) => g.id === groupId);
+            if (group) {
+              const currentMembersDiv = document.getElementById(
+                "group-current-members"
+              );
+              if (currentMembersDiv) {
+                currentMembersDiv.innerHTML = renderGroupMembersList(
+                  group.members || [],
+                  groupId
+                );
+              }
+              // 검색 결과 새로고침
+              const searchInput = document.getElementById(
+                "group-member-search"
+              );
+              if (searchInput) {
+                searchMembersForGroup(searchInput.value, groupId);
+              }
+            }
+          }, 500);
+        } catch (error) {
+          console.error("회원 제거 오류:", error);
+          showAlert("😥", "회원 제거에 실패했습니다.");
+        }
+      };
+
+      // 조모임 회원 역할 변경 (조장/부조장/일반)
+      window.setGroupMemberRole = async function (
+        groupId,
+        memberIdentifier,
+        role
+      ) {
+        try {
+          const groupRef = doc(db, "groups", groupId);
+          const groupDoc = await getDoc(groupRef);
+
+          if (!groupDoc.exists()) {
+            showAlert("😥", "조모임을 찾을 수 없습니다.");
+            return;
+          }
+
+          const groupData = groupDoc.data();
+          const currentMembers = groupData.members || [];
+
+          // 역할 변경
+          const updatedMembers = currentMembers.map((m) => {
+            if (typeof m === "object") {
+              if (
+                m.studentId === memberIdentifier ||
+                m.name === memberIdentifier
+              ) {
+                // 조장으로 임명할 때, 기존 조장을 일반 회원으로 변경
+                if (role === "leader") {
+                  // 다른 조장 찾아서 일반 회원으로 변경
+                  return { ...m, role: "member" };
+                }
+                return { ...m, role: role };
+              }
+              return m;
+            } else {
+              // 문자열인 경우 객체로 변환 필요
+              if (m === memberIdentifier) {
+                const memberInfo = membersData.find(
+                  (mem) =>
+                    mem.studentId === memberIdentifier ||
+                    mem.name === memberIdentifier
+                );
+                return {
+                  studentId: memberInfo?.studentId || memberIdentifier,
+                  name: memberInfo?.name || memberIdentifier,
+                  role: role,
+                };
+              }
+              return m;
+            }
+          });
+
+          // 조장은 한 명만 있어야 함
+          if (role === "leader") {
+            // 다른 조장들을 일반 회원으로 변경
+            updatedMembers.forEach((m, idx) => {
+              if (typeof m === "object" && m.role === "leader") {
+                const isTarget =
+                  m.studentId === memberIdentifier ||
+                  m.name === memberIdentifier;
+                if (!isTarget) {
+                  updatedMembers[idx] = { ...m, role: "member" };
+                }
+              }
+            });
+
+            // 현재 선택된 회원을 조장으로 변경
+            const targetIndex = updatedMembers.findIndex((m) => {
+              if (typeof m === "object") {
+                return (
+                  m.studentId === memberIdentifier ||
+                  m.name === memberIdentifier
+                );
+              }
+              return m === memberIdentifier;
+            });
+
+            if (targetIndex >= 0) {
+              if (typeof updatedMembers[targetIndex] === "object") {
+                updatedMembers[targetIndex] = {
+                  ...updatedMembers[targetIndex],
+                  role: "leader",
+                };
+              } else {
+                const memberInfo = membersData.find(
+                  (mem) =>
+                    mem.studentId === memberIdentifier ||
+                    mem.name === memberIdentifier
+                );
+                updatedMembers[targetIndex] = {
+                  studentId: memberInfo?.studentId || memberIdentifier,
+                  name: memberInfo?.name || memberIdentifier,
+                  role: "leader",
+                };
+              }
+            }
+          }
+
+          await updateDoc(groupRef, {
+            members: updatedMembers,
+            lastUpdated: new Date().toISOString(),
+          });
+
+          const roleText =
+            role === "leader"
+              ? "조장"
+              : role === "subleader"
+              ? "부조장"
+              : "일반 회원";
+          showAlert("✅", `회원 역할이 ${roleText}으로 변경되었습니다.`);
+
+          // groupsData 새로고침 (onSnapshot이 자동으로 업데이트해줌)
+          // 모달 새로고침을 위해 잠시 대기
+          setTimeout(() => {
+            const group = groupsData.find((g) => g.id === groupId);
+            if (group) {
+              const currentMembersDiv = document.getElementById(
+                "group-current-members"
+              );
+              if (currentMembersDiv) {
+                currentMembersDiv.innerHTML = renderGroupMembersList(
+                  group.members || [],
+                  groupId
+                );
+              }
+            }
+          }, 500);
+        } catch (error) {
+          console.error("역할 변경 오류:", error);
+          showAlert("😥", "역할 변경에 실패했습니다.");
+        }
+      };
 
       /* ===== 문의 관리 ===== */
       function renderInquiriesAdmin(container) {
@@ -18278,6 +19031,18 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
             if (rankModal && !rankModal.classList.contains("hidden")) {
               renderRankList();
             }
+
+            // 관리자 대시보드의 조모임 관리 탭이 열려있으면 새로고침
+            if (
+              currentMainTab === "dashboard" &&
+              currentDashboardTab === "groups"
+            ) {
+              const subtabContainer =
+                document.getElementById("subtab-container");
+              if (subtabContainer) {
+                renderGroupsAdmin(subtabContainer);
+              }
+            }
           },
           (error) => {
             console.error("조모임 데이터 로드 오류:", error);
@@ -18402,50 +19167,217 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
         const isAdmin =
           currentUser && adminList.includes(currentUser.studentId);
 
-        const html = rankData
-          .map(
-            (item, index) => `
-          <div class="p-3 bg-gray-50 rounded-lg relative">
-            <div class="flex items-center justify-between mb-2">
-              <div class="flex items-center gap-3">
-                <div class="text-2xl font-bold text-orange-600">${
-                  item.rank
-                }위</div>
-                <div class="font-bold text-gray-800">${item.name}</div>
+        // 현재 사용자가 속한 조 찾기
+        let userGroup = null;
+        let userGroupRank = null;
+        if (currentUser && currentUser.studentId) {
+          userGroup = rankData.find((group) => {
+            const members = group.members || [];
+            return members.some((m) => {
+              if (typeof m === "object") {
+                return m.studentId === currentUser.studentId;
+              }
+              return m === currentUser.studentId || m === currentUser.name;
+            });
+          });
+          if (userGroup) {
+            userGroupRank = userGroup.rank;
+          }
+        }
+
+        // 사용자 조의 앞뒤 조와 점수 차이 계산
+        let prevGroup = null;
+        let nextGroup = null;
+        let scoreDiffPrev = null;
+        let scoreDiffNext = null;
+
+        if (userGroup) {
+          // 앞 조 (더 높은 점수, 낮은 순위)
+          if (userGroupRank > 1) {
+            prevGroup = rankData.find((g) => g.rank === userGroupRank - 1);
+            if (prevGroup) {
+              scoreDiffPrev = prevGroup.score - userGroup.score;
+            }
+          }
+
+          // 뒤 조 (더 낮은 점수, 높은 순위)
+          if (userGroupRank < rankData.length) {
+            nextGroup = rankData.find((g) => g.rank === userGroupRank + 1);
+            if (nextGroup) {
+              scoreDiffNext = userGroup.score - nextGroup.score;
+            }
+          }
+        }
+
+        // 사용자 조 강조 표시 (상단)
+        let userGroupHTML = "";
+        if (userGroup) {
+          userGroupHTML = `
+            <div class="mb-6 pb-6 border-b-4 border-orange-400">
+              <div class="bg-gradient-to-br from-orange-400 to-orange-600 rounded-2xl p-6 shadow-xl">
+                <div class="text-center mb-4">
+                  <div class="text-5xl font-black text-white mb-2">${userGroupRank}위</div>
+                  <div class="text-3xl font-bold text-white mb-4">${saf(
+                    userGroup.name
+                  )}</div>
+                  <div class="text-4xl font-black text-yellow-200">${
+                    userGroup.score
+                  }점</div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4 mt-4">
+                  ${
+                    prevGroup
+                      ? `
+                      <div class="bg-white/20 backdrop-blur-sm rounded-xl p-4 text-center">
+                        <div class="text-xs text-orange-100 mb-1">${
+                          prevGroup.rank
+                        }위</div>
+                        <div class="text-lg font-bold text-white mb-1">${saf(
+                          prevGroup.name
+                        )}</div>
+                        <div class="text-2xl font-black text-yellow-200">${
+                          prevGroup.score
+                        }점</div>
+                        ${
+                          scoreDiffPrev !== null
+                            ? `<div class="text-sm mt-2 ${
+                                scoreDiffPrev > 0
+                                  ? "text-red-200"
+                                  : "text-green-200"
+                              }">
+                              <i class="fas ${
+                                scoreDiffPrev > 0 ? "fa-arrow-up" : "fa-equals"
+                              } mr-1"></i>
+                              ${
+                                scoreDiffPrev > 0
+                                  ? `${scoreDiffPrev}점 차이`
+                                  : "동점"
+                              }
+                            </div>`
+                            : ""
+                        }
+                      </div>
+                    `
+                      : `<div class="bg-white/10 rounded-xl p-4 text-center">
+                        <div class="text-sm text-orange-100">위치 없음</div>
+                      </div>`
+                  }
+                  
+                  ${
+                    nextGroup
+                      ? `
+                      <div class="bg-white/20 backdrop-blur-sm rounded-xl p-4 text-center">
+                        <div class="text-xs text-orange-100 mb-1">${
+                          nextGroup.rank
+                        }위</div>
+                        <div class="text-lg font-bold text-white mb-1">${saf(
+                          nextGroup.name
+                        )}</div>
+                        <div class="text-2xl font-black text-yellow-200">${
+                          nextGroup.score
+                        }점</div>
+                        ${
+                          scoreDiffNext !== null
+                            ? `<div class="text-sm mt-2 text-green-200">
+                              <i class="fas fa-arrow-down mr-1"></i>
+                              ${scoreDiffNext}점 앞서있음
+                            </div>`
+                            : ""
+                        }
+                      </div>
+                    `
+                      : `<div class="bg-white/10 rounded-xl p-4 text-center">
+                        <div class="text-sm text-orange-100">위치 없음</div>
+                      </div>`
+                  }
+                </div>
               </div>
-              <div class="text-xl font-bold text-orange-600">${
-                item.score
-              }점</div>
             </div>
-            ${
-              item.members.length > 0 &&
-              currentUser &&
-              adminList.includes(currentUser.studentId)
-                ? `<div class="text-sm text-gray-600 mb-2">${item.members.join(
-                    ", "
-                  )}</div>`
-                : ""
-            }
-            ${
-              isAdmin
-                ? `
-              <div class="flex gap-1 justify-start">
-                <button class="edit-group-btn bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600 transition-colors" 
-                        data-group-id="${item.id}" data-group-name="${item.name}" data-group-score="${item.score}" title="수정">
-                  <i class="fas fa-edit"></i>
-                </button>
-                <button class="delete-group-btn bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600 transition-colors" 
-                        data-group-id="${item.id}" data-group-name="${item.name}" title="삭제">
-                  <i class="fas fa-trash"></i>
-                </button>
-              </div>
-            `
-                : ""
-            }
+          `;
+        }
+
+        // 전체 순위 목록 (아래 스크롤 영역)
+        const allRanksHTML = `
+          <div class="mt-6">
+            <h4 class="text-lg font-bold text-gray-800 mb-3 flex items-center">
+              <i class="fas fa-list-ol mr-2 text-orange-600"></i>
+              전체 순위
+            </h4>
+            <div class="space-y-2">
+              ${rankData
+                .map(
+                  (item, index) => `
+                <div class="p-3 rounded-lg relative ${
+                  userGroup && item.id === userGroup.id
+                    ? "bg-orange-100 border-2 border-orange-400"
+                    : "bg-gray-50 border border-gray-200"
+                }">
+                  <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center gap-3">
+                      <div class="text-2xl font-bold ${
+                        userGroup && item.id === userGroup.id
+                          ? "text-orange-600"
+                          : "text-gray-600"
+                      }">${item.rank}위</div>
+                      <div class="font-bold ${
+                        userGroup && item.id === userGroup.id
+                          ? "text-orange-800"
+                          : "text-gray-800"
+                      }">${item.name}</div>
+                      ${
+                        userGroup && item.id === userGroup.id
+                          ? '<span class="px-2 py-0.5 bg-orange-500 text-white text-xs font-bold rounded">내 조</span>'
+                          : ""
+                      }
+                    </div>
+                    <div class="text-xl font-bold ${
+                      userGroup && item.id === userGroup.id
+                        ? "text-orange-600"
+                        : "text-gray-600"
+                    }">${item.score}점</div>
+                  </div>
+                  ${
+                    item.members &&
+                    item.members.length > 0 &&
+                    currentUser &&
+                    adminList.includes(currentUser.studentId)
+                      ? `<div class="text-sm text-gray-600 mb-2">${
+                          typeof item.members[0] === "object"
+                            ? item.members
+                                .map((m) => m.name || m.studentId)
+                                .join(", ")
+                            : item.members.join(", ")
+                        }</div>`
+                      : ""
+                  }
+                  ${
+                    isAdmin
+                      ? `
+                    <div class="flex gap-1 justify-start">
+                      <button class="edit-group-btn bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600 transition-colors" 
+                              data-group-id="${item.id}" data-group-name="${saf(
+                          item.name
+                        )}" data-group-score="${item.score}" title="수정">
+                        <i class="fas fa-edit"></i>
+                      </button>
+                      <button class="delete-group-btn bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600 transition-colors" 
+                              data-group-id="${item.id}" data-group-name="${saf(
+                          item.name
+                        )}" title="삭제">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </div>
+                  `
+                      : ""
+                  }
+                </div>
+              `
+                )
+                .join("")}
+            </div>
           </div>
-        `
-          )
-          .join("");
+        `;
 
         const adminControls = document.getElementById("rank-admin-controls");
         const adminActions = document.getElementById("rank-admin-actions");
@@ -18459,7 +19391,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
         }
 
         container.innerHTML =
-          html ||
+          userGroupHTML + allRanksHTML ||
           `<div class="text-center text-gray-400 py-4">
             <i class="fas fa-info-circle text-2xl mb-2"></i>
             <p>조모임 데이터가 없습니다.</p>
@@ -21853,7 +22785,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                 <input 
                   type="text" 
                   id="restaurant-search-input"
-                  placeholder="식당 이름으로 검색... (예: 영등동골목길)"
+                  placeholder="무엇이든 입력해보세요! 식당 이름, 메뉴, 리뷰 내용 등..."
                   class="w-full px-4 py-3 sm:py-2 pl-12 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-orange-400 transition-colors text-gray-900 placeholder-gray-400 text-base"
                 />
                 <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
@@ -21901,8 +22833,14 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
         let currentCategory = "all"; // 현재 선택된 카테고리
 
         if (searchInput && tastingRestaurants.length > 0) {
+          // 검색 함수: 띄어쓰기 제거하고 소문자로 변환
+          const normalizeSearchText = (text) => {
+            return (text || "").toLowerCase().replace(/\s+/g, "");
+          };
+
           const performSearch = () => {
             const searchTerm = searchInput.value.trim().toLowerCase();
+            const normalizedSearchTerm = normalizeSearchText(searchTerm);
 
             // 검색어가 있으면 초기화 버튼 표시
             if (searchTerm) {
@@ -21919,11 +22857,38 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
               );
             }
 
-            // 검색 필터링
+            // 검색 필터링: 식당 이름, 대표 메뉴, 리뷰 내용 모두 검색
             const filteredRestaurants = searchTerm
-              ? filtered.filter((r) =>
-                  r.restaurantName.toLowerCase().includes(searchTerm)
-                )
+              ? filtered.filter((r) => {
+                  // 식당 이름 검색
+                  const nameMatch = normalizedSearchTerm
+                    ? normalizeSearchText(r.restaurantName).includes(
+                        normalizedSearchTerm
+                      )
+                    : false;
+
+                  // 대표 메뉴 검색
+                  const menuMatch =
+                    normalizedSearchTerm && r.restaurantInfo
+                      ? normalizeSearchText(r.restaurantInfo).includes(
+                          normalizedSearchTerm
+                        )
+                      : false;
+
+                  // 리뷰 내용 검색
+                  const reviewMatch =
+                    normalizedSearchTerm && r.reviews && r.reviews.length > 0
+                      ? r.reviews.some(
+                          (review) =>
+                            review.comment &&
+                            normalizeSearchText(review.comment).includes(
+                              normalizedSearchTerm
+                            )
+                        )
+                      : false;
+
+                  return nameMatch || menuMatch || reviewMatch;
+                })
               : filtered;
 
             // 검색 결과 카운트 표시
@@ -21955,7 +22920,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                   <p class="text-lg font-semibold mb-2">"${saf(
                     searchTerm
                   )}" 검색 결과가 없습니다</p>
-                  <p class="text-sm">다른 식당 이름으로 검색해보세요</p>
+                  <p class="text-sm">다른 키워드로 검색해보세요 (식당 이름, 대표 메뉴, 리뷰 내용)</p>
                 </div>
               `;
             } else if (currentCategory !== "all") {
