@@ -1930,12 +1930,17 @@
             >
               🏅 조모임
             </button>
-            <!-- 문의 버튼 -->
+            <!-- 받은함 버튼 (알림 + 문의) -->
             <button
-              id="inquiry-button"
-              class="text-sm md:text-base bg-blue-500 text-white rounded-full px-3 py-1 hover:bg-blue-600 shadow-md hover:shadow-lg transition-all"
+              id="notification-badge"
+              class="text-sm md:text-base bg-orange-500 text-white rounded-full px-3 py-1 hover:bg-orange-600 shadow-md hover:shadow-lg transition-all relative"
             >
-              <i class="fas fa-question-circle mr-1"></i>문의
+              <i class="fas fa-inbox mr-1"></i>
+              <span
+                id="notification-count"
+                class="hidden bg-red-600 text-white text-xs font-bold rounded-full px-1.5 py-0.5 ml-1"
+                >0</span
+              >
             </button>
           </div>
         </div>
@@ -1949,6 +1954,24 @@
             현재 접속자
           </div>
           <div id="presence-list" class="max-h-64 overflow-auto text-sm"></div>
+        </div>
+
+        <!-- 알림 팝오버 -->
+        <div
+          id="notification-pop"
+          class="hidden right-0 left-0 mx-auto md:left-auto md:right-10 md:mx-0 w-full max-w-sm bg-white border rounded-xl shadow-xl p-3 z-30 mt-2"
+        >
+          <div class="flex items-center justify-end mb-2">
+            <button
+              class="text-xs text-blue-600 hover:text-blue-800"
+              onclick="openInquiryModal()"
+            >
+              <i class="fas fa-paper-plane mr-1"></i>문의 보내기
+            </button>
+          </div>
+          <div id="notification-list" class="max-h-80 overflow-auto text-sm">
+            <div class="text-center text-gray-500 py-4">알림이 없습니다</div>
+          </div>
         </div>
       </header>
 
@@ -2902,6 +2925,7 @@
       let presenceData = [];
       let onlineUsers = [];
       let inquiriesData = [];
+      let notificationsData = [];
       let memberSearchTerm = "";
       let editingEventId = null;
       let restaurantCategories = [
@@ -2968,6 +2992,9 @@
         presenceCount: document.getElementById("presence-count"),
         presencePop: document.getElementById("presence-pop"),
         presenceList: document.getElementById("presence-list"),
+        notificationBadge: document.getElementById("notification-badge"),
+        notificationPop: document.getElementById("notification-pop"),
+        notificationList: document.getElementById("notification-list"),
         blockEditor: document.getElementById("block-editor"),
         blockEditorTitle: document.getElementById("block-editor-title"),
         blockEditorBody: document.getElementById("block-editor-body"),
@@ -4163,6 +4190,14 @@
           el.presencePop.classList.toggle("hidden")
         );
 
+      // 알림 버튼 클릭 이벤트
+      const notificationBadgeEl = document.getElementById("notification-badge");
+      if (notificationBadgeEl) {
+        notificationBadgeEl.addEventListener("click", () => {
+          el.notificationPop?.classList.toggle("hidden");
+        });
+      }
+
       /* ===== 리스너 ===== */
       const unsubPublic = {
         admins: null,
@@ -4172,6 +4207,7 @@
         customPositions: null,
         roadmap: null,
         events: null,
+        notifications: null,
       };
       const unsubAdmin = {
         suggestions: null,
@@ -4539,6 +4575,28 @@
             (err) => console.warn("foodMenus:", err?.message)
           );
         }
+        // 알림 구독 (로그인한 사용자에게만)
+        if (!unsubPublic.notifications && currentUser) {
+          unsubPublic.notifications = onSnapshot(
+            query(
+              collection(db, "notifications"),
+              orderBy("createdAt", "desc")
+            ),
+            (snap) => {
+              notificationsData = snap.docs.map((d) => ({
+                id: d.id,
+                ...d.data(),
+              }));
+              console.log("알림 로드됨:", notificationsData.length, "개");
+              renderNotifications();
+              if (__isInitialLoading) {
+                __loadingDataCount++;
+                checkLoadingComplete();
+              }
+            },
+            (err) => console.warn("notifications:", err?.message)
+          );
+        }
       }
       function startAdminListeners() {
         const isAdmin =
@@ -4795,19 +4853,21 @@
                 <div class="mb-2 roadmap-accordion">
                   <div class="flex items-center justify-between mb-2">
                     <h3 class="text-lg md:text-xl font-bold">F👀die 일정</h3>
-                    <button
-                      id="h-roadmap-toggle-btn"
-                      type="button"
-                      class="text-sm md:text-base bg-orange-500 text-white rounded-full px-3 py-1 hover:bg-orange-600 transition-colors flex items-center gap-1.5"
-                    >
-                        <i class="fas fa-calendar-alt"></i>
-                        <span id="h-roadmap-toggle-text">캘린더</span>
-                        <i class="fas fa-chevron-down text-xs transition-transform duration-200" id="h-roadmap-chevron"></i>
-                    </button>
                   </div>
                   <div class="schedule-blocks-container" id="h-roadmap-list"></div>
                   <div class="roadmap-accordion-content" id="h-roadmap-full-list" style="max-height: 0; overflow: hidden; opacity: 0;">
                     <!-- 전체 일정이 여기에 표시됩니다 -->
+                  </div>
+                  <div class="mt-4">
+                    <button
+                      id="h-roadmap-big-btn"
+                      type="button"
+                      class="w-full md:w-auto md:min-w-[200px] bg-orange-600 hover:bg-orange-700 text-white font-bold px-5 py-3 rounded-xl transition-colors flex items-center justify-center gap-2 mx-auto"
+                    >
+                      <i class="fas fa-calendar-alt"></i>
+                      <span>캘린더</span>
+                      <i class="fas fa-chevron-down transition-transform duration-200" id="h-roadmap-big-chevron"></i>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -4821,10 +4881,6 @@
                 <i class="fas fa-check mr-1.5 sm:mr-2 text-base sm:text-lg md:text-xl"></i>
                 <span class="text-base sm:text-lg md:text-xl">신청</span>
               </button>
-              <button type="button" data-tab="history" class="tab-btn flex-1 py-4 sm:py-5 px-4 sm:px-5 md:px-7 rounded-xl font-bold transition-all duration-300 ease-out whitespace-nowrap">
-                <i class="fas fa-history mr-1.5 sm:mr-2 text-base sm:text-lg md:text-xl"></i>
-                <span class="text-base sm:text-lg md:text-xl">내 활동</span>
-              </button>
               <button type="button" data-tab="dashboard" class="tab-btn flex-1 py-4 sm:py-5 px-4 sm:px-5 md:px-7 rounded-xl font-bold transition-all duration-300 ease-out whitespace-nowrap ${
                 isFullAdmin() ? "" : "hidden"
               }">
@@ -4835,7 +4891,6 @@
             <div id="tab-content-container">
               <div id="roadmap-tab" class="tab-content active"></div>
               <div id="reservation-tab" class="tab-content"></div>
-              <div id="history-tab" class="tab-content"></div>
               <div id="suggestions-tab" class="tab-content"></div>
               <div id="dashboard-tab" class="tab-content"></div>
             </div>`;
@@ -4935,12 +4990,12 @@
 
           // 메뉴 정하기 버튼 이벤트 삭제됨 (카테고리 선택 방식으로 변경)
           document
-            .getElementById("h-roadmap-toggle-btn")
+            .getElementById("h-roadmap-big-btn")
             .addEventListener("click", () => {
               roadmapShowAll = !roadmapShowAll;
 
               // 셰브론 아이콘 애니메이션
-              const chevron = document.getElementById("h-roadmap-chevron");
+              const chevron = document.getElementById("h-roadmap-big-chevron");
               if (chevron) {
                 chevron.style.transform = roadmapShowAll
                   ? "rotate(180deg)"
@@ -6997,6 +7052,11 @@
               <span class="${textColor} font-mono text-xs">(${maskStudentId(
                 a.studentId
               )})</span>
+              ${
+                isFullAdmin()
+                  ? `<button class="ml-1 text-red-600 hover:text-red-800 transition-colors" onclick="confirmRemoveParticipant('${ev.id}', '${a.studentId}', 'applicants')" title="참가자 제외"><i class="fas fa-times"></i></button>`
+                  : ""
+              }
             </span>`
           );
 
@@ -7039,6 +7099,11 @@
               <span class="${textColor} font-mono text-xs">(${maskStudentId(
                 a.studentId
               )})</span>
+              ${
+                isFullAdmin()
+                  ? `<button class="ml-1 text-red-600 hover:text-red-800 transition-colors" onclick="confirmRemoveParticipant('${ev.id}', '${a.studentId}', 'waiting')" title="대기자 제외"><i class="fas fa-times"></i></button>`
+                  : ""
+              }
             </span>`
           );
 
@@ -7077,46 +7142,36 @@
           ev.type
         )}" data-event-id="${
           ev.id
-        }" style="position: relative; z-index: 1; margin-bottom: 1.5rem; height: auto; overflow: visible; clear: both;">
-                  <h3 class="text-xl font-bold text-gray-800">${saf(
+        }" style="position: relative; z-index: 1; margin-bottom: 1rem; padding: 1rem; height: auto; overflow: visible; clear: both;">
+                  <h3 class="text-lg font-bold text-gray-800 mb-2">${saf(
                     ev.title
                   )}</h3>
-                  <div class="mt-2 space-y-1">
-                    <div class="flex items-center gap-2">
-                      <div class="bg-orange-100 text-orange-800 px-3 py-1.5 rounded-lg flex items-center gap-2 flex-1">
-                        <i class="fas fa-calendar-check text-orange-600"></i>
-                                    <span class="text-sm font-medium">이벤트 실시일: ${
-                                      ev.datetime
-                                        ? new Date(ev.datetime).toLocaleString(
-                                            "ko-KR",
-                                            {
-                                              month: "long",
-                                              day: "numeric",
-                                              hour: "2-digit",
-                                              minute: "2-digit",
-                                            }
-                                          )
-                                        : "-"
-                                    }</span>
-                                  </div>
+                  <div class="mt-2 space-y-2">
+                    <div class="bg-orange-100 border-2 border-orange-400 text-orange-900 px-3 py-2 rounded-lg flex items-center gap-2">
+                      <i class="fas fa-calendar-check text-orange-600 text-base"></i>
+                      <span class="text-sm font-bold">이벤트 실시일: ${
+                        ev.datetime
+                          ? new Date(ev.datetime).toLocaleString("ko-KR", {
+                              month: "long",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })
+                          : "-"
+                      }</span>
                     </div>
-                    <div class="flex items-center gap-2">
-                      <div class="bg-red-100 text-red-800 px-3 py-1.5 rounded-lg flex items-center gap-2 flex-1">
-                        <i class="fas fa-clock text-red-600"></i>
-                                    <span class="text-sm font-medium">신청 마감일: ${
-                                      ev.deadline
-                                        ? new Date(ev.deadline).toLocaleString(
-                                            "ko-KR",
-                                            {
-                                              month: "long",
-                                              day: "numeric",
-                                              hour: "2-digit",
-                                              minute: "2-digit",
-                                            }
-                                          )
-                                        : "미설정"
-                                    }</span>
-                                  </div>
+                    <div class="bg-red-100 border-2 border-red-400 text-red-900 px-3 py-2 rounded-lg flex items-center gap-2">
+                      <i class="fas fa-clock text-red-600 text-base"></i>
+                      <span class="text-sm font-bold">신청 마감일: ${
+                        ev.deadline
+                          ? new Date(ev.deadline).toLocaleString("ko-KR", {
+                              month: "long",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })
+                          : "미설정"
+                      }</span>
                     </div>
                   </div>
                   ${paymentInfoHTML(ev)}
@@ -7140,27 +7195,83 @@
                       ? `
                   <div class="mt-3">
                     ${
-                      (ev.applicants || []).length > 0 && isFullAdmin()
+                      (ev.applicants || []).length > 0
                         ? `<div class="mt-2 text-xs text-gray-600">
-                          <div class="font-medium mb-1 text-xs">참가자 (${
-                            (ev.applicants || []).length
-                          }명)</div>
-                          <div class="flex flex-wrap gap-1">
-                            ${namesList}
-                  </div>
-                        </div>`
+                            <div class="flex items-center justify-between mb-1">
+                              <span class="font-medium text-xs">참가자 (${
+                                (ev.applicants || []).length
+                              }명)</span>
+                              ${
+                                isFullAdmin()
+                                  ? `<button 
+                                      type="button"
+                                      class="text-xs px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded text-gray-700 transition-colors"
+                                      onclick="toggleParticipantsPublicVisibility('${
+                                        ev.id
+                                      }', 'applicants')"
+                                      id="toggle-participants-public-${ev.id}"
+                                    >
+                                      <i class="fas ${
+                                        ev.participantsVisibleToAll
+                                          ? "fa-user-lock"
+                                          : "fa-users"
+                                      } mr-1"></i>${
+                                      ev.participantsVisibleToAll
+                                        ? "회장단만"
+                                        : "모두 보이기"
+                                    }
+                                    </button>`
+                                  : ""
+                              }
+                            </div>
+                            ${
+                              ev.participantsVisibleToAll || isFullAdmin()
+                                ? `<div class="flex flex-wrap gap-1">
+                                    ${namesList}
+                                  </div>`
+                                : ""
+                            }
+                          </div>`
                         : ""
                     }
                     ${
-                      (ev.waiting || []).length > 0 && isFullAdmin()
+                      (ev.waiting || []).length > 0
                         ? `<div class="mt-2 text-xs text-gray-600">
-                          <div class="font-medium mb-1 text-xs">대기자 (${
-                            (ev.waiting || []).length
-                          }명)</div>
-                          <div class="flex flex-wrap gap-1">
-                            ${waitingList}
-                  </div>
-                        </div>`
+                            <div class="flex items-center justify-between mb-1">
+                              <span class="font-medium text-xs">대기자 (${
+                                (ev.waiting || []).length
+                              }명)</span>
+                              ${
+                                isFullAdmin()
+                                  ? `<button 
+                                      type="button"
+                                      class="text-xs px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded text-gray-700 transition-colors"
+                                      onclick="toggleParticipantsPublicVisibility('${
+                                        ev.id
+                                      }', 'waiting')"
+                                      id="toggle-waiting-public-${ev.id}"
+                                    >
+                                      <i class="fas ${
+                                        ev.waitingVisibleToAll
+                                          ? "fa-user-lock"
+                                          : "fa-users"
+                                      } mr-1"></i>${
+                                      ev.waitingVisibleToAll
+                                        ? "회장단만"
+                                        : "모두 보이기"
+                                    }
+                                    </button>`
+                                  : ""
+                              }
+                            </div>
+                            ${
+                              ev.waitingVisibleToAll || isFullAdmin()
+                                ? `<div class="flex flex-wrap gap-1">
+                                    ${waitingList}
+                                  </div>`
+                                : ""
+                            }
+                          </div>`
                         : ""
                     }
                   </div>
@@ -7286,6 +7397,11 @@
                     <span class="${textColor} font-mono text-xs">(${maskStudentId(
                       a.studentId
                     )})</span>
+                    ${
+                      isFullAdmin()
+                        ? `<button class="ml-1 text-red-600 hover:text-red-800 transition-colors" onclick="confirmRemoveParticipant('${ev.id}', '${a.studentId}', '${type}', '${restaurantId}')" title="참가자 제외"><i class="fas fa-times"></i></button>`
+                        : ""
+                    }
                   </span>`
                 );
 
@@ -7316,38 +7432,98 @@
             };
 
             const namesList =
-              (r.reservations || []).length > 0 && isFullAdmin()
+              (r.reservations || []).length > 0
                 ? `<div class="mt-2 text-xs text-gray-600">
-                  <div class="font-medium mb-1 text-xs">참가자 (${
-                    (r.reservations || []).length
-                  }명)</div>
-                  <div class="flex flex-wrap gap-1">
-                    ${createRestaurantParticipantsList(
-                      r.reservations || [],
-                      "bg-orange-100",
-                      "text-orange-800",
-                      r.id,
-                      "reservations"
-                    )}
-                  </div>
-                </div>`
+                    <div class="flex items-center justify-between mb-1">
+                      <span class="font-medium text-xs">참가자 (${
+                        (r.reservations || []).length
+                      }명)</span>
+                      ${
+                        isFullAdmin()
+                          ? `<button 
+                              type="button"
+                              class="text-xs px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded text-gray-700 transition-colors"
+                              onclick="toggleRestaurantParticipantsPublicVisibility('${
+                                ev.id
+                              }', '${r.id}', 'reservations')"
+                              id="toggle-restaurant-participants-public-${
+                                ev.id
+                              }-${r.id}"
+                            >
+                              <i class="fas ${
+                                ev.participantsVisibleToAll
+                                  ? "fa-user-lock"
+                                  : "fa-users"
+                              } mr-1"></i>${
+                              ev.participantsVisibleToAll
+                                ? "회장단만"
+                                : "모두 보이기"
+                            }
+                            </button>`
+                          : ""
+                      }
+                    </div>
+                    ${
+                      ev.participantsVisibleToAll || isFullAdmin()
+                        ? `<div class="flex flex-wrap gap-1">
+                            ${createRestaurantParticipantsList(
+                              r.reservations || [],
+                              "bg-orange-100",
+                              "text-orange-800",
+                              r.id,
+                              "reservations"
+                            )}
+                          </div>`
+                        : ""
+                    }
+                  </div>`
                 : "";
             const waitingList =
-              (r.waiting || []).length > 0 && isFullAdmin()
+              (r.waiting || []).length > 0
                 ? `<div class="mt-2 text-xs text-gray-600">
-                  <div class="font-medium mb-1 text-xs">대기자 (${
-                    (r.waiting || []).length
-                  }명)</div>
-                  <div class="flex flex-wrap gap-1">
-                    ${createRestaurantParticipantsList(
-                      r.waiting || [],
-                      "bg-orange-200",
-                      "text-orange-900",
-                      r.id,
-                      "waiting"
-                    )}
-                  </div>
-                </div>`
+                    <div class="flex items-center justify-between mb-1">
+                      <span class="font-medium text-xs">대기자 (${
+                        (r.waiting || []).length
+                      }명)</span>
+                      ${
+                        isFullAdmin()
+                          ? `<button 
+                              type="button"
+                              class="text-xs px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded text-gray-700 transition-colors"
+                              onclick="toggleRestaurantParticipantsPublicVisibility('${
+                                ev.id
+                              }', '${r.id}', 'waiting')"
+                              id="toggle-restaurant-waiting-public-${ev.id}-${
+                              r.id
+                            }"
+                            >
+                              <i class="fas ${
+                                ev.waitingVisibleToAll
+                                  ? "fa-user-lock"
+                                  : "fa-users"
+                              } mr-1"></i>${
+                              ev.waitingVisibleToAll
+                                ? "회장단만"
+                                : "모두 보이기"
+                            }
+                            </button>`
+                          : ""
+                      }
+                    </div>
+                    ${
+                      ev.waitingVisibleToAll || isFullAdmin()
+                        ? `<div class="flex flex-wrap gap-1">
+                            ${createRestaurantParticipantsList(
+                              r.waiting || [],
+                              "bg-orange-200",
+                              "text-orange-900",
+                              r.id,
+                              "waiting"
+                            )}
+                          </div>`
+                        : ""
+                    }
+                  </div>`
                 : "";
             return `<div class="p-4 bg-gray-50 rounded-lg">
                     <div class="flex items-start gap-4 mb-3">
@@ -7419,53 +7595,45 @@
           ev.type
         )}" data-event-id="${
           ev.id
-        }" style="position: relative; z-index: 1; margin-bottom: 2rem; height: auto; overflow: visible; clear: both;">
+        }" style="position: relative; z-index: 1; margin-bottom: 1rem; padding: 1rem; height: auto; overflow: visible; clear: both;">
                   <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-                    <div class="p-4 border-b border-gray-100">
+                    <div class="p-3 border-b border-gray-100">
                       <div class="flex justify-between items-center mb-2">
-                  <h3 class="text-xl font-bold text-gray-800">${saf(
+                  <h3 class="text-lg font-bold text-gray-800">${saf(
                     ev.title
                   )}</h3>
-                        <span class="px-3 py-1.5 rounded-full text-sm font-medium ${typeBadgeClass(
+                        <span class="px-2 py-1 rounded-full text-xs font-medium ${typeBadgeClass(
                           ev.type
-                        )} min-h-[32px] flex items-center justify-center">
+                        )} min-h-[28px] flex items-center justify-center">
                           ${typeLabel(ev.type)}
                         </span>
                       </div>
-                      <div class="space-y-1">
-                        <div class="flex items-center gap-2">
-                          <div class="bg-orange-100 text-orange-800 px-3 py-1.5 rounded-lg flex items-center gap-2 flex-1">
-                            <i class="fas fa-calendar-check text-orange-600"></i>
-                                        <span class="text-sm font-medium">이벤트 실시일: ${
-                                          ev.datetime
-                                            ? new Date(
-                                                ev.datetime
-                                              ).toLocaleString("ko-KR", {
-                                                month: "long",
-                                                day: "numeric",
-                                                hour: "2-digit",
-                                                minute: "2-digit",
-                                              })
-                                            : "-"
-                                        }</span>
-                                      </div>
+                      <div class="space-y-2">
+                        <div class="bg-orange-100 border-2 border-orange-400 text-orange-900 px-3 py-2 rounded-lg flex items-center gap-2">
+                          <i class="fas fa-calendar-check text-orange-600 text-base"></i>
+                          <span class="text-sm font-bold">이벤트 실시일: ${
+                            ev.datetime
+                              ? new Date(ev.datetime).toLocaleString("ko-KR", {
+                                  month: "long",
+                                  day: "numeric",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })
+                              : "-"
+                          }</span>
                         </div>
-                        <div class="flex items-center gap-2">
-                          <div class="bg-red-100 text-red-800 px-3 py-1.5 rounded-lg flex items-center gap-2 flex-1">
-                            <i class="fas fa-clock text-red-600"></i>
-                                        <span class="text-sm font-medium">신청 마감일: ${
-                                          ev.deadline
-                                            ? new Date(
-                                                ev.deadline
-                                              ).toLocaleString("ko-KR", {
-                                                month: "long",
-                                                day: "numeric",
-                                                hour: "2-digit",
-                                                minute: "2-digit",
-                                              })
-                                            : "미설정"
-                                        }</span>
-                                      </div>
+                        <div class="bg-red-100 border-2 border-red-400 text-red-900 px-3 py-2 rounded-lg flex items-center gap-2">
+                          <i class="fas fa-clock text-red-600 text-base"></i>
+                          <span class="text-sm font-bold">신청 마감일: ${
+                            ev.deadline
+                              ? new Date(ev.deadline).toLocaleString("ko-KR", {
+                                  month: "long",
+                                  day: "numeric",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })
+                              : "미설정"
+                          }</span>
                         </div>
                       </div>
                   ${adminStatsHTML(ev)}
@@ -7555,6 +7723,42 @@
           ? eventsData.filter((e) => e.status === "archived")
           : [];
 
+        // 내 활동 내역 (참가한 과거 이벤트)
+        const myPastEvents = currentUser
+          ? eventsData.filter((ev) => {
+              // 삭제된 이벤트는 제외
+              if (ev.status === "deleted") return false;
+
+              // 신청자 목록에서 현재 사용자 확인
+              const isApplicant = ev.applicants?.some(
+                (a) => a.studentId === currentUser.studentId
+              );
+
+              // 미식회의 경우 각 식당별 예약자 확인
+              let isRestaurantApplicant = false;
+              if (ev.type === "tasting" && ev.restaurants) {
+                isRestaurantApplicant = ev.restaurants.some((r) =>
+                  r.reservations?.some(
+                    (res) => res.studentId === currentUser.studentId
+                  )
+                );
+              }
+
+              const isParticipant = isApplicant || isRestaurantApplicant;
+
+              // 마감된 이벤트, 보관된 이벤트, 완료된 이벤트, 또는 이미 지난 이벤트
+              const isClosed =
+                ev.status === "closed" ||
+                ev.status === "archived" ||
+                ev.status === "completed";
+              const eventDate = new Date(ev.datetime);
+              const today = new Date();
+              const isPastEvent = eventDate < today;
+
+              return isParticipant && (isClosed || isPastEvent);
+            })
+          : [];
+
         const activeListHTML =
           activeEvents.length === 0
             ? `<div class="text-center py-12"><i class="fas fa-calendar-xmark text-4xl text-gray-300"></i><p class="mt-3 text-gray-500">진행 중인 이벤트/미식회가 없습니다.</p></div>`
@@ -7564,6 +7768,119 @@
                   .map(eventCardHTML)
                   .join("")}
                </div>`;
+
+        // 내 활동 내역 HTML
+        const myHistoryHTML =
+          myPastEvents.length > 0
+            ? `
+          <div class="section mt-6">
+            <div class="bg-blue-50 border-2 border-blue-200 rounded-xl overflow-hidden">
+              <button 
+                type="button" 
+                id="my-history-toggle"
+                class="w-full px-6 py-4 flex items-center justify-between hover:bg-blue-100 transition-colors"
+              >
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 bg-blue-200 rounded-full flex items-center justify-center">
+                    <i class="fas fa-history text-blue-700"></i>
+                  </div>
+                  <div class="text-left">
+                    <h4 class="text-lg font-bold text-blue-900">내 활동 내역</h4>
+                    <p class="text-sm text-blue-700">참가한 ${
+                      myPastEvents.length
+                    }개의 이벤트</p>
+                  </div>
+                </div>
+                <i class="fas fa-chevron-down text-blue-700 text-xl transition-transform" id="my-history-toggle-icon"></i>
+              </button>
+              <div id="my-history-content" class="hidden px-6 pb-6">
+                <div class="bg-white rounded-lg p-4 border-2 border-blue-200">
+                  <div class="space-y-3">
+                    ${myPastEvents
+                      .sort(
+                        (a, b) => new Date(b.datetime) - new Date(a.datetime)
+                      )
+                      .map((ev) => {
+                        const typeIcon =
+                          ev.type === "tasting"
+                            ? "🍽️"
+                            : ev.type === "mt"
+                            ? "🏕️"
+                            : ev.type === "assembly"
+                            ? "🎤"
+                            : "📅";
+
+                        const hasReview = (ev.reviews || []).find(
+                          (r) => r.studentId === (currentUser?.studentId || "")
+                        );
+
+                        // 미식회인 경우 참여한 식당 이름 찾기
+                        let restaurantName = "";
+                        if (
+                          ev.type === "tasting" &&
+                          ev.restaurants &&
+                          currentUser
+                        ) {
+                          const myRestaurant = ev.restaurants.find((r) =>
+                            r.reservations?.some(
+                              (res) => res.studentId === currentUser.studentId
+                            )
+                          );
+                          if (myRestaurant) {
+                            restaurantName = myRestaurant.name;
+                          }
+                        }
+
+                        return `
+                          <div class="p-4 bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+                            <div class="flex items-center gap-3">
+                              <span class="text-2xl">${typeIcon}</span>
+                              <div class="flex-1 min-w-0">
+                                <h5 class="font-semibold text-gray-800 truncate">${saf(
+                                  ev.title
+                                )}${
+                          restaurantName
+                            ? ` <span class="text-orange-600 text-sm">(${saf(
+                                restaurantName
+                              )})</span>`
+                            : ""
+                        }</h5>
+                                <p class="text-xs text-gray-500">
+                                  ${new Date(ev.datetime).toLocaleDateString(
+                                    "ko-KR"
+                                  )} ${new Date(ev.datetime).toLocaleTimeString(
+                          "ko-KR",
+                          { hour: "2-digit", minute: "2-digit" }
+                        )}
+                                </p>
+                              </div>
+                            </div>
+                            <div class="mt-3 flex items-center gap-2">
+                              <button type="button" class="px-3 py-2 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded-lg" onclick="showEventDetailModal('${
+                                ev.id
+                              }')">
+                                <i class="fas fa-info-circle mr-1"></i>상세
+                              </button>
+                              <button type="button" class="px-3 py-2 text-xs bg-orange-600 hover:bg-orange-700 text-white rounded-lg" data-act="write-review" data-id="${
+                                ev.id
+                              }">
+                                <i class="fas ${
+                                  hasReview ? "fa-edit" : "fa-pen-to-square"
+                                } mr-1"></i>${
+                          hasReview ? "후기 수정" : "후기 작성"
+                        }
+                              </button>
+                            </div>
+                          </div>
+                        `;
+                      })
+                      .join("")}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>`
+            : "";
 
         // 보관된 이벤트 목록 (회장단만)
         const archivedListHTML = isAdmin
@@ -7657,7 +7974,7 @@
           </div>`
           : "";
 
-        // 관리자인 경우: 점선 블록 + 이벤트 목록 + 보관 목록, 일반 회원: 이벤트 목록만
+        // 관리자인 경우: 점선 블록 + 이벤트 목록 + 보관 목록, 일반 회원: 이벤트 목록 + 내 활동 내역
         c.innerHTML = isAdmin
           ? `
             <div class="section mb-6">
@@ -7689,6 +8006,7 @@
                 </div>
               </div>
             </div>
+            ${myHistoryHTML}
             <div class="section">
               <div class="flex items-center gap-2 mb-4">
                 <i class="fas fa-list text-gray-600 text-xl"></i>
@@ -7698,7 +8016,8 @@
             </div>
             ${archivedListHTML}
           `
-          : `<div class="section">
+          : `${myHistoryHTML}
+            <div class="section">
               ${activeListHTML}
             </div>`;
 
@@ -7726,6 +8045,35 @@
               } else {
                 content.classList.add("hidden");
                 toggleIcon.style.transform = "rotate(0deg)";
+              }
+            });
+          }
+        }
+
+        // 내 활동 내역 토글 기능
+        if (myPastEvents.length > 0) {
+          const myHistoryToggleButton =
+            document.getElementById("my-history-toggle");
+          const myHistoryToggleIcon = document.getElementById(
+            "my-history-toggle-icon"
+          );
+          const myHistoryContent =
+            document.getElementById("my-history-content");
+
+          if (
+            myHistoryToggleButton &&
+            myHistoryContent &&
+            myHistoryToggleIcon
+          ) {
+            myHistoryToggleButton.addEventListener("click", () => {
+              const isHidden = myHistoryContent.classList.contains("hidden");
+
+              if (isHidden) {
+                myHistoryContent.classList.remove("hidden");
+                myHistoryToggleIcon.style.transform = "rotate(180deg)";
+              } else {
+                myHistoryContent.classList.add("hidden");
+                myHistoryToggleIcon.style.transform = "rotate(0deg)";
               }
             });
           }
@@ -8881,6 +9229,279 @@
             button.innerHTML = originalText;
           }
         }
+      }
+
+      /* ===== 참가자 제외 기능 ===== */
+      // 학번 마스킹 헬퍼 함수 (전역)
+      function maskStudentIdGlobal(studentId) {
+        if (!studentId) return "";
+        if (studentId.length <= 4) return studentId;
+        return studentId.substring(0, 4) + "*".repeat(studentId.length - 4);
+      }
+
+      // 전역 스코프에 노출 (onclick 핸들러에서 사용)
+      window.confirmRemoveParticipant = async function (
+        eventId,
+        studentId,
+        listType,
+        restaurantId = null
+      ) {
+        // 회장단 권한 체크
+        if (!isFullAdmin()) {
+          showAlert("🔒", "회장단만 참가자를 제외할 수 있습니다.");
+          return;
+        }
+
+        // 이벤트 정보 가져오기
+        const event = eventsData.find((e) => e.id === eventId);
+        if (!event) {
+          showAlert("😥", "이벤트를 찾을 수 없습니다.");
+          return;
+        }
+
+        // 참가자 정보 찾기
+        let participant = null;
+        let participantName = "";
+
+        if (restaurantId) {
+          // 미식회 경우
+          const restaurant = event.restaurants?.find(
+            (r) => r.id === restaurantId
+          );
+          if (!restaurant) {
+            showAlert("😥", "식당을 찾을 수 없습니다.");
+            return;
+          }
+          const list =
+            listType === "reservations"
+              ? restaurant.reservations
+              : restaurant.waiting;
+          participant = list?.find((p) => p.studentId === studentId);
+          participantName = participant?.name || "";
+        } else {
+          // 일반 이벤트 경우
+          const list =
+            listType === "applicants" ? event.applicants : event.waiting;
+          participant = list?.find((p) => p.studentId === studentId);
+          participantName = participant?.name || "";
+        }
+
+        if (!participant) {
+          showAlert("😥", "참가자를 찾을 수 없습니다.");
+          return;
+        }
+
+        // 확인 문구
+        const confirmMsg = `해당 참가자를 제외시키겠습니까?\n\n이름: ${participantName} (${maskStudentIdGlobal(
+          studentId
+        )})\n이벤트: ${event.title}`;
+
+        if (!confirm(confirmMsg)) {
+          return;
+        }
+
+        // 제외 실행
+        await removeParticipant(eventId, studentId, listType, restaurantId);
+      };
+
+      async function removeParticipant(
+        eventId,
+        studentId,
+        listType,
+        restaurantId = null
+      ) {
+        let wasRemoved = false;
+        let eventTitle = "";
+
+        try {
+          await runTransaction(db, async (tx) => {
+            const ref = doc(db, "events", eventId);
+            const snap = await tx.get(ref);
+            const ev = snap.data();
+            eventTitle = ev.title;
+
+            if (restaurantId) {
+              // 미식회 경우
+              const idx = ev.restaurants.findIndex(
+                (r) => r.id === restaurantId
+              );
+              if (idx === -1) throw new Error("restaurant not found");
+              const r = ev.restaurants[idx];
+
+              // 참가자 찾기 및 제외
+              const before =
+                listType === "reservations"
+                  ? r.reservations?.length
+                  : r.waiting?.length;
+
+              if (listType === "reservations") {
+                r.reservations = r.reservations.filter(
+                  (p) => p.studentId !== studentId
+                );
+              } else {
+                r.waiting = r.waiting.filter((p) => p.studentId !== studentId);
+              }
+
+              ev.restaurants[idx] = r;
+              tx.update(ref, { restaurants: ev.restaurants });
+
+              wasRemoved =
+                (listType === "reservations"
+                  ? r.reservations.length
+                  : r.waiting.length) < before;
+            } else {
+              // 일반 이벤트 경우
+              const before =
+                listType === "applicants"
+                  ? ev.applicants?.length
+                  : ev.waiting?.length;
+
+              if (listType === "applicants") {
+                ev.applicants = ev.applicants.filter(
+                  (p) => p.studentId !== studentId
+                );
+              } else {
+                ev.waiting = ev.waiting.filter(
+                  (p) => p.studentId !== studentId
+                );
+              }
+
+              tx.update(ref, {
+                applicants: ev.applicants,
+                waiting: ev.waiting,
+              });
+
+              wasRemoved =
+                (listType === "applicants"
+                  ? ev.applicants.length
+                  : ev.waiting.length) < before;
+            }
+          });
+
+          // transaction 완료 후 알림 전송
+          if (wasRemoved) {
+            await sendRemovalNotification(eventId, studentId, eventTitle);
+          }
+
+          showAlert("✅", "참가자가 제외되었습니다.");
+          renderReservationTab(isFullAdmin());
+        } catch (error) {
+          console.error("참가자 제외 오류:", error);
+          showAlert("😥", "참가자 제외 실패");
+        }
+      }
+
+      async function sendRemovalNotification(eventId, studentId, eventTitle) {
+        try {
+          console.log("📤 참가자 제외 알림 전송 시도:", {
+            eventId,
+            studentId,
+            eventTitle,
+          });
+
+          // 알림 데이터 생성
+          const notificationData = {
+            type: "participant_removed",
+            eventId: eventId,
+            eventTitle: eventTitle,
+            studentId: studentId,
+            message: `안녕하세요. ${eventTitle} 이벤트에서 참가자에서 제외되었습니다. 문의사항이 있으시면 운영진에게 연락해주세요.`,
+            createdAt: new Date().toISOString(),
+            read: false,
+          };
+
+          // 알림 저장 (notifications 컬렉션 사용)
+          await addDoc(collection(db, "notifications"), notificationData);
+          console.log("✅ 참가자 제외 알림 전송 성공");
+        } catch (error) {
+          console.error("❌ 알림 전송 실패:", error);
+        }
+      }
+
+      /* ===== 알림 UI 렌더링 ===== */
+      function renderNotifications() {
+        if (!currentUser) return;
+
+        // 현재 사용자의 읽지 않은 알림 필터
+        const myNotifications = notificationsData.filter(
+          (notif) => notif.studentId === currentUser.studentId && !notif.read
+        );
+        const unreadCount = myNotifications.length;
+
+        // 알림 버튼 표시/숨김
+        const notificationBadge = document.getElementById("notification-badge");
+        const notificationCount = document.getElementById("notification-count");
+
+        if (notificationBadge) {
+          // 받은함 버튼은 항상 노출, 뱃지만 토글
+          if (notificationCount) {
+            if (unreadCount > 0) {
+              notificationCount.textContent = unreadCount;
+              notificationCount.classList.remove("hidden");
+            } else {
+              notificationCount.classList.add("hidden");
+            }
+          }
+        }
+
+        // 알림 목록 렌더링
+        renderNotificationList();
+      }
+
+      function renderNotificationList() {
+        if (!currentUser) return;
+
+        const notificationList = document.getElementById("notification-list");
+        if (!notificationList) return;
+
+        // 모든 알림 (읽은 것 포함)
+        const myNotifications = notificationsData
+          .filter((notif) => notif.studentId === currentUser.studentId)
+          .sort((a, b) => {
+            const dateA = new Date(a.createdAt);
+            const dateB = new Date(b.createdAt);
+            return dateB - dateA;
+          })
+          .slice(0, 10); // 최근 10개만 표시
+
+        if (myNotifications.length === 0) {
+          notificationList.innerHTML =
+            '<div class="text-center text-gray-500 py-4">알림이 없습니다</div>';
+          return;
+        }
+
+        notificationList.innerHTML = myNotifications
+          .map((notif) => {
+            const date = new Date(notif.createdAt);
+            const dateStr = date.toLocaleDateString("ko-KR", {
+              year: "numeric",
+              month: "short",
+              day: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+            });
+
+            return `
+              <div class="py-3 border-b border-gray-100 hover:bg-gray-50 ${
+                notif.read ? "opacity-60" : ""
+              }" data-notif-id="${notif.id}">
+                <div class="flex items-start gap-3">
+                  <div class="flex-1">
+                    <p class="text-sm text-gray-800 ${
+                      notif.read ? "" : "font-semibold"
+                    }">${saf(notif.message || notif.eventTitle || "알림")}</p>
+                    <p class="text-xs text-gray-500 mt-1">${dateStr}</p>
+                  </div>
+                  ${
+                    !notif.read
+                      ? '<div class="w-2 h-2 bg-orange-500 rounded-full mt-1"></div>'
+                      : ""
+                  }
+                </div>
+              </div>
+            `;
+          })
+          .join("");
       }
 
       /* ===== 자동 글 올리기 기능 ===== */
@@ -17243,6 +17864,205 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
 
         document.body.insertAdjacentHTML("beforeend", modalHTML);
       }
+
+      // 전역에서 접근 가능하도록 노출
+      window.showEventDetails = showEventDetails;
+
+      // 이벤트 상세 정보 표시 함수 (eventsData용)
+      window.showEventDetailModal = function (eventId) {
+        const ev = eventsData.find((e) => e.id === eventId);
+        if (!ev) {
+          showAlert("😥", "이벤트를 찾을 수 없습니다.");
+          return;
+        }
+
+        // 기존 모달이 있으면 먼저 제거
+        const existingModal = document.getElementById(
+          "event-detail-modal-main"
+        );
+        if (existingModal) {
+          existingModal.remove();
+        }
+
+        const eventDate = ev.datetime
+          ? new Date(ev.datetime).toLocaleString("ko-KR", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+              weekday: "long",
+              hour: "2-digit",
+              minute: "2-digit",
+            })
+          : "미정";
+
+        const deadlineDate = ev.deadline
+          ? new Date(ev.deadline).toLocaleString("ko-KR", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+              weekday: "long",
+              hour: "2-digit",
+              minute: "2-digit",
+            })
+          : "미설정";
+
+        const typeLabel =
+          ev.type === "tasting"
+            ? "🍽️ 미식회"
+            : ev.type === "mt"
+            ? "🏕️ MT"
+            : ev.type === "assembly"
+            ? "🎤 총회"
+            : "📅 이벤트";
+
+        const modalHTML = `
+          <div id="event-detail-modal-main" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div class="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+              <div class="p-6">
+                <div class="flex justify-between items-start mb-4">
+                  <h3 class="text-xl font-bold text-gray-800">이벤트 상세 정보</h3>
+                  <button onclick="closeEventDetailModalMain()" class="text-gray-400 hover:text-gray-600 transition-colors">
+                    <i class="fas fa-times text-xl"></i>
+                  </button>
+                </div>
+                
+                <div class="space-y-4">
+                  <div class="bg-gradient-to-r from-orange-50 to-orange-100 rounded-lg p-4">
+                    <h4 class="font-semibold text-gray-800 mb-3">${saf(
+                      ev.title
+                    )}</h4>
+                    <div class="space-y-2">
+                      <div class="flex items-center gap-2 text-sm">
+                        <i class="fas fa-tag text-orange-500"></i>
+                        <span class="text-gray-700">${typeLabel}</span>
+                      </div>
+                      <div class="flex items-center gap-2 text-sm font-bold text-orange-700">
+                        <i class="fas fa-calendar-check text-orange-600"></i>
+                        <span>실시일: ${eventDate}</span>
+                      </div>
+                      <div class="flex items-center gap-2 text-sm font-bold text-red-700">
+                        <i class="fas fa-clock text-red-600"></i>
+                        <span>마감일: ${deadlineDate}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  ${
+                    ev.description
+                      ? `
+                    <div class="bg-gray-50 rounded-lg p-4">
+                      <h5 class="font-medium text-gray-700 mb-2">상세 설명</h5>
+                      <p class="text-gray-600 text-sm whitespace-pre-wrap">${saf(
+                        ev.description
+                      )}</p>
+                    </div>
+                  `
+                      : ""
+                  }
+                  
+                  <div class="bg-gray-50 rounded-lg p-4">
+                    <h5 class="font-medium text-gray-700 mb-2">신청 현황</h5>
+                    <p class="text-gray-600 text-sm">참가자: ${
+                      (ev.applicants || []).length
+                    }명 / ${ev.limit || 0}명</p>
+                    ${
+                      (ev.waiting || []).length > 0
+                        ? `<p class="text-gray-600 text-sm mt-1">대기자: ${ev.waiting.length}명</p>`
+                        : ""
+                    }
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        document.body.insertAdjacentHTML("beforeend", modalHTML);
+      };
+
+      window.closeEventDetailModalMain = function () {
+        const modal = document.getElementById("event-detail-modal-main");
+        if (modal) {
+          modal.remove();
+        }
+      };
+
+      // 참가자 목록 공개 여부 토글 함수 (회장단 전용) - 모두에게 보이기/회장단만
+      window.toggleParticipantsPublicVisibility = async function (
+        eventId,
+        type
+      ) {
+        if (!isFullAdmin()) return;
+
+        try {
+          const ev = eventsData.find((e) => e.id === eventId);
+          if (!ev) {
+            showAlert("😥", "이벤트를 찾을 수 없습니다.");
+            return;
+          }
+
+          const fieldName =
+            type === "applicants"
+              ? "participantsVisibleToAll"
+              : "waitingVisibleToAll";
+          const currentValue = ev[fieldName] || false;
+          const newValue = !currentValue;
+
+          await updateDoc(doc(db, "events", eventId), {
+            [fieldName]: newValue,
+          });
+
+          showAlert(
+            "✅",
+            newValue
+              ? "모두에게 보이도록 설정되었습니다."
+              : "회장단만 볼 수 있도록 설정되었습니다."
+          );
+          renderReservationTab(isFullAdmin());
+        } catch (error) {
+          console.error("참가자 공개 설정 변경 오류:", error);
+          showAlert("😥", "설정 변경에 실패했습니다.");
+        }
+      };
+
+      // 미식회 참가자 목록 공개 여부 토글 함수 (회장단 전용) - 모두에게 보이기/회장단만
+      window.toggleRestaurantParticipantsPublicVisibility = async function (
+        eventId,
+        restaurantId,
+        type
+      ) {
+        if (!isFullAdmin()) return;
+
+        try {
+          const ev = eventsData.find((e) => e.id === eventId);
+          if (!ev) {
+            showAlert("😥", "이벤트를 찾을 수 없습니다.");
+            return;
+          }
+
+          const fieldName =
+            type === "reservations"
+              ? "participantsVisibleToAll"
+              : "waitingVisibleToAll";
+          const currentValue = ev[fieldName] || false;
+          const newValue = !currentValue;
+
+          await updateDoc(doc(db, "events", eventId), {
+            [fieldName]: newValue,
+          });
+
+          showAlert(
+            "✅",
+            newValue
+              ? "모두에게 보이도록 설정되었습니다."
+              : "회장단만 볼 수 있도록 설정되었습니다."
+          );
+          renderReservationTab(isFullAdmin());
+        } catch (error) {
+          console.error("참가자 공개 설정 변경 오류:", error);
+          showAlert("😥", "설정 변경에 실패했습니다.");
+        }
+      };
 
       // 달력 이벤트 상세 모달 닫기 함수
       window.closeEventDetailModal = function () {
