@@ -3666,19 +3666,17 @@
           }, loadingTimeout);
 
           if (__loadingDataCount >= __expectedDataSources) {
-            __isInitialLoading = false;
-            console.log("모든 데이터 로드 완료! 로딩 화면 숨김");
-            updateLoadingProgress(2, "잘 먹겠습니다!");
+            console.log("모든 데이터 소스 카운트 완료. 데이터 검증 시작...");
+            updateLoadingProgress(2, "데이터 확인 중...");
 
             // 타임아웃 클리어
             if (dataLoadTimeout) {
               clearTimeout(dataLoadTimeout);
             }
 
-            // "잘 먹겠습니다" 메시지를 표시하면서 데이터 완전 로드 확인
-            setTimeout(() => {
-              verifyAllDataLoaded();
-            }, 3000);
+            // 데이터 완전 로드 확인 (로딩 화면은 verifyAllDataLoaded에서만 숨김)
+            // __isInitialLoading은 verifyAllDataLoaded에서 실제로 데이터가 확인될 때 false로 설정
+            verifyAllDataLoaded();
           }
         }
       };
@@ -3717,6 +3715,8 @@
           hasFoodMenus;
 
         if (allDataLoaded) {
+          // 모든 데이터가 실제로 로드된 경우에만 로딩 완료 처리
+          __isInitialLoading = false;
           console.log("✅ 모든 컨텐츠가 정상적으로 로드되었습니다.");
           console.log("📊 최종 데이터 요약:");
           console.log(`  - 로드맵: ${roadmapData.length}개`);
@@ -3727,10 +3727,13 @@
           console.log(`  - 뭐먹지 메뉴: ${foodMenusData.length}개`);
 
           // 모든 데이터가 로드되었으므로 로딩 화면 닫기
-          hideLoadingScreen();
-          console.log("🎉 데이터 로딩 완료 - 정상 표시됨");
+          updateLoadingProgress(100, "잘 먹겠습니다!");
+          setTimeout(() => {
+            hideLoadingScreen();
+            console.log("🎉 데이터 로딩 완료 - 정상 표시됨");
+          }, 500);
         } else {
-          console.warn(`⚠️ 일부 데이터 미로드 (재확인 ${retryCount + 1}/20)`);
+          console.warn(`⚠️ 일부 데이터 미로드 (재확인 ${retryCount + 1}/40)`);
 
           // 어떤 데이터가 없는지 명시
           if (!hasRoadmap) console.warn("  ❌ 로드맵 데이터 없음");
@@ -3740,15 +3743,27 @@
           if (!hasAdmins) console.warn("  ❌ 관리자 데이터 없음");
           if (!hasFoodMenus) console.warn("  ❌ 뭐먹지 메뉴 데이터 없음");
 
-          // 최대 20회(40초)까지 재확인 (충분한 시간 제공)
-          if (retryCount < 20) {
+          // 로딩 화면 유지하면서 계속 재확인 (최대 40회 = 80초)
+          if (retryCount < 40) {
+            // 진행률 표시 업데이트
+            const progress = Math.min(90 + (retryCount / 40) * 5, 95);
+            updateLoadingProgress(
+              progress,
+              `데이터 확인 중... (${retryCount + 1}/40)`
+            );
+
             setTimeout(() => {
               verifyAllDataLoaded(retryCount + 1);
             }, 2000); // 2초마다 재확인
           } else {
-            console.error("❌ 최대 대기 시간 초과 (40초)");
-            console.log("⚠️ 로딩 화면 유지 - 사용자가 수동으로 새로고침 필요");
-            // 로딩 화면을 유지하여 빈 화면이 나타나지 않도록 함
+            console.error("❌ 최대 대기 시간 초과 (80초)");
+            console.log("⚠️ 로딩 화면 유지 - 데이터 로드 실패");
+            updateLoadingProgress(
+              95,
+              "데이터 로드 중 문제 발생. 새로고침을 시도해주세요."
+            );
+            // 로딩 화면을 계속 유지하여 빈 화면이 나타나지 않도록 함
+            // 사용자가 수동으로 새로고침하도록 안내
           }
         }
       };
@@ -9486,23 +9501,52 @@
                 notif.read ? "opacity-60" : ""
               }" data-notif-id="${notif.id}">
                 <div class="flex items-start gap-3">
-                  <div class="flex-1">
+                  <div class="flex-1 min-w-0">
                     <p class="text-sm text-gray-800 ${
                       notif.read ? "" : "font-semibold"
                     }">${saf(notif.message || notif.eventTitle || "알림")}</p>
                     <p class="text-xs text-gray-500 mt-1">${dateStr}</p>
                   </div>
-                  ${
-                    !notif.read
-                      ? '<div class="w-2 h-2 bg-orange-500 rounded-full mt-1"></div>'
-                      : ""
-                  }
+                  <div class="flex items-center gap-2 flex-shrink-0">
+                    ${
+                      !notif.read
+                        ? '<div class="w-2 h-2 bg-orange-500 rounded-full"></div>'
+                        : ""
+                    }
+                    <button
+                      type="button"
+                      class="text-gray-400 hover:text-red-600 transition-colors p-1"
+                      onclick="deleteNotification('${notif.id}')"
+                      title="삭제"
+                    >
+                      <i class="fas fa-times text-sm"></i>
+                    </button>
+                  </div>
                 </div>
               </div>
             `;
           })
           .join("");
       }
+
+      // 알림 삭제 함수
+      window.deleteNotification = async function (notificationId) {
+        if (!currentUser) return;
+
+        if (!confirm("이 알림을 삭제하시겠습니까?")) {
+          return;
+        }
+
+        try {
+          await deleteDoc(doc(db, "notifications", notificationId));
+          showAlert("✅", "알림이 삭제되었습니다.");
+          renderNotificationList();
+          renderNotifications(); // 뱃지 업데이트
+        } catch (error) {
+          console.error("알림 삭제 오류:", error);
+          showAlert("😥", "알림 삭제에 실패했습니다.");
+        }
+      };
 
       /* ===== 자동 글 올리기 기능 ===== */
       async function scheduleAutoPost(
@@ -21380,13 +21424,19 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                 <div class="mb-3 sm:mb-4">
                   <div class="flex items-start justify-between mb-3">
                     <div class="flex-1">
-                      <div class="flex items-center gap-2 mb-1">
-                        <span class="text-2xl sm:text-3xl">${categoryEmoji}</span>
-                        <h4 class="text-xl sm:text-2xl font-bold text-gray-900 group-hover:text-orange-600 transition-colors">
-                          ${saf(
-                            restaurant.restaurantName || "(식당 이름 없음)"
-                          )}
-                        </h4>
+                      <div class="mb-2">
+                        <div class="flex items-center gap-2 mb-2">
+                          <i class="fas fa-store text-orange-600 text-sm"></i>
+                          <span class="text-xs sm:text-sm font-semibold text-orange-700 uppercase tracking-wide">식당 이름</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                          <span class="text-2xl sm:text-3xl">${categoryEmoji}</span>
+                          <h4 class="text-2xl sm:text-3xl font-extrabold text-gray-900 group-hover:text-orange-600 transition-colors bg-gradient-to-r from-orange-600 to-orange-700 bg-clip-text text-transparent">
+                            ${saf(
+                              restaurant.restaurantName || "(식당 이름 없음)"
+                            )}
+                          </h4>
+                        </div>
                       </div>
                       ${
                         restaurant.restaurantCategory
@@ -21413,16 +21463,16 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                   </div>
                   ${
                     restaurant.restaurantInfo
-                      ? `<div class="mb-3 mt-2">
-                          <div class="flex items-center justify-between mb-2">
-                            <div class="flex items-center gap-1.5">
-                              <i class="fas fa-utensils text-orange-500 text-sm"></i>
-                              <span class="text-sm font-semibold text-gray-700">대표 메뉴</span>
+                      ? `<div class="mb-4 mt-3 bg-gradient-to-r from-orange-50 to-yellow-50 rounded-xl p-4 sm:p-5 border-2 border-orange-300 shadow-md">
+                          <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center gap-2">
+                              <i class="fas fa-utensils text-orange-600 text-lg"></i>
+                              <span class="text-base sm:text-lg font-bold text-orange-900">대표 메뉴</span>
                             </div>
                             ${
                               isAdmin
                                 ? `<button 
-                                    class="text-xs text-orange-600 hover:text-orange-700 transition-colors"
+                                    class="text-xs sm:text-sm text-orange-700 hover:text-orange-800 transition-colors bg-white px-2 py-1 rounded-lg border border-orange-300"
                                     onclick="openRestaurantEditModal('${
                                       restaurant.eventId
                                     }', '${saf(
@@ -21436,27 +21486,12 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                                 : ""
                             }
                           </div>
-                          <p class="text-lg sm:text-xl text-gray-800 leading-relaxed font-medium">${saf(
+                          <p class="text-xl sm:text-2xl text-gray-900 leading-relaxed font-bold">${saf(
                             restaurant.restaurantInfo
                           )}</p>
                         </div>`
                       : ""
                   }
-                  <p class="text-xs sm:text-sm text-gray-500 mt-2">
-                    <i class="fas fa-calendar mr-1"></i>
-                    ${new Date(restaurant.eventDate).toLocaleDateString(
-                      "ko-KR",
-                      {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      }
-                    )} · ${restaurant.eventTitle}
-                  </p>
-                  <p class="text-xs sm:text-sm text-gray-500">
-                    <i class="fas fa-users mr-1"></i>
-                    ${restaurant.participantCount}명 참가
-                  </p>
                   
                   <!-- 카테고리 표시 -->
                   <div class="mt-2 flex items-center gap-2">
@@ -21511,6 +21546,34 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                       <span class="text-sm sm:text-base text-gray-700 font-semibold bg-white px-3 py-1.5 rounded-full shadow-sm">${reviewCount}명 평가</span>
                     </div>
                     
+                    <!-- 미식회 정보를 리뷰 박스 안으로 이동 -->
+                    <div class="mb-3 pb-3 border-b border-orange-200">
+                      <div class="flex flex-col sm:flex-row sm:items-center gap-2 text-xs sm:text-sm text-gray-600">
+                        <div class="flex items-center gap-1">
+                          <i class="fas fa-calendar text-orange-600"></i>
+                          <span>${new Date(
+                            restaurant.eventDate
+                          ).toLocaleDateString("ko-KR", {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                          })}</span>
+                        </div>
+                        <span class="hidden sm:inline">·</span>
+                        <div class="flex items-center gap-1">
+                          <i class="fas fa-utensils text-orange-600"></i>
+                          <span class="font-semibold">${
+                            restaurant.eventTitle
+                          }</span>
+                        </div>
+                        <span class="hidden sm:inline">·</span>
+                        <div class="flex items-center gap-1">
+                          <i class="fas fa-users text-orange-600"></i>
+                          <span>${restaurant.participantCount}명 참가</span>
+                        </div>
+                      </div>
+                    </div>
+                    
                     ${
                       restaurant.reviews.length > 0
                         ? `
@@ -21525,7 +21588,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                           )}" data-show-all="false">
                           ${restaurant.reviews
                             .filter((r) => r.comment && r.comment.trim())
-                            .slice(0, 2)
+                            .slice(0, 1)
                             .map(
                               (r) => `
                             <div class="bg-white rounded-xl p-4 sm:p-5 border-2 border-orange-100 shadow-md hover:shadow-lg transition-shadow relative review-item mb-3">
@@ -21565,7 +21628,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                         ${
                           restaurant.reviews.filter(
                             (r) => r.comment && r.comment.trim()
-                          ).length > 2
+                          ).length > 1
                             ? `<button 
                                 class="w-full text-base sm:text-lg text-orange-600 hover:text-orange-700 font-bold text-center mt-3 py-4 sm:py-3 bg-orange-50 hover:bg-orange-100 rounded-xl transition-colors border-2 border-orange-200 shadow-sm"
                                 data-action="toggle-reviews"
@@ -21577,7 +21640,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                                 외 ${
                                   restaurant.reviews.filter(
                                     (r) => r.comment && r.comment.trim()
-                                  ).length - 2
+                                  ).length - 1
                                 }개 후기 더 보기
                               </button>`
                             : ""
@@ -22153,9 +22216,9 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
             );
 
             if (isShowingAll) {
-              // 접기 - 2개만 보여주기
+              // 접기 - 1개만 보여주기
               reviewList.innerHTML = allReviews
-                .slice(0, 2)
+                .slice(0, 1)
                 .map(
                   (r) => `
                   <div class="bg-white rounded-xl p-4 sm:p-5 border-2 border-orange-100 shadow-md hover:shadow-lg transition-shadow relative review-item mb-3">
@@ -22193,7 +22256,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                 .join("");
               reviewList.dataset.showAll = "false";
               toggleBtn.innerHTML = `<i class="fas fa-chevron-down mr-2"></i>외 ${
-                allReviews.length - 2
+                allReviews.length - 1
               }개 후기 더 보기`;
             } else {
               // 펼치기 - 모든 후기 보여주기
