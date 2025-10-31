@@ -451,40 +451,50 @@
         }
       }
 
-      /* 조모임 버튼 그라데이션 빛 효과 (2초마다 반복) */
+      /* 조모임 버튼 그라데이션 효과 */
       .rank-button-glow {
-        position: relative;
-        overflow: hidden;
-      }
-
-      .rank-button-glow::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: -150%;
-        width: 150%;
-        height: 100%;
         background: linear-gradient(
-          90deg,
-          transparent 0%,
-          rgba(255, 255, 255, 0.4) 30%,
-          rgba(255, 255, 255, 0.6) 50%,
-          rgba(255, 255, 255, 0.4) 70%,
-          transparent 100%
+          135deg,
+          #f97316 0%,
+          #fb923c 25%,
+          #fdba74 50%,
+          #fb923c 75%,
+          #f97316 100%
         );
-        animation: rank-shine 2s ease-in-out infinite;
+        background-size: 200% 200%;
+        animation: rank-gradient-shift 3s ease infinite;
+        box-shadow: 
+          0 4px 15px rgba(249, 115, 22, 0.4),
+          0 0 10px rgba(249, 115, 22, 0.3),
+          inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        border: none;
       }
 
-      @keyframes rank-shine {
-        0%,
-        75% {
-          left: -150%;
+      .rank-button-glow:hover {
+        background: linear-gradient(
+          135deg,
+          #ea580c 0%,
+          #f97316 25%,
+          #fb923c 50%,
+          #f97316 75%,
+          #ea580c 100%
+        );
+        background-size: 200% 200%;
+        box-shadow: 
+          0 6px 20px rgba(249, 115, 22, 0.5),
+          0 0 15px rgba(249, 115, 22, 0.4),
+          inset 0 1px 0 rgba(255, 255, 255, 0.3);
+      }
+
+      @keyframes rank-gradient-shift {
+        0% {
+          background-position: 0% 50%;
         }
-        90% {
-          left: 100%;
+        50% {
+          background-position: 100% 50%;
         }
         100% {
-          left: 100%;
+          background-position: 0% 50%;
         }
       }
       .tab-btn {
@@ -7823,10 +7833,8 @@
                   .join("")}
                </div>`;
 
-        // 내 활동 내역 HTML
-        const myHistoryHTML =
-          myPastEvents.length > 0
-            ? `
+        // 내 활동 내역 HTML (항상 표시)
+        const myHistoryHTML = currentUser ? `
           <div class="section mt-6">
             <div class="bg-blue-50 border-2 border-blue-200 rounded-xl overflow-hidden">
               <button 
@@ -7849,92 +7857,99 @@
               </button>
               <div id="my-history-content" class="hidden px-6 pb-6">
                 <div class="bg-white rounded-lg p-4 border-2 border-blue-200">
-                  <div class="space-y-3">
-                    ${myPastEvents
-                      .sort(
-                        (a, b) => new Date(b.datetime) - new Date(a.datetime)
-                      )
-                      .map((ev) => {
-                        const typeIcon =
-                          ev.type === "tasting"
-                            ? "🍽️"
-                            : ev.type === "mt"
-                            ? "🏕️"
-                            : ev.type === "assembly"
-                            ? "🎤"
-                            : "📅";
-
-                        const hasReview = (ev.reviews || []).find(
-                          (r) => r.studentId === (currentUser?.studentId || "")
-                        );
-
-                        // 미식회인 경우 참여한 식당 이름 찾기
-                        let restaurantName = "";
-                        if (
-                          ev.type === "tasting" &&
-                          ev.restaurants &&
-                          currentUser
-                        ) {
-                          const myRestaurant = ev.restaurants.find((r) =>
-                            r.reservations?.some(
-                              (res) => res.studentId === currentUser.studentId
+                  ${
+                    myPastEvents.length > 0
+                      ? `<div class="space-y-3">
+                          ${myPastEvents
+                            .sort(
+                              (a, b) => new Date(b.datetime) - new Date(a.datetime)
                             )
-                          );
-                          if (myRestaurant) {
-                            restaurantName = myRestaurant.name;
-                          }
-                        }
+                            .map((ev) => {
+                              const typeIcon =
+                                ev.type === "tasting"
+                                  ? "🍽️"
+                                  : ev.type === "mt"
+                                  ? "🏕️"
+                                  : ev.type === "assembly"
+                                  ? "🎤"
+                                  : "📅";
 
-                        return `
-                          <div class="p-4 bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-                            <div class="flex items-center gap-3">
-                              <span class="text-2xl">${typeIcon}</span>
-                              <div class="flex-1 min-w-0">
-                                <h5 class="font-semibold text-gray-800 truncate">${saf(
-                                  ev.title
-                                )}${
-                          restaurantName
-                            ? ` <span class="text-orange-600 text-sm">(${saf(
+                              const hasReview = (ev.reviews || []).find(
+                                (r) => r.studentId === (currentUser?.studentId || "")
+                              );
+
+                              // 미식회인 경우 참여한 식당 이름 찾기
+                              let restaurantName = "";
+                              if (
+                                ev.type === "tasting" &&
+                                ev.restaurants &&
+                                currentUser
+                              ) {
+                                const myRestaurant = ev.restaurants.find((r) =>
+                                  r.reservations?.some(
+                                    (res) => res.studentId === currentUser.studentId
+                                  )
+                                );
+                                if (myRestaurant) {
+                                  restaurantName = myRestaurant.name;
+                                }
+                              }
+
+                              return `
+                                <div class="p-4 bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+                                  <div class="flex items-center gap-3">
+                                    <span class="text-2xl">${typeIcon}</span>
+                                    <div class="flex-1 min-w-0">
+                                      <h5 class="font-semibold text-gray-800 truncate">${saf(
+                                        ev.title
+                                      )}${
                                 restaurantName
-                              )})</span>`
-                            : ""
-                        }</h5>
-                                <p class="text-xs text-gray-500">
-                                  ${new Date(ev.datetime).toLocaleDateString(
-                                    "ko-KR"
-                                  )} ${new Date(ev.datetime).toLocaleTimeString(
-                          "ko-KR",
-                          { hour: "2-digit", minute: "2-digit" }
-                        )}
-                                </p>
-                              </div>
-                            </div>
-                            <div class="mt-3 flex items-center gap-2">
-                              <button type="button" class="px-3 py-2 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded-lg" onclick="showEventDetailModal('${
-                                ev.id
-                              }')">
-                                <i class="fas fa-info-circle mr-1"></i>상세
-                              </button>
-                              <button type="button" class="px-3 py-2 text-xs bg-orange-600 hover:bg-orange-700 text-white rounded-lg" data-act="write-review" data-id="${
-                                ev.id
-                              }">
-                                <i class="fas ${
-                                  hasReview ? "fa-edit" : "fa-pen-to-square"
-                                } mr-1"></i>${
-                          hasReview ? "후기 수정" : "후기 작성"
-                        }
-                              </button>
-                            </div>
-                          </div>
-                        `;
-                      })
-                      .join("")}
-                  </div>
+                                  ? ` <span class="text-orange-600 text-sm">(${saf(
+                                      restaurantName
+                                    )})</span>`
+                                  : ""
+                              }</h5>
+                                      <p class="text-xs text-gray-500">
+                                        ${new Date(ev.datetime).toLocaleDateString(
+                                          "ko-KR"
+                                        )} ${new Date(ev.datetime).toLocaleTimeString(
+                                "ko-KR",
+                                { hour: "2-digit", minute: "2-digit" }
+                              )}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <div class="mt-3 flex items-center gap-2">
+                                    <button type="button" class="px-3 py-2 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded-lg" onclick="showEventDetailModal('${
+                                      ev.id
+                                    }')">
+                                      <i class="fas fa-info-circle mr-1"></i>상세
+                                    </button>
+                                    <button type="button" class="px-3 py-2 text-xs bg-orange-600 hover:bg-orange-700 text-white rounded-lg" data-act="write-review" data-id="${
+                                      ev.id
+                                    }">
+                                      <i class="fas ${
+                                        hasReview ? "fa-edit" : "fa-pen-to-square"
+                                      } mr-1"></i>${
+                                hasReview ? "후기 수정" : "후기 작성"
+                              }
+                                    </button>
+                                  </div>
+                                </div>
+                              `;
+                            })
+                            .join("")}
+                        </div>`
+                      : `<div class="text-center py-12">
+                          <i class="fas fa-calendar-plus text-5xl text-gray-300 mb-4"></i>
+                          <p class="text-lg font-semibold text-gray-600 mb-2">아직 참가한 이벤트가 없습니다</p>
+                          <p class="text-sm text-gray-500">활동에 참여해보세요!</p>
+                        </div>`
+                  }
                 </div>
               </div>
             </div>
-          </div>`
-            : "";
+          </div>` : "";
 
         // 보관된 이벤트 목록 (회장단만)
         const archivedListHTML = isAdmin
