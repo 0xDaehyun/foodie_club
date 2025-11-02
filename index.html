@@ -463,8 +463,7 @@
         );
         background-size: 200% 200%;
         animation: rank-gradient-shift 3s ease infinite;
-        box-shadow: 
-          0 4px 15px rgba(249, 115, 22, 0.4),
+        box-shadow: 0 4px 15px rgba(249, 115, 22, 0.4),
           0 0 10px rgba(249, 115, 22, 0.3),
           inset 0 1px 0 rgba(255, 255, 255, 0.2);
         border: none;
@@ -480,8 +479,7 @@
           #ea580c 100%
         );
         background-size: 200% 200%;
-        box-shadow: 
-          0 6px 20px rgba(249, 115, 22, 0.5),
+        box-shadow: 0 6px 20px rgba(249, 115, 22, 0.5),
           0 0 15px rgba(249, 115, 22, 0.4),
           inset 0 1px 0 rgba(255, 255, 255, 0.3);
       }
@@ -1985,7 +1983,7 @@
               <i class="fas fa-inbox mr-1"></i>
               <span
                 id="notification-count"
-                class="hidden bg-red-600 text-white text-xs font-bold rounded-full px-1.5 py-0.5 ml-1"
+                class="hidden bg-red-600 text-white text-xs font-bold rounded-full px-1.5 py-0.5 ml-0.5"
                 >0</span
               >
             </button>
@@ -4476,10 +4474,24 @@
           unsubPublic.presidentPositions = onSnapshot(
             doc(db, "settings", "presidentPositions"),
             async (snap) => {
+              console.log(
+                "📥 presidentPositions Firebase 업데이트:",
+                snap.exists() ? snap.data() : "문서 없음"
+              );
               if (snap.exists()) {
                 const existingPositions = snap.data().positions || [];
                 // 기존 데이터가 있으면 그대로 사용
-                presidentPositions = existingPositions;
+                if (existingPositions.length > 0) {
+                  presidentPositions = existingPositions;
+                  console.log("✅ 회장단 직책 로드됨:", presidentPositions);
+                } else {
+                  // 배열이 비어있으면 기본값으로 설정하지 않음 (사용자가 의도적으로 비운 경우일 수 있음)
+                  presidentPositions = ["회장", "부회장"];
+                  console.log(
+                    "⚠️ 회장단 직책이 비어있음, 기본값 사용:",
+                    presidentPositions
+                  );
+                }
               } else {
                 // 문서가 없으면 기본값으로 생성 (회장, 부회장만)
                 const defaultPositions = ["회장", "부회장"];
@@ -4487,6 +4499,10 @@
                   positions: defaultPositions,
                 });
                 presidentPositions = defaultPositions;
+                console.log(
+                  "🆕 회장단 직책 문서 생성 (기본값):",
+                  presidentPositions
+                );
               }
 
               if (__isInitialLoading) {
@@ -4495,23 +4511,51 @@
               }
               scheduleRender();
             },
-            (err) => console.warn("presidentPositions:", err?.message)
+            (err) => console.error("❌ presidentPositions 오류:", err?.message)
           );
         }
         if (!unsubPublic.regularPositions) {
           unsubPublic.regularPositions = onSnapshot(
             doc(db, "settings", "regularPositions"),
-            (snap) => {
-              regularPositions = snap.exists()
-                ? snap.data().positions || ["운영진"]
-                : ["운영진"];
+            async (snap) => {
+              console.log(
+                "📥 regularPositions Firebase 업데이트:",
+                snap.exists() ? snap.data() : "문서 없음"
+              );
+              if (snap.exists()) {
+                const existingPositions = snap.data().positions || [];
+                // 기존 데이터가 있으면 그대로 사용
+                if (existingPositions.length > 0) {
+                  regularPositions = existingPositions;
+                  console.log("✅ 일반 임원 직책 로드됨:", regularPositions);
+                } else {
+                  // 배열이 비어있으면 기본값으로 설정하지 않음 (사용자가 의도적으로 비운 경우일 수 있음)
+                  regularPositions = ["운영진"];
+                  console.log(
+                    "⚠️ 일반 임원 직책이 비어있음, 기본값 사용:",
+                    regularPositions
+                  );
+                }
+              } else {
+                // 문서가 없으면 기본값으로 생성 (운영진만)
+                const defaultPositions = ["운영진"];
+                await setDoc(doc(db, "settings", "regularPositions"), {
+                  positions: defaultPositions,
+                });
+                regularPositions = defaultPositions;
+                console.log(
+                  "🆕 일반 임원 직책 문서 생성 (기본값):",
+                  regularPositions
+                );
+              }
+
               if (__isInitialLoading) {
                 __loadingDataCount++;
                 checkLoadingComplete();
               }
               scheduleRender();
             },
-            (err) => console.warn("regularPositions:", err?.message)
+            (err) => console.error("❌ regularPositions 오류:", err?.message)
           );
         }
         if (!unsubPublic.restaurantCategories) {
@@ -4943,7 +4987,7 @@
               </button>
               <button type="button" data-tab="reservation" class="tab-btn flex-1 py-4 sm:py-5 px-4 sm:px-5 md:px-7 rounded-xl font-bold transition-all duration-300 ease-out whitespace-nowrap">
                 <i class="fas fa-check mr-1.5 sm:mr-2 text-base sm:text-lg md:text-xl"></i>
-                <span class="text-base sm:text-lg md:text-xl">신청</span>
+                <span class="text-base sm:text-lg md:text-xl">활동 신청</span>
               </button>
               <button type="button" data-tab="dashboard" class="tab-btn flex-1 py-4 sm:py-5 px-4 sm:px-5 md:px-7 rounded-xl font-bold transition-all duration-300 ease-out whitespace-nowrap ${
                 isFullAdmin() ? "" : "hidden"
@@ -6933,7 +6977,7 @@
         return `<div class="mt-3 flex gap-2 flex-wrap">
                   <button type="button" class="text-blue-600 hover:text-blue-800 text-sm" data-act="admin-edit" data-id="${ev.id}"><i class="fas fa-pen"></i> 수정</button>
                   <button type="button" class="text-red-600 hover:text-red-800 text-sm font-semibold" data-act="admin-close" data-id="${ev.id}"><i class="fas fa-door-closed"></i> 신청 마감</button>
-                  <button type="button" class="text-purple-600 hover:text-purple-800 text-sm" data-act="group-maker" data-id="${ev.id}"><i class="fas fa-users"></i> 조짜기</button>
+                  <button type="button" class="text-purple-600 hover:text-purple-800 text-sm" data-act="group-maker" data-id="${ev.id}"><i class="fas fa-users"></i> 팀 구성하기</button>
                   <button type="button" class="text-orange-700 hover:text-orange-900 text-sm" data-act="export-xlsx" data-id="${ev.id}"><i class="fas fa-file-excel"></i> 명단 다운로드</button>
                   <button type="button" class="text-red-600 hover:text-red-800 text-sm" data-act="admin-delete" data-id="${ev.id}"><i class="fas fa-trash"></i> 삭제</button>
                 </div>
@@ -7088,7 +7132,7 @@
             }">
               ${
                 count < lim
-                  ? '<i class="fas fa-check"></i><span>신청하기</span>'
+                  ? '<i class="fas fa-check"></i><span>활동 신청</span>'
                   : '<i class="fas fa-clock"></i><span>신청 마감 / 대기하기</span>'
               }
             </button>`;
@@ -7239,19 +7283,6 @@
                     </div>
                   </div>
                   ${paymentInfoHTML(ev)}
-                  ${
-                    isFullAdmin()
-                      ? `
-                  <div class="mt-3">
-                    <div class="w-full bg-gray-200 rounded-full h-4"><div class="bg-orange-500 h-4 rounded-full" style="width:${
-                      lim ? Math.min(100, Math.round((count / lim) * 100)) : 0
-                    }%"></div></div>
-                    <p class="text-right text-sm mt-1 text-gray-600">신청: ${count} / ${lim} 명</p>
-                  </div>
-                  `
-                      : ""
-                  }
-                  ${adminStatsHTML(ev)}
                   ${btn}
                   ${getCancelNotice()}
                   ${
@@ -7281,16 +7312,34 @@
                                           : "fa-users"
                                       } mr-1"></i>${
                                       ev.participantsVisibleToAll
-                                        ? "회장단만"
-                                        : "모두 보이기"
+                                        ? "회장단만 보이기"
+                                        : "모두에게 보이기"
                                     }
                                     </button>`
                                   : ""
                               }
                             </div>
                             ${
+                              isFullAdmin() && ev.participantsVisibleToAll
+                                ? `
+                            <div class="mt-2">
+                              <div class="w-full bg-gray-200 rounded-full h-3"><div class="bg-orange-500 h-3 rounded-full" style="width:${
+                                lim
+                                  ? Math.min(
+                                      100,
+                                      Math.round((count / lim) * 100)
+                                    )
+                                  : 0
+                              }%"></div></div>
+                              <p class="text-right text-[11px] mt-0.5 text-gray-600">신청: ${count} / ${lim} 명</p>
+                            </div>
+                            `
+                                : ""
+                            }
+                            ${adminStatsHTML(ev)}
+                            ${
                               ev.participantsVisibleToAll || isFullAdmin()
-                                ? `<div class="flex flex-wrap gap-1">
+                                ? `<div class="flex flex-wrap gap-1 mt-2">
                                     ${namesList}
                                   </div>`
                                 : ""
@@ -7321,8 +7370,8 @@
                                           : "fa-users"
                                       } mr-1"></i>${
                                       ev.waitingVisibleToAll
-                                        ? "회장단만"
-                                        : "모두 보이기"
+                                        ? "회장단만 보이기"
+                                        : "모두에게 보이기"
                                     }
                                     </button>`
                                   : ""
@@ -7424,7 +7473,7 @@
                 }" data-rid="${r.id}">
                   <i class="fas ${cnt < cap ? "fa-check" : "fa-clock"}"></i>
                   <span>${
-                    cnt < cap ? "신청하기" : "신청 마감 / 대기하기"
+                    cnt < cap ? "활동 신청" : "신청 마감 / 대기하기"
                   }</span>
                 </button>`;
               }
@@ -7520,16 +7569,30 @@
                                   : "fa-users"
                               } mr-1"></i>${
                               ev.participantsVisibleToAll
-                                ? "회장단만"
-                                : "모두 보이기"
+                                ? "회장단만 보이기"
+                                : "모두에게 보이기"
                             }
                             </button>`
                           : ""
                       }
                     </div>
                     ${
+                      isFullAdmin() && ev.participantsVisibleToAll
+                        ? `
+                    <div class="mt-2">
+                      <div class="w-full bg-gray-200 rounded-full h-3">
+                        <div class="bg-orange-500 h-3 rounded-full transition-all duration-300" style="width:${
+                          cap ? Math.min(100, Math.round((cnt / cap) * 100)) : 0
+                        }%"></div>
+                      </div>
+                      <p class="text-right text-[11px] mt-0.5 text-gray-600">신청: ${cnt} / ${cap} 명</p>
+                    </div>
+                    `
+                        : ""
+                    }
+                    ${
                       ev.participantsVisibleToAll || isFullAdmin()
-                        ? `<div class="flex flex-wrap gap-1">
+                        ? `<div class="flex flex-wrap gap-1 mt-2">
                             ${createRestaurantParticipantsList(
                               r.reservations || [],
                               "bg-orange-100",
@@ -7567,8 +7630,8 @@
                                   : "fa-users"
                               } mr-1"></i>${
                               ev.waitingVisibleToAll
-                                ? "회장단만"
-                                : "모두 보이기"
+                                ? "회장단만 보이기"
+                                : "모두에게 보이기"
                             }
                             </button>`
                           : ""
@@ -7576,7 +7639,7 @@
                     </div>
                     ${
                       ev.waitingVisibleToAll || isFullAdmin()
-                        ? `<div class="flex flex-wrap gap-1">
+                        ? `<div class="flex flex-wrap gap-1 mt-2">
                             ${createRestaurantParticipantsList(
                               r.waiting || [],
                               "bg-orange-200",
@@ -7628,20 +7691,6 @@
                         ? `
                     ${namesList}
                     ${waitingList}
-                    `
-                        : ""
-                    }
-                    
-                    ${
-                      currentUser && adminList.includes(currentUser.studentId)
-                        ? `
-                    <div class="mb-3">
-                      <div class="w-full bg-gray-200 rounded-full h-2">
-                        <div class="bg-orange-500 h-2 rounded-full transition-all duration-300" style="width:${
-                          cap ? Math.min(100, Math.round((cnt / cap) * 100)) : 0
-                        }%"></div>
-                      </div>
-                    </div>
                     `
                         : ""
                     }
@@ -7834,7 +7883,8 @@
                </div>`;
 
         // 내 활동 내역 HTML (항상 표시)
-        const myHistoryHTML = currentUser ? `
+        const myHistoryHTML = currentUser
+          ? `
           <div class="section mt-6">
             <div class="bg-blue-50 border-2 border-blue-200 rounded-xl overflow-hidden">
               <button 
@@ -7862,7 +7912,8 @@
                       ? `<div class="space-y-3">
                           ${myPastEvents
                             .sort(
-                              (a, b) => new Date(b.datetime) - new Date(a.datetime)
+                              (a, b) =>
+                                new Date(b.datetime) - new Date(a.datetime)
                             )
                             .map((ev) => {
                               const typeIcon =
@@ -7875,7 +7926,8 @@
                                   : "📅";
 
                               const hasReview = (ev.reviews || []).find(
-                                (r) => r.studentId === (currentUser?.studentId || "")
+                                (r) =>
+                                  r.studentId === (currentUser?.studentId || "")
                               );
 
                               // 미식회인 경우 참여한 식당 이름 찾기
@@ -7887,7 +7939,8 @@
                               ) {
                                 const myRestaurant = ev.restaurants.find((r) =>
                                   r.reservations?.some(
-                                    (res) => res.studentId === currentUser.studentId
+                                    (res) =>
+                                      res.studentId === currentUser.studentId
                                   )
                                 );
                                 if (myRestaurant) {
@@ -7910,12 +7963,16 @@
                                   : ""
                               }</h5>
                                       <p class="text-xs text-gray-500">
-                                        ${new Date(ev.datetime).toLocaleDateString(
+                                        ${new Date(
+                                          ev.datetime
+                                        ).toLocaleDateString(
                                           "ko-KR"
-                                        )} ${new Date(ev.datetime).toLocaleTimeString(
-                                "ko-KR",
-                                { hour: "2-digit", minute: "2-digit" }
-                              )}
+                                        )} ${new Date(
+                                ev.datetime
+                              ).toLocaleTimeString("ko-KR", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
                                       </p>
                                     </div>
                                   </div>
@@ -7929,7 +7986,9 @@
                                       ev.id
                                     }">
                                       <i class="fas ${
-                                        hasReview ? "fa-edit" : "fa-pen-to-square"
+                                        hasReview
+                                          ? "fa-edit"
+                                          : "fa-pen-to-square"
                                       } mr-1"></i>${
                                 hasReview ? "후기 수정" : "후기 작성"
                               }
@@ -7949,7 +8008,8 @@
                 </div>
               </div>
             </div>
-          </div>` : "";
+          </div>`
+          : "";
 
         // 보관된 이벤트 목록 (회장단만)
         const archivedListHTML = isAdmin
@@ -8802,7 +8862,7 @@
               }" title="글 내리기"><i class="fas fa-arrow-down"></i></button>
               <button type="button" class="text-purple-600 hover:text-purple-800" data-act="group-maker" data-id="${
                 ev.id
-              }" title="조짜기"><i class="fas fa-users"></i></button>
+              }" title="팀 구성하기"><i class="fas fa-users"></i></button>
               <button type="button" class="text-red-600 hover:text-red-800" data-act="admin-delete" data-id="${
                 ev.id
               }" title="삭제"><i class="fas fa-trash"></i></button>
@@ -10399,6 +10459,23 @@
         }
 
         // 2. 나머지 인원 배치
+        // 조장이 배치된 조를 고려하여 가장 적은 인원을 가진 조부터 배치
+        const getSmallestGroupIdx = () => {
+          const sizes = groups.map((g, idx) => ({ idx, size: g.length }));
+          // 조장이 없는 조를 우선 선택
+          const groupsWithoutLeader = sizes.filter(
+            (s) => !groups[s.idx].some((m) => m.isLeader)
+          );
+          if (groupsWithoutLeader.length > 0) {
+            // 조장이 없는 조 중 가장 작은 조
+            groupsWithoutLeader.sort((a, b) => a.size - b.size);
+            return groupsWithoutLeader[0].idx;
+          }
+          // 모든 조에 조장이 있으면 가장 작은 조
+          sizes.sort((a, b) => a.size - b.size);
+          return sizes[0].idx;
+        };
+
         if (genderBalance && collegeMix) {
           // 성별 + 학과 균형
           const byGenderCollege = {};
@@ -10412,13 +10489,12 @@
             list.sort(() => Math.random() - 0.5)
           );
 
-          let groupIdx = 0;
           Object.keys(byGenderCollege)
             .sort()
             .forEach((key) => {
               byGenderCollege[key].forEach((member) => {
-                groups[groupIdx % groupCount].push(member);
-                groupIdx++;
+                const smallestIdx = getSmallestGroupIdx();
+                groups[smallestIdx].push(member);
               });
             });
         } else if (genderBalance) {
@@ -10433,11 +10509,10 @@
             .filter((p) => p.gender !== "남성" && p.gender !== "여성")
             .sort(() => Math.random() - 0.5);
 
-          let groupIdx = 0;
           [males, females, others].forEach((list) => {
             list.forEach((member) => {
-              groups[groupIdx % groupCount].push(member);
-              groupIdx++;
+              const smallestIdx = getSmallestGroupIdx();
+              groups[smallestIdx].push(member);
             });
           });
         } else if (collegeMix) {
@@ -10453,20 +10528,20 @@
             list.sort(() => Math.random() - 0.5)
           );
 
-          let groupIdx = 0;
           Object.keys(byCollege)
             .sort()
             .forEach((college) => {
               byCollege[college].forEach((member) => {
-                groups[groupIdx % groupCount].push(member);
-                groupIdx++;
+                const smallestIdx = getSmallestGroupIdx();
+                groups[smallestIdx].push(member);
               });
             });
         } else {
           // 무작위
           members.sort(() => Math.random() - 0.5);
-          members.forEach((member, idx) => {
-            groups[idx % groupCount].push(member);
+          members.forEach((member) => {
+            const smallestIdx = getSmallestGroupIdx();
+            groups[smallestIdx].push(member);
           });
         }
 
@@ -10646,7 +10721,7 @@
             <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
                             <div class="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-4 flex justify-between items-center">
                                 <div>
-                                  <h3 class="text-2xl font-bold text-white">조짜기</h3>
+                                  <h3 class="text-2xl font-bold text-white">팀 구성하기</h3>
                   <p class="text-purple-100 text-sm">참가자 ${participants.length}명을 조로 나눕니다</p>
                                 </div>
                 <button type="button" id="group-maker-close-btn" class="text-white hover:bg-white hover:bg-opacity-20 rounded-full p-2 transition-colors">
@@ -10709,7 +10784,7 @@
                   <i class="fas fa-times mr-2"></i>취소
                 </button>
                 <button type="button" id="generate-groups-btn" class="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-6 py-3 rounded-xl hover:from-purple-700 hover:to-indigo-700 transition-all font-semibold shadow-lg">
-                  <i class="fas fa-magic mr-2"></i>조 짜기 시작!
+                  <i class="fas fa-magic mr-2"></i>팀 구성하기 시작!
                 </button>
               </div>
             </div>
@@ -10720,7 +10795,10 @@
 
         // 이벤트 리스너 설정
         setTimeout(() => {
-          updateLeaderSelectorsNew(participants, 3);
+          // 현재 입력된 조 개수 가져오기 (기본값 3)
+          const initialGroupCount =
+            parseInt(document.getElementById("group-count-new").value) || 3;
+          updateLeaderSelectorsNew(participants, initialGroupCount);
 
           // 닫기 버튼 이벤트 리스너
           const closeBtn = document.getElementById("group-maker-close-btn");
@@ -15060,12 +15138,11 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
         // 회장, 부회장은 고정
         const fixedPositions = ["회장", "부회장"];
 
-        // 회장단 직책이 초기화되지 않았으면 기본값 설정
-        if (presidentPositions.length === 0) {
-          presidentPositions = [...fixedPositions];
-        }
+        // Firebase에서 로드된 데이터 사용 (렌더링 함수는 변수를 수정하지 않음)
+        const positionsToRender =
+          presidentPositions.length > 0 ? presidentPositions : fixedPositions;
 
-        return presidentPositions
+        return positionsToRender
           .map((pos) => {
             const isFixed = fixedPositions.includes(pos);
             return `
@@ -15104,12 +15181,11 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
         // 운영진만 고정 (개발자는 삭제 가능해야 함)
         const fixedPositions = ["운영진"];
 
-        // 일반 임원 직책이 초기화되지 않았으면 기본값 설정
-        if (regularPositions.length === 0) {
-          regularPositions = ["운영진"];
-        }
+        // Firebase에서 로드된 데이터 사용 (렌더링 함수는 변수를 수정하지 않음)
+        const positionsToRender =
+          regularPositions.length > 0 ? regularPositions : fixedPositions;
 
-        return regularPositions
+        return positionsToRender
           .map((pos) => {
             const isFixed = fixedPositions.includes(pos);
             return `
@@ -15384,24 +15460,28 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
         try {
           if (category === "president") {
             const newPositions = [...presidentPositions, position];
+            console.log("💾 회장단 직책 저장 시도:", newPositions);
             await setDoc(doc(db, "settings", "presidentPositions"), {
               positions: newPositions,
             });
             presidentPositions = newPositions;
+            console.log("✅ 회장단 직책 저장 완료:", presidentPositions);
             showAlert("✅", `"${position}" 직책이 회장단에 추가되었습니다.`);
           } else {
             const newPositions = [...regularPositions, position];
+            console.log("💾 일반 임원 직책 저장 시도:", newPositions);
             await setDoc(doc(db, "settings", "regularPositions"), {
               positions: newPositions,
             });
             regularPositions = newPositions;
+            console.log("✅ 일반 임원 직책 저장 완료:", regularPositions);
             showAlert("✅", `"${position}" 직책이 일반 임원에 추가되었습니다.`);
           }
 
           input.value = "";
           renderPositionsAdmin(document.getElementById("subtab-container"));
         } catch (e) {
-          console.error(e);
+          console.error("❌ 직책 추가 오류:", e);
           showAlert("😥", "직책 추가에 실패했습니다.");
         }
       }
@@ -15831,9 +15911,34 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
           }
           console.log("Firebase 업데이트 완료");
 
+          // eventsData 배열의 order 값도 즉시 업데이트
+          const currentEventInData = eventsData.find((e) => e.id === eventId);
+          const targetEventInData = eventsData.find(
+            (e) => e.id === targetEvent.id
+          );
+          if (currentEventInData && targetEventInData) {
+            if (currentOrder === targetOrder) {
+              currentEventInData.order = currentIndex - 1;
+              targetEventInData.order = currentIndex;
+            } else {
+              currentEventInData.order = targetOrder;
+              targetEventInData.order = currentOrder;
+            }
+            // 다시 정렬
+            eventsData.sort((a, b) => (a.order || 0) - (b.order || 0));
+          }
+
           showAlert("✅", "이벤트 순서가 변경되었습니다.");
           // 이벤트 목록 새로고침
           smoothRender("main-content", renderAll);
+
+          // 신청 탭이 열려있으면 다시 렌더링
+          const reservationTab = document.getElementById("reservation-tab");
+          if (reservationTab && reservationTab.classList.contains("active")) {
+            const isAdmin =
+              currentUser && adminList.includes(currentUser.studentId);
+            renderReservationTab(isAdmin);
+          }
         } catch (error) {
           console.error("이벤트 순서 변경 오류:", error);
           showAlert("😥", "이벤트 순서 변경에 실패했습니다.");
@@ -15910,9 +16015,34 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
           }
           console.log("Firebase 업데이트 완료");
 
+          // eventsData 배열의 order 값도 즉시 업데이트
+          const currentEventInData = eventsData.find((e) => e.id === eventId);
+          const targetEventInData = eventsData.find(
+            (e) => e.id === targetEvent.id
+          );
+          if (currentEventInData && targetEventInData) {
+            if (currentOrder === targetOrder) {
+              currentEventInData.order = currentIndex + 1;
+              targetEventInData.order = currentIndex;
+            } else {
+              currentEventInData.order = targetOrder;
+              targetEventInData.order = currentOrder;
+            }
+            // 다시 정렬
+            eventsData.sort((a, b) => (a.order || 0) - (b.order || 0));
+          }
+
           showAlert("✅", "이벤트 순서가 변경되었습니다.");
           // 이벤트 목록 새로고침
           smoothRender("main-content", renderAll);
+
+          // 신청 탭이 열려있으면 다시 렌더링
+          const reservationTab = document.getElementById("reservation-tab");
+          if (reservationTab && reservationTab.classList.contains("active")) {
+            const isAdmin =
+              currentUser && adminList.includes(currentUser.studentId);
+            renderReservationTab(isAdmin);
+          }
         } catch (error) {
           console.error("이벤트 순서 변경 오류:", error);
           showAlert("😥", "이벤트 순서 변경에 실패했습니다.");
@@ -17765,8 +17895,8 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                 <button type="button" class="bg-purple-500 hover:bg-purple-600 text-white px-3 py-1.5 rounded text-sm transition-colors" 
                         data-act="group-maker" data-id="${
                           ev.id
-                        }" title="조짜기">
-                  <i class="fas fa-users mr-1"></i>조짜기
+                        }" title="팀 구성하기">
+                  <i class="fas fa-users mr-1"></i>팀 구성하기
                 </button>
                 <button type="button" class="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1.5 rounded text-sm transition-colors" 
                         data-act="export-xlsx" data-id="${
@@ -19068,7 +19198,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
       }
 
       // 조모임 추가 모달 열기
-      function openGroupAddModal() {
+      window.openGroupAddModal = function () {
         const modal = document.getElementById("group-add-modal");
         if (!modal) {
           createGroupAddModal();
@@ -19079,7 +19209,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
         document.getElementById("group-add-score").value = "";
 
         document.getElementById("group-add-modal").classList.remove("hidden");
-      }
+      };
 
       // 조모임 추가 모달 생성
       function createGroupAddModal() {
@@ -19590,7 +19720,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
       }
 
       // 조모임 수정 모달 열기
-      function openGroupEditModal(groupId, groupName, groupScore) {
+      window.openGroupEditModal = function (groupId, groupName, groupScore) {
         const modal = document.getElementById("group-edit-modal");
         if (!modal) {
           createGroupEditModal();
@@ -19602,7 +19732,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
         document.getElementById("group-edit-score").value = groupScore;
 
         document.getElementById("group-edit-modal").classList.remove("hidden");
-      }
+      };
 
       // 조모임 수정 모달 생성
       function createGroupEditModal() {
@@ -22483,7 +22613,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                   reviewCount > 0
                     ? `
                   <div class="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl p-4 sm:p-5 mb-4 border-2 border-orange-200 shadow-sm">
-                    <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center justify-between mb-3">
                       <div class="flex items-center gap-3">
                         <div class="flex items-center gap-1">
                           ${renderStars(parseFloat(avgRating))}
@@ -22493,31 +22623,38 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                       <span class="text-sm sm:text-base text-gray-700 font-semibold bg-white px-3 py-1.5 rounded-full shadow-sm">${reviewCount}명 평가</span>
                     </div>
                     
-                    <!-- 미식회 정보를 리뷰 박스 안으로 이동 -->
-                    <div class="mb-3 pb-3 border-b border-orange-200">
-                      <div class="flex flex-col sm:flex-row sm:items-center gap-2 text-xs sm:text-sm text-gray-600">
-                        <div class="flex items-center gap-1">
-                          <i class="fas fa-calendar text-orange-600"></i>
-                          <span>${new Date(
-                            restaurant.eventDate
-                          ).toLocaleDateString("ko-KR", {
-                            year: "numeric",
-                            month: "long",
-                            day: "numeric",
-                          })}</span>
-                        </div>
-                        <span class="hidden sm:inline">·</span>
-                        <div class="flex items-center gap-1">
-                          <i class="fas fa-utensils text-orange-600"></i>
-                          <span class="font-semibold">${
-                            restaurant.eventTitle
-                          }</span>
-                        </div>
-                        <span class="hidden sm:inline">·</span>
-                        <div class="flex items-center gap-1">
-                          <i class="fas fa-users text-orange-600"></i>
-                          <span>${restaurant.participantCount}명 참가</span>
-                        </div>
+                    <!-- 미식회 정보를 별점 바로 아래 가로로 배치 -->
+                    <div class="flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm text-gray-600 pb-2 border-b border-orange-200">
+                      <div class="flex items-center gap-1">
+                        <i class="fas fa-calendar text-orange-600"></i>
+                        <span>${new Date(
+                          restaurant.eventDate
+                        ).toLocaleDateString("ko-KR", {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                        })}</span>
+                      </div>
+                      <span class="text-orange-300">·</span>
+                      <div class="flex items-center gap-1">
+                        <i class="fas fa-utensils text-orange-600"></i>
+                        <span class="font-semibold">${
+                          restaurant.eventTitle
+                        }</span>
+                      </div>
+                      <span class="text-orange-300">·</span>
+                      <div class="flex items-center gap-1">
+                        <i class="fas fa-users text-orange-600"></i>
+                        <span>${restaurant.participantCount}명 참가</span>
+                      </div>
+                      <span class="text-orange-300">·</span>
+                      <div class="flex items-center gap-1">
+                        <i class="fas fa-tags text-orange-600"></i>
+                        <span class="inline-flex items-center px-2 py-0.5 bg-orange-100 text-orange-700 rounded-full text-xs font-semibold">
+                          ${categoryEmoji} ${
+                        restaurant.restaurantCategory || "기타"
+                      }
+                        </span>
                       </div>
                     </div>
                     
@@ -25255,8 +25392,8 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
           "review-modal-title"
         ).textContent = `${event.title} 평가`;
         document.getElementById("review-modal-content").innerHTML = `
-          <div class="space-y-4">
-            <div class="text-sm text-gray-600">
+          <div class="space-y-3 md:space-y-4">
+            <div class="text-xs md:text-sm text-gray-600">
               <p><strong>이벤트:</strong> ${saf(event.title)}</p>
               <p><strong>일시:</strong> ${new Date(
                 event.datetime
@@ -25264,45 +25401,45 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
             </div>
             
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">평점</label>
-              <div class="flex gap-1 mb-2 items-center" id="rating-stars">
+              <label class="block text-xs md:text-sm font-medium text-gray-700 mb-1 md:mb-2">평점</label>
+              <div class="flex gap-0.5 md:gap-1 mb-1 md:mb-2 items-center justify-center" id="rating-stars">
                 ${Array.from({ length: 5 }, (_, i) => {
                   const rating = i + 1;
                   const currentRating = existingReview?.rating || 0;
                   const isSelected = rating <= currentRating;
 
-                  return `<button type="button" class="star-rating-btn text-3xl transition-all hover:scale-110" data-rating="${rating}">
+                  return `<button type="button" class="star-rating-btn text-2xl md:text-3xl transition-all hover:scale-110" data-rating="${rating}">
                     <i class="fas fa-star ${
                       isSelected ? "text-yellow-400" : "text-gray-300"
                     }"></i>
                   </button>`;
                 }).join("")}
               </div>
-              <p class="text-xs text-gray-500 text-center">
+              <p class="text-xs text-gray-500 text-center hidden md:block">
                 1점 단위로 평가할 수 있습니다 (별을 클릭하세요)
               </p>
-              <div class="text-center mt-2">
-                <span class="text-2xl font-bold text-orange-600" id="current-rating-display">${
+              <div class="text-center mt-1 md:mt-2">
+                <span class="text-xl md:text-2xl font-bold text-orange-600" id="current-rating-display">${
                   existingReview?.rating || 0
                 }</span>
-                <span class="text-sm text-gray-600">점</span>
+                <span class="text-xs md:text-sm text-gray-600">점</span>
               </div>
             </div>
             
             <div>
-              <label for="review-comment" class="block text-sm font-medium text-gray-700 mb-2">후기</label>
-              <textarea id="review-comment" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500" 
+              <label for="review-comment" class="block text-xs md:text-sm font-medium text-gray-700 mb-1 md:mb-2">후기</label>
+              <textarea id="review-comment" rows="3" class="md:rows-4 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm" 
                         placeholder="이벤트에 대한 소감이나 후기를 남겨주세요...">${
                           existingReview?.comment || ""
                         }</textarea>
             </div>
             
-            <div class="flex gap-3 pt-4">
-              <button type="button" id="save-review" class="flex-1 bg-orange-500 text-white py-2 px-4 rounded-lg hover:bg-orange-600 transition-colors">
-                <i class="fas fa-save mr-2"></i>
+            <div class="flex gap-2 md:gap-3 pt-2 md:pt-4">
+              <button type="button" id="save-review" class="flex-1 bg-orange-500 text-white py-2 px-3 md:px-4 rounded-lg hover:bg-orange-600 transition-colors text-sm">
+                <i class="fas fa-save mr-1 md:mr-2"></i>
                 ${existingReview ? "수정하기" : "저장하기"}
               </button>
-              <button type="button" id="cancel-review" class="flex-1 bg-gray-500 text-white py-2 px-4 rounded-lg hover:bg-gray-600 transition-colors">
+              <button type="button" id="cancel-review" class="flex-1 bg-gray-500 text-white py-2 px-3 md:px-4 rounded-lg hover:bg-gray-600 transition-colors text-sm">
                 취소
               </button>
             </div>
@@ -26507,9 +26644,12 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
       id="review-modal"
       class="hidden fixed inset-0 bg-black/50 flex justify-center items-center px-4 z-[9997]"
     >
-      <div class="bg-white p-6 md:p-8 rounded-2xl shadow-xl max-w-md w-full">
-        <div class="flex justify-between items-center mb-6">
-          <h3 id="review-modal-title" class="text-xl font-bold text-gray-800">
+      <div class="bg-white p-4 md:p-8 rounded-2xl shadow-xl max-w-md w-full">
+        <div class="flex justify-between items-center mb-4 md:mb-6">
+          <h3
+            id="review-modal-title"
+            class="text-lg md:text-xl font-bold text-gray-800"
+          >
             이벤트 평가
           </h3>
           <button
