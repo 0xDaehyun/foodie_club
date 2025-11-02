@@ -22506,13 +22506,24 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                           <i class="fas fa-store text-orange-600 text-sm"></i>
                           <span class="text-xs sm:text-sm font-semibold text-orange-700 uppercase tracking-wide">식당 이름</span>
                         </div>
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-2 flex-wrap">
                           <span class="text-2xl sm:text-3xl">${categoryEmoji}</span>
                           <h4 class="text-2xl sm:text-3xl font-extrabold text-gray-900 group-hover:text-orange-600 transition-colors bg-gradient-to-r from-orange-600 to-orange-700 bg-clip-text text-transparent">
                             ${saf(
                               restaurant.restaurantName || "(식당 이름 없음)"
                             )}
                           </h4>
+                          <span class="text-xs sm:text-sm text-gray-500 flex items-center gap-1 ml-2">
+                            <i class="fas fa-calendar text-orange-600"></i>
+                            ${new Date(restaurant.eventDate).toLocaleDateString(
+                              "ko-KR",
+                              {
+                                year: "numeric",
+                                month: "long",
+                                day: "numeric",
+                              }
+                            )}
+                          </span>
                         </div>
                       </div>
                       ${
@@ -22621,41 +22632,6 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                         <span class="text-2xl sm:text-3xl font-bold text-gray-800">${avgRating}</span>
                       </div>
                       <span class="text-sm sm:text-base text-gray-700 font-semibold bg-white px-3 py-1.5 rounded-full shadow-sm">${reviewCount}명 평가</span>
-                    </div>
-                    
-                    <!-- 미식회 정보를 별점 바로 아래 가로로 배치 -->
-                    <div class="flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm text-gray-600 pb-2 border-b border-orange-200">
-                      <div class="flex items-center gap-1">
-                        <i class="fas fa-calendar text-orange-600"></i>
-                        <span>${new Date(
-                          restaurant.eventDate
-                        ).toLocaleDateString("ko-KR", {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                        })}</span>
-                      </div>
-                      <span class="text-orange-300">·</span>
-                      <div class="flex items-center gap-1">
-                        <i class="fas fa-utensils text-orange-600"></i>
-                        <span class="font-semibold">${
-                          restaurant.eventTitle
-                        }</span>
-                      </div>
-                      <span class="text-orange-300">·</span>
-                      <div class="flex items-center gap-1">
-                        <i class="fas fa-users text-orange-600"></i>
-                        <span>${restaurant.participantCount}명 참가</span>
-                      </div>
-                      <span class="text-orange-300">·</span>
-                      <div class="flex items-center gap-1">
-                        <i class="fas fa-tags text-orange-600"></i>
-                        <span class="inline-flex items-center px-2 py-0.5 bg-orange-100 text-orange-700 rounded-full text-xs font-semibold">
-                          ${categoryEmoji} ${
-                        restaurant.restaurantCategory || "기타"
-                      }
-                        </span>
-                      </div>
                     </div>
                     
                     ${
