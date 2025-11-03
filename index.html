@@ -3773,10 +3773,10 @@
 
       // 카카오톡 인앱 브라우저 감지
       const isKakaoTalkInAppBrowser = /KAKAOTALK/i.test(navigator.userAgent);
-      console.log("카카오톡 인앱 브라우저:", isKakaoTalkInAppBrowser);
+      debugLog("카카오톡 인앱 브라우저:", isKakaoTalkInAppBrowser);
 
       const checkLoadingComplete = () => {
-        console.log(
+        debugLog(
           `로딩 완료 체크: ${__loadingDataCount}/${__expectedDataSources}, 초기로딩: ${__isInitialLoading}`
         );
 
@@ -3797,17 +3797,17 @@
             clearTimeout(dataLoadTimeout);
           }
 
-          // 카카오톡 인앱 브라우저는 60초, 일반 브라우저는 40초로 충분한 시간 제공
-          const loadingTimeout = isKakaoTalkInAppBrowser ? 60000 : 40000;
-          console.log(`로딩 타임아웃 설정: ${loadingTimeout / 1000}초`);
+          // 카카오톡 인앱 브라우저는 60초, 일반 브라우저는 90초로 충분한 시간 제공 (재시도 로직과 맞춤)
+          const loadingTimeout = isKakaoTalkInAppBrowser ? 90000 : 90000;
+          debugLog(`로딩 타임아웃 설정: ${loadingTimeout / 1000}초`);
 
           // 타임아웃 안에 로딩이 완료되지 않으면 재접속
           dataLoadTimeout = setTimeout(() => {
             if (__isInitialLoading) {
-              console.error(
+              debugError(
                 `⚠️ 데이터 로딩 시간 초과 (${loadingTimeout / 1000}초)`
               );
-              console.log(
+              debugLog(
                 `로드된 데이터: ${__loadingDataCount}/${__expectedDataSources}`
               );
               // 즉시 재접속
@@ -3816,7 +3816,7 @@
           }, loadingTimeout);
 
           if (__loadingDataCount >= __expectedDataSources) {
-            console.log("모든 데이터 소스 카운트 완료. 데이터 검증 시작...");
+            debugLog("모든 데이터 소스 카운트 완료. 데이터 검증 시작...");
             updateLoadingProgress(2, "데이터 확인 중...");
 
             // 타임아웃 클리어
@@ -4674,7 +4674,10 @@
         }
         if (!unsubPublic.roadmap) {
           // 로드맵: order 필드를 관리하므로 정렬은 렌더링 시점에서 처리
-          debugLog("로드맵 데이터 로딩 시작, USE_DEMO_OFFLINE:", USE_DEMO_OFFLINE);
+          debugLog(
+            "로드맵 데이터 로딩 시작, USE_DEMO_OFFLINE:",
+            USE_DEMO_OFFLINE
+          );
 
           if (USE_DEMO_OFFLINE) {
             // 로컬 파일 모드에서는 데모 데이터 사용
