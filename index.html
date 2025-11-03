@@ -18550,7 +18550,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
       function renderHorizontalRoadmap() {
         // 로그아웃 상태에서는 아무것도 렌더링하지 않음 (블록 시스템으로 대체)
         if (!currentUser) {
-          console.log(
+          debugLog(
             "renderHorizontalRoadmap: 로그아웃 상태 - 렌더링하지 않음"
           );
           return;
@@ -18559,7 +18559,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
         const root = document.getElementById("h-roadmap-list");
         const btn = document.getElementById("h-roadmap-toggle-btn");
         if (!root) {
-          console.warn(
+          debugWarn(
             "renderHorizontalRoadmap: h-roadmap-list 요소를 찾을 수 없습니다."
           );
           return;
