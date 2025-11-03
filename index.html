@@ -1974,7 +1974,8 @@
               aria-controls="presence-pop"
               title="현재 접속자 목록"
             >
-              <span aria-hidden="true">👥</span> 접속 <b id="presence-count" aria-label="접속자 수">0</b>명
+              <span aria-hidden="true">👥</span> 접속
+              <b id="presence-count" aria-label="접속자 수">0</b>명
             </button>
             <!-- 조모임 순위(모두 보임) -->
             <button
@@ -2013,10 +2014,17 @@
           aria-labelledby="presence-title"
           aria-modal="true"
         >
-          <div id="presence-title" class="text-sm font-semibold text-gray-700 mb-2">
+          <div
+            id="presence-title"
+            class="text-sm font-semibold text-gray-700 mb-2"
+          >
             현재 접속자
           </div>
-          <div id="presence-list" class="max-h-64 overflow-auto text-sm" role="list"></div>
+          <div
+            id="presence-list"
+            class="max-h-64 overflow-auto text-sm"
+            role="list"
+          ></div>
         </div>
 
         <!-- 알림 팝오버 -->
@@ -2033,10 +2041,16 @@
               onclick="openInquiryModal()"
               aria-label="문의 모달 열기"
             >
-              <i class="fas fa-paper-plane mr-1" aria-hidden="true"></i>문의 보내기
+              <i class="fas fa-paper-plane mr-1" aria-hidden="true"></i>문의
+              보내기
             </button>
           </div>
-          <div id="notification-list" class="max-h-80 overflow-auto text-sm" role="list" aria-label="알림 목록">
+          <div
+            id="notification-list"
+            class="max-h-80 overflow-auto text-sm"
+            role="list"
+            aria-label="알림 목록"
+          >
             <div class="text-center text-gray-500 py-4">알림이 없습니다</div>
           </div>
         </div>
@@ -2053,7 +2067,11 @@
                   Foodie 회원 인증
                 </h2>
               </div>
-              <div class="space-y-3 md:space-y-4" role="form" aria-label="회원 인증 폼">
+              <div
+                class="space-y-3 md:space-y-4"
+                role="form"
+                aria-label="회원 인증 폼"
+              >
                 <div>
                   <label for="studentId" class="sr-only">학번</label>
                   <input
@@ -2124,7 +2142,8 @@
                   class="w-full bg-orange-500 text-white btn-lg hover:bg-orange-600 transition-colors"
                   aria-label="로그인 버튼"
                 >
-                  <i class="fas fa-right-to-bracket mr-2" aria-hidden="true"></i>로그인
+                  <i class="fas fa-right-to-bracket mr-2" aria-hidden="true"></i
+                  >로그인
                 </button>
                 <button
                   id="signup-button"
@@ -2132,7 +2151,8 @@
                   class="w-full bg-white text-orange-700 border border-orange-300 btn-lg hover:bg-orange-50 disabled:opacity-50 disabled:cursor-not-allowed"
                   aria-label="회원가입 버튼"
                 >
-                  <i class="fas fa-user-plus mr-2" aria-hidden="true"></i>회원가입
+                  <i class="fas fa-user-plus mr-2" aria-hidden="true"></i
+                  >회원가입
                 </button>
                 <div
                   id="signup-banner"
@@ -2619,7 +2639,11 @@
       <div
         class="bg-white p-6 md:p-8 rounded-2xl shadow-xl text-center max-w-sm w-full"
       >
-        <div id="modal-icon" class="text-4xl md:text-5xl mb-3 md:mb-4" aria-hidden="true"></div>
+        <div
+          id="modal-icon"
+          class="text-4xl md:text-5xl mb-3 md:mb-4"
+          aria-hidden="true"
+        ></div>
         <p
           id="alert-message"
           class="text-base md:text-lg font-medium text-gray-700"
@@ -2646,13 +2670,23 @@
       aria-modal="true"
     >
       <div class="bg-white p-6 md:p-8 rounded-2xl shadow-xl max-w-sm w-full">
-        <h3 id="emergency-title" class="text-2xl font-bold text-red-600 mb-4 text-center">
-          <i class="fas fa-exclamation-triangle mr-2" aria-hidden="true"></i>비상 복구 모드
+        <h3
+          id="emergency-title"
+          class="text-2xl font-bold text-red-600 mb-4 text-center"
+        >
+          <i class="fas fa-exclamation-triangle mr-2" aria-hidden="true"></i
+          >비상 복구 모드
         </h3>
-        <p id="emergency-description" class="text-center text-gray-600 mb-4 md:mb-6">
+        <p
+          id="emergency-description"
+          class="text-center text-gray-600 mb-4 md:mb-6"
+        >
           새로운 관리자를 임명하여 시스템 접근 권한을 복구합니다.
         </p>
-        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4" role="alert">
+        <div
+          class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4"
+          role="alert"
+        >
           <p class="text-sm text-yellow-800">
             <i class="fas fa-info-circle mr-1" aria-hidden="true"></i>
             <strong>직접 로그인:</strong> 학번에
@@ -2990,6 +3024,18 @@
 
       const IS_FILE = location.protocol === "file:";
       const USE_DEMO_OFFLINE = false; // 항상 Firebase 사용하도록 변경
+      const DEBUG_MODE = localStorage.getItem("foodie_debug") === "true"; // 개발 모드 토글
+
+      // 개발 모드 로그 헬퍼
+      const debugLog = (...args) => {
+        if (DEBUG_MODE) console.log(...args);
+      };
+      const debugWarn = (...args) => {
+        if (DEBUG_MODE) console.warn(...args);
+      };
+      const debugError = (...args) => {
+        if (DEBUG_MODE) console.error(...args);
+      };
 
       /* ===== 상태 ===== */
       let currentUser = null;
@@ -3787,7 +3833,7 @@
 
       // 모든 데이터 로드 완료 검증 함수
       const verifyAllDataLoaded = (retryCount = 0) => {
-        console.log("=== 데이터 로드 완전성 검증 ===", retryCount);
+        debugLog("=== 데이터 로드 완전성 검증 ===", retryCount);
 
         // 배열이면 데이터가 로드된 것으로 간주 (빈 배열도 OK)
         const hasRoadmap = roadmapData && Array.isArray(roadmapData);
@@ -3797,13 +3843,13 @@
         const hasAdmins = adminList && Array.isArray(adminList);
         const hasFoodMenus = foodMenusData && Array.isArray(foodMenusData);
 
-        console.log("필수 데이터 확인:");
-        console.log("- roadmapData:", hasRoadmap, roadmapData?.length || 0);
-        console.log("- eventsData:", hasEvents, eventsData?.length || 0);
-        console.log("- blocksData:", hasBlocks, blocksData?.length || 0);
-        console.log("- membersData:", hasMembers, membersData?.length || 0);
-        console.log("- adminList:", hasAdmins, adminList?.length || 0);
-        console.log(
+        debugLog("필수 데이터 확인:");
+        debugLog("- roadmapData:", hasRoadmap, roadmapData?.length || 0);
+        debugLog("- eventsData:", hasEvents, eventsData?.length || 0);
+        debugLog("- blocksData:", hasBlocks, blocksData?.length || 0);
+        debugLog("- membersData:", hasMembers, membersData?.length || 0);
+        debugLog("- adminList:", hasAdmins, adminList?.length || 0);
+        debugLog(
           "- foodMenusData:",
           hasFoodMenus,
           foodMenusData?.length || 0
@@ -3821,31 +3867,31 @@
         if (allDataLoaded) {
           // 모든 데이터가 실제로 로드된 경우에만 로딩 완료 처리
           __isInitialLoading = false;
-          console.log("✅ 모든 컨텐츠가 정상적으로 로드되었습니다.");
-          console.log("📊 최종 데이터 요약:");
-          console.log(`  - 로드맵: ${roadmapData.length}개`);
-          console.log(`  - 이벤트: ${eventsData.length}개`);
-          console.log(`  - 블록: ${blocksData.length}개`);
-          console.log(`  - 회원: ${membersData.length}명`);
-          console.log(`  - 관리자: ${adminList.length}명`);
-          console.log(`  - 뭐먹지 메뉴: ${foodMenusData.length}개`);
+          debugLog("✅ 모든 컨텐츠가 정상적으로 로드되었습니다.");
+          debugLog("📊 최종 데이터 요약:");
+          debugLog(`  - 로드맵: ${roadmapData.length}개`);
+          debugLog(`  - 이벤트: ${eventsData.length}개`);
+          debugLog(`  - 블록: ${blocksData.length}개`);
+          debugLog(`  - 회원: ${membersData.length}명`);
+          debugLog(`  - 관리자: ${adminList.length}명`);
+          debugLog(`  - 뭐먹지 메뉴: ${foodMenusData.length}개`);
 
           // 모든 데이터가 로드되었으므로 로딩 화면 닫기
           updateLoadingProgress(100, "잘 먹겠습니다!");
           setTimeout(() => {
             hideLoadingScreen();
-            console.log("🎉 데이터 로딩 완료 - 정상 표시됨");
+            debugLog("🎉 데이터 로딩 완료 - 정상 표시됨");
           }, 500);
         } else {
-          console.warn(`⚠️ 일부 데이터 미로드 (재확인 ${retryCount + 1}/40)`);
+          debugWarn(`⚠️ 일부 데이터 미로드 (재확인 ${retryCount + 1}/40)`);
 
           // 어떤 데이터가 없는지 명시
-          if (!hasRoadmap) console.warn("  ❌ 로드맵 데이터 없음");
-          if (!hasEvents) console.warn("  ❌ 이벤트 데이터 없음");
-          if (!hasBlocks) console.warn("  ❌ 블록 데이터 없음");
-          if (!hasMembers) console.warn("  ❌ 회원 데이터 없음");
-          if (!hasAdmins) console.warn("  ❌ 관리자 데이터 없음");
-          if (!hasFoodMenus) console.warn("  ❌ 뭐먹지 메뉴 데이터 없음");
+          if (!hasRoadmap) debugWarn("  ❌ 로드맵 데이터 없음");
+          if (!hasEvents) debugWarn("  ❌ 이벤트 데이터 없음");
+          if (!hasBlocks) debugWarn("  ❌ 블록 데이터 없음");
+          if (!hasMembers) debugWarn("  ❌ 회원 데이터 없음");
+          if (!hasAdmins) debugWarn("  ❌ 관리자 데이터 없음");
+          if (!hasFoodMenus) debugWarn("  ❌ 뭐먹지 메뉴 데이터 없음");
 
           // 로딩 화면 유지하면서 계속 재확인 (최대 40회 = 80초)
           if (retryCount < 40) {
@@ -3860,8 +3906,8 @@
               verifyAllDataLoaded(retryCount + 1);
             }, 2000); // 2초마다 재확인
           } else {
-            console.error("❌ 최대 대기 시간 초과 (80초)");
-            console.log("⚠️ 로딩 화면 유지 - 데이터 로드 실패");
+            debugError("❌ 최대 대기 시간 초과 (80초)");
+            debugLog("⚠️ 로딩 화면 유지 - 데이터 로드 실패");
             updateLoadingProgress(
               95,
               "데이터 로드 중 문제 발생. 새로고침을 시도해주세요."
@@ -3874,11 +3920,11 @@
 
       // 컨텐츠가 제대로 로드되었는지 확인하는 함수
       const checkContentLoaded = () => {
-        console.log("=== 컨텐츠 로드 상태 확인 ===");
+        debugLog("=== 컨텐츠 로드 상태 확인 ===");
 
         // 네트워크 상태 확인
         const isOnline = navigator.onLine;
-        console.log("네트워크 상태:", isOnline ? "온라인" : "오프라인");
+        debugLog("네트워크 상태:", isOnline ? "온라인" : "오프라인");
 
         // 우선순위 데이터 확인 (가장 중요한 데이터부터)
         const hasValidRoadmapData =
@@ -3893,28 +3939,28 @@
         const hasValidFoodMenusData =
           foodMenusData && Array.isArray(foodMenusData);
 
-        console.log("우선순위 데이터 검사:");
-        console.log(
+        debugLog("우선순위 데이터 검사:");
+        debugLog(
           "- roadmapData (최우선):",
           hasValidRoadmapData,
           roadmapData?.length || 0
         );
-        console.log(
+        debugLog(
           "- eventsData:",
           hasValidEventsData,
           eventsData?.length || 0
         );
-        console.log(
+        debugLog(
           "- blocksData:",
           hasValidBlocksData,
           blocksData?.length || 0
         );
-        console.log(
+        debugLog(
           "- membersData:",
           hasValidMembersData,
           membersData?.length || 0
         );
-        console.log(
+        debugLog(
           "- foodMenusData:",
           hasValidFoodMenusData,
           foodMenusData?.length || 0
@@ -3934,15 +3980,15 @@
           loadingScreenEl.style.display !== "none" &&
           !loadingScreenEl.classList.contains("hidden");
 
-        console.log("hasMainContent:", hasMainContent);
-        console.log("hasPreContent:", hasPreContent);
-        console.log("isLoadingScreenVisible:", isLoadingScreenVisible);
+        debugLog("hasMainContent:", hasMainContent);
+        debugLog("hasPreContent:", hasPreContent);
+        debugLog("isLoadingScreenVisible:", isLoadingScreenVisible);
 
         // 페이지 로드 시간 확인 (너무 빨리 체크하지 않도록)
         const pageLoadTime =
           Date.now() -
           (window.performance?.timing?.navigationStart || Date.now());
-        console.log("페이지 로드 시간:", pageLoadTime + "ms");
+        debugLog("페이지 로드 시간:", pageLoadTime + "ms");
 
         // 로그아웃 상태 확인
         const isLoggedOut = !currentUser;
@@ -3962,19 +4008,19 @@
           (stillLoading || networkIssues) &&
           criticalDataMissing;
 
-        console.log("재접속 조건:");
-        console.log("- 핵심 데이터 없음:", criticalDataMissing);
-        console.log("- 로딩 지연 (15초 이상):", stillLoading);
-        console.log("- 네트워크 문제 (10초 이상):", networkIssues);
-        console.log("- 재접속 필요:", needsQuickReconnect);
+        debugLog("재접속 조건:");
+        debugLog("- 핵심 데이터 없음:", criticalDataMissing);
+        debugLog("- 로딩 지연 (15초 이상):", stillLoading);
+        debugLog("- 네트워크 문제 (10초 이상):", networkIssues);
+        debugLog("- 재접속 필요:", needsQuickReconnect);
 
         // 재접속은 매우 드문 경우에만 실행 (15초 이상 로딩 중이고 데이터 없을 때만)
         if (needsQuickReconnect) {
-          console.warn("⚠️ 장시간 로딩 실패! 재접속을 시도합니다.");
-          console.log("🔄 재접속 실행");
+          debugWarn("⚠️ 장시간 로딩 실패! 재접속을 시도합니다.");
+          debugLog("🔄 재접속 실행");
           location.reload();
         } else {
-          console.log("✅ 재접속 불필요 - 정상 로딩 중");
+          debugLog("✅ 재접속 불필요 - 정상 로딩 중");
         }
       };
 
@@ -4005,9 +4051,9 @@
               })
             );
 
-            console.log("=== 비상복구모드 로그인 ===");
-            console.log("currentUser:", currentUser);
-            console.log("adminList:", adminList);
+            debugLog("=== 비상복구모드 로그인 ===");
+            debugLog("currentUser:", currentUser);
+            debugLog("adminList:", adminList);
 
             ensureAdminOptionals();
             renderAll();
@@ -4018,14 +4064,14 @@
         if (!sid || !nm)
           return showAlert("😥", "학번과 이름을 모두 입력해주세요.");
         try {
-          console.log("=== 로그인 시도 ===");
-          console.log("입력 학번:", sid);
-          console.log("입력 이름:", nm);
+          debugLog("=== 로그인 시도 ===");
+          debugLog("입력 학번:", sid);
+          debugLog("입력 이름:", nm);
 
           const mref = doc(db, "members", sid);
           const ms = await getDoc(mref);
 
-          console.log("Firebase 조회 결과:", {
+          debugLog("Firebase 조회 결과:", {
             exists: ms.exists(),
             data: ms.exists() ? ms.data() : null,
           });
@@ -4037,8 +4083,8 @@
             );
           const data = ms.data() || {};
 
-          console.log("회원 데이터:", data);
-          console.log("이름 비교:", {
+          debugLog("회원 데이터:", data);
+          debugLog("이름 비교:", {
             입력이름: nm,
             저장된이름: (data.name || "").trim(),
             일치여부: (data.name || "").trim() === nm,
@@ -4052,7 +4098,7 @@
           const status = data.status || "active";
           // 개발용: pending 상태도 허용하고 관리자 권한 부여
           if (status === "pending") {
-            console.log("⚠️ 개발 모드: pending 상태 사용자도 로그인 허용");
+            debugLog("⚠️ 개발 모드: pending 상태 사용자도 로그인 허용");
           }
           if (status === "rejected")
             return showAlert(
@@ -4084,10 +4130,10 @@
             if (currentUser && adminList.includes(currentUser.studentId)) {
               currentUser.position =
                 adminPositions[currentUser.studentId] || "일반 회원";
-              console.log("=== 사용자 직책 설정 ===");
-              console.log("currentUser.studentId:", currentUser.studentId);
-              console.log("adminPositions:", adminPositions);
-              console.log("설정된 직책:", currentUser.position);
+              debugLog("=== 사용자 직책 설정 ===");
+              debugLog("currentUser.studentId:", currentUser.studentId);
+              debugLog("adminPositions:", adminPositions);
+              debugLog("설정된 직책:", currentUser.position);
             }
           } catch {}
 
