@@ -1951,8 +1951,10 @@
             id="header-food-btn"
             class="speech-bubble-btn"
             style="margin-top: 0px"
+            aria-label="식사 추천 받기"
+            title="오늘 뭐먹을지 추천받기"
           >
-            <span style="font-size: 14px">🍽️</span>
+            <span style="font-size: 14px" aria-hidden="true">🍽️</span>
             <span>뭐먹지?</span>
           </button>
 
@@ -1960,30 +1962,43 @@
           <div
             id="game-buttons-container"
             class="flex items-center gap-2 ml-auto"
+            role="group"
+            aria-label="헤더 액션 버튼"
           >
             <!-- 접속자(모두 보임) -->
             <button
               id="presence-badge"
               class="text-sm md:text-base bg-gray-800 text-white rounded-full px-3 py-1 hover:bg-gray-700"
+              aria-label="현재 접속자 보기"
+              aria-expanded="false"
+              aria-controls="presence-pop"
+              title="현재 접속자 목록"
             >
-              👥 접속 <b id="presence-count">0</b>명
+              <span aria-hidden="true">👥</span> 접속 <b id="presence-count" aria-label="접속자 수">0</b>명
             </button>
             <!-- 조모임 순위(모두 보임) -->
             <button
               id="rank-button"
               class="text-sm md:text-base bg-orange-500 text-white rounded-full px-3 py-1 hover:bg-orange-600 rank-button-glow"
+              aria-label="조모임 순위 보기"
+              title="조모임 순위"
             >
-              🏅 조모임
+              <span aria-hidden="true">🏅</span> 조모임
             </button>
             <!-- 받은함 버튼 (알림 + 문의) -->
             <button
               id="notification-badge"
               class="text-sm md:text-base bg-orange-500 text-white rounded-full px-3 py-1 hover:bg-orange-600 shadow-md hover:shadow-lg transition-all relative"
+              aria-label="알림 확인"
+              aria-expanded="false"
+              aria-controls="notification-pop"
+              title="알림 및 문의 확인"
             >
-              <i class="fas fa-inbox mr-1"></i>
+              <i class="fas fa-inbox mr-1" aria-hidden="true"></i>
               <span
                 id="notification-count"
                 class="hidden bg-red-600 text-white text-xs font-bold rounded-full px-1.5 py-0.5 ml-0.5"
+                aria-label="새 알림 개수"
                 >0</span
               >
             </button>
@@ -1994,27 +2009,34 @@
         <div
           id="presence-pop"
           class="hidden right-0 left-0 mx-auto md:left-auto md:right-10 md:mx-0 w-full max-w-xs bg-white border rounded-xl shadow-xl p-3 z-30"
+          role="dialog"
+          aria-labelledby="presence-title"
+          aria-modal="true"
         >
-          <div class="text-sm font-semibold text-gray-700 mb-2">
+          <div id="presence-title" class="text-sm font-semibold text-gray-700 mb-2">
             현재 접속자
           </div>
-          <div id="presence-list" class="max-h-64 overflow-auto text-sm"></div>
+          <div id="presence-list" class="max-h-64 overflow-auto text-sm" role="list"></div>
         </div>
 
         <!-- 알림 팝오버 -->
         <div
           id="notification-pop"
           class="hidden right-0 left-0 mx-auto md:left-auto md:right-10 md:mx-0 w-full max-w-sm bg-white border rounded-xl shadow-xl p-3 z-30 mt-2"
+          role="dialog"
+          aria-labelledby="notification-title"
+          aria-modal="true"
         >
           <div class="flex items-center justify-end mb-2">
             <button
               class="text-xs text-blue-600 hover:text-blue-800"
               onclick="openInquiryModal()"
+              aria-label="문의 모달 열기"
             >
-              <i class="fas fa-paper-plane mr-1"></i>문의 보내기
+              <i class="fas fa-paper-plane mr-1" aria-hidden="true"></i>문의 보내기
             </button>
           </div>
-          <div id="notification-list" class="max-h-80 overflow-auto text-sm">
+          <div id="notification-list" class="max-h-80 overflow-auto text-sm" role="list" aria-label="알림 목록">
             <div class="text-center text-gray-500 py-4">알림이 없습니다</div>
           </div>
         </div>
@@ -2031,38 +2053,56 @@
                   Foodie 회원 인증
                 </h2>
               </div>
-              <div class="space-y-3 md:space-y-4">
-                <input
-                  id="studentId"
-                  type="text"
-                  placeholder="학번"
-                  class="w-full input-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-400"
-                />
-                <input
-                  id="studentName"
-                  type="text"
-                  placeholder="이름"
-                  class="w-full input-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-400"
-                />
+              <div class="space-y-3 md:space-y-4" role="form" aria-label="회원 인증 폼">
+                <div>
+                  <label for="studentId" class="sr-only">학번</label>
+                  <input
+                    id="studentId"
+                    name="studentId"
+                    type="text"
+                    placeholder="학번"
+                    aria-label="학번 입력"
+                    autocomplete="username"
+                    class="w-full input-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-400"
+                  />
+                </div>
+                <div>
+                  <label for="studentName" class="sr-only">이름</label>
+                  <input
+                    id="studentName"
+                    name="studentName"
+                    type="text"
+                    placeholder="이름"
+                    aria-label="이름 입력"
+                    autocomplete="name"
+                    class="w-full input-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-400"
+                  />
+                </div>
 
                 <!-- 자동 로그인 체크박스 -->
                 <div class="flex items-center justify-center">
                   <label
+                    for="auto-login-checkbox"
                     class="inline-flex items-center cursor-pointer select-none"
                   >
                     <div class="relative">
                       <input
                         id="auto-login-checkbox"
+                        name="autoLogin"
                         type="checkbox"
                         class="sr-only"
+                        aria-label="자동 로그인"
                       />
                       <div
                         class="w-5 h-5 bg-white border-2 border-gray-300 rounded-sm flex items-center justify-center transition-all duration-200 hover:border-orange-400"
+                        role="checkbox"
+                        aria-checked="false"
                       >
                         <svg
                           class="w-3 h-3 text-orange-600 opacity-0 transition-opacity duration-200"
                           fill="currentColor"
                           viewBox="0 0 20 20"
+                          aria-hidden="true"
                         >
                           <path
                             fill-rule="evenodd"
@@ -2082,19 +2122,23 @@
                   id="login-button"
                   type="button"
                   class="w-full bg-orange-500 text-white btn-lg hover:bg-orange-600 transition-colors"
+                  aria-label="로그인 버튼"
                 >
-                  <i class="fas fa-right-to-bracket mr-2"></i>로그인
+                  <i class="fas fa-right-to-bracket mr-2" aria-hidden="true"></i>로그인
                 </button>
                 <button
                   id="signup-button"
                   type="button"
                   class="w-full bg-white text-orange-700 border border-orange-300 btn-lg hover:bg-orange-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  aria-label="회원가입 버튼"
                 >
-                  <i class="fas fa-user-plus mr-2"></i>회원가입
+                  <i class="fas fa-user-plus mr-2" aria-hidden="true"></i>회원가입
                 </button>
                 <div
                   id="signup-banner"
                   class="hidden text-center text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg p-2 mt-2"
+                  role="alert"
+                  aria-live="polite"
                 >
                   지금은 <b>회원가입 기간</b>입니다. 미회원은
                   <b>회원가입</b> 버튼으로 가입하세요.
@@ -2568,19 +2612,24 @@
     <div
       id="alert-modal"
       class="hidden fixed inset-0 bg-black/50 flex justify-center items-center px-4 z-[9999]"
+      role="alertdialog"
+      aria-labelledby="alert-message"
+      aria-modal="true"
     >
       <div
         class="bg-white p-6 md:p-8 rounded-2xl shadow-xl text-center max-w-sm w-full"
       >
-        <div id="modal-icon" class="text-4xl md:text-5xl mb-3 md:mb-4"></div>
+        <div id="modal-icon" class="text-4xl md:text-5xl mb-3 md:mb-4" aria-hidden="true"></div>
         <p
           id="alert-message"
           class="text-base md:text-lg font-medium text-gray-700"
+          role="alert"
         ></p>
         <button
           id="modal-close-button"
           type="button"
           class="mt-5 md:mt-6 bg-gray-800 text-white font-bold py-2 px-6 rounded-lg hover:bg-gray-700"
+          aria-label="확인"
         >
           확인
         </button>
@@ -2591,33 +2640,40 @@
     <div
       id="emergency-modal"
       class="hidden fixed inset-0 bg-black/70 flex justify-center items-center px-4 z-50"
+      role="dialog"
+      aria-labelledby="emergency-title"
+      aria-describedby="emergency-description"
+      aria-modal="true"
     >
       <div class="bg-white p-6 md:p-8 rounded-2xl shadow-xl max-w-sm w-full">
-        <h3 class="text-2xl font-bold text-red-600 mb-4 text-center">
-          <i class="fas fa-exclamation-triangle mr-2"></i>비상 복구 모드
+        <h3 id="emergency-title" class="text-2xl font-bold text-red-600 mb-4 text-center">
+          <i class="fas fa-exclamation-triangle mr-2" aria-hidden="true"></i>비상 복구 모드
         </h3>
-        <p class="text-center text-gray-600 mb-4 md:mb-6">
+        <p id="emergency-description" class="text-center text-gray-600 mb-4 md:mb-6">
           새로운 관리자를 임명하여 시스템 접근 권한을 복구합니다.
         </p>
-        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4" role="alert">
           <p class="text-sm text-yellow-800">
-            <i class="fas fa-info-circle mr-1"></i>
+            <i class="fas fa-info-circle mr-1" aria-hidden="true"></i>
             <strong>직접 로그인:</strong> 학번에
             <code>foodie_emergency_2024!</code> 입력 후 이름을 입력하면 즉시
             관리자 권한으로 로그인됩니다.
           </p>
         </div>
+        <label for="new-admin-id" class="sr-only">새 관리자 학번 입력</label>
         <input
           type="text"
           id="new-admin-id"
           placeholder="새 관리자의 학번을 입력"
           class="w-full input-lg border border-gray-300"
+          aria-label="새 관리자 학번"
         />
         <div class="flex space-x-2 mt-4">
           <button
             id="emergency-add-button"
             type="button"
             class="flex-1 bg-red-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-600"
+            aria-label="새 관리자 임명"
           >
             관리자 임명
           </button>
@@ -2625,6 +2681,7 @@
             id="emergency-cancel-button"
             type="button"
             class="flex-1 bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg hover:bg-gray-400"
+            aria-label="취소"
           >
             취소
           </button>
@@ -26758,12 +26815,14 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
             id="event-modal-close"
             class="text-gray-500 hover:text-gray-700 hover:bg-gray-100 p-2 rounded-full transition-colors"
             title="닫기"
+            aria-label="모달 닫기"
           >
             <svg
               class="w-6 h-6"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
+              aria-hidden="true"
             >
               <path
                 stroke-linecap="round"
