@@ -3849,11 +3849,7 @@
         debugLog("- blocksData:", hasBlocks, blocksData?.length || 0);
         debugLog("- membersData:", hasMembers, membersData?.length || 0);
         debugLog("- adminList:", hasAdmins, adminList?.length || 0);
-        debugLog(
-          "- foodMenusData:",
-          hasFoodMenus,
-          foodMenusData?.length || 0
-        );
+        debugLog("- foodMenusData:", hasFoodMenus, foodMenusData?.length || 0);
 
         // 모든 리스너가 최소 한 번 실행되었는지 확인
         const allDataLoaded =
@@ -3945,16 +3941,8 @@
           hasValidRoadmapData,
           roadmapData?.length || 0
         );
-        debugLog(
-          "- eventsData:",
-          hasValidEventsData,
-          eventsData?.length || 0
-        );
-        debugLog(
-          "- blocksData:",
-          hasValidBlocksData,
-          blocksData?.length || 0
-        );
+        debugLog("- eventsData:", hasValidEventsData, eventsData?.length || 0);
+        debugLog("- blocksData:", hasValidBlocksData, blocksData?.length || 0);
         debugLog(
           "- membersData:",
           hasValidMembersData,
@@ -4154,7 +4142,7 @@
 
           renderAll();
         } catch (e) {
-          console.warn(e);
+          debugWarn(e);
           showAlert("😥", "로그인 중 오류가 발생했습니다.");
         }
       }
@@ -4197,7 +4185,7 @@
             location.reload();
           }, 2000);
         } catch (e) {
-          console.warn(e);
+          debugWarn(e);
           location.reload();
         }
       };
@@ -4283,7 +4271,7 @@
           window.addEventListener("pagehide", end);
           window.addEventListener("beforeunload", end);
         } catch (e) {
-          console.warn("presence start err", e);
+          debugWarn("presence start err", e);
         }
       }
       function stopPresence() {
@@ -4539,7 +4527,7 @@
               }
               scheduleRender();
             },
-            (err) => console.warn("blocks:", err?.message)
+            (err) => debugWarn("blocks:", err?.message)
           );
         }
         if (!unsubPublic.customPositions) {
@@ -4555,7 +4543,7 @@
               }
               scheduleRender();
             },
-            (err) => console.warn("customPositions:", err?.message)
+            (err) => debugWarn("customPositions:", err?.message)
           );
         }
         if (!unsubPublic.deletedPositions) {
@@ -4571,7 +4559,7 @@
               }
               scheduleRender();
             },
-            (err) => console.warn("deletedPositions:", err?.message)
+            (err) => debugWarn("deletedPositions:", err?.message)
           );
         }
         if (!unsubPublic.presidentPositions) {
@@ -4681,34 +4669,31 @@
               }
               scheduleRender();
             },
-            (err) => console.warn("restaurantCategories:", err?.message)
+            (err) => debugWarn("restaurantCategories:", err?.message)
           );
         }
         if (!unsubPublic.roadmap) {
           // 로드맵: order 필드를 관리하므로 정렬은 렌더링 시점에서 처리
-          console.log(
-            "로드맵 데이터 로딩 시작, USE_DEMO_OFFLINE:",
-            USE_DEMO_OFFLINE
-          );
+          debugLog("로드맵 데이터 로딩 시작, USE_DEMO_OFFLINE:", USE_DEMO_OFFLINE);
 
           if (USE_DEMO_OFFLINE) {
             // 로컬 파일 모드에서는 데모 데이터 사용
             roadmapData = DEMO.roadmap;
-            console.log("DEMO 로드맵 데이터 사용:", roadmapData);
+            debugLog("DEMO 로드맵 데이터 사용:", roadmapData);
             if (__isInitialLoading) {
               __loadingDataCount++;
               checkLoadingComplete();
             }
             scheduleRender();
           } else {
-            console.log("Firebase에서 로드맵 데이터 로딩 중...");
+            debugLog("Firebase에서 로드맵 데이터 로딩 중...");
             unsubPublic.roadmap = onSnapshot(
               collection(db, "roadmap"),
               (snap) => {
                 roadmapData = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-                console.log("Firebase 로드맵 데이터 업데이트:", roadmapData);
-                console.log("문서 개수:", snap.docs.length);
-                console.log(
+                debugLog("Firebase 로드맵 데이터 업데이트:", roadmapData);
+                debugLog("문서 개수:", snap.docs.length);
+                debugLog(
                   "변경된 문서들:",
                   snap.docChanges().map((change) => ({
                     type: change.type,
@@ -4723,9 +4708,9 @@
                 scheduleRender();
               },
               (err) => {
-                console.warn("roadmap 로딩 오류:", err?.message);
+                debugWarn("roadmap 로딩 오류:", err?.message);
                 roadmapData = DEMO.roadmap;
-                console.log("오류로 인해 DEMO 데이터 사용:", roadmapData);
+                debugLog("오류로 인해 DEMO 데이터 사용:", roadmapData);
                 if (__isInitialLoading) {
                   __loadingDataCount++;
                   checkLoadingComplete();
@@ -4766,7 +4751,7 @@
               }
               scheduleRender();
             },
-            (err) => console.warn("events:", err?.message)
+            (err) => debugWarn("events:", err?.message)
           );
         }
         if (!unsubPublic.foodMenus) {
@@ -4784,7 +4769,7 @@
               }
               scheduleRender();
             },
-            (err) => console.warn("foodMenus:", err?.message)
+            (err) => debugWarn("foodMenus:", err?.message)
           );
         }
         // 알림 구독 (로그인한 사용자에게만)
@@ -4806,7 +4791,7 @@
                 checkLoadingComplete();
               }
             },
-            (err) => console.warn("notifications:", err?.message)
+            (err) => debugWarn("notifications:", err?.message)
           );
         }
       }
@@ -4828,7 +4813,7 @@
               }
               scheduleRender();
             },
-            (err) => console.warn("suggestions:", err?.message)
+            (err) => debugWarn("suggestions:", err?.message)
           );
         }
         if (!unsubAdmin.inquiries) {
@@ -4841,7 +4826,7 @@
               }));
               scheduleRender();
             },
-            (err) => console.warn("inquiries:", err?.message)
+            (err) => debugWarn("inquiries:", err?.message)
           );
         }
         if (!unsubAdmin.history) {
@@ -4855,7 +4840,7 @@
               }
               scheduleRender();
             },
-            (err) => console.warn("history:", err?.message)
+            (err) => debugWarn("history:", err?.message)
           );
         }
         if (!unsubAdmin.members) {
@@ -4869,7 +4854,7 @@
               }
               scheduleRender();
             },
-            (err) => console.warn("members:", err?.message)
+            (err) => debugWarn("members:", err?.message)
           );
         }
         if (!unsubAdmin.presence) {
@@ -4880,7 +4865,7 @@
               computeOnline();
               renderPresenceUI();
             },
-            (err) => console.warn("presence:", err?.message)
+            (err) => debugWarn("presence:", err?.message)
           );
         }
       }
