@@ -7222,8 +7222,8 @@
           : "none";
 
         // 디버깅: 사용자 상태 확인
-        console.log(`Event ${ev.id}: currentUser =`, currentUser);
-        console.log(
+        debugLog(`Event ${ev.id}: currentUser =`, currentUser);
+        debugLog(
           `Event ${ev.id}: my = ${my}, count = ${count}, lim = ${lim}`
         );
 
@@ -7387,40 +7387,73 @@
         );
         const isAdmin =
           currentUser && adminList.includes(currentUser.studentId);
-        return `<div class="section card-hover ${typeAccentClass(
-          ev.type
-        )}" data-event-id="${
+        
+        // 이벤트 타입별 이모지
+        const typeIcon =
+          ev.type === "tasting"
+            ? "🍽️"
+            : ev.type === "mt"
+            ? "🏕️"
+            : ev.type === "assembly"
+            ? "🎤"
+            : "📅";
+        
+        return `<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 group" data-event-id="${
           ev.id
-        }" style="position: relative; z-index: 1; margin-bottom: 1rem; padding: 1rem; height: auto; overflow: visible; clear: both;">
-                  <h3 class="text-lg font-bold text-gray-800 mb-2">${saf(
-                    ev.title
-                  )}</h3>
-                  <div class="mt-2 space-y-2">
-                    <div class="bg-orange-100 border-2 border-orange-400 text-orange-900 px-3 py-2 rounded-lg flex items-center gap-2">
-                      <i class="fas fa-calendar-check text-orange-600 text-base"></i>
-                      <span class="text-sm font-bold">이벤트 실시일: ${
+        }" style="position: relative; z-index: 1;">
+              <div class="p-4 sm:p-6">
+                <div class="mb-3 sm:mb-4">
+                  <div class="flex items-start justify-between mb-3">
+                    <div class="flex-1">
+                      <div class="mb-2">
+                        <div class="flex items-center gap-2 mb-2">
+                          <i class="fas fa-calendar text-orange-600 text-sm"></i>
+                          <span class="text-xs sm:text-sm font-semibold text-orange-700 uppercase tracking-wide">활동 정보</span>
+                        </div>
+                        <div class="flex items-center gap-2 flex-wrap">
+                          <span class="text-3xl sm:text-4xl">${typeIcon}</span>
+                          <h3 class="text-2xl sm:text-3xl font-extrabold text-gray-900 group-hover:text-orange-600 transition-colors bg-gradient-to-r from-orange-600 to-orange-700 bg-clip-text text-transparent">
+                            ${saf(ev.title)}
+                          </h3>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="mt-3 space-y-2">
+                    <div class="bg-gradient-to-r from-orange-50 to-yellow-50 rounded-xl p-3 sm:p-4 border-2 border-orange-200 shadow-sm">
+                      <div class="flex items-center gap-2 mb-1">
+                        <i class="fas fa-calendar-check text-orange-600 text-base"></i>
+                        <span class="text-sm font-bold text-gray-900">이벤트 실시일</span>
+                      </div>
+                      <p class="text-base text-gray-800 ml-6">${
                         ev.datetime
                           ? new Date(ev.datetime).toLocaleString("ko-KR", {
+                              year: "numeric",
                               month: "long",
                               day: "numeric",
                               hour: "2-digit",
                               minute: "2-digit",
                             })
                           : "-"
-                      }</span>
+                      }</p>
                     </div>
-                    <div class="bg-red-100 border-2 border-red-400 text-red-900 px-3 py-2 rounded-lg flex items-center gap-2">
-                      <i class="fas fa-clock text-red-600 text-base"></i>
-                      <span class="text-sm font-bold">신청 마감일: ${
+                    <div class="bg-gradient-to-r from-red-50 to-pink-50 rounded-xl p-3 sm:p-4 border-2 border-red-200 shadow-sm">
+                      <div class="flex items-center gap-2 mb-1">
+                        <i class="fas fa-clock text-red-600 text-base"></i>
+                        <span class="text-sm font-bold text-gray-900">신청 마감일</span>
+                      </div>
+                      <p class="text-base text-gray-800 ml-6">${
                         ev.deadline
                           ? new Date(ev.deadline).toLocaleString("ko-KR", {
+                              year: "numeric",
                               month: "long",
                               day: "numeric",
                               hour: "2-digit",
                               minute: "2-digit",
                             })
                           : "미설정"
-                      }</span>
+                      }</p>
                     </div>
                   </div>
                   ${paymentInfoHTML(ev)}
@@ -7547,7 +7580,8 @@
                   </div>
                   ${adminFullTableHTML(ev)}
                   ${adminInline(ev)}
-                </div>`;
+              </div>
+            </div>`;
       }
       function tastingCardHTML(ev) {
         const list = (ev.restaurants || [])
@@ -7845,49 +7879,66 @@
           .join("");
         const isAdmin =
           currentUser && adminList.includes(currentUser.studentId);
-        return `<div class="section card-hover ${typeAccentClass(
-          ev.type
-        )}" data-event-id="${
+        
+        // 이벤트 타입별 이모지
+        const typeIcon = "🍽️"; // 미식회는 항상 🍽️
+        
+        return `<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 group" data-event-id="${
           ev.id
-        }" style="position: relative; z-index: 1; margin-bottom: 1rem; padding: 1rem; height: auto; overflow: visible; clear: both;">
-                  <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-                    <div class="p-3 border-b border-gray-100">
-                      <div class="flex justify-between items-center mb-2">
-                  <h3 class="text-lg font-bold text-gray-800">${saf(
-                    ev.title
-                  )}</h3>
-                        <span class="px-2 py-1 rounded-full text-xs font-medium ${typeBadgeClass(
-                          ev.type
-                        )} min-h-[28px] flex items-center justify-center">
-                          ${typeLabel(ev.type)}
-                        </span>
+        }" style="position: relative; z-index: 1;">
+                  <div class="p-4 sm:p-6">
+                    <div class="mb-3 sm:mb-4">
+                      <div class="flex items-start justify-between mb-3">
+                        <div class="flex-1">
+                          <div class="mb-2">
+                            <div class="flex items-center gap-2 mb-2">
+                              <i class="fas fa-utensils text-orange-600 text-sm"></i>
+                              <span class="text-xs sm:text-sm font-semibold text-orange-700 uppercase tracking-wide">미식회 정보</span>
+                            </div>
+                            <div class="flex items-center gap-2 flex-wrap">
+                              <span class="text-3xl sm:text-4xl">${typeIcon}</span>
+                              <h3 class="text-2xl sm:text-3xl font-extrabold text-gray-900 group-hover:text-orange-600 transition-colors bg-gradient-to-r from-orange-600 to-orange-700 bg-clip-text text-transparent">
+                                ${saf(ev.title)}
+                              </h3>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                      <div class="space-y-2">
-                        <div class="bg-orange-100 border-2 border-orange-400 text-orange-900 px-3 py-2 rounded-lg flex items-center gap-2">
-                          <i class="fas fa-calendar-check text-orange-600 text-base"></i>
-                          <span class="text-sm font-bold">이벤트 실시일: ${
+                      
+                      <div class="mt-3 space-y-2">
+                        <div class="bg-gradient-to-r from-orange-50 to-yellow-50 rounded-xl p-3 sm:p-4 border-2 border-orange-200 shadow-sm">
+                          <div class="flex items-center gap-2 mb-1">
+                            <i class="fas fa-calendar-check text-orange-600 text-base"></i>
+                            <span class="text-sm font-bold text-gray-900">이벤트 실시일</span>
+                          </div>
+                          <p class="text-base text-gray-800 ml-6">${
                             ev.datetime
                               ? new Date(ev.datetime).toLocaleString("ko-KR", {
+                                  year: "numeric",
                                   month: "long",
                                   day: "numeric",
                                   hour: "2-digit",
                                   minute: "2-digit",
                                 })
                               : "-"
-                          }</span>
+                          }</p>
                         </div>
-                        <div class="bg-red-100 border-2 border-red-400 text-red-900 px-3 py-2 rounded-lg flex items-center gap-2">
-                          <i class="fas fa-clock text-red-600 text-base"></i>
-                          <span class="text-sm font-bold">신청 마감일: ${
+                        <div class="bg-gradient-to-r from-red-50 to-pink-50 rounded-xl p-3 sm:p-4 border-2 border-red-200 shadow-sm">
+                          <div class="flex items-center gap-2 mb-1">
+                            <i class="fas fa-clock text-red-600 text-base"></i>
+                            <span class="text-sm font-bold text-gray-900">신청 마감일</span>
+                          </div>
+                          <p class="text-base text-gray-800 ml-6">${
                             ev.deadline
                               ? new Date(ev.deadline).toLocaleString("ko-KR", {
+                                  year: "numeric",
                                   month: "long",
                                   day: "numeric",
                                   hour: "2-digit",
                                   minute: "2-digit",
                                 })
                               : "미설정"
-                          }</span>
+                          }</p>
                         </div>
                       </div>
                   ${adminStatsHTML(ev)}
@@ -7912,8 +7963,8 @@
                         </div>
                       </div>
                     </div>
-                  </div>
-                </div>`;
+              </div>
+            </div>`;
       }
       function eventCardHTML(ev) {
         return ev.type === "tasting"
