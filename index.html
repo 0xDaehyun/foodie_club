@@ -24082,14 +24082,14 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
           }
         }
 
-        console.log(`로딩 진행률: ${loadingProgress}% - ${text || ""}`);
+        debugLog(`로딩 진행률: ${loadingProgress}% - ${text || ""}`);
       }
 
       // 로딩 화면 숨기기 함수
       function hideLoadingScreen() {
         // 1차 체크: __loadingDataCount가 8개를 모두 받았는지 확인
         if (__loadingDataCount < __expectedDataSources) {
-          console.log(
+          debugLog(
             `⏳ 데이터 로딩 중... ${__loadingDataCount}/${__expectedDataSources} - 로딩 화면 유지`
           );
           return;
@@ -24105,14 +24105,14 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
           Array.isArray(foodMenusData);
 
         if (!hasRequiredData) {
-          console.log("⏳ 데이터 변수 초기화 대기 중... 로딩 화면 유지");
+          debugLog("⏳ 데이터 변수 초기화 대기 중... 로딩 화면 유지");
           return;
         }
 
         // 모든 조건 통과: 로딩 화면 닫기
         const loadingScreen = document.getElementById("loading-screen");
         if (loadingScreen && loadingAnimationComplete) {
-          console.log("✅ 로딩 화면 숨김 (모든 데이터 소스 응답 완료)");
+          debugLog("✅ 로딩 화면 숨김 (모든 데이터 소스 응답 완료)");
           loadingScreen.classList.add("hidden");
         }
       }
@@ -24126,35 +24126,8 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
         renderRoadmap();
         renderBlocks();
 
-        // 5초 후: 매우 빠른 실패 감지
-        setTimeout(() => {
-          if (__loadingDataCount === 0) {
-            console.error("❌ 5초 경과, 데이터 0개 - 즉시 재접속");
-            location.reload();
-          }
-        }, 5000);
-
-        // 10초 후: 부족한 데이터 감지
-        setTimeout(() => {
-          if (__loadingDataCount < 2) {
-            console.error("❌ 10초 경과, 데이터 부족 - 재접속");
-            console.log(
-              `로드된 데이터: ${__loadingDataCount}/${__expectedDataSources}`
-            );
-            location.reload();
-          }
-        }, 10000);
-
-        // 15초 후: 최종 확인
-        setTimeout(() => {
-          if (__loadingDataCount < 5) {
-            console.error("❌ 15초 경과, 데이터 부족 - 재접속");
-            console.log(
-              `로드된 데이터: ${__loadingDataCount}/${__expectedDataSources}`
-            );
-            location.reload();
-          }
-        }, 15000);
+        // 중복 타임아웃 로직 제거: verifyAllDataLoaded와 checkLoadingComplete에서 처리
+        // 90초 타임아웃으로 통일하여 조기 재접속 방지
 
         // 예약된 글들 확인
         setTimeout(() => {
@@ -24185,7 +24158,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
               renderAll();
             }, 1200); // 로드맵 로딩 시간 고려하여 연장
           } catch (e) {
-            console.warn("저장된 사용자 정보 파싱 실패:", e);
+            debugWarn("저장된 사용자 정보 파싱 실패:", e);
             updateLoadingProgress(3, "잘 먹겠습니다!");
             setTimeout(() => {
               renderAll();
