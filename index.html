@@ -4207,10 +4207,10 @@
             if (currentUser && adminList.includes(currentUser.studentId)) {
               currentUser.position =
                 adminPositions[currentUser.studentId] || "일반 회원";
-              console.log("=== 자동 로그인 사용자 직책 설정 ===");
-              console.log("currentUser.studentId:", currentUser.studentId);
-              console.log("adminPositions:", adminPositions);
-              console.log("설정된 직책:", currentUser.position);
+              debugLog("=== 자동 로그인 사용자 직책 설정 ===");
+              debugLog("currentUser.studentId:", currentUser.studentId);
+              debugLog("adminPositions:", adminPositions);
+              debugLog("설정된 직책:", currentUser.position);
 
               // localStorage에도 업데이트된 position 저장
               localStorage.setItem(
