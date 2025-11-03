@@ -6551,7 +6551,7 @@
       function renderRoadmap() {
         // 로그아웃 상태에서는 아무것도 렌더링하지 않음 (블록 시스템으로 대체)
         if (!currentUser) {
-          console.log("renderRoadmap: 로그아웃 상태 - 렌더링하지 않음");
+          debugLog("renderRoadmap: 로그아웃 상태 - 렌더링하지 않음");
           return;
         }
 
@@ -10462,7 +10462,7 @@
           setInterval(autoCloseExpiredEvents, 60 * 60 * 1000);
         }, secondsUntilNextHour * 1000);
 
-        console.log("자동 신청 마감 스케줄러가 설정되었습니다.");
+        debugLog("자동 신청 마감 스케줄러가 설정되었습니다.");
       }
       async function deleteEvent(id) {
         const event = eventsData.find((e) => e.id === id);
@@ -18565,15 +18565,15 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
           return;
         }
 
-        console.log("renderHorizontalRoadmap: roadmapData =", roadmapData);
-        console.log("roadmapData 길이:", roadmapData?.length || 0);
-        console.log("roadmapData 타입:", typeof roadmapData);
+        debugLog("renderHorizontalRoadmap: roadmapData =", roadmapData);
+        debugLog("roadmapData 길이:", roadmapData?.length || 0);
+        debugLog("roadmapData 타입:", typeof roadmapData);
 
         // 데이터 상세 분석
         if (roadmapData && roadmapData.length > 0) {
-          console.log("roadmapData 상세 분석:");
+          debugLog("roadmapData 상세 분석:");
           roadmapData.forEach((item, index) => {
-            console.log(`  [${index}]`, {
+            debugLog(`  [${index}]`, {
               id: item?.id,
               title: item?.title,
               activityName: item?.activityName,
@@ -18626,7 +18626,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
 
         const displayEvents = upcomingEvents;
 
-        console.log("일정 표시 로직:", {
+        debugLog("일정 표시 로직:", {
           totalEvents: sorted.length,
           pastEvents: pastEvents.length,
           futureEvents: futureEvents.length,
@@ -18701,7 +18701,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
         // 다음 일정 찾기 (가장 가까운 미래 일정)
         const nextSchedule = futureEvents.length > 0 ? futureEvents[0] : null;
 
-        console.log("다음 일정 확인:", {
+        debugLog("다음 일정 확인:", {
           nextSchedule: nextSchedule
             ? {
                 id: nextSchedule.id,
