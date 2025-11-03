@@ -3878,8 +3878,8 @@
             hideLoadingScreen();
             debugLog("🎉 데이터 로딩 완료 - 정상 표시됨");
           }, 500);
-          } else {
-            debugWarn(`⚠️ 일부 데이터 미로드 (재확인 ${retryCount + 1}/10)`);
+        } else {
+          debugWarn(`⚠️ 일부 데이터 미로드 (재확인 ${retryCount + 1}/10)`);
 
           // 어떤 데이터가 없는지 명시
           if (!hasRoadmap) debugWarn("  ❌ 로드맵 데이터 없음");
@@ -4565,24 +4565,15 @@
           unsubPublic.presidentPositions = onSnapshot(
             doc(db, "settings", "presidentPositions"),
             async (snap) => {
-              console.log(
+              debugLog(
                 "📥 presidentPositions Firebase 업데이트:",
                 snap.exists() ? snap.data() : "문서 없음"
               );
               if (snap.exists()) {
                 const existingPositions = snap.data().positions || [];
-                // 기존 데이터가 있으면 그대로 사용
-                if (existingPositions.length > 0) {
-                  presidentPositions = existingPositions;
-                  console.log("✅ 회장단 직책 로드됨:", presidentPositions);
-                } else {
-                  // 배열이 비어있으면 기본값으로 설정하지 않음 (사용자가 의도적으로 비운 경우일 수 있음)
-                  presidentPositions = ["회장", "부회장"];
-                  console.log(
-                    "⚠️ 회장단 직책이 비어있음, 기본값 사용:",
-                    presidentPositions
-                  );
-                }
+                // 배열이 비어있어도 그대로 유지 (사용자가 의도적으로 비운 경우)
+                presidentPositions = existingPositions;
+                debugLog("✅ 회장단 직책 로드됨:", presidentPositions);
               } else {
                 // 문서가 없으면 기본값으로 생성 (회장, 부회장만)
                 const defaultPositions = ["회장", "부회장"];
@@ -4590,7 +4581,7 @@
                   positions: defaultPositions,
                 });
                 presidentPositions = defaultPositions;
-                console.log(
+                debugLog(
                   "🆕 회장단 직책 문서 생성 (기본값):",
                   presidentPositions
                 );
@@ -4602,31 +4593,22 @@
               }
               scheduleRender();
             },
-            (err) => console.error("❌ presidentPositions 오류:", err?.message)
+            (err) => debugError("❌ presidentPositions 오류:", err?.message)
           );
         }
         if (!unsubPublic.regularPositions) {
           unsubPublic.regularPositions = onSnapshot(
             doc(db, "settings", "regularPositions"),
             async (snap) => {
-              console.log(
+              debugLog(
                 "📥 regularPositions Firebase 업데이트:",
                 snap.exists() ? snap.data() : "문서 없음"
               );
               if (snap.exists()) {
                 const existingPositions = snap.data().positions || [];
-                // 기존 데이터가 있으면 그대로 사용
-                if (existingPositions.length > 0) {
-                  regularPositions = existingPositions;
-                  console.log("✅ 일반 임원 직책 로드됨:", regularPositions);
-                } else {
-                  // 배열이 비어있으면 기본값으로 설정하지 않음 (사용자가 의도적으로 비운 경우일 수 있음)
-                  regularPositions = ["운영진"];
-                  console.log(
-                    "⚠️ 일반 임원 직책이 비어있음, 기본값 사용:",
-                    regularPositions
-                  );
-                }
+                // 배열이 비어있어도 그대로 유지 (사용자가 의도적으로 비운 경우)
+                regularPositions = existingPositions;
+                debugLog("✅ 일반 임원 직책 로드됨:", regularPositions);
               } else {
                 // 문서가 없으면 기본값으로 생성 (운영진만)
                 const defaultPositions = ["운영진"];
@@ -4634,7 +4616,7 @@
                   positions: defaultPositions,
                 });
                 regularPositions = defaultPositions;
-                console.log(
+                debugLog(
                   "🆕 일반 임원 직책 문서 생성 (기본값):",
                   regularPositions
                 );
@@ -4646,7 +4628,7 @@
               }
               scheduleRender();
             },
-            (err) => console.error("❌ regularPositions 오류:", err?.message)
+            (err) => debugError("❌ regularPositions 오류:", err?.message)
           );
         }
         if (!unsubPublic.restaurantCategories) {
@@ -15168,12 +15150,12 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
           (currentUser.position === "회장" ||
             currentUser.position === "부회장");
 
-        console.log("=== 직책 관리 권한 확인 ===");
-        console.log("currentUser:", currentUser);
-        console.log("adminList:", adminList);
-        console.log("isAdmin:", isAdmin);
-        console.log("isPresidentOrVice:", isPresidentOrVice);
-        console.log("currentUser.position:", currentUser?.position);
+        debugLog("=== 직책 관리 권한 확인 ===");
+        debugLog("currentUser:", currentUser);
+        debugLog("adminList:", adminList);
+        debugLog("isAdmin:", isAdmin);
+        debugLog("isPresidentOrVice:", isPresidentOrVice);
+        debugLog("currentUser.position:", currentUser?.position);
 
         if (!isAdmin || !isPresidentOrVice) {
           container.innerHTML = `
@@ -15649,39 +15631,39 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
         try {
           if (category === "president") {
             const newPositions = [...presidentPositions, position];
-            console.log("💾 회장단 직책 저장 시도:", newPositions);
+            debugLog("💾 회장단 직책 저장 시도:", newPositions);
             await setDoc(doc(db, "settings", "presidentPositions"), {
               positions: newPositions,
             });
             presidentPositions = newPositions;
-            console.log("✅ 회장단 직책 저장 완료:", presidentPositions);
+            debugLog("✅ 회장단 직책 저장 완료:", presidentPositions);
             showAlert("✅", `"${position}" 직책이 회장단에 추가되었습니다.`);
           } else {
             const newPositions = [...regularPositions, position];
-            console.log("💾 일반 임원 직책 저장 시도:", newPositions);
+            debugLog("💾 일반 임원 직책 저장 시도:", newPositions);
             await setDoc(doc(db, "settings", "regularPositions"), {
               positions: newPositions,
             });
             regularPositions = newPositions;
-            console.log("✅ 일반 임원 직책 저장 완료:", regularPositions);
+            debugLog("✅ 일반 임원 직책 저장 완료:", regularPositions);
             showAlert("✅", `"${position}" 직책이 일반 임원에 추가되었습니다.`);
           }
 
           input.value = "";
           renderPositionsAdmin(document.getElementById("subtab-container"));
         } catch (e) {
-          console.error("❌ 직책 추가 오류:", e);
+          debugError("❌ 직책 추가 오류:", e);
           showAlert("😥", "직책 추가에 실패했습니다.");
         }
       }
 
       // 직책 이동 함수
       async function movePositionToCategory(position, targetCategory) {
-        console.log("=== 직책 이동 함수 호출 ===");
-        console.log("position:", position);
-        console.log("targetCategory:", targetCategory);
-        console.log("현재 회장단:", presidentPositions);
-        console.log("현재 일반 임원:", regularPositions);
+        debugLog("=== 직책 이동 함수 호출 ===");
+        debugLog("position:", position);
+        debugLog("targetCategory:", targetCategory);
+        debugLog("현재 회장단:", presidentPositions);
+        debugLog("현재 일반 임원:", regularPositions);
 
         try {
           let newPresidentPositions = [...presidentPositions];
@@ -15695,8 +15677,8 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
             (p) => p !== position
           );
 
-          console.log("제거 후 회장단:", newPresidentPositions);
-          console.log("제거 후 일반 임원:", newRegularPositions);
+          debugLog("제거 후 회장단:", newPresidentPositions);
+          debugLog("제거 후 일반 임원:", newRegularPositions);
 
           // 타겟 카테고리에 추가
           if (targetCategory === "regular") {
@@ -15711,8 +15693,8 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
             }
           }
 
-          console.log("최종 회장단:", newPresidentPositions);
-          console.log("최종 일반 임원:", newRegularPositions);
+          debugLog("최종 회장단:", newPresidentPositions);
+          debugLog("최종 일반 임원:", newRegularPositions);
 
           // Firebase에 저장 (동시에 저장)
           await Promise.all([
@@ -15730,16 +15712,16 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
           showAlert("✅", `"${position}" 직책이 이동되었습니다.`);
           renderPositionsAdmin(document.getElementById("subtab-container"));
         } catch (e) {
-          console.error(e);
+          debugError(e);
           showAlert("😥", "직책 이동에 실패했습니다.");
         }
       }
 
       // 직책 제거 함수
       async function removePositionFromCategory(position, category) {
-        console.log("=== 직책 삭제 함수 호출 ===");
-        console.log("position:", position);
-        console.log("category:", category);
+        debugLog("=== 직책 삭제 함수 호출 ===");
+        debugLog("position:", position);
+        debugLog("category:", category);
 
         // 고정 직책은 삭제 불가
         const fixedPositions = ["회장", "부회장", "운영진"];
@@ -15749,11 +15731,11 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
         }
 
         if (!confirm(`"${position}" 직책을 삭제하시겠습니까?`)) {
-          console.log("사용자가 삭제를 취소했습니다.");
+          debugLog("사용자가 삭제를 취소했습니다.");
           return;
         }
 
-        console.log("삭제 진행 중...");
+        debugLog("삭제 진행 중...");
 
         try {
           let newPositions;
@@ -15787,7 +15769,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
           showAlert("✅", `"${position}" 직책이 삭제되었습니다.`);
           renderPositionsAdmin(document.getElementById("subtab-container"));
         } catch (e) {
-          console.error(e);
+          debugError(e);
           showAlert("😥", "직책 제거에 실패했습니다.");
         }
       }
