@@ -3797,8 +3797,8 @@
             clearTimeout(dataLoadTimeout);
           }
 
-          // 카카오톡 인앱 브라우저는 60초, 일반 브라우저는 90초로 충분한 시간 제공 (재시도 로직과 맞춤)
-          const loadingTimeout = isKakaoTalkInAppBrowser ? 90000 : 90000;
+          // 카카오톡 인앱 브라우저도 100초로 통일 (40회 재시도 87초 + 여유)
+          const loadingTimeout = 100000;
           debugLog(`로딩 타임아웃 설정: ${loadingTimeout / 1000}초`);
 
           // 타임아웃 안에 로딩이 완료되지 않으면 재접속
@@ -3903,13 +3903,15 @@
             }, 2000); // 2초마다 재확인
           } else {
             debugError("❌ 최대 대기 시간 초과 (80초)");
-            debugLog("⚠️ 로딩 화면 유지 - 데이터 로드 실패");
+            debugError("🔄 자동 재접속 시도...");
             updateLoadingProgress(
               95,
-              "데이터 로드 중 문제 발생. 새로고침을 시도해주세요."
+              "데이터 로드 실패. 재접속 중..."
             );
-            // 로딩 화면을 계속 유지하여 빈 화면이 나타나지 않도록 함
-            // 사용자가 수동으로 새로고침하도록 안내
+            // 3초 후 자동 재접속
+            setTimeout(() => {
+              location.reload();
+            }, 3000);
           }
         }
       };
@@ -7223,9 +7225,7 @@
 
         // 디버깅: 사용자 상태 확인
         debugLog(`Event ${ev.id}: currentUser =`, currentUser);
-        debugLog(
-          `Event ${ev.id}: my = ${my}, count = ${count}, lim = ${lim}`
-        );
+        debugLog(`Event ${ev.id}: my = ${my}, count = ${count}, lim = ${lim}`);
 
         // 로그인된 사용자에게만 버튼 표시
         let btn;
@@ -7387,7 +7387,7 @@
         );
         const isAdmin =
           currentUser && adminList.includes(currentUser.studentId);
-        
+
         // 이벤트 타입별 이모지
         const typeIcon =
           ev.type === "tasting"
@@ -7397,7 +7397,7 @@
             : ev.type === "assembly"
             ? "🎤"
             : "📅";
-        
+
         return `<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 group" data-event-id="${
           ev.id
         }" style="position: relative; z-index: 1;">
@@ -7879,10 +7879,10 @@
           .join("");
         const isAdmin =
           currentUser && adminList.includes(currentUser.studentId);
-        
+
         // 이벤트 타입별 이모지
         const typeIcon = "🍽️"; // 미식회는 항상 🍽️
-        
+
         return `<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 group" data-event-id="${
           ev.id
         }" style="position: relative; z-index: 1;">
