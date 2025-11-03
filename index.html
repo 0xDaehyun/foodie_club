@@ -3797,8 +3797,8 @@
             clearTimeout(dataLoadTimeout);
           }
 
-          // 카카오톡 인앱 브라우저도 100초로 통일 (40회 재시도 87초 + 여유)
-          const loadingTimeout = 100000;
+          // 30초 타임아웃 (10회 재시도 20초 + 여유)
+          const loadingTimeout = 30000;
           debugLog(`로딩 타임아웃 설정: ${loadingTimeout / 1000}초`);
 
           // 타임아웃 안에 로딩이 완료되지 않으면 재접속
@@ -3878,8 +3878,8 @@
             hideLoadingScreen();
             debugLog("🎉 데이터 로딩 완료 - 정상 표시됨");
           }, 500);
-        } else {
-          debugWarn(`⚠️ 일부 데이터 미로드 (재확인 ${retryCount + 1}/40)`);
+          } else {
+            debugWarn(`⚠️ 일부 데이터 미로드 (재확인 ${retryCount + 1}/10)`);
 
           // 어떤 데이터가 없는지 명시
           if (!hasRoadmap) debugWarn("  ❌ 로드맵 데이터 없음");
@@ -3889,29 +3889,26 @@
           if (!hasAdmins) debugWarn("  ❌ 관리자 데이터 없음");
           if (!hasFoodMenus) debugWarn("  ❌ 뭐먹지 메뉴 데이터 없음");
 
-          // 로딩 화면 유지하면서 계속 재확인 (최대 40회 = 80초)
-          if (retryCount < 40) {
+          // 로딩 화면 유지하면서 계속 재확인 (최대 10회 = 20초)
+          if (retryCount < 10) {
             // 진행률 표시 업데이트
-            const progress = Math.min(90 + (retryCount / 40) * 5, 95);
+            const progress = Math.min(90 + (retryCount / 10) * 5, 95);
             updateLoadingProgress(
               progress,
-              `데이터 확인 중... (${retryCount + 1}/40)`
+              `데이터 확인 중... (${retryCount + 1}/10)`
             );
 
             setTimeout(() => {
               verifyAllDataLoaded(retryCount + 1);
             }, 2000); // 2초마다 재확인
           } else {
-            debugError("❌ 최대 대기 시간 초과 (80초)");
+            debugError("❌ 최대 대기 시간 초과 (20초)");
             debugError("🔄 자동 재접속 시도...");
-            updateLoadingProgress(
-              95,
-              "데이터 로드 실패. 재접속 중..."
-            );
-            // 3초 후 자동 재접속
+            updateLoadingProgress(95, "데이터 로드 실패. 재접속 중...");
+            // 1초 후 자동 재접속
             setTimeout(() => {
               location.reload();
-            }, 3000);
+            }, 1000);
           }
         }
       };
