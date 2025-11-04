@@ -10743,13 +10743,17 @@
 
             const restaurant = restaurants[restaurantIndex];
             const reservations = [...(restaurant.reservations || [])];
+            const waiting = [...(restaurant.waiting || [])];
 
-            // 이미 참가자인지 확인
+            // 이미 참가자 또는 대기자인지 확인
             const isAlreadyParticipant = reservations.some(
               (r) => r.studentId === member.studentId
             );
+            const isAlreadyWaiting = waiting.some(
+              (w) => w.studentId === member.studentId
+            );
 
-            if (isAlreadyParticipant) {
+            if (isAlreadyParticipant || isAlreadyWaiting) {
               throw new Error("이미 참가 중인 회원입니다.");
             }
 
@@ -10757,7 +10761,6 @@
             const capacity = restaurant.capacity || eventData.limit || 0;
             if (reservations.length >= capacity) {
               // 정원이 꽉 찼으면 대기열에 추가
-              const waiting = [...(restaurant.waiting || [])];
               waiting.push(participant);
               restaurant.waiting = waiting;
             } else {
@@ -10771,13 +10774,17 @@
           } else {
             // 일반 이벤트인 경우
             const applicants = [...(eventData.applicants || [])];
+            const waiting = [...(eventData.waiting || [])];
 
-            // 이미 참가자인지 확인
+            // 이미 참가자 또는 대기자인지 확인
             const isAlreadyParticipant = applicants.some(
               (a) => a.studentId === member.studentId
             );
+            const isAlreadyWaiting = waiting.some(
+              (w) => w.studentId === member.studentId
+            );
 
-            if (isAlreadyParticipant) {
+            if (isAlreadyParticipant || isAlreadyWaiting) {
               throw new Error("이미 참가 중인 회원입니다.");
             }
 
@@ -10785,7 +10792,6 @@
             const limit = eventData.limit || 0;
             if (limit > 0 && applicants.length >= limit) {
               // 정원이 꽉 찼으면 대기열에 추가
-              const waiting = [...(eventData.waiting || [])];
               waiting.push(participant);
               transaction.update(eventRef, { waiting });
             } else {
