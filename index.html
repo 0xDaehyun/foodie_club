@@ -18550,9 +18550,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
       function renderHorizontalRoadmap() {
         // 로그아웃 상태에서는 아무것도 렌더링하지 않음 (블록 시스템으로 대체)
         if (!currentUser) {
-          debugLog(
-            "renderHorizontalRoadmap: 로그아웃 상태 - 렌더링하지 않음"
-          );
+          debugLog("renderHorizontalRoadmap: 로그아웃 상태 - 렌더링하지 않음");
           return;
         }
 
@@ -25992,11 +25990,10 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
 
           console.log("관리자 직책 정리 완료");
 
-          // 3단계: 로컬 변수 강제 업데이트
-          presidentPositions = ["회장", "부회장"];
-          regularPositions = ["운영진"];
+          // 3단계: 로컬 변수는 Firebase onSnapshot이 자동으로 업데이트하므로 수동 업데이트 제거
+          // (사용자가 추가한 직책이 사라지는 문제 방지)
 
-          console.log("로컬 변수 업데이트 완료");
+          console.log("로컬 변수는 Firebase 리스너가 자동 업데이트합니다.");
 
           // 4단계: 2초 후 새로고침 (Firebase 동기화 시간 확보)
           setTimeout(() => {
@@ -26058,9 +26055,8 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
             positions: cleanAdminPositions,
           });
 
-          // 4단계: 로컬 변수 강제 업데이트
-          presidentPositions = ["회장", "부회장"];
-          regularPositions = ["운영진"];
+          // 4단계: 로컬 변수는 Firebase onSnapshot이 자동으로 업데이트하므로 수동 업데이트 제거
+          // (사용자가 추가한 직책이 사라지는 문제 방지)
 
           console.log("핵 정리 완료!");
           showAlert("✅", "핵 정리 완료! 새로고침합니다.");
@@ -26125,9 +26121,8 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
           });
           console.log("관리자 데이터 정리 완료");
 
-          // 5단계: 로컬 변수 강제 업데이트
-          presidentPositions = ["회장", "부회장"];
-          regularPositions = ["운영진"];
+          // 5단계: 로컬 변수는 Firebase onSnapshot이 자동으로 업데이트하므로 수동 업데이트 제거
+          // (사용자가 추가한 직책이 사라지는 문제 방지)
 
           console.log("최종 해결 완료!");
           showAlert("🎉", "최종 해결 완료! 새로고침합니다.");
