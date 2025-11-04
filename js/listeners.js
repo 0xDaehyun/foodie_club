@@ -68,9 +68,51 @@ export const clearAdmin = () =>
     }
   });
 
+// 로딩 상태 관리
+let loadingStates = new Set();
+const showLoadingIndicator = (key) => {
+  loadingStates.add(key);
+  updateLoadingUI();
+};
+const hideLoadingIndicator = (key) => {
+  loadingStates.delete(key);
+  updateLoadingUI();
+};
+const updateLoadingUI = () => {
+  const mainContent = document.getElementById("main-content");
+  if (!mainContent) return;
+  
+  const loadingId = "data-loading-indicator";
+  let loadingEl = document.getElementById(loadingId);
+  
+  if (loadingStates.size > 0) {
+    if (!loadingEl) {
+      loadingEl = document.createElement("div");
+      loadingEl.id = loadingId;
+      loadingEl.className = "fixed top-20 left-1/2 transform -translate-x-1/2 z-50 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 animate-pulse";
+      loadingEl.innerHTML = `
+        <div class="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+        <span class="text-sm font-medium">데이터를 불러오는 중...</span>
+      `;
+      document.body.appendChild(loadingEl);
+    }
+    loadingEl.classList.remove("hidden");
+  } else {
+    if (loadingEl) {
+      loadingEl.classList.add("hidden");
+      setTimeout(() => {
+        if (loadingEl && loadingStates.size === 0) {
+          loadingEl.remove();
+        }
+      }, 300);
+    }
+  }
+};
+
 export function startPublicListeners(USE_DEMO_OFFLINE) {
-  // 재시도 로직을 위한 헬퍼 함수
-  const retryListener = (key, setupFn, delay = 1000) => {
+  // 재시도 로직을 위한 헬퍼 함수 (0.1초로 변경)
+  const retryListener = (key, setupFn, delay = 100) => {
+    showLoadingIndicator(key);
     return setTimeout(() => {
       if (unsubPublic[key]) {
         unsubPublic[key]();
@@ -80,19 +122,22 @@ export function startPublicListeners(USE_DEMO_OFFLINE) {
     }, delay);
   };
 
-  // 타임아웃 체크를 위한 헬퍼 함수
-  const setupWithTimeout = (key, listenerFn, setupFn, timeoutMs = 1000) => {
+  // 타임아웃 체크를 위한 헬퍼 함수 (0.1초로 변경)
+  const setupWithTimeout = (key, listenerFn, setupFn, timeoutMs = 100) => {
     let hasData = false;
+    showLoadingIndicator(key);
+    
     const timeoutId = setTimeout(() => {
       if (!hasData) {
-        console.warn(`${key}: 데이터 로딩 타임아웃, 재시도합니다.`);
-        retryListener(key, setupFn);
+        console.warn(`${key}: 데이터 로딩 타임아웃 (${timeoutMs}ms), 재시도합니다.`);
+        retryListener(key, setupFn, 100);
       }
     }, timeoutMs);
 
     const wrappedListener = (snap) => {
       hasData = true;
       clearTimeout(timeoutId);
+      hideLoadingIndicator(key);
       listenerFn(snap);
     };
 
@@ -114,7 +159,8 @@ export function startPublicListeners(USE_DEMO_OFFLINE) {
         ),
         (err) => {
           console.warn("admins:", err?.message);
-          retryListener("admins", setupAdmins);
+          hideLoadingIndicator("admins");
+          retryListener("admins", setupAdmins, 100);
         }
       );
     };
@@ -136,7 +182,8 @@ export function startPublicListeners(USE_DEMO_OFFLINE) {
         ),
         (err) => {
           console.warn("signup:", err?.message);
-          retryListener("signup", setupSignup);
+          hideLoadingIndicator("signup");
+          retryListener("signup", setupSignup, 100);
         }
       );
     };
@@ -165,7 +212,8 @@ export function startPublicListeners(USE_DEMO_OFFLINE) {
         ),
         (err) => {
           console.warn("dues:", err?.message);
-          retryListener("dues", setupDues);
+          hideLoadingIndicator("dues");
+          retryListener("dues", setupDues, 100);
         }
       );
     };
@@ -185,7 +233,8 @@ export function startPublicListeners(USE_DEMO_OFFLINE) {
         ),
         (err) => {
           console.warn("blocks:", err?.message);
-          retryListener("blocks", setupBlocks);
+          hideLoadingIndicator("blocks");
+          retryListener("blocks", setupBlocks, 100);
         }
       );
     };
@@ -209,7 +258,8 @@ export function startPublicListeners(USE_DEMO_OFFLINE) {
             state.roadmapData = DEMO.roadmap;
             scheduleRender();
           } else {
-            retryListener("roadmap", setupRoadmap);
+            hideLoadingIndicator("roadmap");
+            retryListener("roadmap", setupRoadmap, 100);
           }
         }
       );
@@ -230,7 +280,8 @@ export function startPublicListeners(USE_DEMO_OFFLINE) {
         ),
         (err) => {
           console.warn("events:", err?.message);
-          retryListener("events", setupEvents);
+          hideLoadingIndicator("events");
+          retryListener("events", setupEvents, 100);
         }
       );
     };
@@ -243,8 +294,9 @@ export function startAdminListeners() {
     state.currentUser && state.adminList.includes(state.currentUser.studentId);
   if (!isAdmin) return;
 
-  // 재시도 로직을 위한 헬퍼 함수
-  const retryListener = (key, setupFn, delay = 1000) => {
+  // 재시도 로직을 위한 헬퍼 함수 (0.1초로 변경)
+  const retryListener = (key, setupFn, delay = 100) => {
+    showLoadingIndicator(`admin-${key}`);
     return setTimeout(() => {
       if (unsubAdmin[key]) {
         unsubAdmin[key]();
@@ -254,19 +306,22 @@ export function startAdminListeners() {
     }, delay);
   };
 
-  // 타임아웃 체크를 위한 헬퍼 함수
-  const setupWithTimeout = (key, listenerFn, setupFn, timeoutMs = 1000) => {
+  // 타임아웃 체크를 위한 헬퍼 함수 (0.1초로 변경)
+  const setupWithTimeout = (key, listenerFn, setupFn, timeoutMs = 100) => {
     let hasData = false;
+    showLoadingIndicator(`admin-${key}`);
+    
     const timeoutId = setTimeout(() => {
       if (!hasData) {
-        console.warn(`${key}: 데이터 로딩 타임아웃, 재시도합니다.`);
-        retryListener(key, setupFn);
+        console.warn(`${key}: 데이터 로딩 타임아웃 (${timeoutMs}ms), 재시도합니다.`);
+        retryListener(key, setupFn, 100);
       }
     }, timeoutMs);
 
     const wrappedListener = (snap) => {
       hasData = true;
       clearTimeout(timeoutId);
+      hideLoadingIndicator(`admin-${key}`);
       listenerFn(snap);
     };
 
@@ -290,7 +345,8 @@ export function startAdminListeners() {
         ),
         (err) => {
           console.warn("suggestions:", err?.message);
-          retryListener("suggestions", setupSuggestions);
+          hideLoadingIndicator("admin-suggestions");
+          retryListener("suggestions", setupSuggestions, 100);
         }
       );
     };
@@ -310,7 +366,8 @@ export function startAdminListeners() {
         ),
         (err) => {
           console.warn("history:", err?.message);
-          retryListener("history", setupHistory);
+          hideLoadingIndicator("admin-history");
+          retryListener("history", setupHistory, 100);
         }
       );
     };
@@ -330,7 +387,8 @@ export function startAdminListeners() {
         ),
         (err) => {
           console.warn("members:", err?.message);
-          retryListener("members", setupMembers);
+          hideLoadingIndicator("admin-members");
+          retryListener("members", setupMembers, 100);
         }
       );
     };
@@ -351,7 +409,8 @@ export function startAdminListeners() {
         ),
         (err) => {
           console.warn("presence:", err?.message);
-          retryListener("presence", setupPresence);
+          hideLoadingIndicator("admin-presence");
+          retryListener("presence", setupPresence, 100);
         }
       );
     };
