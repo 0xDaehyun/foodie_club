@@ -8126,13 +8126,16 @@
                                     <div class="flex-1 min-w-0">
                                       <h5 class="font-semibold text-gray-800 truncate">${saf(
                                         ev.title
-                                      )}${
-                                restaurantName
-                                  ? ` <span class="text-orange-600 text-sm">(${saf(
-                                      restaurantName
-                                    )})</span>`
-                                  : ""
-                              }</h5>
+                                      )}</h5>
+                                      ${
+                                        restaurantName
+                                          ? `<p class="text-sm text-orange-600 font-medium mt-1">
+                                              <i class="fas fa-utensils mr-1"></i>${saf(
+                                                restaurantName
+                                              )}
+                                            </p>`
+                                          : ""
+                                      }
                                       <p class="text-xs text-gray-500">
                                         ${new Date(
                                           ev.datetime
@@ -19181,75 +19184,122 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                   }
                   
                   ${
-                    ev.type === "tasting" && ev.restaurants && ev.restaurants.length > 0
+                    ev.type === "tasting" &&
+                    ev.restaurants &&
+                    ev.restaurants.length > 0
                       ? `
                     <div class="bg-orange-50 rounded-lg p-4 border-2 border-orange-200">
                       <h5 class="font-semibold text-gray-800 mb-3 flex items-center">
                         <i class="fas fa-utensils mr-2 text-orange-600"></i>식당별 신청 현황
                       </h5>
                       <div class="space-y-3">
-                        ${ev.restaurants.map((restaurant) => {
-                          const reservations = restaurant.reservations || [];
-                          const waiting = restaurant.waiting || [];
-                          const capacity = restaurant.capacity || ev.limit || 0;
-                          
-                          // 신청한 사람 이름 찾기
-                          const participantNames = reservations.map((res) => {
-                            const member = membersData?.find((m) => m.studentId === res.studentId);
-                            return member?.name || res.name || res.studentId || "익명";
-                          });
-                          
-                          const waitingNames = waiting.map((wait) => {
-                            const member = membersData?.find((m) => m.studentId === wait.studentId);
-                            return member?.name || wait.name || wait.studentId || "익명";
-                          });
-                          
-                          // 현재 사용자가 신청한 식당인지 확인
-                          const isMyRestaurant = currentUser && reservations.some(
-                            (res) => res.studentId === currentUser.studentId
-                          );
-                          
-                          return `
-                            <div class="bg-white rounded-lg p-3 border ${isMyRestaurant ? 'border-orange-500 border-2' : 'border-gray-200'}">
+                        ${ev.restaurants
+                          .map((restaurant) => {
+                            const reservations = restaurant.reservations || [];
+                            const waiting = restaurant.waiting || [];
+                            const capacity =
+                              restaurant.capacity || ev.limit || 0;
+
+                            // 신청한 사람 이름 찾기
+                            const participantNames = reservations.map((res) => {
+                              const member = membersData?.find(
+                                (m) => m.studentId === res.studentId
+                              );
+                              return (
+                                member?.name ||
+                                res.name ||
+                                res.studentId ||
+                                "익명"
+                              );
+                            });
+
+                            const waitingNames = waiting.map((wait) => {
+                              const member = membersData?.find(
+                                (m) => m.studentId === wait.studentId
+                              );
+                              return (
+                                member?.name ||
+                                wait.name ||
+                                wait.studentId ||
+                                "익명"
+                              );
+                            });
+
+                            // 현재 사용자가 신청한 식당인지 확인
+                            const isMyRestaurant =
+                              currentUser &&
+                              reservations.some(
+                                (res) => res.studentId === currentUser.studentId
+                              );
+
+                            return `
+                            <div class="bg-white rounded-lg p-3 border ${
+                              isMyRestaurant
+                                ? "border-orange-500 border-2"
+                                : "border-gray-200"
+                            }">
                               <div class="flex items-center justify-between mb-2">
                                 <h6 class="font-semibold text-gray-800 flex items-center">
-                                  ${isMyRestaurant ? '<i class="fas fa-check-circle text-orange-600 mr-2"></i>' : ''}
+                                  ${
+                                    isMyRestaurant
+                                      ? '<i class="fas fa-check-circle text-orange-600 mr-2"></i>'
+                                      : ""
+                                  }
                                   ${saf(restaurant.name || "식당명 없음")}
                                 </h6>
                                 <span class="text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded-full">
                                   ${reservations.length}/${capacity}명
-                                  ${waiting.length > 0 ? ` (+${waiting.length}명 대기)` : ''}
+                                  ${
+                                    waiting.length > 0
+                                      ? ` (+${waiting.length}명 대기)`
+                                      : ""
+                                  }
                                 </span>
                               </div>
-                              ${participantNames.length > 0
-                                ? `
+                              ${
+                                participantNames.length > 0
+                                  ? `
                                 <div class="mt-2">
                                   <p class="text-xs font-semibold text-gray-600 mb-1">참가자:</p>
                                   <div class="flex flex-wrap gap-1">
-                                    ${participantNames.map((name) => `
-                                      <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">${saf(name)}</span>
-                                    `).join("")}
+                                    ${participantNames
+                                      .map(
+                                        (name) => `
+                                      <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">${saf(
+                                        name
+                                      )}</span>
+                                    `
+                                      )
+                                      .join("")}
                                   </div>
                                 </div>
                                 `
-                                : ""
+                                  : ""
                               }
-                              ${waitingNames.length > 0
-                                ? `
+                              ${
+                                waitingNames.length > 0
+                                  ? `
                                 <div class="mt-2">
                                   <p class="text-xs font-semibold text-amber-600 mb-1">대기자:</p>
                                   <div class="flex flex-wrap gap-1">
-                                    ${waitingNames.map((name) => `
-                                      <span class="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded-full">${saf(name)}</span>
-                                    `).join("")}
+                                    ${waitingNames
+                                      .map(
+                                        (name) => `
+                                      <span class="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded-full">${saf(
+                                        name
+                                      )}</span>
+                                    `
+                                      )
+                                      .join("")}
                                   </div>
                                 </div>
                                 `
-                                : ""
+                                  : ""
                               }
                             </div>
                           `;
-                        }).join("")}
+                          })
+                          .join("")}
                       </div>
                     </div>
                   `
@@ -19270,11 +19320,21 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                         <div class="mt-3">
                           <p class="text-xs font-semibold text-gray-600 mb-1">참가자 목록:</p>
                           <div class="flex flex-wrap gap-1">
-                            ${ev.applicants.map((app) => {
-                              const member = membersData?.find((m) => m.studentId === app.studentId);
-                              const name = member?.name || app.name || app.studentId || "익명";
-                              return `<span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">${saf(name)}</span>`;
-                            }).join("")}
+                            ${ev.applicants
+                              .map((app) => {
+                                const member = membersData?.find(
+                                  (m) => m.studentId === app.studentId
+                                );
+                                const name =
+                                  member?.name ||
+                                  app.name ||
+                                  app.studentId ||
+                                  "익명";
+                                return `<span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">${saf(
+                                  name
+                                )}</span>`;
+                              })
+                              .join("")}
                           </div>
                         </div>
                         `
