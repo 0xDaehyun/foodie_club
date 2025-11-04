@@ -26393,10 +26393,12 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
 
         // eventsData 업데이트
         const eventIndex = eventsData.findIndex((e) => e.id === eventId);
+        let updatedEventData = null;
         if (eventIndex >= 0) {
           const eventDoc = await getDoc(eventRef);
           if (eventDoc.exists()) {
-            eventsData[eventIndex] = { id: eventDoc.id, ...eventDoc.data() };
+            updatedEventData = { id: eventDoc.id, ...eventDoc.data() };
+            eventsData[eventIndex] = updatedEventData;
             // 리뷰 탭이 활성화되어 있으면 다시 렌더링
             if (currentMainTab === "roadmap") {
               scheduleRender();
@@ -26405,8 +26407,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
         }
         
         // 미식회인 경우 미식회 후기 화면이 자동으로 업데이트되도록 보장
-        const event = eventsData.find((e) => e.id === eventId);
-        if (event && event.type === "tasting") {
+        if (updatedEventData && updatedEventData.type === "tasting") {
           // 미식회 후기 화면을 다시 렌더링하기 위해 roadmap 탭을 다시 렌더링
           setTimeout(() => {
             if (currentMainTab === "roadmap") {
