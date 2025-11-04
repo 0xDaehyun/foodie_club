@@ -10146,13 +10146,15 @@
               ];
               const restaurants = rows
                 .map((row) => {
-                  const categoryValue = row.querySelector("[data-field='category']")?.value || "기타";
+                  const categoryValue =
+                    row.querySelector("[data-field='category']")?.value ||
+                    "기타";
                   // restaurantCategories에 존재하는 카테고리인지 확인
                   const categoryExists = restaurantCategories.some(
                     (cat) => cat.name === categoryValue
                   );
                   const finalCategory = categoryExists ? categoryValue : "기타";
-                  
+
                   return {
                     id: row.getAttribute("data-id"),
                     name: row.querySelector("[data-field='name']").value.trim(),
@@ -10237,13 +10239,15 @@
                 .map((row) => {
                   const idAttr = row.getAttribute("data-id");
                   const old = map.get(idAttr);
-                  const categoryValue = row.querySelector("[data-field='category']")?.value || "기타";
+                  const categoryValue =
+                    row.querySelector("[data-field='category']")?.value ||
+                    "기타";
                   // restaurantCategories에 존재하는 카테고리인지 확인
                   const categoryExists = restaurantCategories.some(
                     (cat) => cat.name === categoryValue
                   );
                   const finalCategory = categoryExists ? categoryValue : "기타";
-                  
+
                   return {
                     id: idAttr,
                     name: row.querySelector("[data-field='name']").value.trim(),
@@ -10320,16 +10324,39 @@
       async function reopenEvent(id) {
         if (
           !confirm(
-            "마감된 이벤트를 다시 열어 신청을 받으시겠습니까?\n\n• 신청 탭에 다시 표시됩니다\n• 회원들이 다시 신청할 수 있게 됩니다"
+            "마감된 이벤트를 다시 열어 신청을 받으시겠습니까?\n\n• 신청 탭에 다시 표시됩니다\n• 회원들이 다시 신청할 수 있게 됩니다\n• 기존 참가자 정보는 유지됩니다"
           )
         ) {
           return;
         }
         try {
-          await updateDoc(doc(db, "events", id), {
+          // 기존 이벤트 데이터 가져오기 (참가자 정보 보존을 위해)
+          const eventDoc = await getDoc(doc(db, "events", id));
+          if (!eventDoc.exists()) {
+            showAlert("😥", "이벤트를 찾을 수 없습니다.");
+            return;
+          }
+
+          const eventData = eventDoc.data();
+          
+          // 기존 참가자 정보 보존 (restaurants 배열의 reservations, waiting 유지)
+          const updateData = {
             status: "open",
             reopenedAt: new Date().toISOString(),
-          });
+          };
+          
+          // 미식회인 경우 restaurants 배열의 참가자 정보 보존
+          if (eventData.type === "tasting" && eventData.restaurants) {
+            updateData.restaurants = eventData.restaurants;
+          }
+          
+          // 일반 이벤트인 경우 applicants, waiting 보존
+          if (eventData.type !== "tasting") {
+            if (eventData.applicants) updateData.applicants = eventData.applicants;
+            if (eventData.waiting) updateData.waiting = eventData.waiting;
+          }
+          
+          await updateDoc(doc(db, "events", id), updateData);
           showAlert(
             "✅",
             "이벤트가 다시 열렸습니다. 신청 탭에서 확인할 수 있습니다."
@@ -26024,7 +26051,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
 
           transaction.update(eventRef, { reviews: reviews });
         });
-        
+
         // eventsData 업데이트
         const eventIndex = eventsData.findIndex((e) => e.id === eventId);
         if (eventIndex >= 0) {
