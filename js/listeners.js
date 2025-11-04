@@ -102,7 +102,7 @@ let retryCounts = {
   roadmap: 0,
   events: 0,
 };
-const MAX_RETRIES = 3; // 최대 3번 재시도
+const MAX_RETRIES = 5; // 최대 5번 재시도로 증가
 
 const checkAndRetryEmptyData = () => {
   // blocks 데이터가 로드되었는데 비어있으면 즉시 재시도
@@ -124,6 +124,10 @@ const checkAndRetryEmptyData = () => {
                 if (hasData) retryCounts.blocks = 0; // 성공 시 카운터 리셋
                 markDataLoaded("blocks");
                 scheduleRender();
+                // 데이터가 여전히 비어있으면 다시 체크
+                if (!hasData) {
+                  setTimeout(() => checkAndRetryEmptyData(), 50);
+                }
               },
               (err) => {
                 console.warn("blocks:", err?.message);
@@ -135,6 +139,8 @@ const checkAndRetryEmptyData = () => {
           setupBlocks();
         }
       }, 0);
+    } else if (retryCounts.blocks >= MAX_RETRIES) {
+      console.warn(`blocks 데이터 재로딩 ${MAX_RETRIES}번 시도했지만 여전히 비어있습니다.`);
     }
   }
   
@@ -156,6 +162,10 @@ const checkAndRetryEmptyData = () => {
                 if (hasData) retryCounts.roadmap = 0;
                 markDataLoaded("roadmap");
                 scheduleRender();
+                // 데이터가 여전히 비어있으면 다시 체크
+                if (!hasData) {
+                  setTimeout(() => checkAndRetryEmptyData(), 50);
+                }
               },
               (err) => {
                 console.warn("roadmap:", err?.message);
@@ -167,6 +177,8 @@ const checkAndRetryEmptyData = () => {
           setupRoadmap();
         }
       }, 0);
+    } else if (retryCounts.roadmap >= MAX_RETRIES) {
+      console.warn(`roadmap 데이터 재로딩 ${MAX_RETRIES}번 시도했지만 여전히 비어있습니다.`);
     }
   }
   
@@ -188,6 +200,10 @@ const checkAndRetryEmptyData = () => {
                 if (hasData) retryCounts.events = 0;
                 markDataLoaded("events");
                 scheduleRender();
+                // 데이터가 여전히 비어있으면 다시 체크
+                if (!hasData) {
+                  setTimeout(() => checkAndRetryEmptyData(), 50);
+                }
               },
               (err) => {
                 console.warn("events:", err?.message);
@@ -199,8 +215,17 @@ const checkAndRetryEmptyData = () => {
           setupEvents();
         }
       }, 0);
+    } else if (retryCounts.events >= MAX_RETRIES) {
+      console.warn(`events 데이터 재로딩 ${MAX_RETRIES}번 시도했지만 여전히 비어있습니다.`);
     }
   }
+};
+
+// 초기 데이터 로드 후 빈 데이터 체크 (지연 실행)
+const scheduleEmptyDataCheck = () => {
+  setTimeout(() => {
+    checkAndRetryEmptyData();
+  }, 200);
 };
 
 const updateLoadingUI = () => {
@@ -374,9 +399,14 @@ export function startPublicListeners(USE_DEMO_OFFLINE) {
         setupWithTimeout(
           "blocks",
           (snap) => {
+            const hasData = snap.docs.length > 0;
             state.blocksData = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
             markDataLoaded("blocks");
             scheduleRender();
+            // 데이터가 비어있으면 즉시 체크
+            if (!hasData) {
+              setTimeout(() => checkAndRetryEmptyData(), 100);
+            }
           },
           setupBlocks
         ),
@@ -396,9 +426,14 @@ export function startPublicListeners(USE_DEMO_OFFLINE) {
         setupWithTimeout(
           "roadmap",
           (snap) => {
+            const hasData = snap.docs.length > 0;
             state.roadmapData = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
             markDataLoaded("roadmap");
             scheduleRender();
+            // 데이터가 비어있으면 즉시 체크
+            if (!hasData) {
+              setTimeout(() => checkAndRetryEmptyData(), 100);
+            }
           },
           setupRoadmap
         ),
@@ -423,9 +458,14 @@ export function startPublicListeners(USE_DEMO_OFFLINE) {
         setupWithTimeout(
           "events",
           (snap) => {
+            const hasData = snap.docs.length > 0;
             state.eventsData = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
             markDataLoaded("events");
             scheduleRender();
+            // 데이터가 비어있으면 즉시 체크
+            if (!hasData) {
+              setTimeout(() => checkAndRetryEmptyData(), 100);
+            }
           },
           setupEvents
         ),
