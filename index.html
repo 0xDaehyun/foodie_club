@@ -5025,12 +5025,21 @@
           const hasEventsData = eventsData && eventsData.length > 0;
           const hasRoadmapData = roadmapData && roadmapData.length > 0;
           const hasBlocksData = blocksData && blocksData.length > 0;
-          
+
           // 데이터가 초기화되지 않았거나 모두 비어있는 경우
-          const noDataLoaded = 
-            (!hasEventsData && eventsData !== null && eventsData !== undefined && eventsData.length === 0) &&
-            (!hasRoadmapData && roadmapData !== null && roadmapData !== undefined && roadmapData.length === 0) &&
-            (!hasBlocksData && blocksData !== null && blocksData !== undefined && blocksData.length === 0);
+          const noDataLoaded =
+            !hasEventsData &&
+            eventsData !== null &&
+            eventsData !== undefined &&
+            eventsData.length === 0 &&
+            !hasRoadmapData &&
+            roadmapData !== null &&
+            roadmapData !== undefined &&
+            roadmapData.length === 0 &&
+            !hasBlocksData &&
+            blocksData !== null &&
+            blocksData !== undefined &&
+            blocksData.length === 0;
 
           el.main.innerHTML = `
             <div class="mb-4 md:mb-6">
@@ -15305,6 +15314,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                     <label class="block text-sm font-medium text-blue-900 mb-2">회장단 직책 추가</label>
                     <div class="flex gap-2">
                       <input id="new-president-position" type="text" placeholder="직책명 입력" 
+                             autocomplete="off" spellcheck="false"
                              class="flex-1 px-3 py-2 border border-blue-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                       <button id="add-president-position-btn" type="button" 
                               class="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm whitespace-nowrap">
@@ -15326,6 +15336,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                     <label class="block text-sm font-medium text-green-900 mb-2">일반 임원 직책 추가</label>
                     <div class="flex gap-2">
                       <input id="new-regular-position" type="text" placeholder="직책명 입력" 
+                             autocomplete="off" spellcheck="false"
                              class="flex-1 px-3 py-2 border border-green-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
                       <button id="add-regular-position-btn" type="button" 
                               class="px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm whitespace-nowrap">
