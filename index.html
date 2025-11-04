@@ -16936,12 +16936,6 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
             </div>
           </div>
 
-          <div class="flex flex-wrap items-center gap-2 mb-3">
-            <input id="member-search" class="px-3 py-2 border rounded flex-1 min-w-[200px]" placeholder="이름/학번/학과 검색">
-            <button id="members-export" class="px-3 py-2 bg-blue-600 text-white rounded"><i class="fas fa-file-csv mr-1"></i>CSV 다운로드(한글)</button>
-            <button id="members-delete-all" class="px-3 py-2 bg-red-600 text-white rounded"><i class="fas fa-trash mr-1"></i>회원 전체 삭제</button>
-          </div>
-
           <!-- 엑셀 업로드 섹션 -->
           <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
             <h4 class="text-lg font-semibold text-gray-800 mb-3">
@@ -17082,23 +17076,26 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
 
         // 검색 (활동중 회원만)
         const searchInput = container.querySelector("#member-search");
-        searchInput.value = memberSearchTerm;
-        searchInput.addEventListener("input", (e) => {
-          memberSearchTerm = e.target.value;
-          const activeSetNow = (membersData || []).filter(
-            (m) => (m.status || "pending") === "active"
-          );
-          container.querySelector("#members-tbody-active").innerHTML =
-            membersRowsHTMLGrouped(activeSetNow, false, memberSearchTerm);
-        });
+        if (searchInput) {
+          searchInput.value = memberSearchTerm;
+          searchInput.addEventListener("input", (e) => {
+            memberSearchTerm = e.target.value;
+            const activeSetNow = (membersData || []).filter(
+              (m) => (m.status || "pending") === "active"
+            );
+            container.querySelector("#members-tbody-active").innerHTML =
+              membersRowsHTMLGrouped(activeSetNow, false, memberSearchTerm);
+          });
+        }
 
         // 버튼들
         container
           .querySelector("#add-member-btn")
           .addEventListener("click", openAddMemberModal);
-        container
-          .querySelector("#members-export")
-          .addEventListener("click", exportMembersCSV);
+        // 모든 CSV 다운로드 버튼에 이벤트 연결
+        container.querySelectorAll("#members-export").forEach(btn => {
+          btn.addEventListener("click", exportMembersCSV);
+        });
         container
           .querySelector("#members-bulk-approve")
           .addEventListener("click", bulkApproveMembers);
