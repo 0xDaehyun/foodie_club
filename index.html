@@ -2304,13 +2304,22 @@
       >
         <div class="flex justify-between items-center mb-3">
           <h3 class="text-2xl font-bold text-orange-700">🏅 조모임</h3>
-          <div id="rank-admin-controls" class="hidden">
+          <div class="flex items-center gap-2">
+            <div id="rank-admin-controls" class="hidden">
+              <button
+                id="rank-add-team"
+                class="bg-green-500 text-white px-3 py-1 rounded text-sm hover:bg-green-600 transition-colors"
+                title="새로운 조를 추가합니다"
+              >
+                <i class="fas fa-plus mr-1"></i>조모임 추가
+              </button>
+            </div>
             <button
-              id="rank-add-team"
-              class="bg-green-500 text-white px-3 py-1 rounded text-sm hover:bg-green-600 transition-colors"
-              title="새로운 조를 추가합니다"
+              id="rank-close-header"
+              class="text-gray-400 hover:text-gray-600 transition-colors text-xl"
+              title="닫기"
             >
-              <i class="fas fa-plus mr-1"></i>조모임 추가
+              <i class="fas fa-times"></i>
             </button>
           </div>
         </div>
@@ -5248,6 +5257,14 @@
             .addEventListener("click", () => {
               document.getElementById("rank-modal").classList.add("hidden");
             });
+          
+          // 헤더 닫기 버튼 이벤트 추가
+          const rankCloseHeader = document.getElementById("rank-close-header");
+          if (rankCloseHeader) {
+            rankCloseHeader.addEventListener("click", () => {
+              document.getElementById("rank-modal").classList.add("hidden");
+            });
+          }
 
           // 조모임 순위 관리자 기능 이벤트 리스너
           document
@@ -5356,6 +5373,13 @@
         document.getElementById("rank-close").addEventListener("click", () => {
           document.getElementById("rank-modal").classList.add("hidden");
         });
+        // 헤더 닫기 버튼 이벤트 추가
+        const rankCloseHeader = document.getElementById("rank-close-header");
+        if (rankCloseHeader) {
+          rankCloseHeader.addEventListener("click", () => {
+            document.getElementById("rank-modal").classList.add("hidden");
+          });
+        }
         document
           .getElementById("food-recommend-close")
           .addEventListener("click", () => {
@@ -19967,14 +19991,19 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
           `;
         }
 
-        // 전체 순위 목록 (아래 스크롤 영역)
+        // 전체 순위 목록 (아래 스크롤 영역) - 기본적으로 숨김
         const allRanksHTML = `
           <div class="mt-6">
-            <h4 class="text-lg font-bold text-gray-800 mb-3 flex items-center">
-              <i class="fas fa-list-ol mr-2 text-orange-600"></i>
-              전체 순위
-            </h4>
-            <div class="space-y-2">
+            <button
+              id="toggle-all-ranks-btn"
+              type="button"
+              class="w-full bg-orange-100 hover:bg-orange-200 text-orange-800 font-semibold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 mb-3"
+            >
+              <i class="fas fa-list-ol"></i>
+              <span id="toggle-all-ranks-text">전체 순위 보기</span>
+              <i class="fas fa-chevron-down transition-transform" id="toggle-all-ranks-icon"></i>
+            </button>
+            <div id="all-ranks-list" class="hidden space-y-2">
               ${rankData
                 .map(
                   (item, index) => `
@@ -20048,6 +20077,27 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
             </div>
           </div>
         `;
+        
+        // 전체 순위 토글 버튼 이벤트 추가
+        const toggleAllRanksBtn = container.querySelector("#toggle-all-ranks-btn");
+        const allRanksList = container.querySelector("#all-ranks-list");
+        const toggleAllRanksText = container.querySelector("#toggle-all-ranks-text");
+        const toggleAllRanksIcon = container.querySelector("#toggle-all-ranks-icon");
+        
+        if (toggleAllRanksBtn && allRanksList && toggleAllRanksText && toggleAllRanksIcon) {
+          toggleAllRanksBtn.addEventListener("click", () => {
+            const isHidden = allRanksList.classList.contains("hidden");
+            if (isHidden) {
+              allRanksList.classList.remove("hidden");
+              toggleAllRanksText.textContent = "전체 순위 숨기기";
+              toggleAllRanksIcon.style.transform = "rotate(180deg)";
+            } else {
+              allRanksList.classList.add("hidden");
+              toggleAllRanksText.textContent = "전체 순위 보기";
+              toggleAllRanksIcon.style.transform = "rotate(0deg)";
+            }
+          });
+        }
 
         const adminControls = document.getElementById("rank-admin-controls");
         const adminActions = document.getElementById("rank-admin-actions");
