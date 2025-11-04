@@ -8381,9 +8381,9 @@
                                       class="text-green-600 hover:text-green-800 font-medium"
                                       data-act="admin-add-participant" 
                                       data-id="${ev.id}"
-                                      title="참가자 추가"
+                                      title="참가자 수정"
                                     >
-                                      <i class="fas fa-user-plus mr-1"></i>참가자 추가
+                                      <i class="fas fa-user-edit mr-1"></i>참가자 수정
                                     </button>
                                     <button 
                                       type="button" 
@@ -10581,8 +10581,11 @@
 
         // 현재 참가자 목록 HTML 생성 (식당 필터링 지원)
         const renderCurrentParticipants = (filteredParticipants = null) => {
-          const participantsToShow = filteredParticipants !== null ? filteredParticipants : currentParticipants;
-          
+          const participantsToShow =
+            filteredParticipants !== null
+              ? filteredParticipants
+              : currentParticipants;
+
           if (participantsToShow.length === 0) {
             return '<p class="text-sm text-gray-400 italic text-center py-4">참가자가 없습니다</p>';
           }
@@ -10709,14 +10712,20 @@
         );
         const currentList = document.getElementById("participant-current-list");
         const participantCount = document.getElementById("participant-count");
-        const restaurantSelect = document.getElementById("participant-restaurant-select");
+        const restaurantSelect = document.getElementById(
+          "participant-restaurant-select"
+        );
 
         // 식당 선택에 따른 참가자 필터링
         const updateParticipantList = () => {
           let filteredParticipants = currentParticipants;
-          
+
           // 미식회이고 식당 선택이 있으면 해당 식당의 참가자만 필터링
-          if (event.type === "tasting" && event.restaurants && restaurantSelect) {
+          if (
+            event.type === "tasting" &&
+            event.restaurants &&
+            restaurantSelect
+          ) {
             const selectedRestaurantId = restaurantSelect.value;
             if (selectedRestaurantId) {
               filteredParticipants = currentParticipants.filter(
@@ -10727,9 +10736,10 @@
 
           // 참가자 목록 업데이트
           if (currentList) {
-            currentList.innerHTML = renderCurrentParticipants(filteredParticipants);
+            currentList.innerHTML =
+              renderCurrentParticipants(filteredParticipants);
           }
-          
+
           // 참가자 수 업데이트
           if (participantCount) {
             participantCount.textContent = `(${filteredParticipants.length}명)`;
@@ -10766,7 +10776,11 @@
 
           // 선택된 식당의 참가자 ID 목록 가져오기 (미식회인 경우)
           let filteredParticipantIds = currentParticipantIds;
-          if (event.type === "tasting" && event.restaurants && restaurantSelect) {
+          if (
+            event.type === "tasting" &&
+            event.restaurants &&
+            restaurantSelect
+          ) {
             const selectedRestaurantId = restaurantSelect.value;
             if (selectedRestaurantId) {
               filteredParticipantIds = currentParticipants
