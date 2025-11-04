@@ -10337,8 +10337,21 @@
           }
 
           const eventData = eventDoc.data();
+          
+          // 디버깅: 기존 참가자 정보 확인
+          console.log("재개시 전 이벤트 데이터:", eventData);
+          if (eventData.type === "tasting" && eventData.restaurants) {
+            console.log("기존 restaurants:", eventData.restaurants);
+            eventData.restaurants.forEach((r, idx) => {
+              console.log(`식당 ${idx + 1} (${r.name}):`, {
+                reservations: r.reservations?.length || 0,
+                waiting: r.waiting?.length || 0,
+              });
+            });
+          }
 
           // 기존 참가자 정보 보존 (restaurants 배열의 reservations, waiting 유지)
+          // updateDoc은 기본적으로 merge이지만, 배열 필드는 명시적으로 포함해야 완전히 보존됨
           const updateData = {
             status: "open",
             reopenedAt: new Date().toISOString(),
@@ -10346,7 +10359,12 @@
 
           // 미식회인 경우 restaurants 배열의 참가자 정보 보존
           if (eventData.type === "tasting" && eventData.restaurants) {
-            updateData.restaurants = eventData.restaurants;
+            // restaurants 배열을 깊은 복사하여 보존 (각 restaurant의 reservations, waiting도 포함)
+            updateData.restaurants = eventData.restaurants.map((restaurant) => ({
+              ...restaurant,
+              reservations: restaurant.reservations || [],
+              waiting: restaurant.waiting || [],
+            }));
           }
 
           // 일반 이벤트인 경우 applicants, waiting 보존
@@ -10356,13 +10374,32 @@
             if (eventData.waiting) updateData.waiting = eventData.waiting;
           }
 
+          console.log("업데이트할 데이터:", updateData);
+          
           await updateDoc(doc(db, "events", id), updateData);
+          
+          // 업데이트 후 확인
+          const updatedDoc = await getDoc(doc(db, "events", id));
+          if (updatedDoc.exists()) {
+            const updatedData = updatedDoc.data();
+            console.log("재개시 후 이벤트 데이터:", updatedData);
+            if (updatedData.type === "tasting" && updatedData.restaurants) {
+              updatedData.restaurants.forEach((r, idx) => {
+                console.log(`식당 ${idx + 1} (${r.name}) - 업데이트 후:`, {
+                  reservations: r.reservations?.length || 0,
+                  waiting: r.waiting?.length || 0,
+                });
+              });
+            }
+          }
+          
           showAlert(
             "✅",
             "이벤트가 다시 열렸습니다. 신청 탭에서 확인할 수 있습니다."
           );
-        } catch {
-          showAlert("😥", "다시 열기 실패");
+        } catch (error) {
+          console.error("재개시 오류:", error);
+          showAlert("😥", "다시 열기 실패: " + error.message);
         }
       }
 
