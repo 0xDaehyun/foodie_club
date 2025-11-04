@@ -23655,7 +23655,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
           (ev) => ev.type === "tasting"
         );
 
-        // 미식회의 경우 식당 정보 추출
+        // 미식회의 경우 식당 정보 추출 (리뷰가 있는 식당만)
         const tastingRestaurants = [];
         tastingEvents.forEach((ev) => {
           if (ev.restaurants && ev.restaurants.length > 0) {
@@ -23669,6 +23669,11 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
               const restaurantReviews = (ev.reviews || []).filter((review) =>
                 participantIds.includes(review.studentId)
               );
+
+              // 리뷰가 없는 식당은 표시하지 않음
+              if (restaurantReviews.length === 0) {
+                return;
+              }
 
               // 카테고리가 없거나 유효하지 않으면 "기타"로 설정
               let restaurantCategory = restaurant.category || "기타";
