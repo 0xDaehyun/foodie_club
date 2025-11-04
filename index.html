@@ -8119,14 +8119,29 @@
                                 }
                               }
 
+                              // 마감 상태 확인 (수동 마감, 자동 마감, 마감일 지남)
+                              const isClosed = ev.status === "closed" || ev.status === "archived";
+                              const isAutoClosed = !!ev.autoClosedAt;
+                              const isDeadlinePassed = ev.deadline && new Date(ev.deadline) < new Date();
+                              const isConfirmed = isClosed || isAutoClosed || isDeadlinePassed;
+
                               return `
                                 <div class="p-4 bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
                                   <div class="flex items-center gap-3">
                                     <span class="text-2xl">${typeIcon}</span>
                                     <div class="flex-1 min-w-0">
-                                      <h5 class="font-semibold text-gray-800 truncate">${saf(
-                                        ev.title
-                                      )}</h5>
+                                      <div class="flex items-center gap-2 mb-1">
+                                        <h5 class="font-semibold text-gray-800 truncate">${saf(
+                                          ev.title
+                                        )}</h5>
+                                        ${
+                                          isConfirmed
+                                            ? `<span class="bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap flex items-center gap-1">
+                                                <i class="fas fa-check-circle"></i>확정
+                                              </span>`
+                                            : ""
+                                        }
+                                      </div>
                                       ${
                                         restaurantName
                                           ? `<p class="text-sm text-orange-600 font-medium mt-1">
