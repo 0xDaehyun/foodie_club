@@ -15783,16 +15783,30 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
             delete newPositions[studentId];
           }
 
+          // Firebase에 positions만 업데이트 (merge: true 사용)
           await setDoc(
             doc(db, "admins", "list"),
             {
-              studentIds: adminList,
               positions: newPositions,
             },
             { merge: true }
           );
 
+          // 로컬 변수 업데이트 (즉시 반영)
+          adminPositions = newPositions;
+          
+          // 현재 사용자의 직책도 업데이트
+          if (currentUser && currentUser.studentId === studentId) {
+            currentUser.position = position || "일반 회원";
+          }
+
           showAlert("✅", "직책이 업데이트되었습니다.");
+          
+          // 페이지 다시 렌더링하여 UI 업데이트
+          const container = document.getElementById("subtab-container");
+          if (container) {
+            renderPositionsAdmin(container);
+          }
         } catch (e) {
           console.error(e);
           showAlert("😥", "직책 업데이트에 실패했습니다.");
@@ -17093,7 +17107,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
           .querySelector("#add-member-btn")
           .addEventListener("click", openAddMemberModal);
         // 모든 CSV 다운로드 버튼에 이벤트 연결
-        container.querySelectorAll("#members-export").forEach(btn => {
+        container.querySelectorAll("#members-export").forEach((btn) => {
           btn.addEventListener("click", exportMembersCSV);
         });
         container
