@@ -3010,7 +3010,6 @@
         writeBatch,
         getDocs,
         where,
-        getDoc,
       } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
       import {
         getStorage,
@@ -10338,24 +10337,25 @@
           }
 
           const eventData = eventDoc.data();
-          
+
           // 기존 참가자 정보 보존 (restaurants 배열의 reservations, waiting 유지)
           const updateData = {
             status: "open",
             reopenedAt: new Date().toISOString(),
           };
-          
+
           // 미식회인 경우 restaurants 배열의 참가자 정보 보존
           if (eventData.type === "tasting" && eventData.restaurants) {
             updateData.restaurants = eventData.restaurants;
           }
-          
+
           // 일반 이벤트인 경우 applicants, waiting 보존
           if (eventData.type !== "tasting") {
-            if (eventData.applicants) updateData.applicants = eventData.applicants;
+            if (eventData.applicants)
+              updateData.applicants = eventData.applicants;
             if (eventData.waiting) updateData.waiting = eventData.waiting;
           }
-          
+
           await updateDoc(doc(db, "events", id), updateData);
           showAlert(
             "✅",
