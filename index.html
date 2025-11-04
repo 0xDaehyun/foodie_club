@@ -5020,6 +5020,18 @@
           // 대기 중인 회원인지 확인
           const isPendingMember = currentUser.status === "pending";
 
+          // 데이터 로드 상태 확인 (일정 시간 후 데이터가 없으면 경고 표시)
+          const isOnline = navigator.onLine;
+          const hasEventsData = eventsData && eventsData.length > 0;
+          const hasRoadmapData = roadmapData && roadmapData.length > 0;
+          const hasBlocksData = blocksData && blocksData.length > 0;
+          
+          // 데이터가 초기화되지 않았거나 모두 비어있는 경우
+          const noDataLoaded = 
+            (!hasEventsData && eventsData !== null && eventsData !== undefined && eventsData.length === 0) &&
+            (!hasRoadmapData && roadmapData !== null && roadmapData !== undefined && roadmapData.length === 0) &&
+            (!hasBlocksData && blocksData !== null && blocksData !== undefined && blocksData.length === 0);
+
           el.main.innerHTML = `
             <div class="mb-4 md:mb-6">
               <div class="flex items-center justify-between mb-4">
@@ -5030,6 +5042,58 @@
                   )}</b>${getPositionSuffix()}님
                 </p>
               </div>
+              
+              ${
+                !isOnline
+                  ? `
+              <!-- 네트워크 연결 오류 -->
+              <div class="bg-red-50 border-2 border-red-300 rounded-xl p-4 md:p-5 mb-4 md:mb-6">
+                <div class="flex items-start gap-3">
+                  <div class="flex-shrink-0">
+                    <i class="fas fa-wifi text-red-600 text-2xl"></i>
+                  </div>
+                  <div class="flex-1">
+                    <h3 class="text-base md:text-lg font-bold text-red-900 mb-2">
+                      네트워크 연결이 끊겼습니다
+                    </h3>
+                    <p class="text-sm md:text-base text-red-800 leading-relaxed mb-3">
+                      인터넷 연결을 확인해주세요. 연결이 복구되면 데이터가 자동으로 로드됩니다.
+                    </p>
+                    <button type="button" onclick="location.reload()" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition-colors">
+                      <i class="fas fa-redo mr-2"></i>페이지 새로고침
+                    </button>
+                  </div>
+                </div>
+              </div>
+              `
+                  : ""
+              }
+              
+              ${
+                isOnline && noDataLoaded
+                  ? `
+              <!-- 데이터 로드 실패 경고 -->
+              <div class="bg-yellow-50 border-2 border-yellow-300 rounded-xl p-4 md:p-5 mb-4 md:mb-6">
+                <div class="flex items-start gap-3">
+                  <div class="flex-shrink-0">
+                    <i class="fas fa-exclamation-triangle text-yellow-600 text-2xl"></i>
+                  </div>
+                  <div class="flex-1">
+                    <h3 class="text-base md:text-lg font-bold text-yellow-900 mb-2">
+                      데이터를 불러오지 못했습니다
+                    </h3>
+                    <p class="text-sm md:text-base text-yellow-800 leading-relaxed mb-3">
+                      서버 연결에 문제가 있을 수 있습니다. 잠시 후 자동으로 재시도됩니다.
+                    </p>
+                    <button type="button" onclick="location.reload()" class="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg font-semibold transition-colors">
+                      <i class="fas fa-redo mr-2"></i>지금 새로고침
+                    </button>
+                  </div>
+                </div>
+              </div>
+              `
+                  : ""
+              }
               
               ${
                 isPendingMember
@@ -8154,11 +8218,11 @@
                                           ).toLocaleDateString(
                                             "ko-KR"
                                           )} ${new Date(
-                                  ev.datetime
-                                ).toLocaleTimeString("ko-KR", {
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                })}
+                                ev.datetime
+                              ).toLocaleTimeString("ko-KR", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
                                         </p>
                                         ${
                                           isConfirmed
