@@ -10609,7 +10609,9 @@
 
         // 검색 기능
         const searchInput = document.getElementById("participant-search-input");
-        const searchResults = document.getElementById("participant-search-results");
+        const searchResults = document.getElementById(
+          "participant-search-results"
+        );
 
         searchInput.addEventListener("input", (e) => {
           const query = e.target.value.toLowerCase().trim();
@@ -23344,7 +23346,9 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
 
         // 마감된 이벤트만 가져오기 (삭제된 이벤트 제외)
         const closedEvents = eventsData.filter(
-          (ev) => ev.status === "closed" && ev.status !== "deleted"
+          (ev) => 
+            (ev.status === "closed" || ev.status === "archived") && 
+            ev.status !== "deleted"
         );
 
         // 카테고리별로 분류
@@ -26398,6 +26402,17 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
               scheduleRender();
             }
           }
+        }
+        
+        // 미식회인 경우 미식회 후기 화면이 자동으로 업데이트되도록 보장
+        const event = eventsData.find((e) => e.id === eventId);
+        if (event && event.type === "tasting") {
+          // 미식회 후기 화면을 다시 렌더링하기 위해 roadmap 탭을 다시 렌더링
+          setTimeout(() => {
+            if (currentMainTab === "roadmap") {
+              renderRoadmapTab(isAdmin());
+            }
+          }, 100);
         }
       }
 
