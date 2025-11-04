@@ -13,6 +13,16 @@ function attachAccordionHandlers(root) {
 export function renderBlocks() {
   const wrap = document.getElementById("dynamic-blocks");
   if (!wrap) return;
+  
+  // 데이터가 아직 로드되지 않았으면 로딩 표시
+  if (state.blocksData === null || state.blocksData === undefined) {
+    wrap.innerHTML = `<div class="section text-center py-8">
+      <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-indigo-500 border-t-transparent mb-3"></div>
+      <p class="text-gray-500">블록을 불러오는 중...</p>
+    </div>`;
+    return;
+  }
+  
   const visible = (state.blocksData || []).filter((b) => b.visible !== false);
   const snippets = visible.map((b) => {
     if (b.type === "scores") {
@@ -93,6 +103,17 @@ export function renderRoadmap() {
   const c = document.getElementById("roadmap-container");
   const btn = document.getElementById("roadmap-toggle-btn");
   if (!c) return;
+  
+  // 데이터가 아직 로드되지 않았으면 로딩 표시
+  if (state.roadmapData === null || state.roadmapData === undefined) {
+    c.innerHTML = `<div class="text-center py-8">
+      <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-indigo-500 border-t-transparent mb-3"></div>
+      <p class="text-gray-500">일정을 불러오는 중...</p>
+    </div>`;
+    if (btn) btn.classList.add("hidden");
+    return;
+  }
+  
   const total = state.roadmapData.length;
   const today = new Date();
   today.setHours(0, 0, 0, 0);

@@ -70,6 +70,15 @@ export const clearAdmin = () =>
 
 // 로딩 상태 관리
 let loadingStates = new Set();
+let dataLoadedFlags = {
+  blocks: false,
+  roadmap: false,
+  events: false,
+  admins: false,
+  signup: false,
+  dues: false,
+};
+
 const showLoadingIndicator = (key) => {
   loadingStates.add(key);
   updateLoadingUI();
@@ -78,6 +87,122 @@ const hideLoadingIndicator = (key) => {
   loadingStates.delete(key);
   updateLoadingUI();
 };
+
+// 데이터 로드 완료 플래그 설정
+const markDataLoaded = (key) => {
+  if (key in dataLoadedFlags) {
+    dataLoadedFlags[key] = true;
+  }
+  checkAndRetryEmptyData();
+};
+
+// 빈 데이터 즉시 재로딩 체크 (재시도 카운터로 무한 루프 방지)
+let retryCounts = {
+  blocks: 0,
+  roadmap: 0,
+  events: 0,
+};
+const MAX_RETRIES = 3; // 최대 3번 재시도
+
+const checkAndRetryEmptyData = () => {
+  // blocks 데이터가 로드되었는데 비어있으면 즉시 재시도
+  if (dataLoadedFlags.blocks && (!state.blocksData || state.blocksData.length === 0)) {
+    if (retryCounts.blocks < MAX_RETRIES && unsubPublic.blocks) {
+      retryCounts.blocks++;
+      console.warn(`blocks 데이터가 비어있어 즉시 재로딩합니다. (${retryCounts.blocks}/${MAX_RETRIES})`);
+      unsubPublic.blocks();
+      unsubPublic.blocks = null;
+      // 지체없이 즉시 재시도
+      setTimeout(() => {
+        if (!unsubPublic.blocks) {
+          const setupBlocks = () => {
+            unsubPublic.blocks = onSnapshot(
+              query(collection(db, "homepageBlocks"), orderBy("order", "asc")),
+              (snap) => {
+                const hasData = snap.docs.length > 0;
+                state.blocksData = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+                if (hasData) retryCounts.blocks = 0; // 성공 시 카운터 리셋
+                markDataLoaded("blocks");
+                scheduleRender();
+              },
+              (err) => {
+                console.warn("blocks:", err?.message);
+                hideLoadingIndicator("blocks");
+                setTimeout(() => checkAndRetryEmptyData(), 0);
+              }
+            );
+          };
+          setupBlocks();
+        }
+      }, 0);
+    }
+  }
+  
+  // roadmap 데이터가 로드되었는데 비어있으면 즉시 재시도
+  if (dataLoadedFlags.roadmap && (!state.roadmapData || state.roadmapData.length === 0)) {
+    if (retryCounts.roadmap < MAX_RETRIES && unsubPublic.roadmap) {
+      retryCounts.roadmap++;
+      console.warn(`roadmap 데이터가 비어있어 즉시 재로딩합니다. (${retryCounts.roadmap}/${MAX_RETRIES})`);
+      unsubPublic.roadmap();
+      unsubPublic.roadmap = null;
+      setTimeout(() => {
+        if (!unsubPublic.roadmap) {
+          const setupRoadmap = () => {
+            unsubPublic.roadmap = onSnapshot(
+              collection(db, "roadmap"),
+              (snap) => {
+                const hasData = snap.docs.length > 0;
+                state.roadmapData = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+                if (hasData) retryCounts.roadmap = 0;
+                markDataLoaded("roadmap");
+                scheduleRender();
+              },
+              (err) => {
+                console.warn("roadmap:", err?.message);
+                hideLoadingIndicator("roadmap");
+                setTimeout(() => checkAndRetryEmptyData(), 0);
+              }
+            );
+          };
+          setupRoadmap();
+        }
+      }, 0);
+    }
+  }
+  
+  // events 데이터가 로드되었는데 비어있으면 즉시 재시도
+  if (dataLoadedFlags.events && (!state.eventsData || state.eventsData.length === 0)) {
+    if (retryCounts.events < MAX_RETRIES && unsubPublic.events) {
+      retryCounts.events++;
+      console.warn(`events 데이터가 비어있어 즉시 재로딩합니다. (${retryCounts.events}/${MAX_RETRIES})`);
+      unsubPublic.events();
+      unsubPublic.events = null;
+      setTimeout(() => {
+        if (!unsubPublic.events) {
+          const setupEvents = () => {
+            unsubPublic.events = onSnapshot(
+              query(collection(db, "events"), orderBy("datetime", "asc")),
+              (snap) => {
+                const hasData = snap.docs.length > 0;
+                state.eventsData = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+                if (hasData) retryCounts.events = 0;
+                markDataLoaded("events");
+                scheduleRender();
+              },
+              (err) => {
+                console.warn("events:", err?.message);
+                hideLoadingIndicator("events");
+                setTimeout(() => checkAndRetryEmptyData(), 0);
+              }
+            );
+          };
+          setupEvents();
+        }
+      }, 0);
+    }
+  }
+};
+
 const updateLoadingUI = () => {
   const mainContent = document.getElementById("main-content");
   if (!mainContent) return;
@@ -227,6 +352,7 @@ export function startPublicListeners(USE_DEMO_OFFLINE) {
           "blocks",
           (snap) => {
             state.blocksData = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+            markDataLoaded("blocks");
             scheduleRender();
           },
           setupBlocks
@@ -248,6 +374,7 @@ export function startPublicListeners(USE_DEMO_OFFLINE) {
           "roadmap",
           (snap) => {
             state.roadmapData = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+            markDataLoaded("roadmap");
             scheduleRender();
           },
           setupRoadmap
@@ -274,6 +401,7 @@ export function startPublicListeners(USE_DEMO_OFFLINE) {
           "events",
           (snap) => {
             state.eventsData = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+            markDataLoaded("events");
             scheduleRender();
           },
           setupEvents
