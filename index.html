@@ -3010,6 +3010,7 @@
         writeBatch,
         getDocs,
         where,
+        getDoc,
       } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
       import {
         getStorage,
@@ -5257,7 +5258,7 @@
             .addEventListener("click", () => {
               document.getElementById("rank-modal").classList.add("hidden");
             });
-          
+
           // 헤더 닫기 버튼 이벤트 추가
           const rankCloseHeader = document.getElementById("rank-close-header");
           if (rankCloseHeader) {
@@ -10144,22 +10145,29 @@
                 ),
               ];
               const restaurants = rows
-                .map((row) => ({
-                  id: row.getAttribute("data-id"),
-                  name: row.querySelector("[data-field='name']").value.trim(),
-                  info: row.querySelector("[data-field='info']").value.trim(),
-                  imageUrl: "",
-                  capacity:
-                    parseInt(
-                      row.querySelector("[data-field='capacity']").value,
-                      10
-                    ) || limit,
-                  category:
-                    row.querySelector("[data-field='category']")?.value ||
-                    "기타",
-                  reservations: [],
-                  waiting: [],
-                }))
+                .map((row) => {
+                  const categoryValue = row.querySelector("[data-field='category']")?.value || "기타";
+                  // restaurantCategories에 존재하는 카테고리인지 확인
+                  const categoryExists = restaurantCategories.some(
+                    (cat) => cat.name === categoryValue
+                  );
+                  const finalCategory = categoryExists ? categoryValue : "기타";
+                  
+                  return {
+                    id: row.getAttribute("data-id"),
+                    name: row.querySelector("[data-field='name']").value.trim(),
+                    info: row.querySelector("[data-field='info']").value.trim(),
+                    imageUrl: "",
+                    capacity:
+                      parseInt(
+                        row.querySelector("[data-field='capacity']").value,
+                        10
+                      ) || limit,
+                    category: finalCategory,
+                    reservations: [],
+                    waiting: [],
+                  };
+                })
                 .filter((r) => r.name && r.capacity > 0);
               if (restaurants.length === 0)
                 return showAlert("😥", "식당을 최소 1개 이상 추가해주세요.");
@@ -10229,6 +10237,13 @@
                 .map((row) => {
                   const idAttr = row.getAttribute("data-id");
                   const old = map.get(idAttr);
+                  const categoryValue = row.querySelector("[data-field='category']")?.value || "기타";
+                  // restaurantCategories에 존재하는 카테고리인지 확인
+                  const categoryExists = restaurantCategories.some(
+                    (cat) => cat.name === categoryValue
+                  );
+                  const finalCategory = categoryExists ? categoryValue : "기타";
+                  
                   return {
                     id: idAttr,
                     name: row.querySelector("[data-field='name']").value.trim(),
@@ -10242,6 +10257,7 @@
                         row.querySelector("[data-field='capacity']").value,
                         10
                       ) || limit,
+                    category: finalCategory,
                     reservations: old?.reservations || [],
                     waiting: old?.waiting || [],
                   };
@@ -20077,27 +20093,6 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
             </div>
           </div>
         `;
-        
-        // 전체 순위 토글 버튼 이벤트 추가
-        const toggleAllRanksBtn = container.querySelector("#toggle-all-ranks-btn");
-        const allRanksList = container.querySelector("#all-ranks-list");
-        const toggleAllRanksText = container.querySelector("#toggle-all-ranks-text");
-        const toggleAllRanksIcon = container.querySelector("#toggle-all-ranks-icon");
-        
-        if (toggleAllRanksBtn && allRanksList && toggleAllRanksText && toggleAllRanksIcon) {
-          toggleAllRanksBtn.addEventListener("click", () => {
-            const isHidden = allRanksList.classList.contains("hidden");
-            if (isHidden) {
-              allRanksList.classList.remove("hidden");
-              toggleAllRanksText.textContent = "전체 순위 숨기기";
-              toggleAllRanksIcon.style.transform = "rotate(180deg)";
-            } else {
-              allRanksList.classList.add("hidden");
-              toggleAllRanksText.textContent = "전체 순위 보기";
-              toggleAllRanksIcon.style.transform = "rotate(0deg)";
-            }
-          });
-        }
 
         const adminControls = document.getElementById("rank-admin-controls");
         const adminActions = document.getElementById("rank-admin-actions");
@@ -20117,6 +20112,38 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
             <p>조모임 데이터가 없습니다.</p>
             <p class="text-sm mt-1">관리자가 조모임을 추가하면 순위가 표시됩니다.</p>
           </div>`;
+
+        // 전체 순위 토글 버튼 이벤트 추가 (innerHTML 설정 후)
+        const toggleAllRanksBtn = container.querySelector(
+          "#toggle-all-ranks-btn"
+        );
+        const allRanksList = container.querySelector("#all-ranks-list");
+        const toggleAllRanksText = container.querySelector(
+          "#toggle-all-ranks-text"
+        );
+        const toggleAllRanksIcon = container.querySelector(
+          "#toggle-all-ranks-icon"
+        );
+
+        if (
+          toggleAllRanksBtn &&
+          allRanksList &&
+          toggleAllRanksText &&
+          toggleAllRanksIcon
+        ) {
+          toggleAllRanksBtn.addEventListener("click", () => {
+            const isHidden = allRanksList.classList.contains("hidden");
+            if (isHidden) {
+              allRanksList.classList.remove("hidden");
+              toggleAllRanksText.textContent = "전체 순위 숨기기";
+              toggleAllRanksIcon.style.transform = "rotate(180deg)";
+            } else {
+              allRanksList.classList.add("hidden");
+              toggleAllRanksText.textContent = "전체 순위 보기";
+              toggleAllRanksIcon.style.transform = "rotate(0deg)";
+            }
+          });
+        }
 
         // 조모임 수정/삭제 버튼 이벤트 리스너 추가
         if (isAdmin) {
@@ -22982,6 +23009,16 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                 participantIds.includes(review.studentId)
               );
 
+              // 카테고리가 없거나 유효하지 않으면 "기타"로 설정
+              let restaurantCategory = restaurant.category || "기타";
+              // restaurantCategories에 존재하는 카테고리인지 확인
+              const categoryExists = restaurantCategories.some(
+                (cat) => cat.name === restaurantCategory
+              );
+              if (!categoryExists) {
+                restaurantCategory = "기타";
+              }
+
               tastingRestaurants.push({
                 eventId: ev.id,
                 eventTitle: ev.title,
@@ -22989,7 +23026,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                 restaurantName: restaurant.name,
                 restaurantInfo: restaurant.info,
                 restaurantImage: restaurant.imageUrl,
-                restaurantCategory: restaurant.category || "기타",
+                restaurantCategory: restaurantCategory,
                 participantCount: participantIds.length,
                 reviews: restaurantReviews,
               });
@@ -25968,6 +26005,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
           const review = {
             studentId: currentUser.studentId,
             studentName: currentUser.name,
+            name: currentUser.name, // 리뷰 화면에서 사용하는 필드
             rating: rating,
             comment: comment,
             timestamp: new Date().toISOString(),
@@ -25986,6 +26024,19 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
 
           transaction.update(eventRef, { reviews: reviews });
         });
+        
+        // eventsData 업데이트
+        const eventIndex = eventsData.findIndex((e) => e.id === eventId);
+        if (eventIndex >= 0) {
+          const eventDoc = await getDoc(eventRef);
+          if (eventDoc.exists()) {
+            eventsData[eventIndex] = { id: eventDoc.id, ...eventDoc.data() };
+            // 리뷰 탭이 활성화되어 있으면 다시 렌더링
+            if (currentMainTab === "roadmap") {
+              scheduleRender();
+            }
+          }
+        }
       }
 
       function closeReviewModal() {
