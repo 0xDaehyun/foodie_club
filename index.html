@@ -10337,7 +10337,7 @@
           }
 
           const eventData = eventDoc.data();
-          
+
           // 디버깅: 기존 참가자 정보 확인
           console.log("재개시 전 이벤트 데이터:", eventData);
           if (eventData.type === "tasting" && eventData.restaurants) {
@@ -10360,11 +10360,13 @@
           // 미식회인 경우 restaurants 배열의 참가자 정보 보존
           if (eventData.type === "tasting" && eventData.restaurants) {
             // restaurants 배열을 깊은 복사하여 보존 (각 restaurant의 reservations, waiting도 포함)
-            updateData.restaurants = eventData.restaurants.map((restaurant) => ({
-              ...restaurant,
-              reservations: restaurant.reservations || [],
-              waiting: restaurant.waiting || [],
-            }));
+            updateData.restaurants = eventData.restaurants.map(
+              (restaurant) => ({
+                ...restaurant,
+                reservations: restaurant.reservations || [],
+                waiting: restaurant.waiting || [],
+              })
+            );
           }
 
           // 일반 이벤트인 경우 applicants, waiting 보존
@@ -10375,9 +10377,9 @@
           }
 
           console.log("업데이트할 데이터:", updateData);
-          
+
           await updateDoc(doc(db, "events", id), updateData);
-          
+
           // 업데이트 후 확인
           const updatedDoc = await getDoc(doc(db, "events", id));
           if (updatedDoc.exists()) {
@@ -10392,7 +10394,7 @@
               });
             }
           }
-          
+
           showAlert(
             "✅",
             "이벤트가 다시 열렸습니다. 신청 탭에서 확인할 수 있습니다."
