@@ -8133,16 +8133,7 @@
                               return `
                                 <div class="p-4 bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
                                   <div class="flex items-center gap-3">
-                                    <div class="relative">
-                                      <span class="text-2xl">${typeIcon}</span>
-                                      ${
-                                        isConfirmed
-                                          ? `<span class="absolute -top-1 -right-1 bg-green-500 text-white px-1.5 py-0.5 rounded-full text-[10px] font-bold whitespace-nowrap flex items-center gap-0.5 shadow-lg z-10" title="활동 확정">
-                                              <i class="fas fa-check-circle text-xs"></i>
-                                            </span>`
-                                          : ""
-                                      }
-                                    </div>
+                                    <span class="text-2xl">${typeIcon}</span>
                                     <div class="flex-1 min-w-0">
                                       <h5 class="font-semibold text-gray-800 truncate mb-1">${saf(
                                         ev.title
@@ -8156,18 +8147,27 @@
                                             </p>`
                                           : ""
                                       }
-                                      <p class="text-xs text-gray-500">
-                                        ${new Date(
-                                          ev.datetime
-                                        ).toLocaleDateString(
-                                          "ko-KR"
-                                        )} ${new Date(
-                                ev.datetime
-                              ).toLocaleTimeString("ko-KR", {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
-                                      </p>
+                                      <div class="flex items-center gap-2">
+                                        <p class="text-xs text-gray-500">
+                                          ${new Date(
+                                            ev.datetime
+                                          ).toLocaleDateString(
+                                            "ko-KR"
+                                          )} ${new Date(
+                                  ev.datetime
+                                ).toLocaleTimeString("ko-KR", {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}
+                                        </p>
+                                        ${
+                                          isConfirmed
+                                            ? `<span class="bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap flex items-center gap-1" title="활동 확정">
+                                                <i class="fas fa-check-circle"></i>확정
+                                              </span>`
+                                            : ""
+                                        }
+                                      </div>
                                     </div>
                                   </div>
                                   <div class="mt-3 flex items-center gap-2">
