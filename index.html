@@ -16871,6 +16871,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
 
       /* ===== 회원 관리 탭 (요청사항 2, 7: 버튼 단순화/그룹 분리) ===== */
       function renderMembersAdmin(container) {
+        const signup = signupSettings || { open: false, start: "", end: "" };
         const pendingSet = (membersData || []).filter(
           (m) => (m.status || "pending") !== "active"
         );
@@ -16924,8 +16925,8 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                 ? "text-green-700 bg-green-50"
                 : "text-red-700 bg-red-50"
             } px-4 py-2 rounded-lg border ${
-              signup.open ? "border-green-200" : "border-red-200"
-            }">
+          signup.open ? "border-green-200" : "border-red-200"
+        }">
               <i class="fas ${
                 signup.open ? "fa-check-circle" : "fa-times-circle"
               } mr-2"></i>
