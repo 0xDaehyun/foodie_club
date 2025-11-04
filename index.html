@@ -10511,15 +10511,48 @@
           return;
         }
 
-        // 회원 목록 가져오기
-        const membersList = (membersData || [])
-          .filter((m) => m.status === "active")
-          .map((m) => ({
-            studentId: m.studentId,
-            name: m.name,
-            displayName: `${m.name} (${m.studentId})`,
-          }))
-          .sort((a, b) => a.name.localeCompare(b.name));
+        // 현재 참가자 목록 가져오기
+        const getCurrentParticipants = () => {
+          if (event.type === "tasting" && event.restaurants) {
+            const allParticipants = [];
+            event.restaurants.forEach((r) => {
+              (r.reservations || []).forEach((p) => {
+                allParticipants.push({
+                  studentId: p.studentId,
+                  name: p.name,
+                  restaurantId: r.id,
+                  restaurantName: r.name,
+                  type: "reservation"
+                });
+              });
+              (r.waiting || []).forEach((p) => {
+                allParticipants.push({
+                  studentId: p.studentId,
+                  name: p.name,
+                  restaurantId: r.id,
+                  restaurantName: r.name,
+                  type: "waiting"
+                });
+              });
+            });
+            return allParticipants;
+          } else {
+            const participants = (event.applicants || []).map((p) => ({
+              studentId: p.studentId,
+              name: p.name,
+              type: "applicant"
+            }));
+            const waiting = (event.waiting || []).map((w) => ({
+              studentId: w.studentId,
+              name: w.name,
+              type: "waiting"
+            }));
+            return [...participants, ...waiting];
+          }
+        };
+
+        const currentParticipants = getCurrentParticipants();
+        const currentParticipantIds = currentParticipants.map((p) => p.studentId);
 
         // 미식회인 경우 식당 선택 포함
         let restaurantSelectHTML = "";
@@ -10544,33 +10577,79 @@
           `;
         }
 
+        // 현재 참가자 목록 HTML 생성
+        const renderCurrentParticipants = () => {
+          if (currentParticipants.length === 0) {
+            return '<p class="text-sm text-gray-400 italic text-center py-4">참가자가 없습니다</p>';
+          }
+
+          return currentParticipants
+            .map((p) => {
+              const memberInfo = membersData?.find((m) => m.studentId === p.studentId);
+              return `
+                <div class="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                  <div class="flex items-center gap-3 flex-1">
+                    <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-sm">
+                      ${(p.name || "").charAt(0) || "?"}
+                    </div>
+                    <div class="flex-1">
+                      <div class="font-semibold text-gray-800">${saf(p.name || "알 수 없음")}</div>
+                      <div class="text-xs text-gray-500">
+                        ${p.studentId || ""}${memberInfo && memberInfo.college ? ` · ${memberInfo.college}` : ""}
+                        ${p.restaurantName ? ` · ${saf(p.restaurantName)}` : ""}
+                        ${p.type === "waiting" ? ' <span class="text-amber-600 font-semibold">(대기)</span>' : ""}
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    class="px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-sm transition-colors"
+                    onclick="removeParticipantFromEvent('${eventId}', '${p.studentId}', ${p.restaurantId ? `'${p.restaurantId}'` : 'null'}, '${saf(p.name)}')"
+                  >
+                    <i class="fas fa-trash mr-1"></i>제거
+                  </button>
+                </div>
+              `;
+            })
+            .join("");
+        };
+
         const modalHTML = `
           <div id="add-participant-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div class="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
               <div class="p-6">
                 <div class="flex justify-between items-start mb-4">
-                  <h3 class="text-xl font-bold text-gray-800">참가자 추가</h3>
+                  <h3 class="text-xl font-bold text-gray-800">참가자 관리</h3>
                   <button onclick="closeAddParticipantModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
                     <i class="fas fa-times text-xl"></i>
                   </button>
                 </div>
                 
-                <div class="mb-4">
-                  <p class="text-sm text-gray-600 mb-2">
-                    <strong>이벤트:</strong> ${saf(event.title)}
+                <div class="mb-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-4">
+                  <p class="text-sm font-semibold text-gray-800 mb-1">
+                    <i class="fas fa-calendar-alt mr-2 text-blue-600"></i>${saf(event.title)}
                   </p>
-                  <p class="text-sm text-gray-600">
-                    <strong>일시:</strong> ${new Date(
-                      event.datetime
-                    ).toLocaleString("ko-KR")}
+                  <p class="text-xs text-gray-600">
+                    ${new Date(event.datetime).toLocaleString("ko-KR")}
                   </p>
                 </div>
 
                 ${restaurantSelectHTML}
 
+                <!-- 현재 참가자 목록 -->
                 <div class="mb-4">
                   <label class="block text-sm font-medium text-gray-700 mb-2">
-                    <i class="fas fa-user mr-2 text-blue-500"></i>회원 검색 <span class="text-red-500">*</span>
+                    <i class="fas fa-users mr-2 text-green-500"></i>현재 참가자 <span class="text-gray-500 font-normal">(${currentParticipants.length}명)</span>
+                  </label>
+                  <div id="participant-current-list" class="space-y-2 max-h-64 overflow-y-auto border border-gray-200 rounded-lg p-3 bg-gray-50">
+                    ${renderCurrentParticipants()}
+                  </div>
+                </div>
+
+                <!-- 회원 검색 -->
+                <div class="mb-4">
+                  <label class="block text-sm font-medium text-gray-700 mb-2">
+                    <i class="fas fa-user-plus mr-2 text-blue-500"></i>회원 검색 및 추가
                   </label>
                   <input
                     type="text"
@@ -10579,23 +10658,17 @@
                     class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
                     autocomplete="off"
                   />
-                  <div id="participant-search-results" class="mt-2 max-h-48 overflow-y-auto border border-gray-200 rounded-lg hidden">
-                    <!-- 검색 결과가 여기에 표시됩니다 -->
+                  <div id="participant-search-results" class="mt-2 max-h-64 overflow-y-auto border border-gray-200 rounded-lg p-3 bg-white">
+                    <p class="text-sm text-gray-400 text-center py-4">검색어를 입력하여 회원을 찾아주세요</p>
                   </div>
                 </div>
 
                 <div class="flex gap-3">
                   <button
-                    id="add-participant-confirm-btn"
-                    class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors"
-                  >
-                    <i class="fas fa-check mr-2"></i>추가하기
-                  </button>
-                  <button
                     onclick="closeAddParticipantModal()"
                     class="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition-colors"
                   >
-                    취소
+                    닫기
                   </button>
                 </div>
               </div>
@@ -10605,95 +10678,93 @@
 
         document.body.insertAdjacentHTML("beforeend", modalHTML);
 
-        let selectedMember = null;
-
-        // 검색 기능
+        // 검색 기능 (조모임 방식과 유사)
         const searchInput = document.getElementById("participant-search-input");
-        const searchResults = document.getElementById(
-          "participant-search-results"
-        );
+        const searchResults = document.getElementById("participant-search-results");
+        const currentList = document.getElementById("participant-current-list");
 
-        searchInput.addEventListener("input", (e) => {
-          const query = e.target.value.toLowerCase().trim();
-          if (query.length === 0) {
-            searchResults.classList.add("hidden");
-            selectedMember = null;
+        const searchParticipants = (searchTerm) => {
+          if (!searchTerm.trim()) {
+            searchResults.innerHTML = '<p class="text-sm text-gray-400 text-center py-4">검색어를 입력하여 회원을 찾아주세요</p>';
             return;
           }
 
-          const filtered = membersList.filter(
-            (m) =>
-              m.name.toLowerCase().includes(query) ||
-              m.studentId.toLowerCase().includes(query)
-          );
+          // 띄어쓰기로 구분된 여러 검색어 처리
+          const searchKeywords = searchTerm
+            .trim()
+            .split(/\s+/)
+            .filter((keyword) => keyword.length > 0)
+            .map((keyword) => keyword.toLowerCase());
+
+          // 각 검색어에 매칭되는 회원들을 찾기
+          const matchedMembers = new Map();
+
+          searchKeywords.forEach((keyword) => {
+            (membersData || []).forEach((m) => {
+              const nameMatch = m.name?.toLowerCase().includes(keyword);
+              const idMatch = m.studentId?.toLowerCase().includes(keyword);
+              const isAlreadyParticipant = currentParticipantIds.includes(m.studentId);
+              const isActive = (m.status || "pending") === "active";
+
+              if ((nameMatch || idMatch) && !isAlreadyParticipant && isActive) {
+                matchedMembers.set(m.studentId || m.name, m);
+              }
+            });
+          });
+
+          const filtered = Array.from(matchedMembers.values()).slice(0, 50);
 
           if (filtered.length === 0) {
-            searchResults.innerHTML = `
-              <div class="p-4 text-center text-gray-500">
-                <i class="fas fa-search text-2xl mb-2"></i>
-                <p>검색 결과가 없습니다</p>
-              </div>
-            `;
-            searchResults.classList.remove("hidden");
+            searchResults.innerHTML = '<p class="text-sm text-gray-400 text-center py-4">검색 결과가 없습니다</p>';
           } else {
             searchResults.innerHTML = filtered
-              .map(
-                (m) => `
-              <div
-                class="p-3 hover:bg-blue-50 cursor-pointer border-b border-gray-100 participant-option"
-                data-student-id="${m.studentId}"
-                data-name="${saf(m.name)}"
-              >
-                <div class="font-medium text-gray-800">${saf(m.name)}</div>
-                <div class="text-sm text-gray-500">${m.studentId}</div>
-              </div>
-            `
-              )
+              .map((member) => {
+                const matchedKeywords = searchKeywords.filter(
+                  (keyword) =>
+                    member.name?.toLowerCase().includes(keyword) ||
+                    member.studentId?.toLowerCase().includes(keyword)
+                );
+
+                return `
+                  <div class="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                    <div class="flex items-center gap-3">
+                      <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold">
+                        ${member.name?.charAt(0) || "?"}
+                      </div>
+                      <div>
+                        <div class="font-semibold text-gray-800">${saf(member.name || "알 수 없음")}</div>
+                        <div class="text-xs text-gray-500">${member.studentId || ""} · ${member.college || ""}</div>
+                        ${
+                          matchedKeywords.length > 0
+                            ? `<div class="text-xs text-blue-500 mt-0.5">
+                                <i class="fas fa-search mr-1"></i>${matchedKeywords.join(", ")} 검색어로 매칭
+                              </div>`
+                            : ""
+                        }
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      class="px-3 py-1 bg-green-500 hover:bg-green-600 text-white rounded text-sm transition-colors"
+                      onclick="addParticipantToEventQuick('${eventId}', '${member.studentId}', '${saf(member.name).replace(/'/g, "\\'")}')"
+                    >
+                      <i class="fas fa-plus mr-1"></i>추가
+                    </button>
+                  </div>
+                `;
+              })
               .join("");
-
-            searchResults.classList.remove("hidden");
-
-            // 옵션 클릭 이벤트
-            searchResults
-              .querySelectorAll(".participant-option")
-              .forEach((option) => {
-                option.addEventListener("click", () => {
-                  selectedMember = {
-                    studentId: option.dataset.studentId,
-                    name: option.dataset.name,
-                  };
-                  searchInput.value = `${selectedMember.name} (${selectedMember.studentId})`;
-                  searchResults.classList.add("hidden");
-
-                  // 선택된 회원 하이라이트
-                  searchResults
-                    .querySelectorAll(".participant-option")
-                    .forEach((opt) => opt.classList.remove("bg-blue-100"));
-                  option.classList.add("bg-blue-100");
-                });
-              });
           }
+        };
+
+        searchInput.addEventListener("input", (e) => {
+          searchParticipants(e.target.value);
         });
 
-        // 추가하기 버튼
-        document
-          .getElementById("add-participant-confirm-btn")
-          .addEventListener("click", async () => {
-            if (!selectedMember) {
-              showAlert("⚠️", "회원을 선택해주세요.");
-              return;
-            }
-
-            try {
-              await addParticipantToEvent(eventId, selectedMember);
-              closeAddParticipantModal();
-              showAlert("✅", "참가자가 추가되었습니다.");
-              scheduleRender(); // 화면 새로고침
-            } catch (error) {
-              console.error("참가자 추가 오류:", error);
-              showAlert("😥", "참가자 추가에 실패했습니다: " + error.message);
-            }
-          });
+        // 초기 검색어가 있으면 검색 실행
+        if (searchInput.value) {
+          searchParticipants(searchInput.value);
+        }
       }
 
       // 참가자 추가 모달 닫기
@@ -10705,7 +10776,111 @@
       }
       window.closeAddParticipantModal = closeAddParticipantModal;
 
-      // 이벤트에 참가자 추가 함수
+      // 빠른 참가자 추가 함수 (검색 결과에서 바로 추가)
+      window.addParticipantToEventQuick = async function (eventId, studentId, memberName) {
+        try {
+          const event = eventsData.find((e) => e.id === eventId);
+          if (!event) {
+            showAlert("😥", "이벤트를 찾을 수 없습니다.");
+            return;
+          }
+
+          // 미식회인 경우 식당 선택 확인
+          if (event.type === "tasting" && event.restaurants) {
+            const restaurantSelect = document.getElementById("participant-restaurant-select");
+            if (!restaurantSelect) {
+              showAlert("⚠️", "식당을 선택해주세요.");
+              return;
+            }
+          }
+
+          const member = { studentId, name: memberName };
+          await addParticipantToEvent(eventId, member);
+          
+          // 모달 새로고침
+          setTimeout(() => {
+            const event = eventsData.find((e) => e.id === eventId);
+            if (event) {
+              openAddParticipantModal(eventId);
+            }
+          }, 500);
+          
+          showAlert("✅", `${memberName} 회원이 추가되었습니다.`);
+        } catch (error) {
+          console.error("참가자 추가 오류:", error);
+          showAlert("😥", "참가자 추가에 실패했습니다: " + error.message);
+        }
+      };
+
+      // 참가자 제거 함수
+      window.removeParticipantFromEvent = async function (eventId, studentId, restaurantId, memberName) {
+        if (!confirm(`정말로 ${memberName} 회원을 이벤트에서 제거하시겠습니까?`)) {
+          return;
+        }
+
+        try {
+          const eventRef = doc(db, "events", eventId);
+
+          await runTransaction(db, async (transaction) => {
+            const eventDoc = await transaction.get(eventRef);
+            if (!eventDoc.exists()) {
+              throw new Error("이벤트를 찾을 수 없습니다.");
+            }
+
+            const eventData = eventDoc.data();
+
+            if (eventData.type === "tasting" && eventData.restaurants && restaurantId) {
+              // 미식회인 경우 특정 식당에서 제거
+              const restaurants = [...(eventData.restaurants || [])];
+              const restaurantIndex = restaurants.findIndex((r) => r.id === restaurantId);
+
+              if (restaurantIndex === -1) {
+                throw new Error("식당을 찾을 수 없습니다.");
+              }
+
+              const restaurant = restaurants[restaurantIndex];
+              const reservations = [...(restaurant.reservations || [])].filter(
+                (r) => r.studentId !== studentId
+              );
+              const waiting = [...(restaurant.waiting || [])].filter(
+                (w) => w.studentId !== studentId
+              );
+
+              restaurant.reservations = reservations;
+              restaurant.waiting = waiting;
+              restaurants[restaurantIndex] = restaurant;
+
+              transaction.update(eventRef, { restaurants });
+            } else {
+              // 일반 이벤트인 경우
+              const applicants = [...(eventData.applicants || [])].filter(
+                (a) => a.studentId !== studentId
+              );
+              const waiting = [...(eventData.waiting || [])].filter(
+                (w) => w.studentId !== studentId
+              );
+
+              transaction.update(eventRef, { applicants, waiting });
+            }
+          });
+
+          showAlert("✅", `${memberName} 회원이 제거되었습니다.`);
+
+          // 모달 새로고침
+          setTimeout(() => {
+            const event = eventsData.find((e) => e.id === eventId);
+            if (event) {
+              openAddParticipantModal(eventId);
+            }
+          }, 500);
+
+          // 전체 화면 새로고침
+          scheduleRender();
+        } catch (error) {
+          console.error("참가자 제거 오류:", error);
+          showAlert("😥", "참가자 제거에 실패했습니다: " + error.message);
+        }
+      };
       async function addParticipantToEvent(eventId, member) {
         const eventRef = doc(db, "events", eventId);
 
@@ -26306,9 +26481,13 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
             // star 요소가 존재하는지 확인
             if (star) {
               // 모든 색상 클래스와 스타일 초기화
-              star.classList.remove("text-gray-300", "text-yellow-300", "text-yellow-400");
+              star.classList.remove(
+                "text-gray-300",
+                "text-yellow-300",
+                "text-yellow-400"
+              );
               star.style.opacity = "";
-              
+
               // 선택된 별점에 따라 색상 적용
               if (btnRating <= rating && rating > 0) {
                 star.classList.add("text-yellow-400");
@@ -26317,7 +26496,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                 star.classList.add("text-gray-300");
                 star.style.opacity = "1";
               }
-              
+
               star.style.transition = "color 0.2s ease, opacity 0.2s ease";
             }
           });
@@ -26373,18 +26552,18 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
           btn.addEventListener("click", (e) => {
             e.preventDefault();
             e.stopPropagation();
-            
+
             selectedRating = parseFloat(btn.dataset.rating);
-            
+
             // 즉시 색상 업데이트
             updateStarDisplay(selectedRating);
-            
+
             // 클릭 피드백 애니메이션
             btn.style.transform = "scale(0.9)";
             setTimeout(() => {
               btn.style.transform = "scale(1)";
             }, 150);
-            
+
             // 호버 이벤트 제거 후 다시 추가 (확실한 상태 복원)
             setTimeout(() => {
               updateStarDisplay(selectedRating);
