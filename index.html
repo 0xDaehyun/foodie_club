@@ -26305,15 +26305,20 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
 
             // star 요소가 존재하는지 확인
             if (star) {
-              if (btnRating <= rating) {
-                star.classList.remove("text-gray-300");
+              // 모든 색상 클래스와 스타일 초기화
+              star.classList.remove("text-gray-300", "text-yellow-300", "text-yellow-400");
+              star.style.opacity = "";
+              
+              // 선택된 별점에 따라 색상 적용
+              if (btnRating <= rating && rating > 0) {
                 star.classList.add("text-yellow-400");
-                star.style.transition = "color 0.2s ease";
+                star.style.opacity = "1";
               } else {
-                star.classList.remove("text-yellow-400");
                 star.classList.add("text-gray-300");
-                star.style.transition = "color 0.2s ease";
+                star.style.opacity = "1";
               }
+              
+              star.style.transition = "color 0.2s ease, opacity 0.2s ease";
             }
           });
 
@@ -26322,7 +26327,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
             "current-rating-display"
           );
           if (ratingDisplay) {
-            ratingDisplay.textContent = rating;
+            ratingDisplay.textContent = rating || 0;
             ratingDisplay.style.transition = "all 0.2s ease";
             if (rating > 0) {
               ratingDisplay.style.transform = "scale(1.1)";
@@ -26345,14 +26350,15 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
               const bRating = parseFloat(b.dataset.rating);
               const star = b.querySelector("i");
               if (star) {
+                // 호버 시에만 미리보기 (연한 노란색)
                 if (bRating <= hoverRating) {
-                  star.classList.remove("text-gray-300");
+                  star.classList.remove("text-gray-300", "text-yellow-400");
                   star.classList.add("text-yellow-300");
-                  star.style.opacity = "0.7";
+                  star.style.opacity = "0.8";
                 } else {
-                  star.classList.remove("text-yellow-300");
+                  star.classList.remove("text-yellow-300", "text-yellow-400");
                   star.classList.add("text-gray-300");
-                  star.style.opacity = "1";
+                  star.style.opacity = "0.5";
                 }
               }
             });
@@ -26363,9 +26369,14 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
             updateStarDisplay(selectedRating);
           });
 
-          // 클릭 이벤트
-          btn.addEventListener("click", () => {
+          // 클릭 이벤트 - 즉시 색상 반영
+          btn.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
             selectedRating = parseFloat(btn.dataset.rating);
+            
+            // 즉시 색상 업데이트
             updateStarDisplay(selectedRating);
             
             // 클릭 피드백 애니메이션
@@ -26373,6 +26384,11 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
             setTimeout(() => {
               btn.style.transform = "scale(1)";
             }, 150);
+            
+            // 호버 이벤트 제거 후 다시 추가 (확실한 상태 복원)
+            setTimeout(() => {
+              updateStarDisplay(selectedRating);
+            }, 200);
           });
         });
 
