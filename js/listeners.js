@@ -247,24 +247,47 @@ export function startPublicListeners(USE_DEMO_OFFLINE) {
     }, delay);
   };
 
-  // 타임아웃 체크를 위한 헬퍼 함수 (0.1초로 변경)
+  // 타임아웃 체크를 위한 헬퍼 함수 (0.1초로 변경, 초기 로드 시 즉시 체크)
   const setupWithTimeout = (key, listenerFn, setupFn, timeoutMs = 100) => {
     let hasData = false;
+    let isFirstCheck = true;
     showLoadingIndicator(key);
+    
+    // 초기 로드 즉시 체크 (데이터가 없으면 바로 재시도)
+    const immediateCheck = () => {
+      if (isFirstCheck && !hasData) {
+        isFirstCheck = false;
+        // 데이터가 없으면 타임아웃 없이 즉시 재시도
+        setTimeout(() => {
+          if (!hasData) {
+            console.warn(`${key}: 초기 데이터 로드 실패, 즉시 재시도합니다.`);
+            retryListener(key, setupFn, 0);
+          }
+        }, 0);
+      }
+    };
     
     const timeoutId = setTimeout(() => {
       if (!hasData) {
         console.warn(`${key}: 데이터 로딩 타임아웃 (${timeoutMs}ms), 재시도합니다.`);
-        retryListener(key, setupFn, 100);
+        retryListener(key, setupFn, 0);
       }
     }, timeoutMs);
 
     const wrappedListener = (snap) => {
+      const hasAnyData = snap && (snap.exists !== false) && (snap.docs ? snap.docs.length > 0 : true);
+      if (!hasAnyData && isFirstCheck) {
+        immediateCheck();
+        return;
+      }
       hasData = true;
       clearTimeout(timeoutId);
       hideLoadingIndicator(key);
       listenerFn(snap);
     };
+
+    // 초기 체크 실행
+    immediateCheck();
 
     return wrappedListener;
   };
@@ -434,24 +457,45 @@ export function startAdminListeners() {
     }, delay);
   };
 
-  // 타임아웃 체크를 위한 헬퍼 함수 (0.1초로 변경)
+  // 타임아웃 체크를 위한 헬퍼 함수 (0.1초로 변경, 초기 로드 시 즉시 체크)
   const setupWithTimeout = (key, listenerFn, setupFn, timeoutMs = 100) => {
     let hasData = false;
+    let isFirstCheck = true;
     showLoadingIndicator(`admin-${key}`);
+    
+    // 초기 로드 즉시 체크
+    const immediateCheck = () => {
+      if (isFirstCheck && !hasData) {
+        isFirstCheck = false;
+        setTimeout(() => {
+          if (!hasData) {
+            console.warn(`${key}: 초기 데이터 로드 실패, 즉시 재시도합니다.`);
+            retryListener(key, setupFn, 0);
+          }
+        }, 0);
+      }
+    };
     
     const timeoutId = setTimeout(() => {
       if (!hasData) {
         console.warn(`${key}: 데이터 로딩 타임아웃 (${timeoutMs}ms), 재시도합니다.`);
-        retryListener(key, setupFn, 100);
+        retryListener(key, setupFn, 0);
       }
     }, timeoutMs);
 
     const wrappedListener = (snap) => {
+      const hasAnyData = snap && (snap.exists !== false) && (snap.docs ? snap.docs.length > 0 : true);
+      if (!hasAnyData && isFirstCheck) {
+        immediateCheck();
+        return;
+      }
       hasData = true;
       clearTimeout(timeoutId);
       hideLoadingIndicator(`admin-${key}`);
       listenerFn(snap);
     };
+
+    immediateCheck();
 
     return wrappedListener;
   };
