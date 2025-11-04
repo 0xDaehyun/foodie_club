@@ -10522,7 +10522,7 @@
                   name: p.name,
                   restaurantId: r.id,
                   restaurantName: r.name,
-                  type: "reservation"
+                  type: "reservation",
                 });
               });
               (r.waiting || []).forEach((p) => {
@@ -10531,7 +10531,7 @@
                   name: p.name,
                   restaurantId: r.id,
                   restaurantName: r.name,
-                  type: "waiting"
+                  type: "waiting",
                 });
               });
             });
@@ -10540,19 +10540,21 @@
             const participants = (event.applicants || []).map((p) => ({
               studentId: p.studentId,
               name: p.name,
-              type: "applicant"
+              type: "applicant",
             }));
             const waiting = (event.waiting || []).map((w) => ({
               studentId: w.studentId,
               name: w.name,
-              type: "waiting"
+              type: "waiting",
             }));
             return [...participants, ...waiting];
           }
         };
 
         const currentParticipants = getCurrentParticipants();
-        const currentParticipantIds = currentParticipants.map((p) => p.studentId);
+        const currentParticipantIds = currentParticipants.map(
+          (p) => p.studentId
+        );
 
         // 미식회인 경우 식당 선택 포함
         let restaurantSelectHTML = "";
@@ -10577,15 +10579,19 @@
           `;
         }
 
-        // 현재 참가자 목록 HTML 생성
-        const renderCurrentParticipants = () => {
-          if (currentParticipants.length === 0) {
+        // 현재 참가자 목록 HTML 생성 (식당 필터링 지원)
+        const renderCurrentParticipants = (filteredParticipants = null) => {
+          const participantsToShow = filteredParticipants !== null ? filteredParticipants : currentParticipants;
+          
+          if (participantsToShow.length === 0) {
             return '<p class="text-sm text-gray-400 italic text-center py-4">참가자가 없습니다</p>';
           }
 
-          return currentParticipants
+          return participantsToShow
             .map((p) => {
-              const memberInfo = membersData?.find((m) => m.studentId === p.studentId);
+              const memberInfo = membersData?.find(
+                (m) => m.studentId === p.studentId
+              );
               return `
                 <div class="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                   <div class="flex items-center gap-3 flex-1">
@@ -10593,18 +10599,32 @@
                       ${(p.name || "").charAt(0) || "?"}
                     </div>
                     <div class="flex-1">
-                      <div class="font-semibold text-gray-800">${saf(p.name || "알 수 없음")}</div>
+                      <div class="font-semibold text-gray-800">${saf(
+                        p.name || "알 수 없음"
+                      )}</div>
                       <div class="text-xs text-gray-500">
-                        ${p.studentId || ""}${memberInfo && memberInfo.college ? ` · ${memberInfo.college}` : ""}
+                        ${p.studentId || ""}${
+                memberInfo && memberInfo.college
+                  ? ` · ${memberInfo.college}`
+                  : ""
+              }
                         ${p.restaurantName ? ` · ${saf(p.restaurantName)}` : ""}
-                        ${p.type === "waiting" ? ' <span class="text-amber-600 font-semibold">(대기)</span>' : ""}
+                        ${
+                          p.type === "waiting"
+                            ? ' <span class="text-amber-600 font-semibold">(대기)</span>'
+                            : ""
+                        }
                       </div>
                     </div>
                   </div>
                   <button
                     type="button"
                     class="px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-sm transition-colors"
-                    onclick="removeParticipantFromEvent('${eventId}', '${p.studentId}', ${p.restaurantId ? `'${p.restaurantId}'` : 'null'}, '${saf(p.name)}')"
+                    onclick="removeParticipantFromEvent('${eventId}', '${
+                p.studentId
+              }', ${p.restaurantId ? `'${p.restaurantId}'` : "null"}, '${saf(
+                p.name
+              )}')"
                   >
                     <i class="fas fa-trash mr-1"></i>제거
                   </button>
@@ -10619,7 +10639,7 @@
             <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
               <div class="p-6">
                 <div class="flex justify-between items-start mb-4">
-                  <h3 class="text-xl font-bold text-gray-800">참가자 관리</h3>
+                  <h3 class="text-xl font-bold text-gray-800">참가자 수정</h3>
                   <button onclick="closeAddParticipantModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
                     <i class="fas fa-times text-xl"></i>
                   </button>
@@ -10627,7 +10647,9 @@
                 
                 <div class="mb-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-4">
                   <p class="text-sm font-semibold text-gray-800 mb-1">
-                    <i class="fas fa-calendar-alt mr-2 text-blue-600"></i>${saf(event.title)}
+                    <i class="fas fa-calendar-alt mr-2 text-blue-600"></i>${saf(
+                      event.title
+                    )}
                   </p>
                   <p class="text-xs text-gray-600">
                     ${new Date(event.datetime).toLocaleString("ko-KR")}
@@ -10639,7 +10661,9 @@
                 <!-- 현재 참가자 목록 -->
                 <div class="mb-4">
                   <label class="block text-sm font-medium text-gray-700 mb-2">
-                    <i class="fas fa-users mr-2 text-green-500"></i>현재 참가자 <span class="text-gray-500 font-normal">(${currentParticipants.length}명)</span>
+                    <i class="fas fa-users mr-2 text-green-500"></i>현재 참가자 <span class="text-gray-500 font-normal" id="participant-count">(${
+                      currentParticipants.length
+                    }명)</span>
                   </label>
                   <div id="participant-current-list" class="space-y-2 max-h-64 overflow-y-auto border border-gray-200 rounded-lg p-3 bg-gray-50">
                     ${renderCurrentParticipants()}
@@ -10649,7 +10673,7 @@
                 <!-- 회원 검색 -->
                 <div class="mb-4">
                   <label class="block text-sm font-medium text-gray-700 mb-2">
-                    <i class="fas fa-user-plus mr-2 text-blue-500"></i>회원 검색 및 추가
+                    <i class="fas fa-user-plus mr-2 text-blue-500"></i>회원 검색 및 수정
                   </label>
                   <input
                     type="text"
@@ -10680,12 +10704,53 @@
 
         // 검색 기능 (조모임 방식과 유사)
         const searchInput = document.getElementById("participant-search-input");
-        const searchResults = document.getElementById("participant-search-results");
+        const searchResults = document.getElementById(
+          "participant-search-results"
+        );
         const currentList = document.getElementById("participant-current-list");
+        const participantCount = document.getElementById("participant-count");
+        const restaurantSelect = document.getElementById("participant-restaurant-select");
+
+        // 식당 선택에 따른 참가자 필터링
+        const updateParticipantList = () => {
+          let filteredParticipants = currentParticipants;
+          
+          // 미식회이고 식당 선택이 있으면 해당 식당의 참가자만 필터링
+          if (event.type === "tasting" && event.restaurants && restaurantSelect) {
+            const selectedRestaurantId = restaurantSelect.value;
+            if (selectedRestaurantId) {
+              filteredParticipants = currentParticipants.filter(
+                (p) => p.restaurantId === selectedRestaurantId
+              );
+            }
+          }
+
+          // 참가자 목록 업데이트
+          if (currentList) {
+            currentList.innerHTML = renderCurrentParticipants(filteredParticipants);
+          }
+          
+          // 참가자 수 업데이트
+          if (participantCount) {
+            participantCount.textContent = `(${filteredParticipants.length}명)`;
+          }
+        };
+
+        // 식당 선택 변경 시 참가자 목록 업데이트
+        if (restaurantSelect) {
+          restaurantSelect.addEventListener("change", () => {
+            updateParticipantList();
+            // 검색 결과도 새로고침 (선택된 식당의 참가자는 검색 결과에서 제외)
+            if (searchInput.value) {
+              searchParticipants(searchInput.value);
+            }
+          });
+        }
 
         const searchParticipants = (searchTerm) => {
           if (!searchTerm.trim()) {
-            searchResults.innerHTML = '<p class="text-sm text-gray-400 text-center py-4">검색어를 입력하여 회원을 찾아주세요</p>';
+            searchResults.innerHTML =
+              '<p class="text-sm text-gray-400 text-center py-4">검색어를 입력하여 회원을 찾아주세요</p>';
             return;
           }
 
@@ -10699,11 +10764,24 @@
           // 각 검색어에 매칭되는 회원들을 찾기
           const matchedMembers = new Map();
 
+          // 선택된 식당의 참가자 ID 목록 가져오기 (미식회인 경우)
+          let filteredParticipantIds = currentParticipantIds;
+          if (event.type === "tasting" && event.restaurants && restaurantSelect) {
+            const selectedRestaurantId = restaurantSelect.value;
+            if (selectedRestaurantId) {
+              filteredParticipantIds = currentParticipants
+                .filter((p) => p.restaurantId === selectedRestaurantId)
+                .map((p) => p.studentId);
+            }
+          }
+
           searchKeywords.forEach((keyword) => {
             (membersData || []).forEach((m) => {
               const nameMatch = m.name?.toLowerCase().includes(keyword);
               const idMatch = m.studentId?.toLowerCase().includes(keyword);
-              const isAlreadyParticipant = currentParticipantIds.includes(m.studentId);
+              const isAlreadyParticipant = filteredParticipantIds.includes(
+                m.studentId
+              );
               const isActive = (m.status || "pending") === "active";
 
               if ((nameMatch || idMatch) && !isAlreadyParticipant && isActive) {
@@ -10715,7 +10793,8 @@
           const filtered = Array.from(matchedMembers.values()).slice(0, 50);
 
           if (filtered.length === 0) {
-            searchResults.innerHTML = '<p class="text-sm text-gray-400 text-center py-4">검색 결과가 없습니다</p>';
+            searchResults.innerHTML =
+              '<p class="text-sm text-gray-400 text-center py-4">검색 결과가 없습니다</p>';
           } else {
             searchResults.innerHTML = filtered
               .map((member) => {
@@ -10732,12 +10811,18 @@
                         ${member.name?.charAt(0) || "?"}
                       </div>
                       <div>
-                        <div class="font-semibold text-gray-800">${saf(member.name || "알 수 없음")}</div>
-                        <div class="text-xs text-gray-500">${member.studentId || ""} · ${member.college || ""}</div>
+                        <div class="font-semibold text-gray-800">${saf(
+                          member.name || "알 수 없음"
+                        )}</div>
+                        <div class="text-xs text-gray-500">${
+                          member.studentId || ""
+                        } · ${member.college || ""}</div>
                         ${
                           matchedKeywords.length > 0
                             ? `<div class="text-xs text-blue-500 mt-0.5">
-                                <i class="fas fa-search mr-1"></i>${matchedKeywords.join(", ")} 검색어로 매칭
+                                <i class="fas fa-search mr-1"></i>${matchedKeywords.join(
+                                  ", "
+                                )} 검색어로 매칭
                               </div>`
                             : ""
                         }
@@ -10746,7 +10831,9 @@
                     <button
                       type="button"
                       class="px-3 py-1 bg-green-500 hover:bg-green-600 text-white rounded text-sm transition-colors"
-                      onclick="addParticipantToEventQuick('${eventId}', '${member.studentId}', '${saf(member.name).replace(/'/g, "\\'")}')"
+                      onclick="addParticipantToEventQuick('${eventId}', '${
+                  member.studentId
+                }', '${saf(member.name).replace(/'/g, "\\'")}')"
                     >
                       <i class="fas fa-plus mr-1"></i>추가
                     </button>
@@ -10777,7 +10864,11 @@
       window.closeAddParticipantModal = closeAddParticipantModal;
 
       // 빠른 참가자 추가 함수 (검색 결과에서 바로 추가)
-      window.addParticipantToEventQuick = async function (eventId, studentId, memberName) {
+      window.addParticipantToEventQuick = async function (
+        eventId,
+        studentId,
+        memberName
+      ) {
         try {
           const event = eventsData.find((e) => e.id === eventId);
           if (!event) {
@@ -10787,7 +10878,9 @@
 
           // 미식회인 경우 식당 선택 확인
           if (event.type === "tasting" && event.restaurants) {
-            const restaurantSelect = document.getElementById("participant-restaurant-select");
+            const restaurantSelect = document.getElementById(
+              "participant-restaurant-select"
+            );
             if (!restaurantSelect) {
               showAlert("⚠️", "식당을 선택해주세요.");
               return;
@@ -10796,7 +10889,7 @@
 
           const member = { studentId, name: memberName };
           await addParticipantToEvent(eventId, member);
-          
+
           // 모달 새로고침
           setTimeout(() => {
             const event = eventsData.find((e) => e.id === eventId);
@@ -10804,7 +10897,7 @@
               openAddParticipantModal(eventId);
             }
           }, 500);
-          
+
           showAlert("✅", `${memberName} 회원이 추가되었습니다.`);
         } catch (error) {
           console.error("참가자 추가 오류:", error);
@@ -10813,8 +10906,15 @@
       };
 
       // 참가자 제거 함수
-      window.removeParticipantFromEvent = async function (eventId, studentId, restaurantId, memberName) {
-        if (!confirm(`정말로 ${memberName} 회원을 이벤트에서 제거하시겠습니까?`)) {
+      window.removeParticipantFromEvent = async function (
+        eventId,
+        studentId,
+        restaurantId,
+        memberName
+      ) {
+        if (
+          !confirm(`정말로 ${memberName} 회원을 이벤트에서 제거하시겠습니까?`)
+        ) {
           return;
         }
 
@@ -10829,10 +10929,16 @@
 
             const eventData = eventDoc.data();
 
-            if (eventData.type === "tasting" && eventData.restaurants && restaurantId) {
+            if (
+              eventData.type === "tasting" &&
+              eventData.restaurants &&
+              restaurantId
+            ) {
               // 미식회인 경우 특정 식당에서 제거
               const restaurants = [...(eventData.restaurants || [])];
-              const restaurantIndex = restaurants.findIndex((r) => r.id === restaurantId);
+              const restaurantIndex = restaurants.findIndex(
+                (r) => r.id === restaurantId
+              );
 
               if (restaurantIndex === -1) {
                 throw new Error("식당을 찾을 수 없습니다.");
