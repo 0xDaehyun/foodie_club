@@ -26249,7 +26249,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                   const currentRating = existingReview?.rating || 0;
                   const isSelected = rating <= currentRating;
 
-                  return `<button type="button" class="star-rating-btn text-2xl md:text-3xl transition-all hover:scale-110" data-rating="${rating}">
+                  return `<button type="button" class="star-rating-btn text-2xl md:text-3xl transition-all hover:scale-110 active:scale-95" data-rating="${rating}">
                     <i class="fas fa-star ${
                       isSelected ? "text-yellow-400" : "text-gray-300"
                     }"></i>
@@ -26279,8 +26279,8 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                 data-no-autocomplete="true"
                 data-lpignore="true"
                 data-form-type="other">${
-                          existingReview?.comment || ""
-                        }</textarea>
+                  existingReview?.comment || ""
+                }</textarea>
             </div>
             
             <div class="flex gap-2 md:gap-3 pt-2 md:pt-4">
@@ -26308,9 +26308,11 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
               if (btnRating <= rating) {
                 star.classList.remove("text-gray-300");
                 star.classList.add("text-yellow-400");
+                star.style.transition = "color 0.2s ease";
               } else {
                 star.classList.remove("text-yellow-400");
                 star.classList.add("text-gray-300");
+                star.style.transition = "color 0.2s ease";
               }
             }
           });
@@ -26321,14 +26323,56 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
           );
           if (ratingDisplay) {
             ratingDisplay.textContent = rating;
+            ratingDisplay.style.transition = "all 0.2s ease";
+            if (rating > 0) {
+              ratingDisplay.style.transform = "scale(1.1)";
+              setTimeout(() => {
+                ratingDisplay.style.transform = "scale(1)";
+              }, 200);
+            }
           }
         };
 
+        // 초기 별점 표시 업데이트
+        updateStarDisplay(selectedRating);
+
         // 별 클릭 이벤트
         document.querySelectorAll(".star-rating-btn").forEach((btn) => {
+          // 호버 효과: 마우스 올렸을 때 미리보기
+          btn.addEventListener("mouseenter", () => {
+            const hoverRating = parseFloat(btn.dataset.rating);
+            document.querySelectorAll(".star-rating-btn").forEach((b) => {
+              const bRating = parseFloat(b.dataset.rating);
+              const star = b.querySelector("i");
+              if (star) {
+                if (bRating <= hoverRating) {
+                  star.classList.remove("text-gray-300");
+                  star.classList.add("text-yellow-300");
+                  star.style.opacity = "0.7";
+                } else {
+                  star.classList.remove("text-yellow-300");
+                  star.classList.add("text-gray-300");
+                  star.style.opacity = "1";
+                }
+              }
+            });
+          });
+
+          // 호버 아웃: 실제 선택된 별점으로 복원
+          btn.addEventListener("mouseleave", () => {
+            updateStarDisplay(selectedRating);
+          });
+
+          // 클릭 이벤트
           btn.addEventListener("click", () => {
             selectedRating = parseFloat(btn.dataset.rating);
             updateStarDisplay(selectedRating);
+            
+            // 클릭 피드백 애니메이션
+            btn.style.transform = "scale(0.9)";
+            setTimeout(() => {
+              btn.style.transform = "scale(1)";
+            }, 150);
           });
         });
 
