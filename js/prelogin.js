@@ -93,9 +93,29 @@ export function renderBlocks() {
               </div>`;
     }
   });
-  wrap.innerHTML = snippets.length
-    ? snippets.join("")
-    : `<div class="section text-center text-gray-400">표시할 블록이 없습니다.</div>`;
+  // 데이터가 비어있고 로드 완료된 경우에만 빈 메시지 표시
+  // 그 전에는 로딩 상태를 유지하거나 재로딩 시도
+  if (snippets.length === 0) {
+    // 데이터가 방금 로드되었는데 비어있으면 재로딩 시도
+    const checkRetry = () => {
+      if (state.blocksData && state.blocksData.length === 0) {
+        // 잠시 후 다시 확인 (재로딩 로직이 실행될 시간을 줌)
+        setTimeout(() => {
+          if (state.blocksData && state.blocksData.length === 0) {
+            wrap.innerHTML = `<div class="section text-center py-8">
+              <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-indigo-500 border-t-transparent mb-3"></div>
+              <p class="text-gray-500">데이터를 다시 불러오는 중...</p>
+            </div>`;
+          }
+        }, 200);
+      } else {
+        wrap.innerHTML = `<div class="section text-center text-gray-400">표시할 블록이 없습니다.</div>`;
+      }
+    };
+    checkRetry();
+  } else {
+    wrap.innerHTML = snippets.join("");
+  }
   attachAccordionHandlers(wrap);
 }
 
@@ -142,19 +162,36 @@ export function renderRoadmap() {
     itemsToShow = [...keptCompleted, ...upcoming].slice(0, 4);
   }
 
-  c.innerHTML =
-    total === 0
-      ? `<p class="text-gray-400 text-center py-4">예정된 활동이 없습니다. 회장님이 곧 일정을 추가할 거예요!</p>`
-      : itemsToShow
-          .map(
-            (item) => `<div class="roadmap-item ${item._status}">
-          <div class="font-bold text-gray-800">${saf(item.activityName)}</div>
-          <div class="text-sm text-gray-500">${item._date.toLocaleDateString(
-            "ko-KR"
-          )}</div>
-        </div>`
-          )
-          .join("");
+  // 데이터가 비어있고 로드 완료된 경우에만 빈 메시지 표시
+  if (total === 0) {
+    // 데이터가 방금 로드되었는데 비어있으면 재로딩 시도 중 표시
+    const checkRetry = () => {
+      if (state.roadmapData && state.roadmapData.length === 0) {
+        setTimeout(() => {
+          if (state.roadmapData && state.roadmapData.length === 0) {
+            c.innerHTML = `<div class="text-center py-8">
+              <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-indigo-500 border-t-transparent mb-3"></div>
+              <p class="text-gray-500">일정을 다시 불러오는 중...</p>
+            </div>`;
+          }
+        }, 200);
+      } else {
+        c.innerHTML = `<p class="text-gray-400 text-center py-4">예정된 활동이 없습니다. 회장님이 곧 일정을 추가할 거예요!</p>`;
+      }
+    };
+    checkRetry();
+  } else {
+    c.innerHTML = itemsToShow
+      .map(
+        (item) => `<div class="roadmap-item ${item._status}">
+      <div class="font-bold text-gray-800">${saf(item.activityName)}</div>
+      <div class="text-sm text-gray-500">${item._date.toLocaleDateString(
+        "ko-KR"
+      )}</div>
+    </div>`
+      )
+      .join("");
+  }
 
   if (btn) {
     if (total > 4) {
