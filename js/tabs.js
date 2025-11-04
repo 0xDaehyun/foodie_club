@@ -525,6 +525,21 @@ function renderReservationTab(isAdmin) {
     if (act === "admin-delete") return deleteEvent(id);
     if (act === "export-xlsx") return exportApplicantsXLSX(id);
   });
+
+  // 참가자 목록 토글 기능
+  c.addEventListener("click", (e) => {
+    const btn = e.target.closest("button[id^='show-participants-']");
+    if (!btn) return;
+    const sectionId = btn.id.replace("show-participants-", "participants-");
+    const section = document.getElementById(sectionId);
+    const chevron = document.getElementById(`chevron-${sectionId}`);
+    if (section && chevron) {
+      const isHidden = section.classList.contains("hidden");
+      section.classList.toggle("hidden", !isHidden);
+      chevron.style.transform = isHidden ? "rotate(180deg)" : "rotate(0deg)";
+    }
+  });
+
   if (isAdmin) bindAdminEventsPanel();
 
   console.log("renderReservationTab 함수 완료!");

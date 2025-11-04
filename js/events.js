@@ -101,17 +101,53 @@ function adminInline(ev) {
           </div>`;
 }
 function paymentInfoHTML(ev) {
+  // 미식회 타입에서는 회비 정보를 표시하지 않음 (기본 회비 설정 사용)
+  if (ev.type === "tasting") {
+    const dues = state.duesSettings || {};
+    if (!dues.enabled || (!dues.bank && !dues.number)) return "";
+    const line = [dues.bank, dues.number].filter(Boolean).map(saf).join(" ");
+    return `<div class="mt-4 p-4 bg-orange-50 border-2 border-orange-200 rounded-xl">
+      <div class="flex items-center justify-between mb-3">
+        <div>
+          <div class="font-bold text-orange-900 mb-1">💸 회비 입금 정보</div>
+          <div class="text-sm text-orange-800">회비: ${dues.amount ? formatKRW(dues.amount) : "확인 필요"}</div>
+          <div class="text-sm text-orange-700 mt-1">${line || ""}${
+      dues.holder ? ` (예금주 ${saf(dues.holder)})` : ""
+    }</div>
+          ${dues.note ? `<div class="text-sm text-orange-700 mt-1">${saf(dues.note)}</div>` : ""}
+        </div>
+        <button type="button" onclick="navigator.clipboard.writeText('${saf(dues.bank || "")} ${saf(dues.number || "")}').then(() => alert('계좌번호가 복사되었습니다!'))" class="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors">
+          <i class="fas fa-copy mr-2"></i>계좌 복사하기
+        </button>
+      </div>
+      <div class="text-xs text-orange-700 bg-orange-100 p-2 rounded">
+        <i class="fas fa-info-circle mr-1"></i>신청 후 바로 입금 해주세요!
+      </div>
+    </div>`;
+  }
+  
+  // MT/총회인 경우 이벤트별 결제 정보 사용
   if (!(ev.type === "mt" || ev.type === "assembly")) return "";
   const p = ev.payment || {};
   if (!p.bank && !p.number && !p.holder && !p.note) return "";
   const line = [p.bank, p.number].filter(Boolean).map(saf).join(" ");
-  return `<div class="mt-2 text-sm bg-amber-50 border border-amber-200 rounded p-2">
-            <div class="font-semibold text-amber-800">💸 회비 입금 정보</div>
-            <div class="text-amber-700">${line || ""}${
+  return `<div class="mt-4 p-4 bg-amber-50 border-2 border-amber-200 rounded-xl">
+      <div class="flex items-center justify-between mb-3">
+        <div>
+          <div class="font-bold text-amber-900 mb-1">💸 회비 입금 정보</div>
+          <div class="text-sm text-amber-800">${line || ""}${
     p.holder ? ` (예금주 ${saf(p.holder)})` : ""
   }</div>
-            ${p.note ? `<div class="text-amber-700">${saf(p.note)}</div>` : ""}
-          </div>`;
+          ${p.note ? `<div class="text-sm text-amber-700 mt-1">${saf(p.note)}</div>` : ""}
+        </div>
+        <button type="button" onclick="navigator.clipboard.writeText('${saf(p.bank || "")} ${saf(p.number || "")}').then(() => alert('계좌번호가 복사되었습니다!'))" class="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors">
+          <i class="fas fa-copy mr-2"></i>계좌 복사하기
+        </button>
+      </div>
+      <div class="text-xs text-amber-700 bg-amber-100 p-2 rounded">
+        <i class="fas fa-info-circle mr-1"></i>신청 후 바로 입금 해주세요!
+      </div>
+    </div>`;
 }
 
 function generalCardHTML(ev) {
@@ -198,94 +234,218 @@ function generalCardHTML(ev) {
 }
 
 function tastingCardHTML(ev) {
-  const list = (ev.restaurants || [])
-    .map((r) => {
-      const cap = r.capacity ?? ev.limit ?? 0;
-      const cnt = (r.reservations || []).length;
-      const mine = (r.reservations || [])
-        .concat(r.waiting || [])
-        .some((p) => p.studentId === state.currentUser?.studentId);
-      const btn = mine
-        ? `<button type="button" class="w-full mt-2 bg-gray-600 text-white font-bold py-1.5 rounded" data-act="cancel-tasting" data-id="${ev.id}" data-rid="${r.id}">신청 취소</button>`
-        : `<button type="button" class="w-full mt-2 ${
-            cnt < cap ? "bg-green-600" : "bg-amber-500"
-          } text-white font-bold py-1.5 rounded" data-act="reserve-tasting" data-id="${
-            ev.id
-          }" data-rid="${r.id}">${cnt < cap ? "신청" : "대기"}</button>`;
-      const namesList = (r.reservations || [])
-        .slice()
-        .reverse()
-        .map(
-          (a) =>
-            `<div class="flex items-center gap-2"><span class="font-mono text-[11px] text-gray-500">${
-              a.studentId ? `${a.studentId.slice(0, 4)}****` : ""
-            }</span><span class="text-xs truncate">${saf(a.name)}</span></div>`
-        )
-        .join("");
-      const waitingList = (r.waiting || [])
-        .slice()
-        .reverse()
-        .map(
-          (a) =>
-            `<div class="flex items-center gap-2"><span class="font-mono text-[11px] text-gray-500">${
-              a.studentId ? `${a.studentId.slice(0, 4)}****` : ""
-            }</span><span class="text-xs truncate">${saf(a.name)}</span></div>`
-        )
-        .join("");
-      return `<div class="border rounded p-3">
-              ${
-                r.imageUrl
-                  ? `<img src="${saf(r.imageUrl)}" alt="${saf(
-                      r.name
-                    )}" class="w-full h-32 object-cover rounded mb-2" onerror="this.style.display='none'">`
-                  : ""
-              }
-              <div class="flex justify-between">
-                <div><b>${saf(
-                  r.name
-                )}</b><div class="text-sm text-gray-500">${saf(
-        r.info || ""
-      )}</div></div>
-                <div class="text-sm text-gray-600">${cnt}/${cap}</div>
-              </div>
-              <div class="w-full bg-gray-200 rounded-full h-3 mt-2"><div class="bg-green-500 h-3 rounded-full" style="width:${
+  const isAdmin =
+    state.currentUser && state.adminList.includes(state.currentUser.studentId);
+  const totalParticipants = (ev.restaurants || []).reduce(
+    (sum, r) => sum + (r.reservations || []).length,
+    0
+  );
+  const totalWaiting = (ev.restaurants || []).reduce(
+    (sum, r) => sum + (r.waiting || []).length,
+    0
+  );
+
+  // 회비 정보
+  const paymentInfo = paymentInfoHTML(ev);
+
+  // 취소 안내 (한 번만 표시)
+  const cancelGuideHTML = `
+    <div class="mt-4 p-4 bg-blue-50 border-2 border-blue-200 rounded-lg">
+      <div class="text-sm font-semibold text-blue-800 mb-2">📋 취소 안내</div>
+      <div class="text-sm text-blue-700 space-y-1">
+        <p>• 신청 취소를 원하시면 마감 시간 전에 신청 취소 버튼을 눌러주세요.</p>
+        <p>• 마감 이후 취소를 원하시면 운영진에게 문의해주세요.</p>
+      </div>
+    </div>
+  `;
+
+  // 식당 카드들 - 세로로 나열
+  const restaurantCards = (ev.restaurants || []).map((r, index) => {
+    const cap = r.capacity ?? ev.limit ?? 0;
+    const cnt = (r.reservations || []).length;
+    const waitCnt = (r.waiting || []).length;
+    const mine = (r.reservations || [])
+      .concat(r.waiting || [])
+      .some((p) => p.studentId === state.currentUser?.studentId);
+    
+    const btn = mine
+      ? `<button type="button" class="w-full mt-auto bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 rounded-lg transition-colors" data-act="cancel-tasting" data-id="${ev.id}" data-rid="${r.id}">
+          <i class="fas fa-times-circle mr-2"></i>신청 취소
+        </button>`
+      : `<button type="button" class="w-full mt-auto ${
+          cnt < cap
+            ? "bg-green-600 hover:bg-green-700"
+            : "bg-amber-500 hover:bg-amber-600"
+        } text-white font-bold py-2.5 rounded-lg transition-colors" data-act="reserve-tasting" data-id="${
+          ev.id
+        }" data-rid="${r.id}">
+          <i class="fas fa-${cnt < cap ? "check" : "clock"} mr-2"></i>${
+          cnt < cap ? "활동 신청" : "대기 신청"
+        }
+        </button>`;
+
+    const namesList = (r.reservations || [])
+      .slice()
+      .reverse()
+      .map(
+        (a) =>
+          `<div class="flex items-center justify-between py-1 px-2 hover:bg-gray-100 rounded">
+            <div class="flex items-center gap-2 min-w-0 flex-1">
+              <span class="font-mono text-[11px] text-gray-500 whitespace-nowrap">${
+                a.studentId ? `${a.studentId.slice(0, 4)}****` : ""
+              }</span>
+              <span class="text-xs truncate">${saf(a.name)}</span>
+            </div>
+            ${isAdmin ? `<button type="button" class="text-red-500 hover:text-red-700 text-xs" title="제거"><i class="fas fa-times"></i></button>` : ""}
+          </div>`
+      )
+      .join("");
+    
+    const waitingList = (r.waiting || [])
+      .slice()
+      .reverse()
+      .map(
+        (a) =>
+          `<div class="flex items-center justify-between py-1 px-2 hover:bg-amber-50 rounded">
+            <div class="flex items-center gap-2 min-w-0 flex-1">
+              <span class="font-mono text-[11px] text-amber-600 whitespace-nowrap">${
+                a.studentId ? `${a.studentId.slice(0, 4)}****` : ""
+              }</span>
+              <span class="text-xs truncate text-amber-700">${saf(a.name)}</span>
+            </div>
+            ${isAdmin ? `<button type="button" class="text-red-500 hover:text-red-700 text-xs" title="제거"><i class="fas fa-times"></i></button>` : ""}
+          </div>`
+      )
+      .join("");
+
+    const participantsSectionId = `participants-${ev.id}-${r.id}`;
+    const showParticipantsBtnId = `show-participants-${ev.id}-${r.id}`;
+
+    return `<div class="bg-white border-2 border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+      <div class="flex flex-col md:flex-row gap-4 p-4">
+        <!-- 식당 이미지 -->
+        <div class="md:w-1/3 flex-shrink-0">
+          ${
+            r.imageUrl
+              ? `<div class="relative w-full h-40 md:h-full min-h-[160px] overflow-hidden rounded-lg">
+                  <img src="${saf(r.imageUrl)}" alt="${saf(
+                r.name
+              )}" class="w-full h-full object-cover" onerror="this.style.display='none'">
+                  <div class="absolute top-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full text-sm font-bold text-gray-800">
+                    ${cnt}/${cap}명
+                  </div>
+                </div>`
+              : `<div class="w-full h-40 md:h-full min-h-[160px] bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center">
+                  <i class="fas fa-utensils text-4xl text-gray-400"></i>
+                </div>`
+          }
+        </div>
+        
+        <!-- 식당 정보 -->
+        <div class="flex-1 flex flex-col">
+          <div class="mb-3">
+            <h4 class="text-xl font-bold text-gray-800 mb-1">${saf(r.name)}</h4>
+            <p class="text-sm text-gray-600">${saf(r.info || "")}</p>
+          </div>
+
+          <!-- 진행률 바 -->
+          <div class="mb-3">
+            <div class="flex items-center justify-between text-sm text-gray-600 mb-1">
+              <span>신청: ${cnt}/${cap}명</span>
+              <span class="text-amber-600">${waitCnt > 0 ? `대기: ${waitCnt}명` : ""}</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-3">
+              <div class="bg-green-500 h-3 rounded-full transition-all" style="width:${
                 cap ? Math.min(100, Math.round((cnt / cap) * 100)) : 0
-              }%"></div></div>
-              ${
-                state.currentUser &&
-                state.adminList.includes(state.currentUser.studentId)
-                  ? `
-              <div class="mt-2"><div class="text-xs font-semibold text-gray-600 mb-1">참가자</div><div class="max-h-20 overflow-y-auto border rounded bg-gray-50 p-2">${
-                namesList ||
-                '<div class="text-xs text-gray-400">아직 없음</div>'
-              }</div></div>
-              <div class="mt-2"><div class="text-xs font-semibold text-gray-600 mb-1">대기자</div><div class="max-h-16 overflow-y-auto border rounded bg-amber-50 p-2">${
-                waitingList ||
-                '<div class="text-xs text-amber-400">대기자 없음</div>'
-              }</div>
-                <div class="text-[11px] text-amber-700 mt-1">※ 자리가 비면 자동으로 <b>대기 → 참가</b>로 전환돼요.</div></div>
-              `
-                  : ""
-              }
-              ${btn}
-            </div>`;
-    })
-    .join("");
+              }%"></div>
+            </div>
+          </div>
+
+          <!-- 참가자 목록 (관리자 또는 토글 가능) -->
+          ${cnt > 0 || waitCnt > 0 || isAdmin
+            ? `
+          <div class="mb-3">
+            <button type="button" id="${showParticipantsBtnId}" class="w-full text-left text-sm font-semibold text-gray-700 hover:text-gray-900 flex items-center justify-between py-2 px-3 bg-gray-50 rounded-lg transition-colors border border-gray-200">
+              <span><i class="fas fa-users mr-2"></i>참가자 ${cnt > 0 ? `(${cnt}명)` : ""} ${waitCnt > 0 ? `· 대기 ${waitCnt}명` : ""}</span>
+              <i class="fas fa-chevron-down text-xs transition-transform" id="chevron-${participantsSectionId}"></i>
+            </button>
+            <div id="${participantsSectionId}" class="hidden mt-2 space-y-2">
+              ${cnt > 0
+                ? `<div class="bg-gray-50 rounded-lg p-3 max-h-40 overflow-y-auto border border-gray-200">
+                    ${namesList || '<div class="text-xs text-gray-400 text-center py-2">참가자 없음</div>'}
+                  </div>`
+                : ""}
+              ${waitCnt > 0
+                ? `<div class="bg-amber-50 rounded-lg p-3 max-h-32 overflow-y-auto border border-amber-200">
+                    <div class="text-xs text-amber-700 font-semibold mb-2">대기자</div>
+                    ${waitingList}
+                    <div class="text-xs text-amber-600 mt-2">※ 자리가 비면 자동으로 대기 → 참가로 전환됩니다</div>
+                  </div>`
+                : ""}
+            </div>
+          </div>
+          `
+            : ""}
+
+          <!-- 신청/취소 버튼 -->
+          <div class="mt-auto">
+            ${btn}
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join("");
+
   return `<div class="section card-hover ${typeAccentClass(ev.type)}">
-            <h3 class="text-xl font-bold text-gray-800">${saf(ev.title)}</h3>
-            <p class="text-gray-500">🗓️ ${
-              ev.datetime ? new Date(ev.datetime).toLocaleString("ko-KR") : "-"
-            }</p>
-            ${adminStatsHTML(ev)}
-            <div class="grid grid-cols-1 gap-3 mt-3">${list}</div>
-            <div class="text-xs text-gray-400 mt-3">상태: ${statusLabel(
-              ev.status || "open"
-            )}</div>
-            <div class="flex gap-2 mt-2 text-sm text-gray-600"><span class="px-2 py-0.5 rounded ${typeBadgeClass(
-              ev.type
-            )}">${typeLabel(ev.type)}</span></div>
-            ${adminInline(ev)}
-          </div>`;
+    <!-- 헤더 -->
+    <div class="mb-4">
+      <div class="flex items-start justify-between mb-2">
+        <div class="flex-1">
+          <h3 class="text-2xl font-bold text-gray-800 mb-1">${saf(ev.title)}</h3>
+          <p class="text-gray-600 flex items-center gap-2">
+            <i class="fas fa-calendar-alt"></i>
+            <span>${ev.datetime ? new Date(ev.datetime).toLocaleString("ko-KR") : "-"}</span>
+          </p>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="px-3 py-1 rounded-full text-xs font-semibold ${typeBadgeClass(
+            ev.type
+          )}">${typeLabel(ev.type)}</span>
+          <span class="text-xs text-gray-400">${statusLabel(ev.status || "open")}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 회비 정보 -->
+    ${paymentInfo}
+
+    <!-- 전체 통계 (관리자) -->
+    ${adminStatsHTML(ev)}
+
+    <!-- 식당 카드들 - 세로 나열 -->
+    <div class="space-y-4 mt-4">
+      ${restaurantCards}
+    </div>
+
+    <!-- 전체 참가자 통계 -->
+    <div class="mt-4 p-3 bg-gray-50 rounded-lg">
+      <div class="flex items-center justify-between">
+        <span class="text-sm font-semibold text-gray-700">
+          <i class="fas fa-users mr-2"></i>전체 참가자: ${totalParticipants}명
+          ${totalWaiting > 0 ? `· 대기: ${totalWaiting}명` : ""}
+        </span>
+      </div>
+    </div>
+
+    <!-- 취소 안내 (한 번만) -->
+    ${cancelGuideHTML}
+
+    <!-- 관리자 액션 버튼 -->
+    ${adminInline(ev)}
+
+    <!-- 관리자 전용 상세 테이블 (MT/총회인 경우) -->
+    ${adminFullTableHTML(ev)}
+  </div>`;
 }
 
 function adminFullTableHTML(ev) {
