@@ -4615,12 +4615,24 @@
               );
               if (snap.exists()) {
                 const existingPositions = snap.data().positions || [];
-                // 배열이 비어있어도 그대로 유지 (사용자가 의도적으로 비운 경우)
-                regularPositions = existingPositions;
+                // "개발자" 직책이 없으면 추가 (고정 직책 보장)
+                const fixedPositions = ["운영진", "개발자"];
+                const hasAllFixed = fixedPositions.every(pos => existingPositions.includes(pos));
+                
+                if (!hasAllFixed) {
+                  const updatedPositions = [...new Set([...fixedPositions, ...existingPositions])];
+                  debugLog("⚠️ 고정 직책 누락 발견, 추가 중:", updatedPositions);
+                  await setDoc(doc(db, "settings", "regularPositions"), {
+                    positions: updatedPositions,
+                  });
+                  regularPositions = updatedPositions;
+                } else {
+                  regularPositions = existingPositions;
+                }
                 debugLog("✅ 일반 임원 직책 로드됨:", regularPositions);
               } else {
-                // 문서가 없으면 기본값으로 생성 (운영진만)
-                const defaultPositions = ["운영진"];
+                // 문서가 없으면 기본값 생성 (운영진, 개발자 포함)
+                const defaultPositions = ["운영진", "개발자"];
                 await setDoc(doc(db, "settings", "regularPositions"), {
                   positions: defaultPositions,
                 });
@@ -16146,8 +16158,8 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
       }
 
       function renderRegularPositions() {
-        // 운영진만 고정 (개발자는 삭제 가능해야 함)
-        const fixedPositions = ["운영진"];
+        // 운영진, 개발자는 고정
+        const fixedPositions = ["운영진", "개발자"];
 
         // Firebase에서 로드된 데이터 사용 (렌더링 함수는 변수를 수정하지 않음)
         const positionsToRender =
@@ -16195,6 +16207,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
         // 관리자들을 직책별로 분류
         const presidentAdmins = [];
         const regularAdmins = [];
+        const otherPositionAdmins = []; // presidentPositions와 regularPositions에 없는 다른 직책
         const noPositionAdmins = [];
 
         adminList.forEach((studentId) => {
@@ -16213,7 +16226,8 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
           } else if (regularPositions.includes(position)) {
             regularAdmins.push(adminData);
           } else {
-            noPositionAdmins.push(adminData);
+            // presidentPositions와 regularPositions에 없는 직책도 별도 섹션으로 표시
+            otherPositionAdmins.push(adminData);
           }
         });
 
@@ -16338,6 +16352,23 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                 `
                     : ""
                 }
+              </div>
+            </div>
+          `;
+        }
+
+        // 기타 직책 (presidentPositions와 regularPositions에 없는 직책)
+        if (otherPositionAdmins.length > 0) {
+          html += `
+            <div class="mb-4">
+              <h5 class="font-semibold text-purple-700 mb-2 flex items-center">
+                <i class="fas fa-briefcase mr-2 text-purple-600"></i>기타 직책
+                <span class="ml-2 bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full text-xs">${
+                  otherPositionAdmins.length
+                }명</span>
+              </h5>
+              <div class="space-y-2 bg-purple-50 p-3 rounded-lg">
+                ${otherPositionAdmins.map(renderAdminCard).join("")}
               </div>
             </div>
           `;
@@ -16521,7 +16552,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
         debugLog("category:", category);
 
         // 고정 직책은 삭제 불가
-        const fixedPositions = ["회장", "부회장", "운영진"];
+        const fixedPositions = ["회장", "부회장", "운영진", "개발자"];
         if (fixedPositions.includes(position)) {
           showAlert("😥", "고정 직책은 삭제할 수 없습니다.");
           return;
@@ -16573,12 +16604,24 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
 
       async function updateAdminPosition(studentId, position) {
         try {
+          debugLog("=== 직책 업데이트 시작 ===");
+          debugLog("studentId:", studentId);
+          debugLog("newPosition:", position);
+          debugLog("현재 adminPositions:", adminPositions);
+          
           const newPositions = { ...adminPositions };
-          if (position) {
-            newPositions[studentId] = position;
+          
+          // position이 빈 문자열이거나 falsy 값이면 직책 제거
+          if (position && position.trim()) {
+            newPositions[studentId] = position.trim();
+            debugLog("직책 설정:", position.trim());
           } else {
+            // "직책 없음"을 선택한 경우
             delete newPositions[studentId];
+            debugLog("직책 제거됨");
           }
+
+          debugLog("업데이트될 adminPositions:", newPositions);
 
           // Firebase에 positions만 업데이트 (merge: true 사용)
           await setDoc(
@@ -16591,10 +16634,19 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
 
           // 로컬 변수 업데이트 (즉시 반영)
           adminPositions = newPositions;
+          debugLog("✅ 로컬 adminPositions 업데이트 완료:", adminPositions);
 
           // 현재 사용자의 직책도 업데이트
           if (currentUser && currentUser.studentId === studentId) {
-            currentUser.position = position || "일반 회원";
+            currentUser.position = position && position.trim() ? position.trim() : "일반 회원";
+            debugLog("✅ currentUser.position 업데이트:", currentUser.position);
+            
+            // localStorage에도 업데이트된 position 저장
+            const savedUser = JSON.parse(localStorage.getItem("foodieUser") || "{}");
+            if (savedUser.studentId === studentId) {
+              savedUser.position = currentUser.position;
+              localStorage.setItem("foodieUser", JSON.stringify(savedUser));
+            }
           }
 
           showAlert("✅", "직책이 업데이트되었습니다.");
@@ -16605,7 +16657,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
             renderPositionsAdmin(container);
           }
         } catch (e) {
-          console.error(e);
+          console.error("직책 업데이트 오류:", e);
           showAlert("😥", "직책 업데이트에 실패했습니다.");
         }
       }
