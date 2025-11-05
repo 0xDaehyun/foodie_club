@@ -4585,7 +4585,7 @@
                 const hasAllFixed = fixedPositions.every((pos) =>
                   existingPositions.includes(pos)
                 );
-                
+
                 if (!hasAllFixed) {
                   const updatedPositions = [
                     ...new Set([...fixedPositions, ...existingPositions]),
@@ -4634,15 +4634,20 @@
               );
               if (snap.exists()) {
                 const existingPositions = snap.data().positions || [];
+                // "개발자" 직책이 있으면 제거 (회장단으로 이동됨)
+                let filteredPositions = existingPositions.filter(
+                  (pos) => pos !== "개발자"
+                );
+                
                 // "운영진" 직책이 없으면 추가 (고정 직책 보장)
                 const fixedPositions = ["운영진"];
                 const hasAllFixed = fixedPositions.every((pos) =>
-                  existingPositions.includes(pos)
+                  filteredPositions.includes(pos)
                 );
 
                 if (!hasAllFixed) {
                   const updatedPositions = [
-                    ...new Set([...fixedPositions, ...existingPositions]),
+                    ...new Set([...fixedPositions, ...filteredPositions]),
                   ];
                   debugLog(
                     "⚠️ 고정 직책 누락 발견, 추가 중:",
@@ -4652,8 +4657,18 @@
                     positions: updatedPositions,
                   });
                   regularPositions = updatedPositions;
+                } else if (filteredPositions.length !== existingPositions.length) {
+                  // "개발자"가 제거되었으면 Firebase 업데이트
+                  debugLog(
+                    "⚠️ 일반 임원에서 개발자 직책 제거 중:",
+                    filteredPositions
+                  );
+                  await setDoc(doc(db, "settings", "regularPositions"), {
+                    positions: filteredPositions,
+                  });
+                  regularPositions = filteredPositions;
                 } else {
-                  regularPositions = existingPositions;
+                  regularPositions = filteredPositions;
                 }
                 debugLog("✅ 일반 임원 직책 로드됨:", regularPositions);
               } else {
