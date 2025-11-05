@@ -4580,12 +4580,31 @@
               );
               if (snap.exists()) {
                 const existingPositions = snap.data().positions || [];
-                // 배열이 비어있어도 그대로 유지 (사용자가 의도적으로 비운 경우)
-                presidentPositions = existingPositions;
+                // "개발자" 직책이 없으면 추가 (고정 직책 보장)
+                const fixedPositions = ["회장", "부회장", "개발자"];
+                const hasAllFixed = fixedPositions.every((pos) =>
+                  existingPositions.includes(pos)
+                );
+                
+                if (!hasAllFixed) {
+                  const updatedPositions = [
+                    ...new Set([...fixedPositions, ...existingPositions]),
+                  ];
+                  debugLog(
+                    "⚠️ 고정 직책 누락 발견, 추가 중:",
+                    updatedPositions
+                  );
+                  await setDoc(doc(db, "settings", "presidentPositions"), {
+                    positions: updatedPositions,
+                  });
+                  presidentPositions = updatedPositions;
+                } else {
+                  presidentPositions = existingPositions;
+                }
                 debugLog("✅ 회장단 직책 로드됨:", presidentPositions);
               } else {
-                // 문서가 없으면 기본값으로 생성 (회장, 부회장만)
-                const defaultPositions = ["회장", "부회장"];
+                // 문서가 없으면 기본값 생성 (회장, 부회장, 개발자 포함)
+                const defaultPositions = ["회장", "부회장", "개발자"];
                 await setDoc(doc(db, "settings", "presidentPositions"), {
                   positions: defaultPositions,
                 });
@@ -4615,13 +4634,20 @@
               );
               if (snap.exists()) {
                 const existingPositions = snap.data().positions || [];
-                // "개발자" 직책이 없으면 추가 (고정 직책 보장)
-                const fixedPositions = ["운영진", "개발자"];
-                const hasAllFixed = fixedPositions.every(pos => existingPositions.includes(pos));
-                
+                // "운영진" 직책이 없으면 추가 (고정 직책 보장)
+                const fixedPositions = ["운영진"];
+                const hasAllFixed = fixedPositions.every((pos) =>
+                  existingPositions.includes(pos)
+                );
+
                 if (!hasAllFixed) {
-                  const updatedPositions = [...new Set([...fixedPositions, ...existingPositions])];
-                  debugLog("⚠️ 고정 직책 누락 발견, 추가 중:", updatedPositions);
+                  const updatedPositions = [
+                    ...new Set([...fixedPositions, ...existingPositions]),
+                  ];
+                  debugLog(
+                    "⚠️ 고정 직책 누락 발견, 추가 중:",
+                    updatedPositions
+                  );
                   await setDoc(doc(db, "settings", "regularPositions"), {
                     positions: updatedPositions,
                   });
@@ -4631,8 +4657,8 @@
                 }
                 debugLog("✅ 일반 임원 직책 로드됨:", regularPositions);
               } else {
-                // 문서가 없으면 기본값 생성 (운영진, 개발자 포함)
-                const defaultPositions = ["운영진", "개발자"];
+                // 문서가 없으면 기본값 생성 (운영진만)
+                const defaultPositions = ["운영진"];
                 await setDoc(doc(db, "settings", "regularPositions"), {
                   positions: defaultPositions,
                 });
@@ -16115,8 +16141,8 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
       // 관리자 추가 기능은 시스템 탭에서 처리됨
 
       function renderPresidentPositions() {
-        // 회장, 부회장은 고정
-        const fixedPositions = ["회장", "부회장"];
+        // 회장, 부회장, 개발자는 고정
+        const fixedPositions = ["회장", "부회장", "개발자"];
 
         // Firebase에서 로드된 데이터 사용 (렌더링 함수는 변수를 수정하지 않음)
         const positionsToRender =
@@ -16158,8 +16184,8 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
       }
 
       function renderRegularPositions() {
-        // 운영진, 개발자는 고정
-        const fixedPositions = ["운영진", "개발자"];
+        // 운영진만 고정
+        const fixedPositions = ["운영진"];
 
         // Firebase에서 로드된 데이터 사용 (렌더링 함수는 변수를 수정하지 않음)
         const positionsToRender =
@@ -16608,9 +16634,9 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
           debugLog("studentId:", studentId);
           debugLog("newPosition:", position);
           debugLog("현재 adminPositions:", adminPositions);
-          
+
           const newPositions = { ...adminPositions };
-          
+
           // position이 빈 문자열이거나 falsy 값이면 직책 제거
           if (position && position.trim()) {
             newPositions[studentId] = position.trim();
@@ -16638,11 +16664,14 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
 
           // 현재 사용자의 직책도 업데이트
           if (currentUser && currentUser.studentId === studentId) {
-            currentUser.position = position && position.trim() ? position.trim() : "일반 회원";
+            currentUser.position =
+              position && position.trim() ? position.trim() : "일반 회원";
             debugLog("✅ currentUser.position 업데이트:", currentUser.position);
-            
+
             // localStorage에도 업데이트된 position 저장
-            const savedUser = JSON.parse(localStorage.getItem("foodieUser") || "{}");
+            const savedUser = JSON.parse(
+              localStorage.getItem("foodieUser") || "{}"
+            );
             if (savedUser.studentId === studentId) {
               savedUser.position = currentUser.position;
               localStorage.setItem("foodieUser", JSON.stringify(savedUser));
