@@ -1931,8 +1931,8 @@
       <div class="modern-loader">
         <!-- Foodie 로고와 텍스트 -->
         <div class="loading-logo">
-          Foodie
-          <span class="subtitle">웹으로 이동중</span>
+          <strong class="font-bold">Foodie</strong>
+          <span class="subtitle">전북대학교 맛집 탐방 동아리</span>
         </div>
 
         <!-- 점 3개 로딩 애니메이션 -->
@@ -2065,10 +2065,41 @@
           <div id="pre-login-info" class="space-y-6 md:space-y-8">
             <!-- 로그인 -->
             <div id="login-section" class="section max-w-lg mx-auto">
-              <div class="mb-4">
-                <h2 class="text-2xl font-bold text-gray-700 text-center">
-                  Foodie 회원 인증
-                </h2>
+                            <!-- 로그인 헤더 디자인 -->
+              <div class="section mb-6">
+                <div class="text-center">
+                  <!-- Foodie 로고 -->
+                  <div class="mb-4">
+                    <h1 class="text-4xl md:text-5xl font-bold text-gray-800 mb-2">
+                      Foodie
+                    </h1>
+                    <div class="flex justify-center gap-2 mt-2">
+                      <span class="text-xl">🍽️</span>
+                      <span class="text-xl">🍜</span>
+                      <span class="text-xl">🍕</span>
+                    </div>
+                  </div>
+
+                  <!-- 동아리 소개 -->
+                  <p class="text-sm md:text-base text-gray-700 font-medium mb-1">
+                    전북대학교 맛집 탐방 동아리✨
+                  </p>
+                  <p class="text-xs md:text-sm text-gray-600 mb-4">
+                    함께 맛있는 추억을 만들어요
+                  </p>
+
+                  <!-- 구분선 -->
+                  <div class="flex items-center justify-center gap-3 my-4">
+                    <div class="flex-1 h-px bg-gray-200"></div>
+                    <div class="w-1 h-1 bg-gray-400 rounded-full"></div>
+                    <div class="flex-1 h-px bg-gray-200"></div>
+                  </div>
+
+                  <!-- 회원 인증 제목 -->
+                  <h2 class="text-lg md:text-xl font-bold text-gray-800">
+                    회원 인증
+                  </h2>
+                </div>
               </div>
               <div
                 class="space-y-3 md:space-y-4"
@@ -2154,8 +2185,8 @@
                   class="w-full bg-white text-orange-700 border border-orange-300 btn-lg hover:bg-orange-50 disabled:opacity-50 disabled:cursor-not-allowed"
                   aria-label="회원가입 버튼"
                 >
-                  <i class="fas fa-user-plus mr-2" aria-hidden="true"></i
-                  >회원가입
+                  <i class="fas fa-user-plus mr-2" aria-hidden="true"></i>동아리
+                  가입하기
                 </button>
                 <div
                   id="signup-banner"
@@ -2164,7 +2195,7 @@
                   aria-live="polite"
                 >
                   지금은 <b>회원가입 기간</b>입니다. 미회원은
-                  <b>회원가입</b> 버튼으로 가입하세요.
+                  <b>동아리 가입하기</b> 버튼으로 가입하세요.
                 </div>
               </div>
             </div>
@@ -2742,10 +2773,10 @@
     >
       <div class="bg-white p-6 md:p-7 rounded-2xl shadow-xl max-w-lg w-full">
         <h3 class="text-2xl font-bold text-orange-700 text-center mb-3 md:mb-4">
-          <i class="fas fa-user-plus mr-2"></i>Foodie 회원가입
+          <i class="fas fa-user-plus mr-2"></i>Foodie 동아리 가입하기
         </h3>
         <p class="text-sm text-gray-600 text-center">
-          회원가입은 운영진이 설정한 기간에만 가능합니다.
+          동아리 가입은 운영진이 설정한 기간에만 가능합니다.
         </p>
 
         <div
@@ -5167,7 +5198,7 @@
           const iconElement = el.signupBtn.querySelector("i");
           if (openNow) {
             el.signupBtn.innerHTML =
-              '<i class="fas fa-user-plus mr-2"></i>회원가입';
+              '<i class="fas fa-user-plus mr-2"></i>동아리 가입하기';
           } else {
             el.signupBtn.innerHTML =
               '<i class="fas fa-user-times mr-2"></i>회원모집이 마감됐습니다.';
@@ -8427,7 +8458,7 @@
                                     <button type="button" class="px-3 py-2 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded-lg" onclick="showEventDetailModal('${
                                       ev.id
                                     }')">
-                                      <i class="fas fa-info-circle mr-1"></i>상세
+                                      <i class="fas fa-info-circle mr-1"></i>이벤트 상세내역
                                     </button>
                                     <button type="button" class="px-3 py-2 text-xs bg-orange-600 hover:bg-orange-700 text-white rounded-lg" data-act="write-review" data-id="${
                                       ev.id
@@ -8552,6 +8583,15 @@
                                     </button>
                                     <button 
                                       type="button" 
+                                      class="text-orange-600 hover:text-orange-800 font-medium"
+                                      data-act="export-xlsx" 
+                                      data-id="${ev.id}"
+                                      title="명단 다운로드"
+                                    >
+                                      <i class="fas fa-file-excel mr-1"></i>명단 다운로드
+                                    </button>
+                                    <button 
+                                      type="button" 
                                       class="text-blue-600 hover:text-blue-800 font-medium"
                                       data-act="admin-unarchive" 
                                       data-id="${ev.id}"
@@ -8610,7 +8650,7 @@
               </div>
             </div>
             ${myHistoryHTML}
-            <div class="section">
+            <div class="section mt-8">
               <div class="flex items-center gap-2 mb-4">
                 <i class="fas fa-list text-gray-600 text-xl"></i>
                 <h4 class="text-xl font-bold text-gray-800">생성된 이벤트 목록</h4>
@@ -8620,7 +8660,11 @@
             ${archivedListHTML}
           `
           : `${myHistoryHTML}
-            <div class="section">
+            <div class="section mt-8">
+              <div class="flex items-center gap-2 mb-4">
+                <i class="fas fa-list text-gray-600 text-xl"></i>
+                <h4 class="text-xl font-bold text-gray-800">생성된 이벤트 목록</h4>
+              </div>
               ${activeListHTML}
             </div>`;
 
@@ -20093,6 +20137,12 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
           showAlert("😥", "이벤트를 찾을 수 없습니다.");
           return;
         }
+        
+        // 금액 포맷팅 함수
+        const formatKRW = (n) => {
+          const v = Number(n || 0);
+          return isNaN(v) ? "" : v.toLocaleString("ko-KR") + "원";
+        };
 
         // 기존 모달이 있으면 먼저 제거
         const existingModal = document.getElementById(
@@ -20173,6 +20223,71 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                       <p class="text-gray-600 text-sm whitespace-pre-wrap">${saf(
                         ev.description
                       )}</p>
+                    </div>
+                  `
+                      : ""
+                  }
+                  
+                  ${
+                    (ev.type === "mt" || ev.type === "assembly") && ev.payment
+                      ? `
+                    <div class="bg-amber-50 rounded-lg p-4 border-2 border-amber-200">
+                      <h5 class="font-semibold text-amber-900 mb-3 flex items-center">
+                        <i class="fas fa-wallet mr-2 text-amber-600"></i>입금 정보
+                      </h5>
+                      <div class="space-y-3">
+                        ${
+                          ev.payment.amount
+                            ? `
+                        <div class="flex items-center gap-2 text-sm">
+                          <i class="fas fa-won-sign text-amber-600"></i>
+                          <span class="text-gray-700 font-medium">입금 금액:</span>
+                          <span class="text-gray-800 font-bold text-lg">${formatKRW(ev.payment.amount)}</span>
+                        </div>
+                        `
+                            : ""
+                        }
+                        ${
+                          ev.payment.bank && ev.payment.number
+                            ? `
+                        <div class="flex items-center gap-2 text-sm">
+                          <i class="fas fa-university text-amber-600"></i>
+                          <span class="text-gray-700 font-medium">입금 계좌:</span>
+                          <span class="text-gray-800 font-semibold">${saf(ev.payment.bank)} ${saf(ev.payment.number)}</span>
+                          ${
+                            ev.payment.holder
+                              ? `<span class="text-gray-600 text-xs">(예금주: ${saf(ev.payment.holder)})</span>`
+                              : ""
+                          }
+                        </div>
+                        `
+                            : ""
+                        }
+                        ${
+                          ev.payment.bank && ev.payment.number
+                            ? `
+                        <div class="flex justify-end">
+                          <button 
+                            type="button" 
+                            onclick="navigator.clipboard.writeText('${saf(ev.payment.bank || "")} ${saf(ev.payment.number || "")}').then(() => alert('계좌번호가 복사되었습니다!'))" 
+                            class="bg-amber-600 hover:bg-amber-700 text-white px-3 py-1 rounded text-xs transition-colors"
+                          >
+                            <i class="fas fa-copy mr-1"></i>계좌번호 복사
+                          </button>
+                        </div>
+                        `
+                            : ""
+                        }
+                        ${
+                          ev.payment.note
+                            ? `
+                        <div class="text-sm text-amber-800 bg-amber-100 p-2 rounded">
+                          <i class="fas fa-info-circle mr-1"></i>${saf(ev.payment.note)}
+                        </div>
+                        `
+                            : ""
+                        }
+                      </div>
                     </div>
                   `
                       : ""
