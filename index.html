@@ -3093,6 +3093,7 @@
         { name: "일식", emoji: "🍣" },
         { name: "중식", emoji: "🥟" },
         { name: "양식", emoji: "🍝" },
+        { name: "아시안", emoji: "🍜" },
         { name: "디저트", emoji: "🍰" },
         { name: "기타", emoji: "🍽️" },
       ]; // 미식회 카테고리 목록
@@ -4628,15 +4629,26 @@
               );
               if (snap.exists()) {
                 const existingPositions = snap.data().positions || [];
-                // "개발자" 직책이 없으면 추가 (고정 직책 보장)
-                const fixedPositions = ["회장", "부회장", "개발자"];
+                // 고정 직책 (회장, 부회장, 총무, 기획부장, 홍보부장, 개발자)
+                const fixedPositions = [
+                  "회장",
+                  "부회장",
+                  "총무",
+                  "기획부장",
+                  "홍보부장",
+                  "개발자",
+                ];
                 const hasAllFixed = fixedPositions.every((pos) =>
                   existingPositions.includes(pos)
                 );
 
                 if (!hasAllFixed) {
+                  // 고정 직책을 먼저 추가하고, 나머지 직책을 뒤에 추가
                   const updatedPositions = [
-                    ...new Set([...fixedPositions, ...existingPositions]),
+                    ...fixedPositions,
+                    ...existingPositions.filter(
+                      (pos) => !fixedPositions.includes(pos)
+                    ),
                   ];
                   debugLog(
                     "⚠️ 고정 직책 누락 발견, 추가 중:",
@@ -4647,12 +4659,29 @@
                   });
                   presidentPositions = updatedPositions;
                 } else {
-                  presidentPositions = existingPositions;
+                  // 고정 직책이 모두 있으면 순서대로 정렬 (고정 직책 먼저)
+                  const fixed = existingPositions.filter((pos) =>
+                    fixedPositions.includes(pos)
+                  );
+                  const others = existingPositions.filter(
+                    (pos) => !fixedPositions.includes(pos)
+                  );
+                  presidentPositions = [
+                    ...fixedPositions.filter((pos) => fixed.includes(pos)),
+                    ...others,
+                  ];
                 }
                 debugLog("✅ 회장단 직책 로드됨:", presidentPositions);
               } else {
-                // 문서가 없으면 기본값 생성 (회장, 부회장, 개발자 포함)
-                const defaultPositions = ["회장", "부회장", "개발자"];
+                // 문서가 없으면 기본값 생성 (회장, 부회장, 총무, 기획부장, 홍보부장, 개발자 포함)
+                const defaultPositions = [
+                  "회장",
+                  "부회장",
+                  "총무",
+                  "기획부장",
+                  "홍보부장",
+                  "개발자",
+                ];
                 await setDoc(doc(db, "settings", "presidentPositions"), {
                   positions: defaultPositions,
                 });
@@ -4748,8 +4777,32 @@
             doc(db, "settings", "restaurantCategories"),
             async (snap) => {
               if (snap.exists()) {
-                restaurantCategories =
-                  snap.data().categories || restaurantCategories;
+                const savedCategories = snap.data().categories || [];
+                // 아시안 카테고리가 없으면 추가
+                const hasAsian = savedCategories.some(
+                  (cat) => cat.name === "아시안"
+                );
+                if (!hasAsian) {
+                  // 아시안 카테고리 추가 (양식 다음에 추가)
+                  const asianIndex = savedCategories.findIndex(
+                    (cat) => cat.name === "양식"
+                  );
+                  if (asianIndex >= 0) {
+                    savedCategories.splice(asianIndex + 1, 0, {
+                      name: "아시안",
+                      emoji: "🍜",
+                    });
+                  } else {
+                    savedCategories.push({ name: "아시안", emoji: "🍜" });
+                  }
+                  // Firestore 업데이트
+                  await setDoc(doc(db, "settings", "restaurantCategories"), {
+                    categories: savedCategories,
+                  });
+                  restaurantCategories = savedCategories;
+                } else {
+                  restaurantCategories = savedCategories;
+                }
               } else {
                 // 문서가 없으면 기본값으로 생성
                 await setDoc(doc(db, "settings", "restaurantCategories"), {
@@ -5157,7 +5210,7 @@
             <div class="mb-4 md:mb-6">
               <div class="flex items-center justify-between mb-4">
                 <p class="text-gray-700 text-lg md:text-xl font-medium">
-                  <span class="text-orange-600 font-bold text-4xl md:text-5xl">F👀die</span> 
+                  <span class="text-orange-600 font-bold text-4xl md:text-5xl">Foodie</span> 
                   <b id="userNameDisplay">${saf(
                     currentUser.name
                   )}</b>${getPositionSuffix()}님
@@ -5246,7 +5299,7 @@
               <div id="dashboard-roadmap" class="section mb-4">
                 <div class="mb-2 roadmap-accordion">
                   <div class="flex items-center justify-between mb-2">
-                    <h3 class="text-lg md:text-xl font-bold">F👀die 일정</h3>
+                    <h3 class="text-lg md:text-xl font-bold">Foodie 일정</h3>
                   </div>
                   <div class="schedule-blocks-container" id="h-roadmap-list"></div>
                   <div class="roadmap-accordion-content" id="h-roadmap-full-list" style="max-height: 0; overflow: hidden; opacity: 0;">
@@ -5704,7 +5757,7 @@
           const scheduleBlock = {
             id: "auto-schedule-block",
             type: "schedule",
-            title: "F👀die 일정",
+            title: "Foodie 일정",
             visible: true,
             showWhen: "logout",
             order: 1,
@@ -8487,6 +8540,15 @@
                                       title="참가자 수정"
                                     >
                                       <i class="fas fa-user-edit mr-1"></i>참가자 수정
+                                    </button>
+                                    <button 
+                                      type="button" 
+                                      class="text-purple-600 hover:text-purple-800 font-medium"
+                                      data-act="group-maker" 
+                                      data-id="${ev.id}"
+                                      title="팀 구성하기"
+                                    >
+                                      <i class="fas fa-users mr-1"></i>팀 구성하기
                                     </button>
                                     <button 
                                       type="button" 
@@ -14864,10 +14926,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
               <i class="fas fa-user-tie mr-1"></i>임원 관리
             </button>
             <button class="subtab-btn px-3 py-1.5 rounded bg-gray-200" data-sub="system">
-              <i class="fas fa-gear mr-1"></i>시스템
-            </button>
-            <button class="subtab-btn px-3 py-1.5 rounded bg-gray-200" data-sub="food-menu">
-              <i class="fas fa-utensils mr-1"></i>뭐먹지 메뉴
+              <i class="fas fa-credit-card mr-1"></i>회비 관리
             </button>
             <button class="subtab-btn px-3 py-1.5 rounded bg-gray-200" data-sub="inquiries">
               <i class="fas fa-comment-dots mr-1"></i>문의 관리
@@ -14913,10 +14972,6 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
         }
         if (name === "system") {
           renderSystemAdmin(cont);
-          return;
-        }
-        if (name === "food-menu") {
-          renderFoodMenuAdmin(cont);
           return;
         }
         if (name === "inquiries") {
@@ -17374,7 +17429,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
       </li>
       <li draggable="true" data-key="roadmap" class="flex items-center justify-between px-3 py-2">
         <div class="flex items-center gap-2 min-w-0">
-          <i class="fas fa-grip-vertical text-gray-400 grip"></i><span class="truncate">F👀die 일정</span>
+          <i class="fas fa-grip-vertical text-gray-400 grip"></i><span class="truncate">Foodie 일정</span>
         </div>
       </li>
       <li draggable="true" data-key="dynamic" class="flex items-center justify-between px-3 py-2">
@@ -17540,7 +17595,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                         <div class="flex items-center gap-2 min-w-0">
                           <i class="fas fa-grip-vertical text-gray-400 grip"></i>
                           <i class="fas fa-calendar-alt text-orange-500"></i>
-                          <span class="truncate font-medium">F👀die 일정</span>
+                          <span class="truncate font-medium">Foodie 일정</span>
                         </div>
                         <div class="flex gap-1">
                           <button class="move-block-up bg-gray-500 text-white px-2 py-1 rounded text-xs hover:bg-gray-600 transition-colors" 
@@ -17574,7 +17629,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
 
             <!-- 로드맵 관리 - 블록 관리 시스템으로 통합됨 -->
             <div class="section">
-              <h3 class="text-xl font-bold text-gray-800 mb-2">F👀die 일정 관리</h3>
+              <h3 class="text-xl font-bold text-gray-800 mb-2">Foodie 일정 관리</h3>
               <p class="text-xs text-gray-600 mb-2">
                 이제 블록 관리 시스템에서 로드맵을 관리합니다. 
                 <a href="#blocks" class="text-blue-600 hover:underline">블록 관리</a> 탭에서 로드맵 블록을 생성하고 관리하세요.
@@ -19294,7 +19349,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
         let calendarHTML = `
           <div class="calendar-container">
             <div class="calendar-header">
-              <h3 class="calendar-title">F👀die 달력</h3>
+              <h3 class="calendar-title">Foodie 달력</h3>
               <div class="calendar-nav">
                 ${
                   isLoggedIn
@@ -21626,48 +21681,106 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
         if (!modal) return;
 
         modal.classList.remove("hidden");
-        loadFoodMenus();
+        // 미식회 이벤트 데이터가 로드되었는지 확인 후 메뉴 로드
+        if (eventsData && eventsData.length > 0) {
+          loadFoodMenus();
+        } else {
+          // eventsData가 아직 로드되지 않았으면 빈 배열로 초기화
+          foodMenusData = [];
+          console.log(
+            "이벤트 데이터가 아직 로드되지 않았습니다. 잠시 후 다시 시도해주세요."
+          );
+        }
         updateCategoryFilter();
 
         // 회장단 권한 확인
         const isAdmin =
           currentUser && adminList.includes(currentUser.studentId);
 
-        // 빠른 메뉴 추가와 메뉴 관리 버튼은 회장단만 표시
+        // 빠른 메뉴 추가와 메뉴 관리 버튼 숨김 (미식회 리뷰에서 자동으로 로드)
         const quickAddSection = document.getElementById("quick-add-section");
         const menuManageBtn = document.getElementById("menu-manage-btn");
-
-        if (isAdmin) {
-          if (quickAddSection) quickAddSection.classList.remove("hidden");
-          if (menuManageBtn) menuManageBtn.classList.remove("hidden");
-        } else {
-          if (quickAddSection) quickAddSection.classList.add("hidden");
-          if (menuManageBtn) menuManageBtn.classList.add("hidden");
-        }
+        if (quickAddSection) quickAddSection.classList.add("hidden");
+        if (menuManageBtn) menuManageBtn.classList.add("hidden");
 
         // 룰렛 초기 상태로 리셋
         const rouletteEmoji = document.getElementById("roulette-emoji");
         const rouletteText = document.getElementById("roulette-text");
         if (rouletteEmoji) rouletteEmoji.textContent = "🍽️";
-        if (rouletteText)
-          rouletteText.textContent = "메뉴를 추가하고 버튼을 눌러주세요!";
+        if (rouletteText) {
+          if (foodMenusData.length > 0) {
+            rouletteText.textContent = "버튼을 눌러 메뉴를 선택하세요!";
+          } else {
+            rouletteText.textContent = "미식회에 등록된 메뉴가 없습니다.";
+          }
+        }
 
         // 히스토리 업데이트
         updateRouletteHistory();
       }
 
-      // Firebase에서 메뉴 로드
-      async function loadFoodMenus() {
+      // 카테고리 이름을 ID로 변환
+      function getCategoryId(categoryName) {
+        const categoryMap = {
+          한식: "korean",
+          일식: "japanese",
+          중식: "chinese",
+          양식: "western",
+          아시안: "asian",
+          분식: "snack",
+          디저트: "dessert",
+          카페: "cafe",
+          패스트푸드: "fastfood",
+          기타: "etc",
+        };
+        return categoryMap[categoryName] || "etc";
+      }
+
+      // 미식회 리뷰에서 메뉴 로드
+      function loadFoodMenus() {
         try {
-          const snapshot = await getDocs(collection(db, "foodMenus"));
           foodMenusData = [];
-          snapshot.forEach((doc) => {
-            foodMenusData.push({
-              id: doc.id,
-              ...doc.data(),
+
+          // 미식회 이벤트에서 메뉴 추출
+          if (eventsData && Array.isArray(eventsData)) {
+            eventsData.forEach((event) => {
+              if (
+                event.type === "tasting" &&
+                event.restaurants &&
+                Array.isArray(event.restaurants)
+              ) {
+                event.restaurants.forEach((restaurant) => {
+                  if (restaurant.name && restaurant.info) {
+                    // 대표 메뉴를 줄바꿈으로 분리
+                    const menus = restaurant.info
+                      .split("\n")
+                      .filter((m) => m.trim());
+
+                    menus.forEach((menu) => {
+                      if (menu.trim()) {
+                        const categoryName =
+                          restaurant.restaurantCategory || "기타";
+                        // 식당 이름 - 메뉴 형식으로 저장
+                        foodMenusData.push({
+                          id: `tasting_${event.id}_${
+                            restaurant.name
+                          }_${menu.trim()}`,
+                          name: `${restaurant.name} - ${menu.trim()}`,
+                          category: getCategoryId(categoryName), // 카테고리 ID로 변환
+                          categoryName: categoryName, // 원본 카테고리 이름도 저장
+                          restaurantName: restaurant.name,
+                          menuName: menu.trim(),
+                          source: "tasting",
+                        });
+                      }
+                    });
+                  }
+                });
+              }
             });
-          });
-          console.log("메뉴 로드됨:", foodMenusData.length, "개");
+          }
+
+          console.log("미식회 메뉴 로드됨:", foodMenusData.length, "개");
         } catch (error) {
           console.error("메뉴 로드 오류:", error);
         }
@@ -21713,7 +21826,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
         if (availableMenus.length === 0) {
           showAlert(
             "😥",
-            "선택할 수 있는 메뉴가 없습니다!\n메뉴를 먼저 추가해주세요."
+            "선택할 수 있는 메뉴가 없습니다!\n미식회에 등록된 메뉴가 없거나 필터에 해당하는 메뉴가 없습니다."
           );
           return;
         }
@@ -24477,18 +24590,13 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
               `;
             } else if (currentCategory !== "all") {
               // 카테고리만 선택되고 검색어가 없을 때 빈 결과 표시
-              const categoryName =
-                currentCategory === "한식"
-                  ? "🍚 한식"
-                  : currentCategory === "일식"
-                  ? "🍣 일식"
-                  : currentCategory === "중식"
-                  ? "🥟 중식"
-                  : currentCategory === "양식"
-                  ? "🍝 양식"
-                  : currentCategory === "디저트"
-                  ? "🍰 디저트"
-                  : "🍽️ 기타";
+              // restaurantCategories에서 카테고리 정보 찾기
+              const categoryInfo = restaurantCategories.find(
+                (cat) => cat.name === currentCategory
+              );
+              const categoryName = categoryInfo
+                ? `${categoryInfo.emoji} ${categoryInfo.name}`
+                : "🍽️ 기타";
               restaurantCardsContainer.innerHTML = `
                 <div class="col-span-2 text-center py-12 text-gray-400">
                   <i class="fas fa-utensils text-4xl mb-3"></i>
@@ -25026,7 +25134,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
         };
       }
 
-      /* ===== 시스템 설정 관리자 ===== */
+      /* ===== 회비 관리 (시스템 설정) ===== */
       function renderSystemAdmin(container) {
         const signup = signupSettings || { open: false };
         const dues = duesSettings || {
@@ -26635,12 +26743,14 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
             </div>
             
             <div>
-              <label for="review-comment" class="block text-xs md:text-sm font-medium text-gray-700 mb-1 md:mb-2">후기</label>
+              <label for="review-comment" class="block text-xs md:text-sm font-medium text-gray-700 mb-1 md:mb-2">
+                후기 <span class="text-gray-500 font-normal">(선택사항)</span>
+              </label>
               <textarea 
                 id="review-comment" 
                 rows="3" 
                 class="md:rows-4 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm" 
-                placeholder="이벤트에 대한 소감이나 후기를 남겨주세요..."
+                placeholder="이벤트에 대한 소감이나 후기를 남겨주세요... (별점만 선택해도 저장됩니다)"
                 autocomplete="off"
                 spellcheck="false"
                 data-no-autocomplete="true"
@@ -26770,16 +26880,22 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
             const comment = document
               .getElementById("review-comment")
               .value.trim();
+
+            // 별점만 있어도 저장 가능 (별점 필수, 텍스트는 선택사항)
             if (selectedRating === 0) {
               showAlert("⚠️", "평점을 선택해주세요.");
               return;
             }
 
             try {
-              await saveEventReview(eventId, selectedRating, comment);
+              // 별점만 있어도 리뷰 저장 (comment는 빈 문자열이어도 됨)
+              await saveEventReview(eventId, selectedRating, comment || "");
               closeReviewModal();
               renderHistoryTab(isAdmin);
-              showAlert("✅", "평가가 저장되었습니다.");
+              const message = comment
+                ? "평가가 저장되었습니다."
+                : "별점 평가가 저장되었습니다.";
+              showAlert("✅", message);
             } catch (error) {
               showAlert("😥", "평가 저장 중 오류가 발생했습니다.");
             }
@@ -26812,7 +26928,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
             studentName: currentUser.name,
             name: currentUser.name, // 리뷰 화면에서 사용하는 필드
             rating: rating,
-            comment: comment,
+            comment: comment || "", // 텍스트는 선택사항 (빈 문자열 허용)
             timestamp: new Date().toISOString(),
             createdAt:
               existingIndex >= 0
