@@ -347,9 +347,16 @@
       html,
       body {
         height: 100%;
+        min-height: 100%;
+        min-height: -webkit-fill-available;
       }
       body {
         font-family: "Noto Sans KR", sans-serif;
+        margin: 0;
+        min-height: 100vh;
+        min-height: 100svh;
+        min-height: 100dvh;
+        min-height: -webkit-fill-available;
         padding-top: var(--safe-top);
       }
       .gradient-bg {
@@ -371,14 +378,19 @@
         align-items: center;
         background: #ffffff;
         position: fixed !important;
-        top: 0 !important;
-        left: 0 !important;
-        right: 0 !important;
-        bottom: 0 !important;
-        width: 100vw !important;
+        inset: 0 !important;
+        width: 100% !important;
         height: 100vh !important;
+        height: 100svh !important;
+        height: 100lvh !important;
         height: 100dvh !important;
         min-height: 100vh !important;
+        min-height: 100svh !important;
+        min-height: 100lvh !important;
+        min-height: 100dvh !important;
+        min-height: -webkit-fill-available !important;
+        padding-top: env(safe-area-inset-top);
+        padding-bottom: env(safe-area-inset-bottom);
         z-index: 9999 !important;
         overflow: hidden !important;
       }
@@ -2034,7 +2046,7 @@
               aria-controls="presence-pop"
               title="현재 접속자 목록"
             >
-              <span aria-hidden="true">👥</span> 접속
+              <span aria-hidden="true">👥</span>
               <b id="presence-count" aria-label="접속자 수">0</b>명
             </button>
             <!-- 조모임 순위(모두 보임) -->
@@ -4623,6 +4635,70 @@
           }
         });
 
+      let realtimeRecoveryAttempts = 0;
+      let realtimeRecoveryTimer = null;
+      let realtimeRecoveryPending = false;
+
+      const markRealtimeHealthy = () => {
+        realtimeRecoveryAttempts = 0;
+        realtimeRecoveryPending = false;
+        if (realtimeRecoveryTimer) {
+          clearTimeout(realtimeRecoveryTimer);
+          realtimeRecoveryTimer = null;
+        }
+      };
+
+      const restartRealtimeListeners = (reason, immediate = false) => {
+        if (realtimeRecoveryPending && !immediate) return;
+        realtimeRecoveryPending = true;
+
+        realtimeRecoveryAttempts = Math.min(realtimeRecoveryAttempts + 1, 6);
+        const delay = immediate
+          ? 0
+          : Math.min(15000, 500 * Math.pow(2, realtimeRecoveryAttempts - 1));
+
+        if (realtimeRecoveryTimer) {
+          clearTimeout(realtimeRecoveryTimer);
+        }
+
+        const restartAction = () => {
+          realtimeRecoveryTimer = null;
+          realtimeRecoveryPending = false;
+          const wasInitial = __isInitialLoading;
+          if (wasInitial) {
+            __loadingDataCount = 0;
+          }
+          clearPublic();
+          clearAdmin();
+          startPublicListeners();
+          if (currentUser && adminList.includes(currentUser.studentId)) {
+            startAdminListeners();
+          }
+        };
+
+        if (delay === 0) {
+          restartAction();
+        } else {
+          realtimeRecoveryTimer = setTimeout(restartAction, delay);
+        }
+      };
+
+      const handleRealtimeListenerError = (context, error) => {
+        console.warn(`[Firestore] 실시간 리스너 오류 발생 (${context})`, error);
+        if (error?.code === "permission-denied") {
+          showAlert(
+            "⚠️",
+            "일부 데이터에 접근할 권한이 없습니다. 관리자에게 문의해주세요."
+          );
+          return;
+        }
+        restartRealtimeListeners(`listener-error:${context}`);
+      };
+
+      window.addEventListener("online", () => {
+        restartRealtimeListeners("network-online", true);
+      });
+
       const DEMO = {
         roadmap: [
           {
@@ -4693,72 +4769,88 @@
           unsubPublic.homelayout = onSnapshot(
             doc(db, "settings", "homeLayout"),
             (snap) => {
+              markRealtimeHealthy();
               homeLayout = snap.exists() ? snap.data().order || [] : [];
               applyHomeLayoutOrder();
-            }
+              scheduleRender();
+            },
+            (err) => handleRealtimeListenerError("homeLayout", err)
           );
         }
         if (!unsubPublic.admins) {
-          unsubPublic.admins = onSnapshot(doc(db, "admins", "list"), (snap) => {
-            adminList = snap.exists() ? snap.data().studentIds || [] : [];
-            adminPositions = snap.exists() ? snap.data().positions || {} : {};
+          unsubPublic.admins = onSnapshot(
+            doc(db, "admins", "list"),
+            (snap) => {
+              markRealtimeHealthy();
+              adminList = snap.exists() ? snap.data().studentIds || [] : [];
+              adminPositions = snap.exists() ? snap.data().positions || {} : {};
 
-            // 관리자인 경우 currentUser.position 업데이트
-            if (currentUser && adminList.includes(currentUser.studentId)) {
-              currentUser.position =
-                adminPositions[currentUser.studentId] || "일반 회원";
-              console.log("=== Firebase 리스너 사용자 직책 업데이트 ===");
-              console.log("currentUser.studentId:", currentUser.studentId);
-              console.log("adminPositions:", adminPositions);
-              console.log("업데이트된 직책:", currentUser.position);
+              // 관리자인 경우 currentUser.position 업데이트
+              if (currentUser && adminList.includes(currentUser.studentId)) {
+                currentUser.position =
+                  adminPositions[currentUser.studentId] || "일반 회원";
+                console.log("=== Firebase 리스너 사용자 직책 업데이트 ===");
+                console.log("currentUser.studentId:", currentUser.studentId);
+                console.log("adminPositions:", adminPositions);
+                console.log("업데이트된 직책:", currentUser.position);
 
-              // localStorage에도 업데이트된 position 저장
-              localStorage.setItem(
-                "foodieUser",
-                JSON.stringify({
-                  studentId: currentUser.studentId,
-                  name: currentUser.name,
-                  position: currentUser.position,
-                })
-              );
-            }
+                // localStorage에도 업데이트된 position 저장
+                localStorage.setItem(
+                  "foodieUser",
+                  JSON.stringify({
+                    studentId: currentUser.studentId,
+                    name: currentUser.name,
+                    position: currentUser.position,
+                  })
+                );
+              }
 
-            ensureAdminOptionals();
-            scheduleRender();
-          });
+              ensureAdminOptionals();
+              scheduleRender();
+            },
+            (err) => handleRealtimeListenerError("admins", err)
+          );
         }
         if (!unsubPublic.signup) {
           unsubPublic.signup = onSnapshot(
             doc(db, "settings", "signup"),
             (snap) => {
+              markRealtimeHealthy();
               signupSettings = snap.exists()
                 ? snap.data()
                 : { open: false, start: "", end: "" };
               updateSignupUI();
               scheduleRender();
-            }
+            },
+            (err) => handleRealtimeListenerError("signup", err)
           );
         }
         if (!unsubPublic.dues) {
-          unsubPublic.dues = onSnapshot(doc(db, "settings", "dues"), (snap) => {
-            duesSettings = snap.exists()
-              ? snap.data()
-              : {
-                  enabled: false,
-                  bank: "",
-                  number: "",
-                  holder: "",
-                  amount: "",
-                  note: "",
-                };
-            updateSignupUI();
-            scheduleRender();
-          });
+          unsubPublic.dues = onSnapshot(
+            doc(db, "settings", "dues"),
+            (snap) => {
+              markRealtimeHealthy();
+              duesSettings = snap.exists()
+                ? snap.data()
+                : {
+                    enabled: false,
+                    bank: "",
+                    number: "",
+                    holder: "",
+                    amount: "",
+                    note: "",
+                  };
+              updateSignupUI();
+              scheduleRender();
+            },
+            (err) => handleRealtimeListenerError("dues", err)
+          );
         }
         if (!unsubPublic.blocks) {
           unsubPublic.blocks = onSnapshot(
             query(collection(db, "homepageBlocks"), orderBy("order", "asc")),
             (snap) => {
+              markRealtimeHealthy();
               blocksData = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
               if (__isInitialLoading) {
                 __loadingDataCount++;
@@ -4766,13 +4858,17 @@
               }
               scheduleRender();
             },
-            (err) => debugWarn("blocks:", err?.message)
+            (err) => {
+              debugWarn("blocks:", err?.message);
+              handleRealtimeListenerError("blocks", err);
+            }
           );
         }
         if (!unsubPublic.customPositions) {
           unsubPublic.customPositions = onSnapshot(
             doc(db, "settings", "customPositions"),
             (snap) => {
+              markRealtimeHealthy();
               customDefaultPositions = snap.exists()
                 ? snap.data().positions || []
                 : [];
@@ -4782,13 +4878,17 @@
               }
               scheduleRender();
             },
-            (err) => debugWarn("customPositions:", err?.message)
+            (err) => {
+              debugWarn("customPositions:", err?.message);
+              handleRealtimeListenerError("customPositions", err);
+            }
           );
         }
         if (!unsubPublic.deletedPositions) {
           unsubPublic.deletedPositions = onSnapshot(
             doc(db, "settings", "deletedPositions"),
             (snap) => {
+              markRealtimeHealthy();
               deletedDefaultPositions = snap.exists()
                 ? snap.data().positions || []
                 : [];
@@ -4798,13 +4898,17 @@
               }
               scheduleRender();
             },
-            (err) => debugWarn("deletedPositions:", err?.message)
+            (err) => {
+              debugWarn("deletedPositions:", err?.message);
+              handleRealtimeListenerError("deletedPositions", err);
+            }
           );
         }
         if (!unsubPublic.presidentPositions) {
           unsubPublic.presidentPositions = onSnapshot(
             doc(db, "settings", "presidentPositions"),
             async (snap) => {
+              markRealtimeHealthy();
               debugLog(
                 "📥 presidentPositions Firebase 업데이트:",
                 snap.exists() ? snap.data() : "문서 없음"
@@ -4880,13 +4984,17 @@
               }
               scheduleRender();
             },
-            (err) => debugError("❌ presidentPositions 오류:", err?.message)
+            (err) => {
+              debugError("❌ presidentPositions 오류:", err?.message);
+              handleRealtimeListenerError("presidentPositions", err);
+            }
           );
         }
         if (!unsubPublic.regularPositions) {
           unsubPublic.regularPositions = onSnapshot(
             doc(db, "settings", "regularPositions"),
             async (snap) => {
+              markRealtimeHealthy();
               debugLog(
                 "📥 regularPositions Firebase 업데이트:",
                 snap.exists() ? snap.data() : "문서 없음"
@@ -4951,13 +5059,17 @@
               }
               scheduleRender();
             },
-            (err) => debugError("❌ regularPositions 오류:", err?.message)
+            (err) => {
+              debugError("❌ regularPositions 오류:", err?.message);
+              handleRealtimeListenerError("regularPositions", err);
+            }
           );
         }
         if (!unsubPublic.restaurantCategories) {
           unsubPublic.restaurantCategories = onSnapshot(
             doc(db, "settings", "restaurantCategories"),
             async (snap) => {
+              markRealtimeHealthy();
               if (snap.exists()) {
                 const savedCategories = snap.data().categories || [];
                 // 아시안 카테고리가 없으면 추가
@@ -4997,7 +5109,10 @@
               }
               scheduleRender();
             },
-            (err) => debugWarn("restaurantCategories:", err?.message)
+            (err) => {
+              debugWarn("restaurantCategories:", err?.message);
+              handleRealtimeListenerError("restaurantCategories", err);
+            }
           );
         }
         if (!unsubPublic.roadmap) {
@@ -5021,6 +5136,7 @@
             unsubPublic.roadmap = onSnapshot(
               collection(db, "roadmap"),
               (snap) => {
+                markRealtimeHealthy();
                 roadmapData = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
                 debugLog("Firebase 로드맵 데이터 업데이트:", roadmapData);
                 debugLog("문서 개수:", snap.docs.length);
@@ -5047,6 +5163,7 @@
                   checkLoadingComplete();
                 }
                 scheduleRender();
+                handleRealtimeListenerError("roadmap", err);
               }
             );
           }
@@ -5055,6 +5172,7 @@
           unsubPublic.events = onSnapshot(
             query(collection(db, "events")),
             (snap) => {
+              markRealtimeHealthy();
               eventsData = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 
               // order 필드가 없는 이벤트들에 기본값 설정
@@ -5082,13 +5200,17 @@
               }
               scheduleRender();
             },
-            (err) => debugWarn("events:", err?.message)
+            (err) => {
+              debugWarn("events:", err?.message);
+              handleRealtimeListenerError("events", err);
+            }
           );
         }
         if (!unsubPublic.foodMenus) {
           unsubPublic.foodMenus = onSnapshot(
             collection(db, "foodMenus"),
             (snap) => {
+              markRealtimeHealthy();
               foodMenusData = snap.docs.map((d) => ({
                 id: d.id,
                 ...d.data(),
@@ -5100,7 +5222,10 @@
               }
               scheduleRender();
             },
-            (err) => debugWarn("foodMenus:", err?.message)
+            (err) => {
+              debugWarn("foodMenus:", err?.message);
+              handleRealtimeListenerError("foodMenus", err);
+            }
           );
         }
         // 알림 구독 (로그인한 사용자에게만)
@@ -5111,6 +5236,7 @@
               orderBy("createdAt", "desc")
             ),
             (snap) => {
+              markRealtimeHealthy();
               notificationsData = snap.docs.map((d) => ({
                 id: d.id,
                 ...d.data(),
@@ -5122,7 +5248,10 @@
                 checkLoadingComplete();
               }
             },
-            (err) => debugWarn("notifications:", err?.message)
+            (err) => {
+              debugWarn("notifications:", err?.message);
+              handleRealtimeListenerError("notifications", err);
+            }
           );
         }
       }
@@ -5134,6 +5263,7 @@
           unsubAdmin.suggestions = onSnapshot(
             query(collection(db, "suggestions"), orderBy("timestamp", "desc")),
             (snap) => {
+              markRealtimeHealthy();
               suggestionsData = snap.docs.map((d) => ({
                 id: d.id,
                 ...d.data(),
@@ -5144,26 +5274,34 @@
               }
               scheduleRender();
             },
-            (err) => debugWarn("suggestions:", err?.message)
+            (err) => {
+              debugWarn("suggestions:", err?.message);
+              handleRealtimeListenerError("suggestions", err);
+            }
           );
         }
         if (!unsubAdmin.inquiries) {
           unsubAdmin.inquiries = onSnapshot(
             query(collection(db, "inquiries"), orderBy("createdAt", "desc")),
             (snap) => {
+              markRealtimeHealthy();
               inquiriesData = snap.docs.map((d) => ({
                 id: d.id,
                 ...d.data(),
               }));
               scheduleRender();
             },
-            (err) => debugWarn("inquiries:", err?.message)
+            (err) => {
+              debugWarn("inquiries:", err?.message);
+              handleRealtimeListenerError("inquiries", err);
+            }
           );
         }
         if (!unsubAdmin.history) {
           unsubAdmin.history = onSnapshot(
             query(collection(db, "history"), orderBy("createdAt", "desc")),
             (snap) => {
+              markRealtimeHealthy();
               historyData = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
               if (__isInitialLoading) {
                 __loadingDataCount++;
@@ -5171,13 +5309,17 @@
               }
               scheduleRender();
             },
-            (err) => debugWarn("history:", err?.message)
+            (err) => {
+              debugWarn("history:", err?.message);
+              handleRealtimeListenerError("history", err);
+            }
           );
         }
         if (!unsubAdmin.members) {
           unsubAdmin.members = onSnapshot(
             query(collection(db, "members"), orderBy("name", "asc")),
             (snap) => {
+              markRealtimeHealthy();
               membersData = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
               if (__isInitialLoading) {
                 __loadingDataCount++;
@@ -5185,18 +5327,25 @@
               }
               scheduleRender();
             },
-            (err) => debugWarn("members:", err?.message)
+            (err) => {
+              debugWarn("members:", err?.message);
+              handleRealtimeListenerError("members", err);
+            }
           );
         }
         if (!unsubAdmin.presence) {
           unsubAdmin.presence = onSnapshot(
             collection(db, "presence"),
             (snap) => {
+              markRealtimeHealthy();
               presenceData = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
               computeOnline();
               renderPresenceUI();
             },
-            (err) => debugWarn("presence:", err?.message)
+            (err) => {
+              debugWarn("presence:", err?.message);
+              handleRealtimeListenerError("presence", err);
+            }
           );
         }
       }
@@ -7617,18 +7766,7 @@
       }
 
       // 신청 취소 안내 문구 (공통)
-      const getCancelNotice = () => `
-        <div class="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-          <div class="flex items-start gap-2">
-            <i class="fas fa-info-circle text-blue-500 mt-0.5"></i>
-            <div class="text-xs text-blue-800">
-              <p class="font-semibold mb-1">📌 취소 안내</p>
-              <p>• 신청 취소를 원하시면 <strong>마감 시간 전</strong>에 신청 취소 버튼을 눌러주세요.</p>
-              <p class="mt-1">• 마감 이후 취소를 원하시면 <strong>운영진에게 문의</strong>해주세요.</p>
-            </div>
-          </div>
-        </div>
-      `;
+      const getCancelNotice = () => "";
 
       function generalCardHTML(ev) {
         const count = (ev.applicants || []).length,
@@ -8245,15 +8383,15 @@
             return `
               <div class="restaurant-card border-2 border-orange-200/70 rounded-3xl bg-white/95 shadow-sm hover:shadow-lg transition-all duration-300 p-5 space-y-4">
                 <div class="flex flex-col lg:flex-row lg:items-stretch gap-5">
-                  ${
-                    r.imageUrl
-                      ? `<div class="w-full lg:w-48 flex-shrink-0">
-                          <img src="${saf(r.imageUrl)}" alt="${saf(
-                          r.name
-                        )}" class="w-full h-40 object-cover rounded-2xl border border-orange-100" onerror="this.style.display='none'">
-                        </div>`
-                      : ""
-                  }
+                    ${
+                      r.imageUrl
+                        ? `<div class="w-full lg:w-48 flex-shrink-0">
+                              <img src="${saf(r.imageUrl)}" alt="${saf(
+                            r.name
+                          )}" class="w-full h-40 object-cover rounded-2xl border border-orange-100" onerror="this.style.display='none'">
+                            </div>`
+                        : ""
+                    }
                   <div class="flex-1 min-w-0 space-y-3">
                       <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 w-full">
                       <div class="space-y-1">
@@ -8274,7 +8412,7 @@
                         <p class="text-sm text-gray-600 mt-1">${saf(
                           r.info || "세부 정보가 아직 없습니다."
                         )}</p>
-                      </div>
+                    </div>
                       <div class="hidden lg:flex flex-col items-end gap-1 text-xs text-gray-500">
                         <span class="px-2 py-1 rounded-full bg-orange-50 border border-orange-200 font-semibold text-gray-800">
                           정원 ${cnt}/${cap}
@@ -8287,14 +8425,14 @@
                               </span>`
                             : ""
                         }
-                      </div>
+                    </div>
                     </div>
                     ${
                       currentUser
                         ? `
-                          ${namesList}
-                          ${waitingList}
-                        `
+                    ${namesList}
+                    ${waitingList}
+                    `
                         : ""
                     }
                   </div>
@@ -8306,8 +8444,8 @@
                     ${btn}
                     ${getCancelNotice()}
                   </div>
-                </div>
-              </div>`;
+                    </div>
+                  </div>`;
           })
           .join("");
         const isAdmin =
@@ -8944,12 +9082,12 @@
                       : ""
                   }
                   ${detailGridHTML}
-                </div>
-              </div>
+                                      </div>
+                                    </div>
               <div class="flex flex-wrap items-center justify-end gap-2 pt-1">
                 ${detailButtonHTML}
                 ${reviewButtonHTML}
-              </div>
+                                  </div>
             </div>
           `;
         };
@@ -9052,8 +9190,8 @@
                 latestEvent.datetime
               )}
             </div>
-          </div>
-        `
+                                  </div>
+                                  `
           : `
           <div class="mt-4 rounded-xl border border-dashed border-orange-200 bg-orange-50/70 px-3 py-4 text-xs text-orange-600 text-center">
             아직 신청한 활동이 없습니다.
@@ -9084,14 +9222,14 @@
                 remainingEvents.length
               }건 펼치기</span>
               <i class="fas fa-chevron-down transition-transform" id="my-history-toggle-icon"></i>
-            </button>
+                                    </button>
             <div id="my-history-content" class="hidden border-t border-blue-100 px-5 pb-5">
               <div class="space-y-3 pt-4">
                 ${remainingEvents.map((ev) => renderMyEventCard(ev)).join("")}
               </div>
             </div>
-          </div>
-        `
+                                  </div>
+                                  `
             : "";
 
         const myHistoryHTML = currentUser
@@ -9170,8 +9308,8 @@
                       ? `<p class="text-[11px] text-gray-500 leading-relaxed">${participation.companionsLine}</p>`
                       : ""
                   }
-                </div>
-              `;
+                                </div>
+                              `;
             })()
           : `
             <div class="rounded-2xl border border-dashed border-orange-200 bg-orange-50/60 px-3 py-4 text-xs text-orange-600 text-center">
@@ -9228,8 +9366,8 @@
                         <i class="fas fa-clock text-orange-500"></i>${formatDateTime(
                           nextUpcoming.datetime
                         )}
-                      </div>
-                    </div>`
+            </div>
+          </div>`
                   : ""
               }
             </div>
@@ -22213,6 +22351,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
         const unsubscribe = onSnapshot(
           collection(db, "groups"),
           (snapshot) => {
+            markRealtimeHealthy();
             groupsData = [];
             snapshot.forEach((doc) => {
               groupsData.push({
@@ -22242,6 +22381,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
           },
           (error) => {
             console.error("조모임 데이터 로드 오류:", error);
+            handleRealtimeListenerError("groups", error);
           }
         );
 
@@ -22686,6 +22826,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
         const unsubscribe = onSnapshot(
           collection(db, "groupScoreHistory"),
           (snapshot) => {
+            markRealtimeHealthy();
             const history = [];
             snapshot.forEach((doc) => {
               history.push({
@@ -22705,6 +22846,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
           },
           (error) => {
             console.error("점수 변경 기록 로드 오류:", error);
+            handleRealtimeListenerError("groupScoreHistory", error);
           }
         );
 
@@ -25052,6 +25194,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
         const unsubscribe = onSnapshot(
           collection(db, "gameScores"),
           (snapshot) => {
+            markRealtimeHealthy();
             gameScores = {};
             snapshot.forEach((doc) => {
               const data = doc.data();
@@ -25067,6 +25210,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
           },
           (error) => {
             console.error("게임 점수 로드 오류:", error);
+            handleRealtimeListenerError("gameScores", error);
           }
         );
 
