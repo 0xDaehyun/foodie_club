@@ -6322,7 +6322,7 @@
             }">
                       ${getBlockAdminButtons(b)}
                       <div class="accordion-header cursor-pointer p-3 md:p-4 lg:p-6">
-                        <div class="flex flex-col gap-2">
+                    <div class="flex flex-col gap-2 w-full">
                           <div class="flex items-center justify-between w-full">
                             <h3 class="text-base md:text-lg lg:text-xl font-bold text-gray-700 break-words flex-1 min-w-0 pr-2"><i class="fas fa-map-signs mr-2 text-orange-500 flex-shrink-0"></i><span class="break-words">${saf(
                               b.title || "로드맵"
@@ -8366,39 +8366,39 @@
                   </div>`
                 : "";
             return `
-              <div class="restaurant-card border-2 border-orange-200/70 rounded-3xl bg-white/95 shadow-sm hover:shadow-lg transition-all duration-300 p-5 space-y-4">
-                <div class="flex flex-col lg:flex-row lg:items-stretch gap-5">
-                    ${
-                      r.imageUrl
-                        ? `<div class="w-full lg:w-48 flex-shrink-0">
-                              <img src="${saf(r.imageUrl)}" alt="${saf(
-                            r.name
-                          )}" class="w-full h-40 object-cover rounded-2xl border border-orange-100" onerror="this.style.display='none'">
-                            </div>`
-                        : ""
-                    }
-                  <div class="flex-1 min-w-0 space-y-3">
-                      <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 w-full">
-                      <div class="space-y-1">
-                        <div class="flex items-center gap-2 flex-wrap">
-                          <h4 class="font-bold text-lg ${
-                            cnt >= cap && cap > 0
-                              ? "text-gray-400 line-through decoration-2 decoration-red-400"
-                              : "text-gray-900"
-                          }">${saf(r.name)}</h4>
-                          ${
-                            cnt >= cap && cap > 0
-                              ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-100 text-red-600 text-[11px] font-semibold">
-                                  <i class="fas fa-ban text-xs"></i>마감
-                                </span>`
-                              : ""
-                          }
-                        </div>
-                        <p class="text-sm text-gray-600 mt-1">${saf(
-                          r.info || "세부 정보가 아직 없습니다."
-                        )}</p>
-                    </div>
-                      <div class="hidden lg:flex flex-col items-end gap-1 text-xs text-gray-500">
+              <div class="restaurant-card border-2 border-orange-200/70 rounded-3xl bg-white/95 shadow-sm hover:shadow-lg transition-all duration-300 p-5 space-y-4 w-full">
+                <div class="flex flex-col gap-5">
+                  ${
+                    r.imageUrl
+                      ? `<div class="w-full">
+                          <img src="${saf(r.imageUrl)}" alt="${saf(
+                          r.name
+                        )}" class="w-full h-40 object-cover rounded-2xl border border-orange-100" onerror="this.style.display='none'">
+                        </div>`
+                      : ""
+                  }
+                  <div class="flex flex-col gap-3">
+                    <div class="space-y-2">
+                      <div class="flex items-center gap-2 flex-wrap">
+                        <h4 class="font-bold text-lg ${
+                          cnt >= cap && cap > 0
+                            ? "text-gray-400 line-through decoration-2 decoration-red-400"
+                            : "text-gray-900"
+                        }">${saf(r.name)}</h4>
+                        ${
+                          cnt >= cap && cap > 0
+                            ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-100 text-red-600 text-[11px] font-semibold">
+                                <i class="fas fa-ban text-xs"></i>마감
+                              </span>`
+                            : ""
+                        }
+                      </div>
+                      <p class="text-sm mt-1 ${
+                        cnt >= cap && cap > 0
+                          ? "text-gray-400 line-through decoration-2 decoration-red-300"
+                          : "text-gray-600"
+                      }">${saf(r.info || "세부 정보가 아직 없습니다.")}</p>
+                      <div class="flex flex-wrap items-center gap-2 text-xs text-gray-500">
                         <span class="px-2 py-1 rounded-full bg-orange-50 border border-orange-200 font-semibold text-gray-800">
                           정원 ${cnt}/${cap}
                         </span>
@@ -8410,27 +8410,23 @@
                               </span>`
                             : ""
                         }
-                    </div>
+                      </div>
                     </div>
                     ${
                       currentUser
                         ? `
-                    ${namesList}
-                    ${waitingList}
+                      ${namesList}
+                      ${waitingList}
                     `
                         : ""
                     }
                   </div>
-                  <div class="w-full lg:w-64 flex flex-col gap-2">
-                    <div class="lg:hidden flex items-center justify-between text-xs text-gray-600 bg-orange-50 border border-orange-100 px-3 py-2 rounded-xl">
-                      <span>정원</span>
-                      <span class="font-semibold text-gray-800">${cnt}/${cap}명</span>
-                    </div>
+                  <div class="flex flex-col gap-2">
                     ${btn}
                     ${getCancelNotice()}
                   </div>
-                    </div>
-                  </div>`;
+                </div>
+              </div>`;
           })
           .join("");
         const isAdmin =
@@ -8501,7 +8497,7 @@
                     </div>
                     
                     <div class="p-4">
-                      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">${list}</div>
+                      <div class="flex flex-col gap-4 w-full">${list}</div>
                       
                       <div class="mt-4 pt-3 border-t border-gray-100">
                         <div class="flex justify-between items-center">
@@ -8776,6 +8772,7 @@
               myEntry: null,
               waitPosition: null,
               restaurantInfo: null,
+              restaurantId: null,
               applicantCount: (ev.applicants || []).length,
               waitingCount: (ev.waiting || []).length,
             };
@@ -8791,6 +8788,12 @@
 
           if (ev.type === "tasting" && Array.isArray(ev.restaurants)) {
             for (const restaurant of ev.restaurants) {
+              const restaurantId =
+                restaurant.id ||
+                restaurant.rid ||
+                restaurant.restaurantId ||
+                restaurant.name ||
+                "";
               const reservations = restaurant.reservations || [];
               const waitings = restaurant.waiting || [];
               const reservationIndex = reservations.findIndex(
@@ -8801,6 +8804,7 @@
                 restaurantName = restaurant.name || "";
                 myEntry = reservations[reservationIndex];
                 restaurantInfo = {
+                  id: restaurantId || null,
                   name: restaurant.name || "",
                   capacity: restaurant.capacity ?? reservations.length,
                   reservations: reservations.length,
@@ -8825,6 +8829,7 @@
                 waitPosition = waitingIndex + 1;
                 myEntry = waitings[waitingIndex];
                 restaurantInfo = {
+                  id: restaurantId || null,
                   name: restaurant.name || "",
                   capacity: restaurant.capacity ?? reservations.length,
                   reservations: reservations.length,
@@ -8899,10 +8904,12 @@
             myEntry,
             waitPosition,
             restaurantInfo,
+            restaurantId: restaurantInfo?.id || null,
             applicantCount: (ev.applicants || []).length,
             waitingCount: (ev.waiting || []).length,
           };
         };
+        window.getParticipationDetails = getParticipationDetails;
 
         const renderRatingStars = (rating) => {
           if (rating == null || Number.isNaN(Number(rating))) return "";
@@ -16462,9 +16469,11 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                         </div>
                         ${
                           restaurant.info
-                            ? `<p class="text-xs text-gray-600 mt-1">${saf(
-                                restaurant.info
-                              )}</p>`
+                            ? `<p class="text-xs mt-1 ${
+                                isRestaurantFull
+                                  ? "text-gray-400 line-through decoration-2 decoration-red-300"
+                                  : "text-gray-600"
+                              }">${saf(restaurant.info)}</p>`
                             : ""
                         }
                       </div>
@@ -21879,29 +21888,35 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                               restaurant.capacity || ev.limit || 0;
 
                             // 신청한 사람 이름 찾기
-                            const participantNames = reservations.map((res) => {
-                              const member = membersData?.find(
-                                (m) => m.studentId === res.studentId
-                              );
-                              return (
-                                member?.name ||
-                                res.name ||
-                                res.studentId ||
-                                "익명"
-                              );
-                            });
+                            const participantNames = reservations
+                              .slice()
+                              .reverse()
+                              .map((res) => {
+                                const member = membersData?.find(
+                                  (m) => m.studentId === res.studentId
+                                );
+                                return (
+                                  member?.name ||
+                                  res.name ||
+                                  res.studentId ||
+                                  "익명"
+                                );
+                              });
 
-                            const waitingNames = waiting.map((wait) => {
-                              const member = membersData?.find(
-                                (m) => m.studentId === wait.studentId
-                              );
-                              return (
-                                member?.name ||
-                                wait.name ||
-                                wait.studentId ||
-                                "익명"
-                              );
-                            });
+                            const waitingNames = waiting
+                              .slice()
+                              .reverse()
+                              .map((wait) => {
+                                const member = membersData?.find(
+                                  (m) => m.studentId === wait.studentId
+                                );
+                                return (
+                                  member?.name ||
+                                  wait.name ||
+                                  wait.studentId ||
+                                  "익명"
+                                );
+                              });
 
                             // 현재 사용자가 신청한 식당인지 확인
                             const isMyRestaurant =
@@ -21999,6 +22014,8 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                           <p class="text-xs font-semibold text-gray-600 mb-1">참가자 목록:</p>
                           <div class="flex flex-wrap gap-1">
                             ${ev.applicants
+                              .slice()
+                              .reverse()
                               .map((app) => {
                                 const member = membersData?.find(
                                   (m) => m.studentId === app.studentId
@@ -28474,48 +28491,131 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
           (r) => r.studentId === currentUser.studentId
         );
 
+        const formatReviewDateTime = (value) => {
+          if (!value) return "일시 미정";
+          const date = new Date(value);
+          if (Number.isNaN(date.getTime())) return "일시 미정";
+          const weekday = date.toLocaleDateString("ko-KR", {
+            weekday: "short",
+          });
+          return `${date.toLocaleDateString("ko-KR", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          })} (${weekday}) ${date.toLocaleTimeString("ko-KR", {
+            hour: "2-digit",
+            minute: "2-digit",
+          })}`;
+        };
+
+        const participation = getParticipationDetails(event);
+        const typeLabelText = typeLabel(event.type) || "이벤트";
+        const eventDateDisplay = formatReviewDateTime(event.datetime);
+        const highlightTitle =
+          event.type === "tasting" && participation.restaurantName
+            ? participation.restaurantName
+            : event.title || "이벤트";
+        const highlightSubtitle =
+          event.type === "tasting" && participation.restaurantName
+            ? event.title || ""
+            : "";
+        const selectedRestaurant =
+          event.type === "tasting" && Array.isArray(event.restaurants)
+            ? event.restaurants.find((restaurant) => {
+                const rid =
+                  restaurant.id ||
+                  restaurant.rid ||
+                  restaurant.restaurantId ||
+                  restaurant.name ||
+                  "";
+                if (participation.restaurantId) {
+                  return participation.restaurantId === rid;
+                }
+                return (restaurant.name || "") === participation.restaurantName;
+              }) || null
+            : null;
+        const highlightMenu = selectedRestaurant?.info || "";
+        const highlightStats =
+          event.type === "tasting" && participation.restaurantInfo
+            ? `
+                <div class="mt-3 flex flex-wrap justify-center gap-2 text-[11px] md:text-xs text-orange-700">
+                  <span class="inline-flex items-center gap-1 px-2 py-1 bg-white/70 rounded-full border border-orange-200">
+                    <i class="fas fa-users"></i>정원 ${
+                      participation.restaurantInfo.capacity ?? "-"
+                    }명
+                  </span>
+                  <span class="inline-flex items-center gap-1 px-2 py-1 bg-white/70 rounded-full border border-orange-200">
+                    <i class="fas fa-user-check"></i>신청 ${
+                      participation.restaurantInfo.reservations ?? 0
+                    }명
+                  </span>
+                  <span class="inline-flex items-center gap-1 px-2 py-1 bg-white/70 rounded-full border border-orange-200">
+                    <i class="fas fa-user-clock"></i>대기 ${
+                      participation.restaurantInfo.waiting ?? 0
+                    }명
+                  </span>
+                </div>
+              `
+            : "";
+        const highlightSection = `
+          <div class="rounded-3xl bg-gradient-to-br from-orange-100 via-white to-orange-50 border border-orange-200 shadow-sm px-4 py-5 text-center space-y-2">
+            <div class="inline-flex items-center justify-center gap-2 text-[11px] md:text-xs font-semibold uppercase tracking-wider text-orange-600">
+              <i class="fas fa-pen-nib"></i>${saf(typeLabelText)} 후기
+            </div>
+            <div class="text-2xl md:text-3xl font-black text-orange-900 leading-tight">
+              ${saf(highlightTitle)}
+            </div>
+            <div class="text-sm md:text-base font-semibold text-gray-800 tracking-tight">
+              ${saf(eventDateDisplay)}
+            </div>
+            ${
+              highlightSubtitle
+                ? `<div class="text-[12px] md:text-sm text-gray-500">${saf(
+                    highlightSubtitle
+                  )}</div>`
+                : ""
+            }
+            ${
+              highlightMenu
+                ? `<div class="mt-3 inline-flex items-start gap-2 rounded-2xl bg-white/80 px-3 py-2 text-left text-xs md:text-sm text-gray-700 border border-orange-200 shadow-inner">
+                    <span class="text-orange-500 font-semibold flex items-center gap-1">
+                      <i class="fas fa-utensils"></i>대표 메뉴
+                    </span>
+                    <span class="font-medium leading-snug">${saf(
+                      highlightMenu
+                    )}</span>
+                  </div>`
+                : ""
+            }
+            ${highlightStats}
+          </div>
+        `;
+        const metaSection = `
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs md:text-sm text-gray-600">
+            <div class="flex items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2">
+              <i class="fas fa-flag text-orange-500"></i>
+              <span class="font-semibold text-gray-700">이벤트</span>
+              <span class="text-gray-900 font-semibold truncate">${saf(
+                event.title || "-"
+              )}</span>
+            </div>
+            <div class="flex items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2">
+              <i class="fas fa-calendar-day text-blue-500"></i>
+              <span class="font-semibold text-gray-700">일시</span>
+              <span class="text-gray-900 font-semibold">${saf(
+                eventDateDisplay
+              )}</span>
+            </div>
+          </div>
+        `;
+
         document.getElementById(
           "review-modal-title"
         ).textContent = `${event.title} 평가`;
         document.getElementById("review-modal-content").innerHTML = `
-          <div class="space-y-3 md:space-y-4">
-            <div class="text-xs md:text-sm text-gray-600">
-              <p><strong>이벤트:</strong> ${saf(event.title)}</p>
-              <p><strong>일시:</strong> ${new Date(
-                event.datetime
-              ).toLocaleDateString("ko-KR")}</p>
-              ${
-                event.type === "tasting"
-                  ? (() => {
-                      const participation = getParticipationDetails(event);
-                      if (!participation.restaurantInfo) return "";
-                      const info = participation.restaurantInfo;
-                      const restaurant =
-                        event.restaurants?.find(
-                          (r) => r.id === participation.restaurantInfo.id
-                        ) || null;
-                      const menuLine = restaurant?.info
-                        ? `<p><strong>대표 메뉴:</strong> ${saf(
-                            restaurant.info
-                          )}</p>`
-                        : "";
-                      return `
-                        <div class="mt-2 rounded-lg bg-orange-50 border border-orange-200 px-3 py-2 text-[11px] md:text-xs text-orange-700">
-                          <p><strong>참여 식당:</strong> ${saf(
-                            info.name || "미정"
-                          )}</p>
-                          <p><strong>정원:</strong> ${
-                            info.capacity ?? "-"
-                          }명 · 신청 ${info.reservations}명 · 대기 ${
-                        info.waiting
-                      }명</p>
-                          ${menuLine}
-                        </div>
-                      `;
-                    })()
-                  : ""
-              }
-            </div>
+          <div class="space-y-4 md:space-y-5">
+            ${highlightSection}
+            ${metaSection}
             
             <div>
               <label class="block text-xs md:text-sm font-medium text-gray-700 mb-1 md:mb-2">평점</label>
