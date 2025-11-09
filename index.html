@@ -3206,7 +3206,7 @@
       const TRANSACTION_OPTIONS = { maxAttempts: 1 };
 
       // 관리자 대시보드 현재 탭 상태 저장
-      let currentDashboardTab = "members"; // 기본값: 회원 탭
+      let currentDashboardTab = "activities"; // 기본값: 활동 관리 탭
       let currentMainTab = "roadmap"; // 메인 탭 상태 저장 (기본값: 미식회)
 
       // settings
@@ -8660,8 +8660,22 @@
           .slice()
           .sort(
             (a, b) =>
-              new Date(b.datetime || 0).getTime() -
-              new Date(a.datetime || 0).getTime()
+              new Date(
+                b.datetime ||
+                  b.registrationStart ||
+                  b.createdAt ||
+                  b.created_at ||
+                  b.created ||
+                  0
+              ).getTime() -
+              new Date(
+                a.datetime ||
+                  a.registrationStart ||
+                  a.createdAt ||
+                  a.created_at ||
+                  a.created ||
+                  0
+              ).getTime()
           );
 
         const latestEvent = sortedMyEvents[0] || null;
@@ -15932,7 +15946,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
         });
 
         // 저장된 탭으로 복원, 기본값은 "회원" 탭
-        const initialTab = currentDashboardTab || "members";
+        const initialTab = currentDashboardTab || "activities";
         const initialBtn = c.querySelector(
           `.subtab-btn[data-sub="${initialTab}"]`
         );
@@ -16205,16 +16219,17 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
         const events = (eventsData || [])
           .filter((ev) => ev && ev.status !== "deleted")
           .sort((a, b) => {
-            const getTime = (event) =>
-              new Date(
-                event.datetime ||
-                  event.deadline ||
-                  event.createdAt ||
-                  event.created_at ||
-                  event.created ||
-                  0
-              ).getTime();
-            return getTime(b) - getTime(a);
+        const getTime = (event) =>
+          new Date(
+            event.datetime ||
+              event.deadline ||
+              event.registrationStart ||
+              event.createdAt ||
+              event.created_at ||
+              event.created ||
+              0
+          ).getTime();
+        return getTime(b) - getTime(a);
           });
 
         if (!events.length) {
