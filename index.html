@@ -3847,6 +3847,46 @@
         const v = Number(n || 0);
         return isNaN(v) ? "" : v.toLocaleString("ko-KR") + "원";
       };
+      const toDateSafe = (value) => {
+        if (!value) return null;
+        if (value instanceof Date) {
+          return Number.isNaN(value.getTime()) ? null : value;
+        }
+        if (
+          typeof value === "object" &&
+          value !== null &&
+          typeof value.toDate === "function"
+        ) {
+          try {
+            const converted = value.toDate();
+            if (
+              converted instanceof Date &&
+              !Number.isNaN(converted.getTime())
+            ) {
+              return converted;
+            }
+          } catch (err) {
+            // ignore conversion errors
+          }
+        }
+        if (typeof value === "number") {
+          const fromNumber = new Date(value);
+          return Number.isNaN(fromNumber.getTime()) ? null : fromNumber;
+        }
+        if (typeof value === "string") {
+          const fromString = new Date(value);
+          return Number.isNaN(fromString.getTime()) ? null : fromString;
+        }
+        return null;
+      };
+      const formatDateTimeForInput = (value) => {
+        const date = toDateSafe(value);
+        if (!date) return "";
+        const pad = (num) => String(num).padStart(2, "0");
+        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
+          date.getDate()
+        )}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+      };
       const timeAgo = (ms) => {
         const diff = (Date.now() - ms) / 1000;
         if (diff < 60) return `${Math.max(0, Math.floor(diff))}초 전`;
@@ -16271,9 +16311,8 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
         })();
 
         const formatDateTimeLabel = (value) => {
-          if (!value) return "미정";
-          const date = new Date(value);
-          if (Number.isNaN(date.getTime())) return "미정";
+          const date = toDateSafe(value);
+          if (!date) return "미정";
           return date.toLocaleString("ko-KR", {
             year: "numeric",
             month: "long",
@@ -25825,14 +25864,14 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                       : ""
                   }
                   
-                  <!-- 카테고리 표시 -->
+                  ${
+                    isAdmin
+                      ? `
+                  <!-- 카테고리 표시 (관리자 전용) -->
                   <div class="mt-2 flex items-center gap-2">
                     <span class="text-xs sm:text-sm text-gray-500 flex items-center">
                       <i class="fas fa-tags mr-1"></i>카테고리:
                     </span>
-                    ${
-                      isAdmin
-                        ? `
                       <select 
                         class="text-xs px-2 py-1 border border-gray-300 rounded-lg focus:border-orange-400 focus:outline-none bg-white"
                         data-action="update-category"
@@ -25852,16 +25891,10 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                           )
                           .join("")}
                       </select>
-                    `
-                        : `
-                      <span class="inline-flex items-center px-2 py-1 bg-orange-100 text-orange-800 rounded-full text-xs font-semibold">
-                              ${getCategoryEmoji(
-                                restaurant.restaurantCategory
-                              )} ${restaurant.restaurantCategory || "기타"}
-                      </span>
-                    `
-                    }
                   </div>
+                    `
+                      : ""
+                  }
                 </div>
 
                 ${
@@ -27225,23 +27258,22 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
         if (titleInput) titleInput.value = event.title || "";
 
         const datetimeInput = document.getElementById("tasting-datetime");
-        if (datetimeInput && event.datetime) {
-          const date = new Date(event.datetime);
-          datetimeInput.value = date.toISOString().slice(0, 16);
+        if (datetimeInput) {
+          datetimeInput.value = formatDateTimeForInput(event.datetime);
         }
 
         const registrationStartInput = document.getElementById(
           "tasting-registration-start"
         );
-        if (registrationStartInput && event.registrationStart) {
-          const date = new Date(event.registrationStart);
-          registrationStartInput.value = date.toISOString().slice(0, 16);
+        if (registrationStartInput) {
+          registrationStartInput.value = formatDateTimeForInput(
+            event.registrationStart
+          );
         }
 
         const deadlineInput = document.getElementById("tasting-deadline");
-        if (deadlineInput && event.deadline) {
-          const date = new Date(event.deadline);
-          deadlineInput.value = date.toISOString().slice(0, 16);
+        if (deadlineInput) {
+          deadlineInput.value = formatDateTimeForInput(event.deadline);
         }
 
         const limitInput = document.getElementById("tasting-limit");
@@ -28423,10 +28455,17 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
 
         if (eventType) eventType.value = event.type || "tasting";
         if (eventTitle) eventTitle.value = event.title || "";
-        if (eventDatetime) eventDatetime.value = event.datetime || "";
-        if (eventRegistrationStart)
-          eventRegistrationStart.value = event.registrationStart || "";
-        if (eventDeadline) eventDeadline.value = event.deadline || "";
+        if (eventDatetime) {
+          eventDatetime.value = formatDateTimeForInput(event.datetime);
+        }
+        if (eventRegistrationStart) {
+          eventRegistrationStart.value = formatDateTimeForInput(
+            event.registrationStart
+          );
+        }
+        if (eventDeadline) {
+          eventDeadline.value = formatDateTimeForInput(event.deadline);
+        }
         if (eventLimit) eventLimit.value = event.limit || "";
         if (eventStatus) eventStatus.value = event.status || "open";
 
@@ -28492,9 +28531,8 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
         );
 
         const formatReviewDateTime = (value) => {
-          if (!value) return "일시 미정";
-          const date = new Date(value);
-          if (Number.isNaN(date.getTime())) return "일시 미정";
+          const date = toDateSafe(value);
+          if (!date) return "일시 미정";
           const weekday = date.toLocaleDateString("ko-KR", {
             weekday: "short",
           });
