@@ -363,13 +363,13 @@
         box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
           0 4px 6px -2px rgba(0, 0, 0, 0.05);
       }
-      /* 로딩 화면 전체 화면 차지 */
+      /* 로딩 화면 */
       #loading-screen {
         display: flex !important;
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        background: linear-gradient(135deg, #fff5f0 0%, #ffffff 100%);
+        background: #ffffff;
         position: fixed !important;
         top: 0 !important;
         left: 0 !important;
@@ -383,111 +383,135 @@
         overflow: hidden !important;
       }
 
-      /* 로딩 애니메이션 컨테이너 */
-      .modern-loader {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 24px;
-      }
-
-      /* 세련된 점 3개 로딩 애니메이션 */
-      .loading-dots {
-        display: flex;
-        gap: 12px;
-        align-items: center;
-      }
-
-      .loading-dot {
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #f97316 0%, #fb923c 100%);
-        animation: dot-bounce 1.4s ease-in-out infinite;
-        box-shadow: 0 2px 8px rgba(249, 115, 22, 0.3);
-      }
-
-      .loading-dot:nth-child(1) {
-        animation-delay: 0s;
-      }
-
-      .loading-dot:nth-child(2) {
-        animation-delay: 0.2s;
-      }
-
-      .loading-dot:nth-child(3) {
-        animation-delay: 0.4s;
-      }
-
-      @keyframes dot-bounce {
-        0%,
-        80%,
-        100% {
-          transform: scale(0.8);
-          opacity: 0.5;
-        }
-        40% {
-          transform: scale(1.2);
-          opacity: 1;
-        }
-      }
-
-      /* 작은 Foodie 로고 */
-      .loading-logo {
-        font-size: 2rem;
-        font-weight: 600;
-        color: #f97316;
-        letter-spacing: 2px;
-        opacity: 0;
-        animation: fade-in-up 0.6s ease-out 0.3s forwards;
-        text-align: center;
-      }
-
-      .loading-logo .subtitle {
-        display: block;
-        font-size: 1rem;
-        font-weight: 500;
-        color: #f97316;
-        margin-top: 8px;
-        letter-spacing: 1px;
-        opacity: 0.9;
-      }
-
-      @keyframes fade-in-up {
-        from {
-          opacity: 0;
-          transform: translateY(10px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-
-      /* 배경 그라데이션 움직임 효과 */
       #loading-screen::before {
         content: "";
         position: absolute;
-        top: -50%;
-        left: -50%;
-        width: 200%;
-        height: 200%;
+        inset: 0;
         background: radial-gradient(
-          circle,
-          rgba(249, 115, 22, 0.05) 0%,
-          transparent 70%
-        );
-        animation: gradient-rotate 8s ease-in-out infinite;
-        z-index: -1;
+            circle at 20% 20%,
+            rgba(249, 115, 22, 0.08),
+            transparent 45%
+          ),
+          radial-gradient(
+            circle at 80% 30%,
+            rgba(251, 191, 36, 0.08),
+            transparent 55%
+          ),
+          radial-gradient(
+            circle at 50% 80%,
+            rgba(248, 113, 113, 0.06),
+            transparent 50%
+          );
+        opacity: 0.8;
+        pointer-events: none;
+        animation: loading-fade 12s ease-in-out infinite;
       }
 
-      @keyframes gradient-rotate {
+      @keyframes loading-fade {
         0%,
         100% {
-          transform: rotate(0deg);
+          transform: scale(1);
         }
         50% {
-          transform: rotate(180deg);
+          transform: scale(1.05);
+        }
+      }
+
+      .modern-loader {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 18px;
+        padding: 16px;
+      }
+
+      .loading-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 18px;
+        padding: 28px 36px;
+        border-radius: 28px;
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(249, 115, 22, 0.12);
+        box-shadow: 0 25px 45px -20px rgba(249, 115, 22, 0.35),
+          0 10px 25px -15px rgba(15, 23, 42, 0.25);
+        backdrop-filter: blur(12px);
+        max-width: 320px;
+        text-align: center;
+      }
+
+      .loading-foods {
+        display: flex;
+        gap: 18px;
+      }
+
+      .loading-foods .food-icon {
+        font-size: 2.6rem;
+        animation: food-bounce 1.2s ease-in-out infinite;
+        transform-origin: bottom center;
+        filter: drop-shadow(0 8px 12px rgba(15, 23, 42, 0.15));
+      }
+
+      .loading-foods .food-icon:nth-child(2) {
+        animation-delay: 0.15s;
+      }
+      .loading-foods .food-icon:nth-child(3) {
+        animation-delay: 0.3s;
+      }
+      .loading-foods .food-icon:nth-child(4) {
+        animation-delay: 0.45s;
+      }
+
+      @keyframes food-bounce {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        40% {
+          transform: translateY(-14px);
+        }
+        50% {
+          transform: translateY(-10px);
+        }
+      }
+
+      .loading-logo {
+        font-size: 1.8rem;
+        font-weight: 800;
+        letter-spacing: 2px;
+        color: #f97316;
+      }
+
+      .loading-subtitle {
+        font-size: 0.95rem;
+        color: #6b7280;
+        line-height: 1.5;
+      }
+
+      .loading-tip {
+        font-size: 0.85rem;
+        color: #94a3b8;
+        text-align: center;
+      }
+
+      @media (max-width: 640px) {
+        .loading-card {
+          padding: 24px 28px;
+          gap: 16px;
+        }
+        .loading-foods {
+          gap: 14px;
+        }
+        .loading-foods .food-icon {
+          font-size: 2.2rem;
+        }
+        .loading-logo {
+          font-size: 1.6rem;
+        }
+        .loading-subtitle {
+          font-size: 0.9rem;
         }
       }
 
@@ -555,6 +579,36 @@
         border-color: #fdba74;
         box-shadow: 0 2px 8px rgba(249, 115, 22, 0.15);
         transform: translateY(-1px);
+      }
+
+      /* 카테고리 필터 버튼 (미식회/뭐먹지) */
+      .category-filter-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        line-height: 1.2;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      .category-filter-btn .category-emoji {
+        font-size: 1.2rem;
+        line-height: 1;
+      }
+
+      .category-filter-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 15px -12px rgba(15, 23, 42, 0.3);
+      }
+
+      @media (max-width: 640px) {
+        .category-filter-btn {
+          gap: 0.35rem;
+          font-size: 0.85rem !important;
+          padding: 0.35rem 0.65rem !important;
+        }
+        .category-filter-btn .category-emoji {
+          font-size: 1.05rem;
+        }
       }
       .roadmap-subtab.active {
         background: #fff;
@@ -1929,18 +1983,21 @@
     >
       <!-- 심플하고 세련된 로딩 화면 -->
       <div class="modern-loader">
-        <!-- Foodie 로고와 텍스트 -->
-        <div class="loading-logo">
-          <strong class="font-bold">Foodie</strong>
-          <span class="subtitle">전북대학교 맛집 탐방 동아리</span>
+        <div class="loading-card">
+          <div class="loading-foods" aria-hidden="true">
+            <span class="food-icon">🍜</span>
+            <span class="food-icon">🍣</span>
+            <span class="food-icon">🍕</span>
+            <span class="food-icon">🍰</span>
+          </div>
+          <div class="loading-logo">Foodie</div>
+          <p class="loading-subtitle">
+            맛있는 데이터를 준비하고 있어요.<br />잠시만 기다려주세요!
+          </p>
         </div>
-
-        <!-- 점 3개 로딩 애니메이션 -->
-        <div class="loading-dots">
-          <div class="loading-dot"></div>
-          <div class="loading-dot"></div>
-          <div class="loading-dot"></div>
-        </div>
+        <p class="loading-tip">
+          연결 상황에 따라 자동으로 새로고침될 수 있습니다.
+        </p>
       </div>
     </div>
 
@@ -1989,19 +2046,20 @@
             >
               <span aria-hidden="true">🏅</span> 조모임
             </button>
-            <!-- 받은함 버튼 (알림 + 문의) -->
+            <!-- 내 활동 버튼 -->
             <button
               id="notification-badge"
-              class="text-sm md:text-base bg-orange-500 text-white rounded-full px-3 py-1 hover:bg-orange-600 shadow-md hover:shadow-lg transition-all relative"
-              aria-label="알림 확인"
+              class="text-sm md:text-base bg-orange-500 text-white rounded-full px-3 py-1 hover:bg-orange-600 shadow-md hover:shadow-lg transition-all relative flex items-center gap-1.5"
+              aria-label="내 활동 열기"
               aria-expanded="false"
               aria-controls="notification-pop"
-              title="알림 및 문의 확인"
+              title="내 활동 열기"
             >
-              <i class="fas fa-inbox mr-1" aria-hidden="true"></i>
+              <i class="fas fa-user-circle" aria-hidden="true"></i>
+              <span class="font-semibold">내 활동</span>
               <span
                 id="notification-count"
-                class="hidden bg-red-600 text-white text-xs font-bold rounded-full px-1.5 py-0.5 ml-0.5"
+                class="hidden bg-red-600 text-white text-[10px] font-bold rounded-full px-1 py-0.5"
                 aria-label="새 알림 개수"
                 >0</span
               >
@@ -2030,31 +2088,70 @@
           ></div>
         </div>
 
-        <!-- 알림 팝오버 -->
+        <!-- 내 활동 빠른보기 -->
         <div
           id="notification-pop"
-          class="hidden right-0 left-0 mx-auto md:left-auto md:right-10 md:mx-0 w-full max-w-sm bg-white border rounded-xl shadow-xl p-3 z-30 mt-2"
+          class="hidden right-0 left-0 mx-auto md:left-auto md:right-10 md:mx-0 w-full max-w-sm bg-white border rounded-2xl shadow-2xl p-4 z-30 mt-2"
           role="dialog"
-          aria-labelledby="notification-title"
+          aria-labelledby="my-page-quick-title"
           aria-modal="true"
         >
-          <div class="flex items-center justify-end mb-2">
-            <button
-              class="text-xs text-blue-600 hover:text-blue-800"
-              onclick="openInquiryModal()"
-              aria-label="문의 모달 열기"
+          <div class="space-y-4" id="my-page-quick-panel">
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <h3
+                  id="my-page-quick-title"
+                  class="text-base font-bold text-gray-800"
+                >
+                  내 활동 한눈에 보기
+                </h3>
+                <p class="text-xs text-gray-500">
+                  최근 신청 내역과 알림을 빠르게 확인하세요.
+                </p>
+              </div>
+              <button
+                type="button"
+                id="my-page-open-button"
+                class="text-xs bg-orange-500 hover:bg-orange-600 text-white px-3 py-1.5 rounded-full font-semibold shadow-sm transition-all flex items-center gap-1"
+              >
+                <i class="fas fa-user" aria-hidden="true"></i>내 활동 이동
+              </button>
+            </div>
+            <div
+              id="my-page-quick-summary"
+              class="bg-orange-50 border border-orange-200 rounded-xl px-4 py-3 text-sm text-gray-700"
             >
-              <i class="fas fa-paper-plane mr-1" aria-hidden="true"></i>문의
-              보내기
-            </button>
-          </div>
-          <div
-            id="notification-list"
-            class="max-h-80 overflow-auto text-sm"
-            role="list"
-            aria-label="알림 목록"
-          >
-            <div class="text-center text-gray-500 py-4">알림이 없습니다</div>
+              <div class="text-center text-gray-500 text-sm py-3">
+                내 활동 정보를 불러오는 중입니다...
+              </div>
+            </div>
+            <div class="border-t border-gray-100 pt-3">
+              <div class="flex items-center justify-between mb-2">
+                <h4
+                  class="text-sm font-semibold text-gray-800 flex items-center gap-2"
+                >
+                  <i class="fas fa-bell text-orange-500"></i>알림
+                </h4>
+                <button
+                  class="text-xs text-blue-600 hover:text-blue-800"
+                  onclick="openInquiryModal()"
+                  aria-label="문의 모달 열기"
+                >
+                  <i class="fas fa-paper-plane mr-1" aria-hidden="true"></i>문의
+                  보내기
+                </button>
+              </div>
+              <div
+                id="notification-list"
+                class="max-h-64 overflow-auto text-sm"
+                role="list"
+                aria-label="알림 목록"
+              >
+                <div class="text-center text-gray-500 py-4">
+                  알림이 없습니다
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </header>
@@ -2065,12 +2162,14 @@
           <div id="pre-login-info" class="space-y-6 md:space-y-8">
             <!-- 로그인 -->
             <div id="login-section" class="section max-w-lg mx-auto">
-                            <!-- 로그인 헤더 디자인 -->
+              <!-- 로그인 헤더 디자인 -->
               <div class="section mb-6">
                 <div class="text-center">
                   <!-- Foodie 로고 -->
                   <div class="mb-4">
-                    <h1 class="text-4xl md:text-5xl font-bold text-gray-800 mb-2">
+                    <h1
+                      class="text-4xl md:text-5xl font-bold text-gray-800 mb-2"
+                    >
                       Foodie
                     </h1>
                     <div class="flex justify-center gap-2 mt-2">
@@ -2081,7 +2180,9 @@
                   </div>
 
                   <!-- 동아리 소개 -->
-                  <p class="text-sm md:text-base text-gray-700 font-medium mb-1">
+                  <p
+                    class="text-sm md:text-base text-gray-700 font-medium mb-1"
+                  >
                     전북대학교 맛집 탐방 동아리✨
                   </p>
                   <p class="text-xs md:text-sm text-gray-600 mb-4">
@@ -2424,49 +2525,49 @@
               class="category-filter-btn active px-3 py-1.5 rounded-full bg-orange-500 text-white text-sm font-medium whitespace-nowrap"
               data-category="all"
             >
-              전체
+              <span class="category-label">전체</span>
             </button>
             <button
               class="category-filter-btn px-3 py-1.5 rounded-full bg-gray-200 text-gray-700 text-sm font-medium whitespace-nowrap hover:bg-gray-300"
               data-category="korean"
             >
-              한식
+              <span class="category-label">한식</span>
             </button>
             <button
               class="category-filter-btn px-3 py-1.5 rounded-full bg-gray-200 text-gray-700 text-sm font-medium whitespace-nowrap hover:bg-gray-300"
               data-category="japanese"
             >
-              일식
+              <span class="category-label">일식</span>
             </button>
             <button
               class="category-filter-btn px-3 py-1.5 rounded-full bg-gray-200 text-gray-700 text-sm font-medium whitespace-nowrap hover:bg-gray-300"
               data-category="chinese"
             >
-              중식
+              <span class="category-label">중식</span>
             </button>
             <button
               class="category-filter-btn px-3 py-1.5 rounded-full bg-gray-200 text-gray-700 text-sm font-medium whitespace-nowrap hover:bg-gray-300"
               data-category="western"
             >
-              양식
+              <span class="category-label">양식</span>
             </button>
             <button
               class="category-filter-btn px-3 py-1.5 rounded-full bg-gray-200 text-gray-700 text-sm font-medium whitespace-nowrap hover:bg-gray-300"
               data-category="asian"
             >
-              아시안
+              <span class="category-label">아시안</span>
             </button>
             <button
               class="category-filter-btn px-3 py-1.5 rounded-full bg-gray-200 text-gray-700 text-sm font-medium whitespace-nowrap hover:bg-gray-300"
               data-category="snack"
             >
-              분식
+              <span class="category-label">분식</span>
             </button>
             <button
               class="category-filter-btn px-3 py-1.5 rounded-full bg-gray-200 text-gray-700 text-sm font-medium whitespace-nowrap hover:bg-gray-300"
               data-category="dessert"
             >
-              디저트
+              <span class="category-label">디저트</span>
             </button>
           </div>
 
@@ -3090,6 +3191,7 @@
       let presidentPositions = []; // 회장단 직책 (회장, 부회장 외 추가 가능)
       let regularPositions = []; // 일반 임원 직책 (운영진 외 추가 가능)
       const MASTER_CODE = "foodie_emergency_2024!";
+      const TRANSACTION_OPTIONS = { maxAttempts: 1 };
 
       // 관리자 대시보드 현재 탭 상태 저장
       let currentDashboardTab = "members"; // 기본값: 회원 탭
@@ -3130,6 +3232,12 @@
       ]; // 미식회 카테고리 목록
       let roadmapShowAll = false;
       let presenceTimer = null;
+      let myProfileData = null;
+      let myProfileLoading = false;
+      let autoCloseSchedulerStarted = false;
+      let autoCloseMinuteIntervalId = null;
+      let autoCloseHourlyTimeoutId = null;
+      let autoCloseHourlyIntervalId = null;
 
       // 홈블록 폼 편집 상태
       let editingBlockId_notice = null;
@@ -3202,6 +3310,21 @@
         if (el.alert) el.alert.classList.add("hidden");
       };
       const closeEmergencyModal = () => el.emerg.classList.add("hidden");
+
+      const updateMyPageQuickSummary = (html) => {
+        const summaryEl = document.getElementById("my-page-quick-summary");
+        if (summaryEl) summaryEl.innerHTML = html;
+      };
+
+      const scrollToMyPageSection = () => {
+        el.notificationPop?.classList.add("hidden");
+        const section =
+          document.getElementById("my-page-section") ||
+          document.getElementById("my-activity-section");
+        if (section) {
+          section.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      };
 
       // 클립보드 복사 함수
       const copyToClipboard = async (text) => {
@@ -3755,6 +3878,7 @@
           archived: "숨김",
           closed: "마감됨",
           completed: "종료됨",
+          cancelled: "취소됨",
         }[s] || s);
       const saf = (x) =>
         window.DOMPurify
@@ -4112,6 +4236,8 @@
           } else {
             // 이름이 입력된 경우 비상복구모드로 로그인
             currentUser = { studentId: sid, name: nm };
+            myProfileData = null;
+            myProfileLoading = false;
 
             // 비상복구모드에서는 관리자 권한 부여
             adminList = [sid];
@@ -4188,6 +4314,8 @@
             );
 
           currentUser = { studentId: sid, name: nm, status: status };
+          myProfileData = null;
+          myProfileLoading = false;
 
           // 자동 로그인 체크박스가 체크된 경우 정보 저장
           const autoLoginCheckbox = document.getElementById(
@@ -4241,7 +4369,10 @@
           currentUser = null;
           clearAdmin();
           clearAutoLogin(); // 자동 로그인 정보 삭제
+          myProfileData = null;
+          myProfileLoading = false;
           await signOut(auth);
+          clearAutoCloseScheduler();
 
           // 로그아웃 시 버튼 가시성 업데이트
           updateGameButtonsVisibility();
@@ -4425,6 +4556,14 @@
           !e.target.closest("#presence-pop")
         )
           el.presencePop.classList.add("hidden");
+        if (
+          !e.target.closest("#notification-badge") &&
+          !e.target.closest("#notification-pop")
+        ) {
+          el.notificationPop?.classList.add("hidden");
+          const notificationBtn = document.getElementById("notification-badge");
+          notificationBtn?.setAttribute("aria-expanded", "false");
+        }
       });
       document
         .getElementById("presence-badge")
@@ -4436,7 +4575,19 @@
       const notificationBadgeEl = document.getElementById("notification-badge");
       if (notificationBadgeEl) {
         notificationBadgeEl.addEventListener("click", () => {
-          el.notificationPop?.classList.toggle("hidden");
+          if (!el.notificationPop) return;
+          const isHidden = el.notificationPop.classList.toggle("hidden");
+          notificationBadgeEl.setAttribute(
+            "aria-expanded",
+            (!isHidden).toString()
+          );
+        });
+      }
+      const myPageOpenButton = document.getElementById("my-page-open-button");
+      if (myPageOpenButton) {
+        myPageOpenButton.addEventListener("click", (event) => {
+          event.preventDefault();
+          scrollToMyPageSection();
         });
       }
 
@@ -5058,6 +5209,12 @@
           renderPresenceUI();
         }
 
+        if (isFullAdmin()) {
+          setupAutoCloseScheduler();
+        } else if (autoCloseSchedulerStarted) {
+          clearAutoCloseScheduler();
+        }
+
         // 게임 점수 데이터 로드 (모든 로그인 사용자)
         if (currentUser) {
           loadGameScores();
@@ -5077,6 +5234,8 @@
           );
           if (saved) {
             currentUser = saved;
+            myProfileData = null;
+            myProfileLoading = false;
             verifyAutoLogin(saved).catch(() => {});
             startPresence();
           }
@@ -5264,9 +5423,6 @@
                     <p class="text-sm md:text-base text-red-800 leading-relaxed mb-3">
                       인터넷 연결을 확인해주세요. 연결이 복구되면 데이터가 자동으로 로드됩니다.
                     </p>
-                    <button type="button" onclick="location.reload()" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition-colors">
-                      <i class="fas fa-redo mr-2"></i>페이지 새로고침
-                    </button>
                   </div>
                 </div>
               </div>
@@ -5290,9 +5446,6 @@
                     <p class="text-sm md:text-base text-yellow-800 leading-relaxed mb-3">
                       서버 연결에 문제가 있을 수 있습니다. 잠시 후 자동으로 재시도됩니다.
                     </p>
-                    <button type="button" onclick="location.reload()" class="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg font-semibold transition-colors">
-                      <i class="fas fa-redo mr-2"></i>지금 새로고침
-                    </button>
                   </div>
                 </div>
               </div>
@@ -5353,7 +5506,7 @@
             <div class="mb-6 md:mb-8 bg-gradient-to-r from-gray-100 to-gray-50 rounded-2xl p-2 flex flex-nowrap justify-center gap-2 shadow-inner" id="tab-buttons">
               <button type="button" data-tab="roadmap" class="tab-btn flex-1 py-4 sm:py-5 px-4 sm:px-5 md:px-7 rounded-xl font-bold active transition-all duration-300 ease-out whitespace-nowrap">
                 <i class="fas fa-utensils mr-1.5 sm:mr-2 text-base sm:text-lg md:text-xl"></i>
-                <span class="text-base sm:text-lg md:text-xl">미식회</span>
+                <span class="text-base sm:text-lg md:text-xl">미식회 후기</span>
               </button>
               <button type="button" data-tab="reservation" class="tab-btn flex-1 py-4 sm:py-5 px-4 sm:px-5 md:px-7 rounded-xl font-bold transition-all duration-300 ease-out whitespace-nowrap ${
                 isPendingMember ? "hidden" : ""
@@ -7910,9 +8063,7 @@
                   ev.id
                 }" data-rid="${r.id}">
                   <i class="fas ${cnt < cap ? "fa-check" : "fa-clock"}"></i>
-                  <span>${
-                    cnt < cap ? "활동 신청" : "신청 마감 / 대기하기"
-                  }</span>
+                  <span>${cnt < cap ? "활동 신청" : "대기자 신청"}</span>
                 </button>`;
               }
             } else {
@@ -7958,11 +8109,12 @@
 
               if (items.length === 0) return "";
 
-              if (items.length <= 4) {
+              const maxVisible = 2;
+              if (items.length <= maxVisible) {
                 return items.join("");
               } else {
-                const visibleItems = items.slice(0, 4).join("");
-                const hiddenItems = items.slice(4).join("");
+                const visibleItems = items.slice(0, maxVisible).join("");
+                const hiddenItems = items.slice(maxVisible).join("");
                 const uniqueId = `restaurant-${restaurantId}-${type}`;
                 return `
                   ${visibleItems}
@@ -7973,10 +8125,10 @@
                     class="mt-2 w-full text-sm text-orange-600 hover:text-orange-700 font-semibold py-2 px-3 bg-orange-50 hover:bg-orange-100 rounded-lg transition-all flex items-center justify-center gap-2 border border-orange-200"
                     data-toggle-id="${uniqueId}"
                     onclick="toggleParticipantsList(event, '${uniqueId}', ${
-                  items.length - 4
+                  items.length - maxVisible
                 })">
                     <i class="fas fa-chevron-down"></i>
-                    <span>외 ${items.length - 4}명 더보기</span>
+                    <span>외 ${items.length - maxVisible}명 더보기</span>
                   </button>
                 `;
               }
@@ -8090,54 +8242,72 @@
                     }
                   </div>`
                 : "";
-            return `<div class="p-4 bg-gray-50 rounded-lg">
-                    <div class="flex items-start gap-4 mb-3">
-                    ${
-                      r.imageUrl
-                        ? `<div class="flex-shrink-0">
-                              <img src="${saf(r.imageUrl)}" alt="${saf(
-                            r.name
-                          )}" class="w-16 h-16 object-cover rounded-lg" onerror="this.style.display='none'">
-                            </div>`
-                        : ""
-                    }
-                      
-                      <div class="flex-1 min-w-0">
-                        <div class="flex items-center justify-between mb-2">
-                          <h4 class="font-bold text-base text-gray-800">${saf(
-                            r.name
-                          )}</h4>
+            return `
+              <div class="restaurant-card border-2 border-orange-200/70 rounded-3xl bg-white/95 shadow-sm hover:shadow-lg transition-all duration-300 p-5 space-y-4">
+                <div class="flex flex-col lg:flex-row lg:items-stretch gap-5">
+                  ${
+                    r.imageUrl
+                      ? `<div class="w-full lg:w-48 flex-shrink-0">
+                          <img src="${saf(r.imageUrl)}" alt="${saf(
+                          r.name
+                        )}" class="w-full h-40 object-cover rounded-2xl border border-orange-100" onerror="this.style.display='none'">
+                        </div>`
+                      : ""
+                  }
+                  <div class="flex-1 min-w-0 space-y-3">
+                    <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+                      <div class="space-y-1">
+                        <div class="flex items-center gap-2 flex-wrap">
+                          <h4 class="font-bold text-lg ${
+                            cnt >= cap && cap > 0
+                              ? "text-gray-400 line-through decoration-2 decoration-red-400"
+                              : "text-gray-900"
+                          }">${saf(r.name)}</h4>
                           ${
-                            currentUser &&
-                            adminList.includes(currentUser.studentId)
-                              ? `
-                          <span class="text-xs text-gray-600 bg-white px-2 py-1 rounded-full">
-                            ${cnt}/${cap}명
-                          </span>
-                          `
+                            cnt >= cap && cap > 0
+                              ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-100 text-red-600 text-[11px] font-semibold">
+                                  <i class="fas fa-ban text-xs"></i>마감
+                                </span>`
                               : ""
                           }
                         </div>
-                        <p class="text-xs text-gray-600">${saf(
-                          r.info || ""
+                        <p class="text-sm text-gray-600 mt-1">${saf(
+                          r.info || "세부 정보가 아직 없습니다."
                         )}</p>
+                      </div>
+                      <div class="hidden lg:flex flex-col items-end gap-1 text-xs text-gray-500">
+                        <span class="px-2 py-1 rounded-full bg-orange-50 border border-orange-200 font-semibold text-gray-800">
+                          정원 ${cnt}/${cap}
+                        </span>
+                        ${
+                          currentUser &&
+                          adminList.includes(currentUser.studentId)
+                            ? `<span class="px-2 py-1 rounded-full bg-slate-50 border border-slate-200">
+                                예약 ${cnt} · 대기 ${(r.waiting || []).length}
+                              </span>`
+                            : ""
+                        }
+                      </div>
                     </div>
-                    </div>
-                    
                     ${
                       currentUser
                         ? `
-                    ${namesList}
-                    ${waitingList}
-                    `
+                          ${namesList}
+                          ${waitingList}
+                        `
                         : ""
                     }
-                    
-                    <div class="w-full">
+                  </div>
+                  <div class="w-full lg:w-64 flex flex-col gap-2">
+                    <div class="lg:hidden flex items-center justify-between text-xs text-gray-600 bg-orange-50 border border-orange-100 px-3 py-2 rounded-xl">
+                      <span>정원</span>
+                      <span class="font-semibold text-gray-800">${cnt}/${cap}명</span>
+                    </div>
                     ${btn}
                     ${getCancelNotice()}
-                    </div>
-                  </div>`;
+                  </div>
+                </div>
+              </div>`;
           })
           .join("");
         const isAdmin =
@@ -8284,6 +8454,7 @@
           if (e.status === "archived") return false;
           if (e.status === "completed") return false;
           if (e.status === "deleted") return false; // 삭제된 이벤트 제외
+          if (e.status === "cancelled") return false;
           return true;
         });
 
@@ -8291,41 +8462,785 @@
           ? eventsData.filter((e) => e.status === "archived")
           : [];
 
-        // 내 활동 내역 (참가한 과거 이벤트)
-        const myPastEvents = currentUser
-          ? eventsData.filter((ev) => {
-              // 삭제된 이벤트는 제외
-              if (ev.status === "deleted") return false;
+        // 내 활동 내역 및 프로필 정보 준비
+        const isUserParticipating = (ev) => {
+          if (!currentUser) return false;
+          const sid = currentUser.studentId;
+          if (!sid) return false;
+          if (ev.applicants?.some((a) => a.studentId === sid)) return true;
+          if (ev.waiting?.some?.((a) => a.studentId === sid)) return true;
+          if (Array.isArray(ev.restaurants)) {
+            return ev.restaurants.some(
+              (restaurant) =>
+                restaurant.reservations?.some((res) => res.studentId === sid) ||
+                restaurant.waiting?.some((res) => res.studentId === sid)
+            );
+          }
+          return false;
+        };
 
-              // 신청자 목록에서 현재 사용자 확인
-              const isApplicant = ev.applicants?.some(
-                (a) => a.studentId === currentUser.studentId
-              );
+        if (!currentUser) {
+          myProfileData = null;
+          myProfileLoading = false;
+        } else {
+          if (
+            myProfileData &&
+            myProfileData.__uid &&
+            myProfileData.__uid !== currentUser.studentId
+          ) {
+            myProfileData = null;
+          }
+          if (!myProfileData && !myProfileLoading) {
+            myProfileLoading = true;
+            getCurrentMemberProfile()
+              .then((data) => {
+                myProfileData = {
+                  ...(data || {}),
+                  __uid: currentUser.studentId || null,
+                };
+              })
+              .catch((error) =>
+                console.warn("프로필 로드 실패:", error?.message || error)
+              )
+              .finally(() => {
+                myProfileLoading = false;
+                renderReservationTab(isAdmin);
+              });
+          }
+        }
 
-              // 미식회의 경우 각 식당별 예약자 확인
-              let isRestaurantApplicant = false;
-              if (ev.type === "tasting" && ev.restaurants) {
-                isRestaurantApplicant = ev.restaurants.some((r) =>
-                  r.reservations?.some(
-                    (res) => res.studentId === currentUser.studentId
-                  )
-                );
-              }
+        const myAppliedEvents = currentUser
+          ? eventsData.filter(
+              (ev) =>
+                ev.status !== "deleted" &&
+                ev.status !== "cancelled" &&
+                isUserParticipating(ev)
+            )
+          : [];
 
-              const isParticipant = isApplicant || isRestaurantApplicant;
+        const sortedMyEvents = myAppliedEvents
+          .slice()
+          .sort(
+            (a, b) =>
+              new Date(b.datetime || 0).getTime() -
+              new Date(a.datetime || 0).getTime()
+          );
 
-              // 마감된 이벤트, 보관된 이벤트, 완료된 이벤트, 또는 이미 지난 이벤트
-              const isClosed =
-                ev.status === "closed" ||
-                ev.status === "archived" ||
-                ev.status === "completed";
-              const eventDate = new Date(ev.datetime);
-              const today = new Date();
-              const isPastEvent = eventDate < today;
+        const latestEvent = sortedMyEvents[0] || null;
+        const remainingEvents = latestEvent ? sortedMyEvents.slice(1) : [];
 
-              return isParticipant && (isClosed || isPastEvent);
+        const today = new Date();
+        const myUpcomingEvents = currentUser
+          ? myAppliedEvents.filter((ev) => {
+              if (ev.status === "completed") return false;
+              const dt = ev.datetime ? new Date(ev.datetime) : null;
+              return dt && dt >= today;
             })
           : [];
+
+        const nextUpcoming = myUpcomingEvents
+          .slice()
+          .sort(
+            (a, b) =>
+              new Date(a.datetime || 0).getTime() -
+              new Date(b.datetime || 0).getTime()
+          )[0];
+
+        const stats = sortedMyEvents.reduce(
+          (acc, ev) => {
+            if (ev.type === "tasting") acc.tasting += 1;
+            else if (ev.type === "mt") acc.mt += 1;
+            else if (ev.type === "assembly") acc.assembly += 1;
+            else acc.general += 1;
+
+            if (
+              (ev.reviews || []).some(
+                (r) => r.studentId === (currentUser?.studentId || "")
+              )
+            ) {
+              acc.reviews += 1;
+            }
+            return acc;
+          },
+          { tasting: 0, mt: 0, assembly: 0, general: 0, reviews: 0 }
+        );
+        stats.total = sortedMyEvents.length;
+        stats.upcoming = myUpcomingEvents.length;
+
+        const formatDateTime = (value) => {
+          if (!value) return "일정 미정";
+          const date = new Date(value);
+          if (Number.isNaN(date.getTime())) return "일정 미정";
+          const weekday = date.toLocaleDateString("ko-KR", {
+            weekday: "short",
+          });
+          return `${date.toLocaleDateString("ko-KR", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          })} (${weekday}) ${date.toLocaleTimeString("ko-KR", {
+            hour: "2-digit",
+            minute: "2-digit",
+          })}`;
+        };
+
+        const getEventMeta = (type) => {
+          switch (type) {
+            case "tasting":
+              return {
+                icon: "🍽️",
+                label: "미식회",
+                chipClass: "bg-orange-100 text-orange-700",
+              };
+            case "mt":
+              return {
+                icon: "🏕️",
+                label: "MT",
+                chipClass: "bg-emerald-100 text-emerald-700",
+              };
+            case "assembly":
+              return {
+                icon: "🎤",
+                label: "총회",
+                chipClass: "bg-purple-100 text-purple-700",
+              };
+            default:
+              return {
+                icon: "📅",
+                label: "이벤트",
+                chipClass: "bg-blue-100 text-blue-700",
+              };
+          }
+        };
+
+        const formatPhoneNumber = (value) => {
+          if (!value) return "";
+          const digits = String(value).replace(/\D/g, "");
+          if (digits.length === 10)
+            return digits.replace(/(\d{3})(\d{3})(\d{4})/, "$1-$2-$3");
+          if (digits.length === 11)
+            return digits.replace(/(\d{3})(\d{4})(\d{4})/, "$1-$2-$3");
+          return value;
+        };
+
+        const formatDisplay = (value) => {
+          if (value == null || String(value).trim() === "") {
+            return '<span class="text-gray-400">-</span>';
+          }
+          return saf(String(value));
+        };
+
+        const getParticipationDetails = (ev) => {
+          if (!currentUser?.studentId) {
+            return {
+              restaurantName: "",
+              companionsLine: "",
+              isWaitlisted: false,
+              myEntry: null,
+              waitPosition: null,
+              restaurantInfo: null,
+              applicantCount: (ev.applicants || []).length,
+              waitingCount: (ev.waiting || []).length,
+            };
+          }
+
+          const sid = currentUser.studentId;
+          let restaurantName = "";
+          let restaurantInfo = null;
+          let isWaitlisted = false;
+          let waitPosition = null;
+          let myEntry = null;
+          const companionNames = [];
+
+          if (ev.type === "tasting" && Array.isArray(ev.restaurants)) {
+            for (const restaurant of ev.restaurants) {
+              const reservations = restaurant.reservations || [];
+              const waitings = restaurant.waiting || [];
+              const reservationIndex = reservations.findIndex(
+                (res) => res.studentId === sid
+              );
+
+              if (reservationIndex >= 0) {
+                restaurantName = restaurant.name || "";
+                myEntry = reservations[reservationIndex];
+                restaurantInfo = {
+                  name: restaurant.name || "",
+                  capacity: restaurant.capacity ?? reservations.length,
+                  reservations: reservations.length,
+                  waiting: waitings.length,
+                };
+                reservations.forEach((res) => {
+                  if (res.studentId !== sid) {
+                    companionNames.push(
+                      res.name || maskStudentIdGlobal(res.studentId)
+                    );
+                  }
+                });
+                break;
+              }
+
+              const waitingIndex = waitings.findIndex(
+                (res) => res.studentId === sid
+              );
+              if (waitingIndex >= 0) {
+                restaurantName = restaurant.name || "";
+                isWaitlisted = true;
+                waitPosition = waitingIndex + 1;
+                myEntry = waitings[waitingIndex];
+                restaurantInfo = {
+                  name: restaurant.name || "",
+                  capacity: restaurant.capacity ?? reservations.length,
+                  reservations: reservations.length,
+                  waiting: waitings.length,
+                };
+                waitings.forEach((res) => {
+                  if (res.studentId !== sid) {
+                    companionNames.push(
+                      res.name || maskStudentIdGlobal(res.studentId)
+                    );
+                  }
+                });
+                break;
+              }
+            }
+          } else {
+            const applicants = ev.applicants || [];
+            const waiting = ev.waiting || [];
+            const applicantIndex = applicants.findIndex(
+              (applicant) => applicant.studentId === sid
+            );
+            const waitingIndex = waiting.findIndex(
+              (applicant) => applicant.studentId === sid
+            );
+
+            if (applicantIndex >= 0) {
+              myEntry = applicants[applicantIndex];
+              applicants.forEach((applicant, index) => {
+                if (applicant.studentId !== sid) {
+                  companionNames.push(
+                    applicant.name || maskStudentIdGlobal(applicant.studentId)
+                  );
+                }
+              });
+            } else if (waitingIndex >= 0) {
+              myEntry = waiting[waitingIndex];
+              isWaitlisted = true;
+              waitPosition = waitingIndex + 1;
+              waiting.forEach((applicant) => {
+                if (applicant.studentId !== sid) {
+                  companionNames.push(
+                    applicant.name || maskStudentIdGlobal(applicant.studentId)
+                  );
+                }
+              });
+            } else {
+              applicants.forEach((applicant) => {
+                companionNames.push(
+                  applicant.name || maskStudentIdGlobal(applicant.studentId)
+                );
+              });
+            }
+          }
+
+          let companionsLine = "";
+          if (companionNames.length > 0) {
+            const uniqueNames = [
+              ...new Set(companionNames.filter((name) => !!name)),
+            ].map((name) => saf(name));
+            const displayNames = uniqueNames.slice(0, 3).join(", ");
+            const extraCount =
+              uniqueNames.length > 3 ? ` 외 ${uniqueNames.length - 3}명` : "";
+            companionsLine = `함께한 회원: ${displayNames}${extraCount}`;
+          } else if (isWaitlisted) {
+            companionsLine = "대기 목록에 등록되어 있습니다.";
+          }
+
+          return {
+            restaurantName,
+            companionsLine,
+            isWaitlisted,
+            myEntry,
+            waitPosition,
+            restaurantInfo,
+            applicantCount: (ev.applicants || []).length,
+            waitingCount: (ev.waiting || []).length,
+          };
+        };
+
+        const renderRatingStars = (rating) => {
+          if (rating == null || Number.isNaN(Number(rating))) return "";
+          const rounded = Math.round(Number(rating));
+          return `
+            <div class="flex items-center gap-0.5" aria-label="별점 ${Number(
+              rating
+            ).toFixed(1)}점">
+              ${[1, 2, 3, 4, 5]
+                .map(
+                  (star) =>
+                    `<i class="fas fa-star ${
+                      star <= rounded ? "text-yellow-400" : "text-gray-300"
+                    }"></i>`
+                )
+                .join("")}
+              <span class="text-xs text-gray-600 ml-1">${Number(rating).toFixed(
+                1
+              )}</span>
+            </div>
+          `;
+        };
+
+        const renderMyEventCard = (ev, { featured = false } = {}) => {
+          const meta = getEventMeta(ev.type);
+          const participation = getParticipationDetails(ev);
+          const myEntry = participation.myEntry;
+          const reviewEntry = (ev.reviews || []).find(
+            (r) => r.studentId === (currentUser?.studentId || "")
+          );
+          const eventDate = ev.datetime ? new Date(ev.datetime) : null;
+          const primaryTitle =
+            participation.restaurantName || ev.title || "무제";
+          const subtitleTitle =
+            (!participation.restaurantName || ev.type !== "tasting") && ev.title
+              ? ev.title
+              : "";
+
+          let statusLabel = "";
+          let statusClass = "";
+          const now = new Date();
+          if (participation.isWaitlisted) {
+            statusLabel = "대기중";
+            statusClass = "bg-yellow-100 text-yellow-700";
+          } else if (ev.status === "cancelled") {
+            statusLabel = "취소됨";
+            statusClass = "bg-red-100 text-red-700";
+          } else if (ev.status === "completed") {
+            statusLabel = "완료";
+            statusClass = "bg-slate-200 text-slate-700";
+          } else if (ev.status === "archived" || ev.status === "closed") {
+            statusLabel = "마감";
+            statusClass = "bg-gray-200 text-gray-700";
+          } else if (eventDate && eventDate >= now) {
+            statusLabel = "예정";
+            statusClass = "bg-emerald-100 text-emerald-700";
+          } else {
+            statusLabel = "진행중";
+            statusClass = "bg-blue-100 text-blue-700";
+          }
+
+          const detailItems = [];
+          detailItems.push({
+            icon: "fa-calendar-alt",
+            label: "이벤트 날짜",
+            value: formatDateTime(ev.datetime),
+          });
+          if (participation.waitPosition) {
+            detailItems.push({
+              icon: "fa-clock-rotate-left",
+              label: "대기 순번",
+              value: `${participation.waitPosition}번`,
+            });
+          }
+          if (
+            (ev.type === "mt" || ev.type === "assembly") &&
+            ev.payment &&
+            (ev.payment.amount || ev.payment.bank || ev.payment.number)
+          ) {
+            const amountText = ev.payment.amount
+              ? `${Number(ev.payment.amount).toLocaleString("ko-KR")}원`
+              : "미정";
+            const accountText =
+              ev.payment.bank && ev.payment.number
+                ? `${saf(ev.payment.bank)} ${saf(ev.payment.number)}${
+                    ev.payment.holder
+                      ? ` (예금주: ${saf(ev.payment.holder)})`
+                      : ""
+                  }`
+                : "미등록";
+
+            detailItems.push({
+              icon: "fa-wallet",
+              label: "회비 금액",
+              value: amountText,
+            });
+            detailItems.push({
+              icon: "fa-university",
+              label: "입금 계좌",
+              value: accountText,
+            });
+          }
+
+          const detailGridHTML = detailItems.length
+            ? `<div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-gray-600">
+                ${detailItems
+                  .map(
+                    (item) => `
+                  <div class="flex items-start gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2">
+                    <i class="fas ${item.icon} text-slate-500 mt-0.5"></i>
+                    <div>
+                      <div class="text-[11px] text-slate-500">${item.label}</div>
+                      <div class="font-semibold text-slate-800 leading-snug">${item.value}</div>
+                    </div>
+                  </div>`
+                  )
+                  .join("")}
+              </div>`
+            : "";
+
+          const containerClass = featured
+            ? "rounded-3xl border-2 border-blue-100 bg-white shadow-lg p-5 space-y-3"
+            : "rounded-2xl border border-gray-200 bg-white shadow-sm p-4 space-y-3";
+
+          const reviewButtonHTML =
+            ev.type === "mt" || ev.type === "assembly"
+              ? ""
+              : `<button type="button" class="px-3 py-2 text-xs rounded-lg ${
+                  reviewEntry
+                    ? "bg-stone-200 text-stone-700 hover:bg-stone-300"
+                    : "bg-orange-500 text-white hover:bg-orange-600"
+                } transition-colors" data-act="write-review" data-id="${ev.id}">
+                  <i class="fas ${
+                    reviewEntry ? "fa-edit" : "fa-pen-to-square"
+                  } mr-1"></i>${reviewEntry ? "후기 수정" : "후기 작성"}
+                </button>`;
+
+          const detailButtonHTML = `<button type="button" class="px-3 py-2 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors" onclick="showEventDetailModal('${ev.id}')">
+              <i class="fas fa-info-circle mr-1"></i>상세 보기
+            </button>`;
+
+          return `
+            <div class="${containerClass}">
+              <div class="flex items-start gap-3">
+                <div class="w-11 h-11 rounded-2xl bg-orange-100 flex items-center justify-center text-2xl">
+                  ${meta.icon}
+                </div>
+                <div class="flex-1 min-w-0 space-y-1">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full ${
+                  meta.chipClass
+                }">
+                  ${meta.label}
+                </span>
+                ${
+                  statusLabel
+                    ? `<span class="text-[11px] font-semibold px-2 py-0.5 rounded-full ${statusClass}">
+                        ${statusLabel}
+                      </span>`
+                    : ""
+                }
+                ${
+                  reviewEntry
+                    ? '<span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700 flex items-center gap-1"><i class="fas fa-star text-yellow-500"></i>작성</span>'
+                    : '<span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 flex items-center gap-1"><i class="fas fa-star"></i>미작성</span>'
+                }
+              </div>
+                  <h5 class="text-base font-bold text-gray-900 truncate">${saf(
+                    primaryTitle
+                  )}</h5>
+                  ${
+                    subtitleTitle
+                      ? `<p class="text-xs text-gray-500">${saf(
+                          subtitleTitle
+                        )}</p>`
+                      : ""
+                  }
+                  ${detailGridHTML}
+                </div>
+              </div>
+              <div class="flex flex-wrap items-center justify-end gap-2 pt-1">
+                ${detailButtonHTML}
+                ${reviewButtonHTML}
+              </div>
+            </div>
+          `;
+        };
+
+        const profile = myProfileData || {};
+        const membershipStatusMap = {
+          active: "활동중",
+          pending: "승인 대기",
+          blocked: "제한",
+          rejected: "반려",
+          inactive: "휴면",
+        };
+        const membershipStatus = currentUser
+          ? membershipStatusMap[currentUser.status] || "등록됨"
+          : "";
+
+        const profileItems = currentUser
+          ? [
+              { label: "이름", value: currentUser.name },
+              { label: "학번", value: currentUser.studentId },
+              { label: "단과대", value: profile.college },
+              { label: "학과", value: profile.department },
+              {
+                label: "학년",
+                value: profile.year ? `${profile.year}학년` : "",
+              },
+              {
+                label: "연락처",
+                value: profile.phone
+                  ? formatPhoneNumber(profile.phone)
+                  : profile.contact
+                  ? profile.contact
+                  : "",
+              },
+              { label: "직책", value: currentUser.position || "일반 회원" },
+              { label: "상태", value: membershipStatus },
+            ]
+          : [];
+
+        const profileGridHTML = profileItems
+          .map(
+            (item) => `
+            <div class="rounded-2xl border border-orange-100 bg-white px-4 py-3">
+              <div class="text-[11px] text-gray-500">${item.label}</div>
+              <div class="text-sm font-semibold text-gray-900">${formatDisplay(
+                item.value
+              )}</div>
+            </div>
+          `
+          )
+          .join("");
+
+        const statsHTML = currentUser
+          ? `
+          <div class="grid grid-cols-2 gap-3">
+            <div class="rounded-xl border border-orange-100 bg-orange-50/80 px-3 py-2 text-center">
+              <div class="text-[11px] text-gray-500">총 참여</div>
+              <div class="text-lg font-bold text-orange-600">${stats.total}</div>
+            </div>
+            <div class="rounded-xl border border-orange-100 bg-orange-50/80 px-3 py-2 text-center">
+              <div class="text-[11px] text-gray-500">미식회</div>
+              <div class="text-lg font-semibold text-orange-600">${stats.tasting}</div>
+            </div>
+            <div class="rounded-xl border border-emerald-100 bg-emerald-50/80 px-3 py-2 text-center">
+              <div class="text-[11px] text-gray-500">예정된 활동</div>
+              <div class="text-lg font-semibold text-emerald-600">${stats.upcoming}</div>
+            </div>
+            <div class="rounded-xl border border-yellow-100 bg-yellow-50/80 px-3 py-2 text-center">
+              <div class="text-[11px] text-gray-500">작성한 후기</div>
+              <div class="text-lg font-semibold text-yellow-600">${stats.reviews}</div>
+            </div>
+          </div>
+        `
+          : "";
+
+        const nextUpcomingHTML = nextUpcoming
+          ? `
+          <div class="mt-4 bg-orange-50 border border-orange-100 rounded-xl px-3 py-2 text-xs text-gray-700">
+            <div class="flex items-center justify-between gap-2">
+              <div class="font-semibold text-gray-800 truncate">
+                ${saf(nextUpcoming.title || "예정된 활동")}
+              </div>
+              <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-semibold text-[11px]">예정</span>
+            </div>
+            <div class="mt-1 flex items-center gap-1 text-[11px] text-gray-500">
+              <i class="fas fa-clock text-orange-500"></i>${formatDateTime(
+                nextUpcoming.datetime
+              )}
+            </div>
+          </div>
+        `
+          : latestEvent
+          ? `
+          <div class="mt-4 rounded-xl border border-blue-100 bg-blue-50/70 px-3 py-2 text-xs text-gray-600">
+            <div class="font-semibold text-gray-800 truncate">
+              최근 활동: ${saf(latestEvent.title || "활동")}
+            </div>
+            <div class="flex items-center gap-1 text-[11px]	text-gray-500 mt-1">
+              <i class="fas fa-flag-checkered text-blue-500"></i>${formatDateTime(
+                latestEvent.datetime
+              )}
+            </div>
+          </div>
+        `
+          : `
+          <div class="mt-4 rounded-xl border border-dashed border-orange-200 bg-orange-50/70 px-3 py-4 text-xs text-orange-600 text-center">
+            아직 신청한 활동이 없습니다.
+          </div>
+        `;
+
+        const myProfileHTML = "";
+
+        const latestEventHTML = latestEvent
+          ? renderMyEventCard(latestEvent, { featured: true })
+          : `
+          <div class="rounded-2xl border border-dashed border-blue-200 bg-blue-50/70 text-center text-sm text-blue-600 py-6">
+            아직 신청한 활동이 없습니다. 이벤트를 신청해보세요!
+          </div>
+        `;
+
+        const remainingEventsSection =
+          remainingEvents.length > 0
+            ? `
+          <div class="rounded-2xl bg-white border border-blue-100">
+            <button 
+              type="button" 
+              id="my-history-toggle"
+              class="w-full px-5 py-3 flex items-center justify-between text-sm font-semibold text-blue-800 hover:bg-blue-50 transition-colors"
+              aria-expanded="false"
+            >
+              <span class="toggle-label">지난 활동 ${
+                remainingEvents.length
+              }건 펼치기</span>
+              <i class="fas fa-chevron-down transition-transform" id="my-history-toggle-icon"></i>
+            </button>
+            <div id="my-history-content" class="hidden border-t border-blue-100 px-5 pb-5">
+              <div class="space-y-3 pt-4">
+                ${remainingEvents.map((ev) => renderMyEventCard(ev)).join("")}
+              </div>
+            </div>
+          </div>
+        `
+            : "";
+
+        const myHistoryHTML = currentUser
+          ? `
+        <section id="my-activity-section" class="section mt-6">
+          <div class="bg-blue-50 border-2 border-blue-200 rounded-3xl p-5 md:p-6 space-y-5">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+              <div>
+                <h3 class="text-xl font-extrabold text-blue-900 flex items-center gap-2">
+                  <i class="fas fa-circle-user text-blue-600"></i>내 활동
+                </h3>
+                <p class="text-sm text-blue-700">
+                  최근 신청한 활동 한 건만 먼저 보여드릴게요. 나머지는 클릭해서 확인하세요.
+                </p>
+              </div>
+              <div class="flex items-center gap-2 text-xs text-blue-700 flex-wrap">
+                <span class="px-2 py-1 bg-white rounded-full border border-blue-200 font-semibold">
+                  총 ${sortedMyEvents.length}건
+                </span>
+                ${
+                  stats.tasting
+                    ? `<span class="px-2 py-1 bg-white rounded-full border border-orange-200 text-orange-600 font-semibold">미식회 ${stats.tasting}</span>`
+                    : ""
+                }
+                ${
+                  stats.reviews
+                    ? `<span class="px-2 py-1 bg-white rounded-full border border-yellow-200 text-yellow-600 font-semibold"><i class="fas fa-star text-yellow-500 mr-1"></i>후기 ${stats.reviews}</span>`
+                    : ""
+                }
+              </div>
+            </div>
+            <div class="rounded-3xl bg-white shadow-md border border-blue-100 p-4 md:p-5">
+              ${latestEventHTML}
+            </div>
+            ${remainingEventsSection}
+          </div>
+        </section>
+        `
+          : "";
+
+        const quickEventSummaryHTML = latestEvent
+          ? (() => {
+              const meta = getEventMeta(latestEvent.type);
+              const participation = getParticipationDetails(latestEvent);
+              return `
+                <div class="rounded-2xl border border-blue-100 bg-blue-50/70 px-3 py-3 space-y-2">
+                  <div class="flex items-center justify-between gap-2">
+                    <div class="font-semibold text-gray-800 truncate">
+                      ${saf(latestEvent.title || "최근 신청한 활동")}
+                    </div>
+                    <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full ${
+                      meta.chipClass
+                    }">
+                      ${meta.label}
+                    </span>
+                  </div>
+                  <div class="flex flex-wrap items-center gap-2 text-[11px] text-gray-600">
+                    <span><i class="fas fa-calendar-day text-blue-500 mr-1"></i>${formatDateTime(
+                      latestEvent.datetime
+                    )}</span>
+                    ${
+                      participation.restaurantName
+                        ? `<span><i class="fas fa-utensils text-orange-500 mr-1"></i>${saf(
+                            participation.restaurantName
+                          )}</span>`
+                        : ""
+                    }
+                    ${
+                      participation.isWaitlisted
+                        ? '<span class="px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700 font-semibold">대기중</span>'
+                        : '<span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-semibold">신청완료</span>'
+                    }
+                  </div>
+                  ${
+                    participation.companionsLine
+                      ? `<p class="text-[11px] text-gray-500 leading-relaxed">${participation.companionsLine}</p>`
+                      : ""
+                  }
+                </div>
+              `;
+            })()
+          : `
+            <div class="rounded-2xl border border-dashed border-orange-200 bg-orange-50/60 px-3 py-4 text-xs text-orange-600 text-center">
+              아직 신청한 활동이 없습니다. 미식회와 이벤트를 신청해보세요!
+            </div>
+          `;
+
+        const quickSummaryHTML = currentUser
+          ? `
+          <div class="space-y-3 text-sm">
+            <div class="rounded-2xl border border-orange-100 bg-white px-4 py-3 shadow-sm">
+              <div class="flex items-center justify-between gap-2">
+                <div>
+                  <div class="flex items-center gap-2">
+                    <span class="font-semibold text-gray-900">${saf(
+                      currentUser.name || ""
+                    )}</span>
+                    <span class="text-[11px] px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 font-semibold">
+                      ${saf(currentUser.position || "일반 회원")}
+                    </span>
+                  </div>
+                  <p class="text-xs text-gray-500 mt-0.5">
+                    ${saf(currentUser.studentId || "-")}${
+              profile.department ? ` · ${saf(profile.department)}` : ""
+            }
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  class="text-xs bg-orange-500 hover:bg-orange-600 text-white px-3 py-1.5 rounded-full font-semibold shadow-sm transition-all flex items-center gap-1"
+                  onclick="scrollToMyPageSection()"
+                >
+                  <i class="fas fa-user"></i>내 활동 열기
+                </button>
+              </div>
+              <div class="flex flex-wrap items-center gap-2 text-[11px] text-gray-600 mt-2">
+                <span class="px-2 py-1 bg-orange-50 rounded-full border border-orange-200 font-semibold">
+                  총 ${stats.total}회 참여
+                </span>
+                <span><i class="fas fa-calendar-check mr-1 text-emerald-500"></i>예정 ${
+                  stats.upcoming
+                }</span>
+                <span><i class="fas fa-star mr-1 text-yellow-500"></i>후기 ${
+                  stats.reviews
+                }</span>
+              </div>
+              ${
+                nextUpcoming
+                  ? `<div class="mt-2 rounded-xl bg-orange-50 border border-orange-100 px-3 py-2 text-xs text-gray-700">
+                      <div class="font-semibold text-gray-800 truncate">
+                        다음 일정: ${saf(nextUpcoming.title || "예정된 활동")}
+                      </div>
+                      <div class="flex items-center gap-1 text-[11px] text-gray-500 mt-0.5">
+                        <i class="fas fa-clock text-orange-500"></i>${formatDateTime(
+                          nextUpcoming.datetime
+                        )}
+                      </div>
+                    </div>`
+                  : ""
+              }
+            </div>
+            ${quickEventSummaryHTML}
+          </div>
+        `
+          : `<div class="text-center text-gray-500 text-sm py-3">
+              로그인 후 내 활동을 확인할 수 있습니다.
+            </div>`;
+
+        updateMyPageQuickSummary(quickSummaryHTML);
 
         const activeListHTML =
           activeEvents.length === 0
@@ -8336,158 +9251,6 @@
                   .map(eventCardHTML)
                   .join("")}
                </div>`;
-
-        // 내 활동 내역 HTML (항상 표시)
-        const myHistoryHTML = currentUser
-          ? `
-          <div class="section mt-6">
-            <div class="bg-blue-50 border-2 border-blue-200 rounded-xl overflow-hidden">
-              <button 
-                type="button" 
-                id="my-history-toggle"
-                class="w-full px-6 py-4 flex items-center justify-between hover:bg-blue-100 transition-colors"
-              >
-                <div class="flex items-center gap-3">
-                  <div class="w-10 h-10 bg-blue-200 rounded-full flex items-center justify-center">
-                    <i class="fas fa-history text-blue-700"></i>
-                  </div>
-                  <div class="text-left">
-                    <h4 class="text-lg font-bold text-blue-900">내 활동 내역</h4>
-                    <p class="text-sm text-blue-700">참가한 ${
-                      myPastEvents.length
-                    }개의 이벤트</p>
-                  </div>
-                </div>
-                <i class="fas fa-chevron-down text-blue-700 text-xl transition-transform" id="my-history-toggle-icon"></i>
-              </button>
-              <div id="my-history-content" class="hidden px-6 pb-6">
-                <div class="bg-white rounded-lg p-4 border-2 border-blue-200">
-                  ${
-                    myPastEvents.length > 0
-                      ? `<div class="space-y-3">
-                          ${myPastEvents
-                            .sort(
-                              (a, b) =>
-                                new Date(b.datetime) - new Date(a.datetime)
-                            )
-                            .map((ev) => {
-                              const typeIcon =
-                                ev.type === "tasting"
-                                  ? "🍽️"
-                                  : ev.type === "mt"
-                                  ? "🏕️"
-                                  : ev.type === "assembly"
-                                  ? "🎤"
-                                  : "📅";
-
-                              const hasReview = (ev.reviews || []).find(
-                                (r) =>
-                                  r.studentId === (currentUser?.studentId || "")
-                              );
-
-                              // 미식회인 경우 참여한 식당 이름 찾기
-                              let restaurantName = "";
-                              if (
-                                ev.type === "tasting" &&
-                                ev.restaurants &&
-                                currentUser
-                              ) {
-                                const myRestaurant = ev.restaurants.find((r) =>
-                                  r.reservations?.some(
-                                    (res) =>
-                                      res.studentId === currentUser.studentId
-                                  )
-                                );
-                                if (myRestaurant) {
-                                  restaurantName = myRestaurant.name;
-                                }
-                              }
-
-                              // 마감 상태 확인 (수동 마감, 자동 마감, 마감일 지남)
-                              const isClosed =
-                                ev.status === "closed" ||
-                                ev.status === "archived";
-                              const isAutoClosed = !!ev.autoClosedAt;
-                              const isDeadlinePassed =
-                                ev.deadline &&
-                                new Date(ev.deadline) < new Date();
-                              const isConfirmed =
-                                isClosed || isAutoClosed || isDeadlinePassed;
-
-                              return `
-                                <div class="p-4 bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-                                  <div class="flex items-center gap-3">
-                                    <span class="text-2xl">${typeIcon}</span>
-                                    <div class="flex-1 min-w-0">
-                                      <h5 class="font-semibold text-gray-800 truncate mb-1">${saf(
-                                        ev.title
-                                      )}</h5>
-                                      ${
-                                        restaurantName
-                                          ? `<p class="text-sm text-orange-600 font-medium mt-1">
-                                              <i class="fas fa-utensils mr-1"></i>${saf(
-                                                restaurantName
-                                              )}
-                                            </p>`
-                                          : ""
-                                      }
-                                      <div class="flex items-center gap-2">
-                                        <p class="text-xs text-gray-500">
-                                          ${new Date(
-                                            ev.datetime
-                                          ).toLocaleDateString(
-                                            "ko-KR"
-                                          )} ${new Date(
-                                ev.datetime
-                              ).toLocaleTimeString("ko-KR", {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
-                                        </p>
-                                        ${
-                                          isConfirmed
-                                            ? `<span class="bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap flex items-center gap-1" title="활동 확정">
-                                                <i class="fas fa-check-circle"></i>확정
-                                              </span>`
-                                            : ""
-                                        }
-                                      </div>
-                                    </div>
-                                  </div>
-                                  <div class="mt-3 flex items-center gap-2">
-                                    <button type="button" class="px-3 py-2 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded-lg" onclick="showEventDetailModal('${
-                                      ev.id
-                                    }')">
-                                      <i class="fas fa-info-circle mr-1"></i>이벤트 상세내역
-                                    </button>
-                                    <button type="button" class="px-3 py-2 text-xs bg-orange-600 hover:bg-orange-700 text-white rounded-lg" data-act="write-review" data-id="${
-                                      ev.id
-                                    }">
-                                      <i class="fas ${
-                                        hasReview
-                                          ? "fa-edit"
-                                          : "fa-pen-to-square"
-                                      } mr-1"></i>${
-                                hasReview ? "후기 수정" : "후기 작성"
-                              }
-                                    </button>
-                                  </div>
-                                </div>
-                              `;
-                            })
-                            .join("")}
-                        </div>`
-                      : `<div class="text-center py-12">
-                          <i class="fas fa-calendar-plus text-5xl text-gray-300 mb-4"></i>
-                          <p class="text-lg font-semibold text-gray-600 mb-2">아직 참가한 이벤트가 없습니다</p>
-                          <p class="text-sm text-gray-500">활동에 참여해보세요!</p>
-                        </div>`
-                  }
-                </div>
-              </div>
-            </div>
-          </div>`
-          : "";
 
         // 보관된 이벤트 목록 (회장단만)
         const archivedListHTML = isAdmin
@@ -8618,8 +9381,11 @@
           : "";
 
         // 관리자인 경우: 점선 블록 + 이벤트 목록 + 보관 목록, 일반 회원: 이벤트 목록 + 내 활동 내역
+        const myPageContent = `${myHistoryHTML}`;
+
         c.innerHTML = isAdmin
           ? `
+            ${myPageContent}
             <div class="section mb-6">
               <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 <!-- 미식회 만들기 점선 블록 -->
@@ -8649,7 +9415,6 @@
                 </div>
               </div>
             </div>
-            ${myHistoryHTML}
             <div class="section mt-8">
               <div class="flex items-center gap-2 mb-4">
                 <i class="fas fa-list text-gray-600 text-xl"></i>
@@ -8659,7 +9424,7 @@
             </div>
             ${archivedListHTML}
           `
-          : `${myHistoryHTML}
+          : `${myPageContent}
             <div class="section mt-8">
               <div class="flex items-center gap-2 mb-4">
                 <i class="fas fa-list text-gray-600 text-xl"></i>
@@ -8698,7 +9463,7 @@
         }
 
         // 내 활동 내역 토글 기능
-        if (myPastEvents.length > 0) {
+        if (remainingEvents.length > 0) {
           const myHistoryToggleButton =
             document.getElementById("my-history-toggle");
           const myHistoryToggleIcon = document.getElementById(
@@ -8712,15 +9477,26 @@
             myHistoryContent &&
             myHistoryToggleIcon
           ) {
+            const toggleLabel =
+              myHistoryToggleButton.querySelector(".toggle-label");
+            myHistoryToggleButton.setAttribute("aria-expanded", "false");
             myHistoryToggleButton.addEventListener("click", () => {
               const isHidden = myHistoryContent.classList.contains("hidden");
 
               if (isHidden) {
                 myHistoryContent.classList.remove("hidden");
                 myHistoryToggleIcon.style.transform = "rotate(180deg)";
+                myHistoryToggleButton.setAttribute("aria-expanded", "true");
+                if (toggleLabel) {
+                  toggleLabel.textContent = `지난 활동 ${remainingEvents.length}건 접기`;
+                }
               } else {
                 myHistoryContent.classList.add("hidden");
                 myHistoryToggleIcon.style.transform = "rotate(0deg)";
+                myHistoryToggleButton.setAttribute("aria-expanded", "false");
+                if (toggleLabel) {
+                  toggleLabel.textContent = `지난 활동 ${remainingEvents.length}건 펼치기`;
+                }
               }
             });
           }
@@ -8796,6 +9572,13 @@
         if (act === "reserve-tasting") return reserveTasting(id, rid);
         if (act === "cancel-tasting") return cancelTasting(id, rid);
         if (act === "cancel-wait-tasting") return cancelWaitTasting(id, rid);
+        if (act === "admin-cancel") {
+          if (!isFullAdmin()) {
+            showAlert("🔒", "관리자만 이벤트를 관리할 수 있습니다.");
+            return;
+          }
+          return cancelEventForAdmin(id);
+        }
         if (act === "admin-edit") {
           if (!isFullAdmin()) {
             showAlert("🔒", "관리자만 이벤트를 수정할 수 있습니다.");
@@ -9554,31 +10337,43 @@
           // 각 이벤트는 독립적이므로 다른 이벤트 신청 여부는 체크하지 않음
           // 단, 같은 이벤트 내에서만 중복 체크
 
-          await runTransaction(db, async (tx) => {
-            const ref = doc(db, "events", id);
-            const snap = await tx.get(ref);
-            if (!snap.exists()) throw new Error("not found");
-            const ev = snap.data();
-            ev.applicants ??= [];
-            ev.waiting ??= [];
-            if (isUserIn([...ev.applicants, ...ev.waiting])) return;
-            const now = new Date().toISOString();
-            const entry = {
-              ...currentUser,
-              ...prof,
-              timestamp: now,
-              appliedAt: now,
-            };
-            const lim = parseInt(ev.limit || 0, 10) || 0;
-            if (lim === 0 || ev.applicants.length < lim)
-              ev.applicants.push(entry);
-            else ev.waiting.push(entry);
-            tx.update(ref, { applicants: ev.applicants, waiting: ev.waiting });
-          });
+          await runTransaction(
+            db,
+            async (tx) => {
+              const ref = doc(db, "events", id);
+              const snap = await tx.get(ref);
+              if (!snap.exists()) throw new Error("not found");
+              const ev = snap.data();
+              ev.applicants ??= [];
+              ev.waiting ??= [];
+              if (isUserIn([...ev.applicants, ...ev.waiting])) return;
+              const now = new Date().toISOString();
+              const entry = {
+                ...currentUser,
+                ...prof,
+                timestamp: now,
+                appliedAt: now,
+              };
+              const lim = parseInt(ev.limit || 0, 10) || 0;
+              if (lim === 0 || ev.applicants.length < lim)
+                ev.applicants.push(entry);
+              else ev.waiting.push(entry);
+              tx.update(ref, {
+                applicants: ev.applicants,
+                waiting: ev.waiting,
+              });
+            },
+            TRANSACTION_OPTIONS
+          );
           showAlert("✅", "신청 완료!");
         } catch (e) {
           if (String(e?.message).includes("DUP"))
             showAlert("🙂", "이미 이 이벤트에 신청(또는 대기)되어 있어요.");
+          else if (e?.code === "resource-exhausted")
+            showAlert(
+              "😥",
+              "요청이 너무 많아 잠시 후 다시 시도해주세요.<br>불편을 드려 죄송합니다."
+            );
           else showAlert("😥", "신청 실패");
         } finally {
           // 처리 완료 시 전역 변수에서 제거
@@ -9614,27 +10409,40 @@
         }
 
         try {
-          await runTransaction(db, async (tx) => {
-            const ref = doc(db, "events", id);
-            const snap = await tx.get(ref);
-            const ev = snap.data();
-            ev.applicants ??= [];
-            ev.waiting ??= [];
-            const before = ev.applicants.length;
-            ev.applicants = ev.applicants.filter(
-              (p) => p.studentId !== currentUser.studentId
-            );
-            if (ev.applicants.length < before) {
-              if (ev.waiting.length > 0) ev.applicants.push(ev.waiting.shift());
-            } else
-              ev.waiting = ev.waiting.filter(
+          await runTransaction(
+            db,
+            async (tx) => {
+              const ref = doc(db, "events", id);
+              const snap = await tx.get(ref);
+              const ev = snap.data();
+              ev.applicants ??= [];
+              ev.waiting ??= [];
+              const before = ev.applicants.length;
+              ev.applicants = ev.applicants.filter(
                 (p) => p.studentId !== currentUser.studentId
               );
-            tx.update(ref, { applicants: ev.applicants, waiting: ev.waiting });
-          });
+              if (ev.applicants.length < before) {
+                if (ev.waiting.length > 0)
+                  ev.applicants.push(ev.waiting.shift());
+              } else
+                ev.waiting = ev.waiting.filter(
+                  (p) => p.studentId !== currentUser.studentId
+                );
+              tx.update(ref, {
+                applicants: ev.applicants,
+                waiting: ev.waiting,
+              });
+            },
+            TRANSACTION_OPTIONS
+          );
           showAlert("🗑️", "신청 취소됨");
-        } catch {
-          showAlert("😥", "취소 실패");
+        } catch (e) {
+          if (e?.code === "resource-exhausted")
+            showAlert(
+              "😥",
+              "요청이 너무 많아 잠시 후 다시 시도해주세요.<br>불편을 드려 죄송합니다."
+            );
+          else showAlert("😥", "취소 실패");
         } finally {
           // 처리 완료 시 전역 변수에서 제거
           processingRequests.delete(requestKey);
@@ -9668,19 +10476,28 @@
         }
 
         try {
-          await runTransaction(db, async (tx) => {
-            const ref = doc(db, "events", id);
-            const snap = await tx.get(ref);
-            const ev = snap.data();
-            ev.waiting ??= [];
-            ev.waiting = ev.waiting.filter(
-              (p) => p.studentId !== currentUser.studentId
-            );
-            tx.update(ref, { waiting: ev.waiting });
-          });
+          await runTransaction(
+            db,
+            async (tx) => {
+              const ref = doc(db, "events", id);
+              const snap = await tx.get(ref);
+              const ev = snap.data();
+              ev.waiting ??= [];
+              ev.waiting = ev.waiting.filter(
+                (p) => p.studentId !== currentUser.studentId
+              );
+              tx.update(ref, { waiting: ev.waiting });
+            },
+            TRANSACTION_OPTIONS
+          );
           showAlert("🗑️", "대기 취소됨");
-        } catch {
-          showAlert("😥", "취소 실패");
+        } catch (e) {
+          if (e?.code === "resource-exhausted")
+            showAlert(
+              "😥",
+              "요청이 너무 많아 잠시 후 다시 시도해주세요.<br>불편을 드려 죄송합니다."
+            );
+          else showAlert("😥", "취소 실패");
         } finally {
           // 처리 완료 시 전역 변수에서 제거
           processingRequests.delete(requestKey);
@@ -9718,43 +10535,52 @@
 
         const prof = pickProfileFields(await getCurrentMemberProfile());
         try {
-          await runTransaction(db, async (tx) => {
-            const ref = doc(db, "events", id);
-            const snap = await tx.get(ref);
-            const ev = snap.data();
-            ev.restaurants ??= [];
+          await runTransaction(
+            db,
+            async (tx) => {
+              const ref = doc(db, "events", id);
+              const snap = await tx.get(ref);
+              const ev = snap.data();
+              ev.restaurants ??= [];
 
-            // 미식회는 같은 이벤트 내에서만 중복 체크 (다른 미식회 이벤트는 허용)
-            const already = ev.restaurants.some((r) =>
-              (r.reservations || [])
-                .concat(r.waiting || [])
-                .some((p) => p.studentId === currentUser.studentId)
-            );
-            if (already) throw new Error("DUP");
-            const idx = ev.restaurants.findIndex((r) => r.id === rid);
-            if (idx === -1) throw new Error("restaurant not found");
-            const r = ev.restaurants[idx];
-            r.reservations ??= [];
-            r.waiting ??= [];
-            const cap = r.capacity ?? ev.limit ?? 0;
-            const now = new Date().toISOString();
-            const entry = {
-              ...currentUser,
-              ...prof,
-              timestamp: now,
-              appliedAt: now,
-            };
-            if (r.reservations.length < cap) r.reservations.push(entry);
-            else r.waiting.push(entry);
-            ev.restaurants[idx] = r;
-            tx.update(ref, { restaurants: ev.restaurants });
-          });
+              // 미식회는 같은 이벤트 내에서만 중복 체크 (다른 미식회 이벤트는 허용)
+              const already = ev.restaurants.some((r) =>
+                (r.reservations || [])
+                  .concat(r.waiting || [])
+                  .some((p) => p.studentId === currentUser.studentId)
+              );
+              if (already) throw new Error("DUP");
+              const idx = ev.restaurants.findIndex((r) => r.id === rid);
+              if (idx === -1) throw new Error("restaurant not found");
+              const r = ev.restaurants[idx];
+              r.reservations ??= [];
+              r.waiting ??= [];
+              const cap = r.capacity ?? ev.limit ?? 0;
+              const now = new Date().toISOString();
+              const entry = {
+                ...currentUser,
+                ...prof,
+                timestamp: now,
+                appliedAt: now,
+              };
+              if (r.reservations.length < cap) r.reservations.push(entry);
+              else r.waiting.push(entry);
+              ev.restaurants[idx] = r;
+              tx.update(ref, { restaurants: ev.restaurants });
+            },
+            TRANSACTION_OPTIONS
+          );
           showAlert("✅", "신청 완료!");
         } catch (e) {
           if (String(e?.message).includes("DUP"))
             showAlert(
               "🙂",
               "이미 이 미식회에서 다른 식당에 신청(또는 대기)되어 있어요.<br><b>한 미식회에서 한 식당만</b> 선택할 수 있습니다."
+            );
+          else if (e?.code === "resource-exhausted")
+            showAlert(
+              "😥",
+              "요청이 너무 많아 잠시 후 다시 시도해주세요.<br>불편을 드려 죄송합니다."
             );
           else showAlert("😥", "신청 실패");
         } finally {
@@ -9791,32 +10617,42 @@
         }
 
         try {
-          await runTransaction(db, async (tx) => {
-            const ref = doc(db, "events", id);
-            const snap = await tx.get(ref);
-            const ev = snap.data();
-            ev.restaurants ??= [];
-            const idx = ev.restaurants.findIndex((r) => r.id === rid);
-            if (idx === -1) throw new Error("restaurant not found");
-            const r = ev.restaurants[idx];
-            r.reservations ??= [];
-            r.waiting ??= [];
-            const before = r.reservations.length;
-            r.reservations = r.reservations.filter(
-              (p) => p.studentId !== currentUser.studentId
-            );
-            if (r.reservations.length < before) {
-              if (r.waiting.length > 0) r.reservations.push(r.waiting.shift());
-            } else
-              r.waiting = r.waiting.filter(
+          await runTransaction(
+            db,
+            async (tx) => {
+              const ref = doc(db, "events", id);
+              const snap = await tx.get(ref);
+              const ev = snap.data();
+              ev.restaurants ??= [];
+              const idx = ev.restaurants.findIndex((r) => r.id === rid);
+              if (idx === -1) throw new Error("restaurant not found");
+              const r = ev.restaurants[idx];
+              r.reservations ??= [];
+              r.waiting ??= [];
+              const before = r.reservations.length;
+              r.reservations = r.reservations.filter(
                 (p) => p.studentId !== currentUser.studentId
               );
-            ev.restaurants[idx] = r;
-            tx.update(ref, { restaurants: ev.restaurants });
-          });
+              if (r.reservations.length < before) {
+                if (r.waiting.length > 0)
+                  r.reservations.push(r.waiting.shift());
+              } else
+                r.waiting = r.waiting.filter(
+                  (p) => p.studentId !== currentUser.studentId
+                );
+              ev.restaurants[idx] = r;
+              tx.update(ref, { restaurants: ev.restaurants });
+            },
+            TRANSACTION_OPTIONS
+          );
           showAlert("🗑️", "취소되었습니다.");
-        } catch {
-          showAlert("😥", "취소 실패");
+        } catch (e) {
+          if (e?.code === "resource-exhausted")
+            showAlert(
+              "😥",
+              "요청이 너무 많아 잠시 후 다시 시도해주세요.<br>불편을 드려 죄송합니다."
+            );
+          else showAlert("😥", "취소 실패");
         } finally {
           // 처리 완료 시 전역 변수에서 제거
           processingRequests.delete(requestKey);
@@ -9850,24 +10686,33 @@
         }
 
         try {
-          await runTransaction(db, async (tx) => {
-            const ref = doc(db, "events", id);
-            const snap = await tx.get(ref);
-            const ev = snap.data();
-            ev.restaurants ??= [];
-            const idx = ev.restaurants.findIndex((r) => r.id === rid);
-            if (idx === -1) throw new Error("restaurant not found");
-            const r = ev.restaurants[idx];
-            r.waiting ??= [];
-            r.waiting = r.waiting.filter(
-              (p) => p.studentId !== currentUser.studentId
-            );
-            ev.restaurants[idx] = r;
-            tx.update(ref, { restaurants: ev.restaurants });
-          });
+          await runTransaction(
+            db,
+            async (tx) => {
+              const ref = doc(db, "events", id);
+              const snap = await tx.get(ref);
+              const ev = snap.data();
+              ev.restaurants ??= [];
+              const idx = ev.restaurants.findIndex((r) => r.id === rid);
+              if (idx === -1) throw new Error("restaurant not found");
+              const r = ev.restaurants[idx];
+              r.waiting ??= [];
+              r.waiting = r.waiting.filter(
+                (p) => p.studentId !== currentUser.studentId
+              );
+              ev.restaurants[idx] = r;
+              tx.update(ref, { restaurants: ev.restaurants });
+            },
+            TRANSACTION_OPTIONS
+          );
           showAlert("🗑️", "대기 취소됨");
-        } catch {
-          showAlert("😥", "취소 실패");
+        } catch (e) {
+          if (e?.code === "resource-exhausted")
+            showAlert(
+              "😥",
+              "요청이 너무 많아 잠시 후 다시 시도해주세요.<br>불편을 드려 죄송합니다."
+            );
+          else showAlert("😥", "취소 실패");
         } finally {
           // 처리 완료 시 전역 변수에서 제거
           processingRequests.delete(requestKey);
@@ -9962,69 +10807,75 @@
         let eventTitle = "";
 
         try {
-          await runTransaction(db, async (tx) => {
-            const ref = doc(db, "events", eventId);
-            const snap = await tx.get(ref);
-            const ev = snap.data();
-            eventTitle = ev.title;
+          await runTransaction(
+            db,
+            async (tx) => {
+              const ref = doc(db, "events", eventId);
+              const snap = await tx.get(ref);
+              const ev = snap.data();
+              eventTitle = ev.title;
 
-            if (restaurantId) {
-              // 미식회 경우
-              const idx = ev.restaurants.findIndex(
-                (r) => r.id === restaurantId
-              );
-              if (idx === -1) throw new Error("restaurant not found");
-              const r = ev.restaurants[idx];
-
-              // 참가자 찾기 및 제외
-              const before =
-                listType === "reservations"
-                  ? r.reservations?.length
-                  : r.waiting?.length;
-
-              if (listType === "reservations") {
-                r.reservations = r.reservations.filter(
-                  (p) => p.studentId !== studentId
+              if (restaurantId) {
+                // 미식회 경우
+                const idx = ev.restaurants.findIndex(
+                  (r) => r.id === restaurantId
                 );
+                if (idx === -1) throw new Error("restaurant not found");
+                const r = ev.restaurants[idx];
+
+                // 참가자 찾기 및 제외
+                const before =
+                  listType === "reservations"
+                    ? r.reservations?.length
+                    : r.waiting?.length;
+
+                if (listType === "reservations") {
+                  r.reservations = r.reservations.filter(
+                    (p) => p.studentId !== studentId
+                  );
+                } else {
+                  r.waiting = r.waiting.filter(
+                    (p) => p.studentId !== studentId
+                  );
+                }
+
+                ev.restaurants[idx] = r;
+                tx.update(ref, { restaurants: ev.restaurants });
+
+                wasRemoved =
+                  (listType === "reservations"
+                    ? r.reservations.length
+                    : r.waiting.length) < before;
               } else {
-                r.waiting = r.waiting.filter((p) => p.studentId !== studentId);
+                // 일반 이벤트 경우
+                const before =
+                  listType === "applicants"
+                    ? ev.applicants?.length
+                    : ev.waiting?.length;
+
+                if (listType === "applicants") {
+                  ev.applicants = ev.applicants.filter(
+                    (p) => p.studentId !== studentId
+                  );
+                } else {
+                  ev.waiting = ev.waiting.filter(
+                    (p) => p.studentId !== studentId
+                  );
+                }
+
+                tx.update(ref, {
+                  applicants: ev.applicants,
+                  waiting: ev.waiting,
+                });
+
+                wasRemoved =
+                  (listType === "applicants"
+                    ? ev.applicants.length
+                    : ev.waiting.length) < before;
               }
-
-              ev.restaurants[idx] = r;
-              tx.update(ref, { restaurants: ev.restaurants });
-
-              wasRemoved =
-                (listType === "reservations"
-                  ? r.reservations.length
-                  : r.waiting.length) < before;
-            } else {
-              // 일반 이벤트 경우
-              const before =
-                listType === "applicants"
-                  ? ev.applicants?.length
-                  : ev.waiting?.length;
-
-              if (listType === "applicants") {
-                ev.applicants = ev.applicants.filter(
-                  (p) => p.studentId !== studentId
-                );
-              } else {
-                ev.waiting = ev.waiting.filter(
-                  (p) => p.studentId !== studentId
-                );
-              }
-
-              tx.update(ref, {
-                applicants: ev.applicants,
-                waiting: ev.waiting,
-              });
-
-              wasRemoved =
-                (listType === "applicants"
-                  ? ev.applicants.length
-                  : ev.waiting.length) < before;
-            }
-          });
+            },
+            TRANSACTION_OPTIONS
+          );
 
           // transaction 완료 후 알림 전송
           if (wasRemoved) {
@@ -10035,7 +10886,12 @@
           renderReservationTab(isFullAdmin());
         } catch (error) {
           console.error("참가자 제외 오류:", error);
-          showAlert("😥", "참가자 제외 실패");
+          if (error?.code === "resource-exhausted")
+            showAlert(
+              "😥",
+              "요청이 너무 많아 잠시 후 다시 시도해주세요.<br>불편을 드려 죄송합니다."
+            );
+          else showAlert("😥", "참가자 제외 실패");
         }
       }
 
@@ -11144,54 +12000,58 @@
         try {
           const eventRef = doc(db, "events", eventId);
 
-          await runTransaction(db, async (transaction) => {
-            const eventDoc = await transaction.get(eventRef);
-            if (!eventDoc.exists()) {
-              throw new Error("이벤트를 찾을 수 없습니다.");
-            }
-
-            const eventData = eventDoc.data();
-
-            if (
-              eventData.type === "tasting" &&
-              eventData.restaurants &&
-              restaurantId
-            ) {
-              // 미식회인 경우 특정 식당에서 제거
-              const restaurants = [...(eventData.restaurants || [])];
-              const restaurantIndex = restaurants.findIndex(
-                (r) => r.id === restaurantId
-              );
-
-              if (restaurantIndex === -1) {
-                throw new Error("식당을 찾을 수 없습니다.");
+          await runTransaction(
+            db,
+            async (transaction) => {
+              const eventDoc = await transaction.get(eventRef);
+              if (!eventDoc.exists()) {
+                throw new Error("이벤트를 찾을 수 없습니다.");
               }
 
-              const restaurant = restaurants[restaurantIndex];
-              const reservations = [...(restaurant.reservations || [])].filter(
-                (r) => r.studentId !== studentId
-              );
-              const waiting = [...(restaurant.waiting || [])].filter(
-                (w) => w.studentId !== studentId
-              );
+              const eventData = eventDoc.data();
 
-              restaurant.reservations = reservations;
-              restaurant.waiting = waiting;
-              restaurants[restaurantIndex] = restaurant;
+              if (
+                eventData.type === "tasting" &&
+                eventData.restaurants &&
+                restaurantId
+              ) {
+                // 미식회인 경우 특정 식당에서 제거
+                const restaurants = [...(eventData.restaurants || [])];
+                const restaurantIndex = restaurants.findIndex(
+                  (r) => r.id === restaurantId
+                );
 
-              transaction.update(eventRef, { restaurants });
-            } else {
-              // 일반 이벤트인 경우
-              const applicants = [...(eventData.applicants || [])].filter(
-                (a) => a.studentId !== studentId
-              );
-              const waiting = [...(eventData.waiting || [])].filter(
-                (w) => w.studentId !== studentId
-              );
+                if (restaurantIndex === -1) {
+                  throw new Error("식당을 찾을 수 없습니다.");
+                }
 
-              transaction.update(eventRef, { applicants, waiting });
-            }
-          });
+                const restaurant = restaurants[restaurantIndex];
+                const reservations = [
+                  ...(restaurant.reservations || []),
+                ].filter((r) => r.studentId !== studentId);
+                const waiting = [...(restaurant.waiting || [])].filter(
+                  (w) => w.studentId !== studentId
+                );
+
+                restaurant.reservations = reservations;
+                restaurant.waiting = waiting;
+                restaurants[restaurantIndex] = restaurant;
+
+                transaction.update(eventRef, { restaurants });
+              } else {
+                // 일반 이벤트인 경우
+                const applicants = [...(eventData.applicants || [])].filter(
+                  (a) => a.studentId !== studentId
+                );
+                const waiting = [...(eventData.waiting || [])].filter(
+                  (w) => w.studentId !== studentId
+                );
+
+                transaction.update(eventRef, { applicants, waiting });
+              }
+            },
+            TRANSACTION_OPTIONS
+          );
 
           showAlert("✅", `${memberName} 회원이 제거되었습니다.`);
 
@@ -11207,106 +12067,115 @@
           scheduleRender();
         } catch (error) {
           console.error("참가자 제거 오류:", error);
-          showAlert("😥", "참가자 제거에 실패했습니다: " + error.message);
+          if (error?.code === "resource-exhausted")
+            showAlert(
+              "😥",
+              "요청이 너무 많아 잠시 후 다시 시도해주세요.<br>불편을 드려 죄송합니다."
+            );
+          else showAlert("😥", "참가자 제거에 실패했습니다: " + error.message);
         }
       };
       async function addParticipantToEvent(eventId, member) {
         const eventRef = doc(db, "events", eventId);
 
-        await runTransaction(db, async (transaction) => {
-          const eventDoc = await transaction.get(eventRef);
-          if (!eventDoc.exists()) {
-            throw new Error("이벤트를 찾을 수 없습니다.");
-          }
-
-          const eventData = eventDoc.data();
-          const participant = {
-            studentId: member.studentId,
-            name: member.name,
-            appliedAt: new Date().toISOString(),
-            timestamp: new Date().toISOString(),
-          };
-
-          if (eventData.type === "tasting" && eventData.restaurants) {
-            // 미식회인 경우
-            const restaurantSelect = document.getElementById(
-              "participant-restaurant-select"
-            );
-            if (!restaurantSelect) {
-              throw new Error("식당을 선택해주세요.");
+        await runTransaction(
+          db,
+          async (transaction) => {
+            const eventDoc = await transaction.get(eventRef);
+            if (!eventDoc.exists()) {
+              throw new Error("이벤트를 찾을 수 없습니다.");
             }
 
-            const restaurantId = restaurantSelect.value;
-            const restaurants = [...(eventData.restaurants || [])];
+            const eventData = eventDoc.data();
+            const participant = {
+              studentId: member.studentId,
+              name: member.name,
+              appliedAt: new Date().toISOString(),
+              timestamp: new Date().toISOString(),
+            };
 
-            const restaurantIndex = restaurants.findIndex(
-              (r) => r.id === restaurantId
-            );
+            if (eventData.type === "tasting" && eventData.restaurants) {
+              // 미식회인 경우
+              const restaurantSelect = document.getElementById(
+                "participant-restaurant-select"
+              );
+              if (!restaurantSelect) {
+                throw new Error("식당을 선택해주세요.");
+              }
 
-            if (restaurantIndex === -1) {
-              throw new Error("선택한 식당을 찾을 수 없습니다.");
-            }
+              const restaurantId = restaurantSelect.value;
+              const restaurants = [...(eventData.restaurants || [])];
 
-            const restaurant = restaurants[restaurantIndex];
-            const reservations = [...(restaurant.reservations || [])];
-            const waiting = [...(restaurant.waiting || [])];
+              const restaurantIndex = restaurants.findIndex(
+                (r) => r.id === restaurantId
+              );
 
-            // 이미 참가자 또는 대기자인지 확인
-            const isAlreadyParticipant = reservations.some(
-              (r) => r.studentId === member.studentId
-            );
-            const isAlreadyWaiting = waiting.some(
-              (w) => w.studentId === member.studentId
-            );
+              if (restaurantIndex === -1) {
+                throw new Error("선택한 식당을 찾을 수 없습니다.");
+              }
 
-            if (isAlreadyParticipant || isAlreadyWaiting) {
-              throw new Error("이미 참가 중인 회원입니다.");
-            }
+              const restaurant = restaurants[restaurantIndex];
+              const reservations = [...(restaurant.reservations || [])];
+              const waiting = [...(restaurant.waiting || [])];
 
-            // 정원 확인
-            const capacity = restaurant.capacity || eventData.limit || 0;
-            if (reservations.length >= capacity) {
-              // 정원이 꽉 찼으면 대기열에 추가
-              waiting.push(participant);
-              restaurant.waiting = waiting;
+              // 이미 참가자 또는 대기자인지 확인
+              const isAlreadyParticipant = reservations.some(
+                (r) => r.studentId === member.studentId
+              );
+              const isAlreadyWaiting = waiting.some(
+                (w) => w.studentId === member.studentId
+              );
+
+              if (isAlreadyParticipant || isAlreadyWaiting) {
+                throw new Error("이미 참가 중인 회원입니다.");
+              }
+
+              // 정원 확인
+              const capacity = restaurant.capacity || eventData.limit || 0;
+              if (reservations.length >= capacity) {
+                // 정원이 꽉 찼으면 대기열에 추가
+                waiting.push(participant);
+                restaurant.waiting = waiting;
+              } else {
+                // 정원이 남았으면 참가자 목록에 추가
+                reservations.push(participant);
+                restaurant.reservations = reservations;
+              }
+
+              restaurants[restaurantIndex] = restaurant;
+              transaction.update(eventRef, { restaurants });
             } else {
-              // 정원이 남았으면 참가자 목록에 추가
-              reservations.push(participant);
-              restaurant.reservations = reservations;
+              // 일반 이벤트인 경우
+              const applicants = [...(eventData.applicants || [])];
+              const waiting = [...(eventData.waiting || [])];
+
+              // 이미 참가자 또는 대기자인지 확인
+              const isAlreadyParticipant = applicants.some(
+                (a) => a.studentId === member.studentId
+              );
+              const isAlreadyWaiting = waiting.some(
+                (w) => w.studentId === member.studentId
+              );
+
+              if (isAlreadyParticipant || isAlreadyWaiting) {
+                throw new Error("이미 참가 중인 회원입니다.");
+              }
+
+              // 정원 확인
+              const limit = eventData.limit || 0;
+              if (limit > 0 && applicants.length >= limit) {
+                // 정원이 꽉 찼으면 대기열에 추가
+                waiting.push(participant);
+                transaction.update(eventRef, { waiting });
+              } else {
+                // 정원이 남았거나 제한이 없으면 참가자 목록에 추가
+                applicants.push(participant);
+                transaction.update(eventRef, { applicants });
+              }
             }
-
-            restaurants[restaurantIndex] = restaurant;
-            transaction.update(eventRef, { restaurants });
-          } else {
-            // 일반 이벤트인 경우
-            const applicants = [...(eventData.applicants || [])];
-            const waiting = [...(eventData.waiting || [])];
-
-            // 이미 참가자 또는 대기자인지 확인
-            const isAlreadyParticipant = applicants.some(
-              (a) => a.studentId === member.studentId
-            );
-            const isAlreadyWaiting = waiting.some(
-              (w) => w.studentId === member.studentId
-            );
-
-            if (isAlreadyParticipant || isAlreadyWaiting) {
-              throw new Error("이미 참가 중인 회원입니다.");
-            }
-
-            // 정원 확인
-            const limit = eventData.limit || 0;
-            if (limit > 0 && applicants.length >= limit) {
-              // 정원이 꽉 찼으면 대기열에 추가
-              waiting.push(participant);
-              transaction.update(eventRef, { waiting });
-            } else {
-              // 정원이 남았거나 제한이 없으면 참가자 목록에 추가
-              applicants.push(participant);
-              transaction.update(eventRef, { applicants });
-            }
-          }
-        });
+          },
+          TRANSACTION_OPTIONS
+        );
       }
 
       async function completeEvent(id) {
@@ -11378,93 +12247,108 @@
 
       // 자동 신청 마감 기능
       async function autoCloseExpiredEvents() {
-        // 로그인 상태이고 관리자 권한이 있을 때만 실행
-        if (!currentUser || !isFullAdmin()) {
-          return;
-        }
+        if (!currentUser || !isFullAdmin()) return;
+        if (!Array.isArray(eventsData) || eventsData.length === 0) return;
 
-        try {
-          const now = new Date();
-          const eventsSnapshot = await getDocs(collection(db, "events"));
+        const now = Date.now();
+        const expired = eventsData.filter((event) => {
+          if (!event || !event.id) return false;
+          if (
+            ["closed", "archived", "completed", "deleted"].includes(
+              event.status
+            )
+          )
+            return false;
+          if (!event.deadline) return false;
+          // 이미 자동 마감 처리한 이벤트는 다시 처리하지 않음
+          if (event.autoClosedReason === "deadline_expired") return false;
 
-          const expiredEvents = [];
+          const deadlineTime = new Date(event.deadline).getTime();
+          if (Number.isNaN(deadlineTime)) return false;
+          return deadlineTime < now;
+        });
 
-          for (const eventDoc of eventsSnapshot.docs) {
-            const eventData = eventDoc.data();
+        if (expired.length === 0) return;
 
-            // 이미 마감된 이벤트, 보관된 이벤트, 완료된 이벤트는 제외
-            if (
-              eventData.status === "closed" ||
-              eventData.status === "archived" ||
-              eventData.status === "completed"
-            ) {
-              continue;
-            }
+        const timestamp = new Date().toISOString();
+        let processedCount = 0;
 
-            // 마감일이 설정되어 있고, 현재 시간이 마감일을 지났으면 마감 처리
-            if (eventData.deadline) {
-              const deadline = new Date(eventData.deadline);
-              if (deadline < now) {
-                expiredEvents.push({
-                  id: eventDoc.id,
-                  title: eventData.title,
-                  deadline: eventData.deadline,
-                });
-              }
-            }
-          }
-
-          // 마감일이 지난 이벤트들을 자동 마감 처리 (보관함으로 이동)
-          for (const event of expiredEvents) {
+        for (const event of expired) {
+          try {
             await updateDoc(doc(db, "events", event.id), {
               status: "archived",
-              autoClosedAt: new Date().toISOString(),
+              autoClosedAt: timestamp,
               autoClosedReason: "deadline_expired",
             });
-
+            processedCount++;
             console.log(
-              `자동 마감 처리: ${event.title} (마감일: ${new Date(
+              `자동 마감 처리: ${event.title || event.id} (마감일: ${
                 event.deadline
-              ).toLocaleString("ko-KR")})`
+              })`
             );
+          } catch (error) {
+            console.error("자동 마감 처리 실패:", {
+              eventId: event.id,
+              message: error?.message || error,
+            });
           }
-
-          if (expiredEvents.length > 0) {
-            console.log(
-              `총 ${expiredEvents.length}개의 이벤트가 자동 마감 처리되었습니다.`
-            );
-            // 관리자에게 알림 (선택사항)
-            if (isFullAdmin()) {
-              showAlert(
-                "⏰",
-                `${expiredEvents.length}개의 이벤트가 마감일 도과로 자동 마감되었습니다.`
-              );
-            }
-          }
-        } catch (error) {
-          console.error("자동 마감 처리 실패:", error);
         }
+
+        if (processedCount > 0) {
+          console.log(
+            `총 ${processedCount}개의 이벤트가 자동 마감 처리되었습니다.`
+          );
+          if (isFullAdmin()) {
+            showAlert(
+              "⏰",
+              `${processedCount}개의 이벤트가 마감일 도과로 자동 마감되었습니다.`
+            );
+          }
+        }
+      }
+
+      function clearAutoCloseScheduler() {
+        if (autoCloseMinuteIntervalId) {
+          clearInterval(autoCloseMinuteIntervalId);
+          autoCloseMinuteIntervalId = null;
+        }
+        if (autoCloseHourlyIntervalId) {
+          clearInterval(autoCloseHourlyIntervalId);
+          autoCloseHourlyIntervalId = null;
+        }
+        if (autoCloseHourlyTimeoutId) {
+          clearTimeout(autoCloseHourlyTimeoutId);
+          autoCloseHourlyTimeoutId = null;
+        }
+        autoCloseSchedulerStarted = false;
       }
 
       // 자동 마감 스케줄러 설정
       function setupAutoCloseScheduler() {
-        // 페이지 로드 시 즉시 실행
-        autoCloseExpiredEvents();
+        if (autoCloseSchedulerStarted) return;
+        if (!currentUser || !isFullAdmin()) return;
 
-        // 1분마다 체크 (실시간성 확보)
-        setInterval(autoCloseExpiredEvents, 60 * 1000);
+        autoCloseSchedulerStarted = true;
+        const runAutoClose = () => {
+          autoCloseExpiredEvents().catch((error) =>
+            console.error("자동 마감 스케줄러 실행 실패:", error)
+          );
+        };
 
-        // 매 시간 정각에 체크 (정확성 확보)
+        runAutoClose();
+
+        autoCloseMinuteIntervalId = setInterval(runAutoClose, 60 * 1000);
+
         const now = new Date();
         const minutesUntilNextHour = 60 - now.getMinutes();
         const secondsUntilNextHour =
           minutesUntilNextHour * 60 - now.getSeconds();
+        const msUntilNextHour = Math.max(secondsUntilNextHour, 1) * 1000;
 
-        setTimeout(() => {
-          autoCloseExpiredEvents();
-          // 이후 매 시간마다 실행
-          setInterval(autoCloseExpiredEvents, 60 * 60 * 1000);
-        }, secondsUntilNextHour * 1000);
+        autoCloseHourlyTimeoutId = setTimeout(() => {
+          runAutoClose();
+          autoCloseHourlyIntervalId = setInterval(runAutoClose, 60 * 60 * 1000);
+        }, msUntilNextHour);
 
         debugLog("자동 신청 마감 스케줄러가 설정되었습니다.");
       }
@@ -11514,6 +12398,42 @@
         } catch (error) {
           console.error("이벤트 삭제 오류:", error);
           showAlert("😥", `삭제 실패: ${error.message}`);
+        }
+      }
+
+      async function cancelEventForAdmin(id) {
+        if (!isFullAdmin()) {
+          showAlert("🔒", "회장단 이상만 활동을 취소할 수 있습니다.");
+          return;
+        }
+
+        const event = eventsData.find((e) => e.id === id);
+        if (!event) {
+          showAlert("😥", "이벤트를 찾을 수 없습니다.");
+          return;
+        }
+
+        const confirmMessage = [
+          "이 활동을 취소하면:",
+          "• 모든 신청자와 대기자는 더 이상 활동을 볼 수 없습니다.",
+          "• '내 활동' 탭에서도 숨겨집니다.",
+          "• 작성된 미식회 후기는 그대로 유지됩니다.",
+          "",
+          "정말로 활동을 취소하시겠습니까?",
+        ].join("\n");
+
+        if (!confirm(confirmMessage)) return;
+
+        try {
+          await updateDoc(doc(db, "events", id), {
+            status: "cancelled",
+            cancelledAt: new Date().toISOString(),
+            cancelledBy: currentUser?.studentId || "admin",
+          });
+          showAlert("🚫", "활동이 취소되었습니다.");
+        } catch (error) {
+          console.error("활동 취소 오류:", error);
+          showAlert("😥", `활동 취소에 실패했습니다: ${error.message}`);
         }
       }
       // ==================== 조짜기 기능 (새 버전 - 간단명료) ====================
@@ -14966,6 +15886,9 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
             <button class="subtab-btn px-3 py-1.5 rounded bg-gray-200" data-sub="groups">
               <i class="fas fa-users-cog mr-1"></i>조모임 관리
             </button>
+            <button class="subtab-btn px-3 py-1.5 rounded bg-gray-200" data-sub="activities">
+              <i class="fas fa-clipboard-list mr-1"></i>활동 관리
+            </button>
             <button class="subtab-btn px-3 py-1.5 rounded bg-gray-200" data-sub="positions">
               <i class="fas fa-user-tie mr-1"></i>임원 관리
             </button>
@@ -15008,6 +15931,10 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
         }
         if (name === "groups") {
           renderGroupsAdmin(cont);
+          return;
+        }
+        if (name === "activities") {
+          renderActivitiesAdmin(cont);
           return;
         }
         if (name === "positions") {
@@ -15243,6 +16170,357 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
             }
           });
       };
+
+      function renderActivitiesAdmin(container) {
+        const isAdmin =
+          currentUser && adminList.includes(currentUser.studentId);
+        if (!isAdmin) {
+          container.innerHTML = `
+            <div class="section">
+              <div class="bg-red-50 border border-red-200 text-red-700 rounded-2xl px-4 py-6 text-sm text-center">
+                <i class="fas fa-lock mr-2"></i>이 메뉴는 회장단 이상만 접근할 수 있습니다.
+              </div>
+            </div>`;
+          return;
+        }
+
+        const events = (eventsData || [])
+          .filter((ev) => ev && ev.status !== "deleted")
+          .sort((a, b) => {
+            const getTime = (event) =>
+              new Date(
+                event.datetime ||
+                  event.deadline ||
+                  event.createdAt ||
+                  event.created_at ||
+                  event.created ||
+                  0
+              ).getTime();
+            return getTime(b) - getTime(a);
+          });
+
+        if (!events.length) {
+          container.innerHTML = `
+            <div class="section">
+              <p class="text-center text-gray-500 py-12 text-sm">
+                아직 등록된 활동이 없습니다.
+              </p>
+            </div>`;
+          return;
+        }
+
+        container.innerHTML = `
+          <div class="section">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-xl font-bold text-gray-800">
+                <i class="fas fa-clipboard-list text-orange-500 mr-2"></i>활동 관리
+              </h3>
+              <span class="text-xs text-gray-500">총 ${events.length}건</span>
+            </div>
+            <div class="space-y-4">
+              ${events.map(renderActivitiesAdminCard).join("")}
+            </div>
+          </div>
+        `;
+      }
+
+      function renderActivitiesAdminCard(ev) {
+        const status = statusLabel(ev.status || "open");
+        const meta = (() => {
+          switch (ev.type) {
+            case "tasting":
+              return { icon: "🍽️", accent: "bg-orange-100 text-orange-700" };
+            case "mt":
+              return { icon: "🏕️", accent: "bg-orange-100 text-orange-700" };
+            case "assembly":
+              return { icon: "🎤", accent: "bg-pink-100 text-pink-700" };
+            default:
+              return { icon: "📅", accent: "bg-emerald-100 text-emerald-700" };
+          }
+        })();
+
+        const formatDateTimeLabel = (value) => {
+          if (!value) return "미정";
+          const date = new Date(value);
+          if (Number.isNaN(date.getTime())) return "미정";
+          return date.toLocaleString("ko-KR", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+        };
+
+        const restaurants = ev.restaurants || [];
+        const applicants = ev.applicants || [];
+        const waiting = ev.waiting || [];
+
+        const totalReservations =
+          ev.type === "tasting"
+            ? restaurants.reduce(
+                (sum, r) => sum + (r.reservations?.length || 0),
+                0
+              )
+            : applicants.length;
+        const totalWaiting =
+          ev.type === "tasting"
+            ? restaurants.reduce((sum, r) => sum + (r.waiting?.length || 0), 0)
+            : waiting.length;
+        const totalCapacityValue =
+          ev.type === "tasting"
+            ? restaurants.reduce(
+                (sum, r) => sum + (r.capacity ?? ev.limit ?? 0),
+                0
+              )
+            : ev.limit && ev.limit > 0
+            ? ev.limit
+            : null;
+
+        const participantEntries =
+          ev.type === "tasting"
+            ? restaurants.flatMap((r) => [
+                ...(r.reservations || []),
+                ...(r.waiting || []),
+              ])
+            : [...applicants, ...waiting];
+
+        const participantChips = (() => {
+          if (!participantEntries.length) {
+            return `<p class="text-xs text-gray-400">신청자가 아직 없습니다.</p>`;
+          }
+          const uniqueNames = [
+            ...new Set(
+              participantEntries
+                .map((p) =>
+                  p.name
+                    ? p.name
+                    : p.studentId
+                    ? maskStudentIdGlobal(p.studentId)
+                    : "익명 신청자"
+                )
+                .filter(Boolean)
+            ),
+          ];
+          const chips = uniqueNames
+            .slice(0, 6)
+            .map(
+              (name) => `
+                <span class="px-2 py-1 rounded-full bg-gray-100 text-gray-700 text-xs">
+                  ${saf(name)}
+                </span>`
+            )
+            .join("");
+          const extra =
+            uniqueNames.length > 6
+              ? `<span class="px-2 py-1 rounded-full bg-gray-200 text-gray-600 text-xs">+ ${
+                  uniqueNames.length - 6
+                }명</span>`
+              : "";
+          return `<div class="flex flex-wrap gap-1">${chips}${extra}</div>`;
+        })();
+
+        const reviews = ev.reviews || [];
+        const ratingAverage =
+          reviews.length > 0
+            ? (
+                reviews.reduce(
+                  (sum, review) => sum + (Number(review.rating) || 0),
+                  0
+                ) / reviews.length
+              ).toFixed(1)
+            : null;
+
+        const reviewHTML =
+          reviews.length > 0
+            ? `
+              <div class="rounded-2xl border border-yellow-200 bg-yellow-50/60 px-4 py-3 space-y-2">
+                <div class="flex items-center gap-2 text-sm text-yellow-700 font-semibold">
+                  <i class="fas fa-star text-yellow-500"></i>후기 ${
+                    reviews.length
+                  }건 · 평균 ${ratingAverage}점
+                </div>
+                <div class="space-y-2">
+                  ${reviews
+                    .slice(0, 3)
+                    .map(
+                      (review) => `
+                        <div class="rounded-xl bg-white/90 border border-yellow-100 px-3 py-2 text-xs text-gray-600">
+                          <div class="flex items-center justify-between text-[11px] text-gray-500 mb-1">
+                            <span>${saf(review.name || "익명")}</span>
+                            <span>${Number(review.rating || 0).toFixed(
+                              1
+                            )}점</span>
+                          </div>
+                          <p>${saf(
+                            review.comment || "후기 내용이 없습니다."
+                          )}</p>
+                        </div>`
+                    )
+                    .join("")}
+                  ${
+                    reviews.length > 3
+                      ? `<p class="text-[11px] text-gray-500">외 ${
+                          reviews.length - 3
+                        }건의 후기가 있습니다.</p>`
+                      : ""
+                  }
+                </div>
+              </div>
+            `
+            : `
+              <div class="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-xs text-gray-500">
+                <i class="fas fa-comment-slash mr-1"></i>작성된 후기가 없습니다.
+              </div>
+            `;
+
+        const cancellationNotice =
+          ev.status === "cancelled"
+            ? `
+              <div class="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-600">
+                <i class="fas fa-triangle-exclamation mr-1"></i>취소된 활동입니다. 신청 내역은 숨겨지며, 작성된 미식회 후기는 별도로 관리됩니다.
+              </div>
+            `
+            : "";
+
+        const tastingDetails =
+          ev.type === "tasting"
+            ? `
+              <div class="mt-3 space-y-2">
+                ${restaurants
+                  .map((restaurant) => {
+                    const cap =
+                      restaurant.capacity != null
+                        ? restaurant.capacity
+                        : ev.limit != null
+                        ? ev.limit
+                        : (restaurant.reservations || []).length || 0;
+                    const reservationsCount =
+                      restaurant.reservations?.length || 0;
+                    const waitingCount = restaurant.waiting?.length || 0;
+                    const isRestaurantFull =
+                      cap > 0 && reservationsCount >= cap;
+                    return `
+                      <div class="border border-orange-200 rounded-2xl bg-orange-50/60 px-3 py-2">
+                        <div class="flex items-center justify-between gap-2 flex-wrap">
+                          <div class="flex items-center gap-2">
+                            <div class="font-semibold ${
+                              isRestaurantFull
+                                ? "text-gray-400 line-through decoration-2 decoration-red-400"
+                                : "text-orange-800"
+                            }">${saf(restaurant.name || "식당 미정")}</div>
+                            ${
+                              isRestaurantFull
+                                ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-100 text-red-600 text-[11px] font-semibold">
+                                    <i class="fas fa-ban text-xs"></i>마감
+                                  </span>`
+                                : ""
+                            }
+                          </div>
+                          <div class="text-xs text-orange-700">
+                            예약 ${reservationsCount}/${cap} · 대기 ${waitingCount}
+                          </div>
+                        </div>
+                        ${
+                          restaurant.info
+                            ? `<p class="text-xs text-gray-600 mt-1">${saf(
+                                restaurant.info
+                              )}</p>`
+                            : ""
+                        }
+                      </div>
+                    `;
+                  })
+                  .join("")}
+              </div>
+            `
+            : "";
+
+        const registrationStart =
+          ev.registrationStart && ev.registrationStart !== ""
+            ? formatDateTimeLabel(ev.registrationStart)
+            : "즉시";
+
+        const cancelButtonHTML =
+          ev.status === "cancelled"
+            ? `<span class="px-3 py-1.5 text-xs bg-red-100 text-red-700 rounded-full border border-red-200">이미 취소된 활동</span>`
+            : `<button type="button" class="px-3 py-1.5 text-xs bg-red-500 hover:bg-red-600 text-white rounded-full transition-colors" data-act="admin-cancel" data-id="${ev.id}">
+                <i class="fas fa-ban mr-1"></i>활동 취소
+              </button>`;
+
+        const actionButtons = `
+          <div class="flex flex-wrap gap-2 mt-4">
+            ${cancelButtonHTML}
+            <button type="button" class="px-3 py-1.5 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded-full transition-colors" onclick="showEventDetailModal('${ev.id}')">
+              <i class="fas fa-circle-info mr-1"></i>상세 보기
+            </button>
+            <button type="button" class="px-3 py-1.5 text-xs bg-gray-700 hover:bg-gray-800 text-white rounded-full transition-colors" data-act="export-xlsx" data-id="${ev.id}">
+              <i class="fas fa-file-excel mr-1"></i>명단 다운로드
+            </button>
+          </div>
+        `;
+
+        return `
+          <div class="bg-white border border-gray-200 rounded-3xl shadow-sm hover:shadow-lg transition-all p-5 space-y-4">
+            <div class="flex flex-wrap items-start justify-between gap-3">
+              <div class="flex items-center gap-3">
+                <span class="text-3xl">${meta.icon}</span>
+                <div>
+                  <h4 class="text-xl font-bold text-gray-900">${saf(
+                    ev.title || "제목 없음"
+                  )}</h4>
+                  <div class="flex flex-wrap items-center gap-2 text-xs text-gray-500 mt-1">
+                    <span class="px-2 py-0.5 rounded-full ${
+                      meta.accent
+                    }">${typeLabel(ev.type)}</span>
+                    <span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">${status}</span>
+                  </div>
+                </div>
+              </div>
+              <div class="text-right text-xs text-gray-500 space-y-1">
+                <div><i class="fas fa-calendar-day mr-1 text-blue-500"></i>${formatDateTimeLabel(
+                  ev.datetime
+                )}</div>
+                <div><i class="fas fa-hourglass mr-1 text-red-500"></i>마감 ${formatDateTimeLabel(
+                  ev.deadline
+                )}</div>
+                <div><i class="fas fa-door-open mr-1 text-emerald-500"></i>신청 ${registrationStart}</div>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs text-gray-600">
+              <div class="rounded-xl bg-slate-50 border border-slate-200 px-3 py-2">
+                <div class="text-[11px] text-gray-500">총 신청</div>
+                <div class="font-semibold text-gray-800">${totalReservations}명</div>
+              </div>
+              <div class="rounded-xl bg-slate-50 border border-slate-200 px-3 py-2">
+                <div class="text-[11px] text-gray-500">대기 인원</div>
+                <div class="font-semibold text-gray-800">${totalWaiting}명</div>
+              </div>
+              <div class="rounded-xl bg-slate-50 border border-slate-200 px-3 py-2">
+                <div class="text-[11px] text-gray-500">정원</div>
+                <div class="font-semibold text-gray-800">${
+                  totalCapacityValue != null
+                    ? `${totalCapacityValue}명`
+                    : "제한 없음"
+                }</div>
+              </div>
+              <div class="rounded-xl bg-slate-50 border border-slate-200 px-3 py-2">
+                <div class="text-[11px] text-gray-500">후기</div>
+                <div class="font-semibold text-gray-800">${
+                  reviews.length > 0
+                    ? `${reviews.length}건 · ${ratingAverage}점`
+                    : "작성 없음"
+                }</div>
+              </div>
+            </div>
+            ${participantChips}
+            ${tastingDetails}
+            ${cancellationNotice}
+            ${reviewHTML}
+            ${actionButtons}
+          </div>
+        `;
+      }
 
       // 조모임 회원 목록 렌더링
       function renderGroupMembersList(members, groupId) {
@@ -19160,7 +20438,8 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
             <div class="flex gap-2">
               ${
                 isPastEvent || isClosed
-                  ? `
+                  ? ev.type !== "mt" && ev.type !== "assembly"
+                    ? `
               <button type="button" class="flex-1 ${
                 hasReview
                   ? "bg-gray-600 hover:bg-gray-700"
@@ -19172,6 +20451,12 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                 } mr-2"></i>
                 ${hasReview ? "평가 수정" : "평가 작성"}
               </button>
+              `
+                    : `
+              <div class="flex-1 bg-gray-100 text-gray-500 py-3 px-4 rounded-lg text-center font-medium">
+                <i class="fas fa-info-circle mr-2"></i>
+                MT/총회는 후기 작성이 없습니다
+              </div>
               `
                   : `
               <div class="flex-1 bg-gray-100 text-gray-500 py-3 px-4 rounded-lg text-center font-medium">
@@ -20137,7 +21422,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
           showAlert("😥", "이벤트를 찾을 수 없습니다.");
           return;
         }
-        
+
         // 금액 포맷팅 함수
         const formatKRW = (n) => {
           const v = Number(n || 0);
@@ -20183,6 +21468,218 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
             ? "🎤 총회"
             : "📅 이벤트";
 
+        const formatDateTimeLocal = (value) => {
+          if (!value) return "-";
+          const date = value instanceof Date ? value : new Date(value);
+          if (Number.isNaN(date.getTime())) return "-";
+          return date.toLocaleString("ko-KR", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+        };
+
+        const sid = currentUser?.studentId;
+        let myApplicationHTML = "";
+
+        if (sid) {
+          const defaultBadgeClass =
+            "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold";
+          const getDisplayName = (entry) => {
+            if (!entry) return "익명";
+            return (
+              entry.name ||
+              entry.displayName ||
+              (entry.studentId ? maskStudentIdGlobal(entry.studentId) : "익명")
+            );
+          };
+
+          const makeRow = (icon, label, content) => `
+            <div class="flex items-start gap-2 bg-white rounded-lg px-3 py-2 border border-blue-100">
+              <i class="fas ${icon} text-blue-500 mt-0.5"></i>
+              <div>
+                <div class="text-[11px] text-blue-600">${label}</div>
+                <div class="text-sm font-semibold text-gray-800 leading-snug">${content}</div>
+              </div>
+            </div>
+          `;
+
+          let myEntry = null;
+          let myStatus = "";
+          let myStatusClass = `${defaultBadgeClass} bg-blue-100 text-blue-700`;
+          let myRestaurant = null;
+          let waitPosition = null;
+          let companions = [];
+
+          if (ev.type === "tasting") {
+            (ev.restaurants || []).some((restaurant) => {
+              const reservations = restaurant.reservations || [];
+              const waiting = restaurant.waiting || [];
+              const reservationIdx = reservations.findIndex(
+                (r) => r.studentId === sid
+              );
+              if (reservationIdx >= 0) {
+                myEntry = reservations[reservationIdx];
+                myStatus = "신청 확정";
+                myRestaurant = restaurant;
+                companions = reservations
+                  .filter((r) => r.studentId !== sid)
+                  .map((r) => getDisplayName(r));
+                return true;
+              }
+              const waitingIdx = waiting.findIndex((r) => r.studentId === sid);
+              if (waitingIdx >= 0) {
+                myEntry = waiting[waitingIdx];
+                myStatus = "대기중";
+                myStatusClass = `${defaultBadgeClass} bg-yellow-100 text-yellow-700`;
+                waitPosition = waitingIdx + 1;
+                myRestaurant = restaurant;
+                companions = waiting
+                  .filter((r) => r.studentId !== sid)
+                  .map((r) => getDisplayName(r));
+                return true;
+              }
+              return false;
+            });
+          } else {
+            const applicants = ev.applicants || [];
+            const waiting = ev.waiting || [];
+            const applicantIdx = applicants.findIndex(
+              (a) => a.studentId === sid
+            );
+            if (applicantIdx >= 0) {
+              myEntry = applicants[applicantIdx];
+              myStatus = "신청 확정";
+              companions = applicants
+                .filter((a) => a.studentId !== sid)
+                .map((a) => getDisplayName(a));
+            } else {
+              const waitingIdx = waiting.findIndex((a) => a.studentId === sid);
+              if (waitingIdx >= 0) {
+                myEntry = waiting[waitingIdx];
+                myStatus = "대기중";
+                myStatusClass = `${defaultBadgeClass} bg-yellow-100 text-yellow-700`;
+                waitPosition = waitingIdx + 1;
+                companions = waiting
+                  .filter((a) => a.studentId !== sid)
+                  .map((a) => getDisplayName(a));
+              }
+            }
+          }
+
+          if (myEntry || myStatus) {
+            companions = [...new Set(companions.filter((name) => !!name))];
+            const applicantName =
+              getDisplayName(myEntry) || currentUser?.name || "익명";
+            const appliedAt =
+              myEntry?.appliedAt ||
+              myEntry?.applied_at ||
+              myEntry?.timestamp ||
+              myEntry?.createdAt;
+
+            const infoRows = [];
+
+            infoRows.push(
+              makeRow(
+                "fa-id-card",
+                "신청자",
+                `${saf(applicantName)} (${saf(sid)})`
+              )
+            );
+
+            if (myStatus) {
+              const statusBadge = `<span class="${myStatusClass}">${saf(
+                myStatus
+              )}${waitPosition ? ` (${waitPosition}번)` : ""}</span>`;
+              infoRows.push(makeRow("fa-flag", "신청 상태", statusBadge));
+            }
+
+            if (appliedAt) {
+              infoRows.push(
+                makeRow(
+                  "fa-clock",
+                  "신청 일시",
+                  saf(formatDateTimeLocal(appliedAt))
+                )
+              );
+            }
+
+            if (myRestaurant) {
+              const capacity =
+                myRestaurant.capacity ??
+                ev.limit ??
+                myRestaurant.reservations?.length ??
+                0;
+              const reservedCount = myRestaurant.reservations?.length ?? 0;
+              infoRows.push(
+                makeRow(
+                  "fa-utensils",
+                  "신청 식당",
+                  `${saf(
+                    myRestaurant.name || "식당 미정"
+                  )} (${reservedCount}/${capacity}명)`
+                )
+              );
+            }
+
+            if (waitPosition && myStatus === "대기중") {
+              infoRows.push(
+                makeRow("fa-list-ol", "대기 순번", `${waitPosition}번`)
+              );
+            }
+
+            if (companions.length > 0) {
+              const companionChips = companions
+                .slice(0, 6)
+                .map(
+                  (name) => `
+                    <span class="px-2 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-medium">
+                      ${saf(name)}
+                    </span>
+                  `
+                )
+                .join("");
+              const extraCompanions =
+                companions.length > 6
+                  ? `<span class="px-2 py-1 rounded-full bg-blue-50 text-blue-500 text-xs font-medium">
+                      +${companions.length - 6}
+                    </span>`
+                  : "";
+
+              infoRows.push(`
+                <div class="flex flex-col gap-2 bg-white rounded-lg px-3 py-2 border border-blue-100">
+                  <div class="flex items-center gap-2 text-[11px] text-blue-600">
+                    <i class="fas fa-users"></i>
+                    함께 신청한 인원
+                  </div>
+                  <div class="flex flex-wrap gap-1">
+                    ${companionChips}${extraCompanions}
+                  </div>
+                </div>
+              `);
+            }
+
+            myApplicationHTML = `
+              <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-3">
+                <h5 class="font-semibold text-blue-900 flex items-center gap-2">
+                  <i class="fas fa-user-check text-blue-600"></i>내 신청 정보
+                </h5>
+                <div class="grid grid-cols-1 gap-2">
+                  ${infoRows.join("")}
+                </div>
+              </div>
+            `;
+          } else {
+            myApplicationHTML = `
+              <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-700">
+                현재 계정으로 신청한 내역을 찾을 수 없습니다.
+              </div>
+            `;
+          }
+        }
+
         const modalHTML = `
           <div id="event-detail-modal-main" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div class="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
@@ -20215,6 +21712,8 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                     </div>
                   </div>
                   
+                  ${myApplicationHTML}
+                  
                   ${
                     ev.description
                       ? `
@@ -20242,7 +21741,9 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                         <div class="flex items-center gap-2 text-sm">
                           <i class="fas fa-won-sign text-amber-600"></i>
                           <span class="text-gray-700 font-medium">입금 금액:</span>
-                          <span class="text-gray-800 font-bold text-lg">${formatKRW(ev.payment.amount)}</span>
+                          <span class="text-gray-800 font-bold text-lg">${formatKRW(
+                            ev.payment.amount
+                          )}</span>
                         </div>
                         `
                             : ""
@@ -20253,10 +21754,14 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                         <div class="flex items-center gap-2 text-sm">
                           <i class="fas fa-university text-amber-600"></i>
                           <span class="text-gray-700 font-medium">입금 계좌:</span>
-                          <span class="text-gray-800 font-semibold">${saf(ev.payment.bank)} ${saf(ev.payment.number)}</span>
+                          <span class="text-gray-800 font-semibold">${saf(
+                            ev.payment.bank
+                          )} ${saf(ev.payment.number)}</span>
                           ${
                             ev.payment.holder
-                              ? `<span class="text-gray-600 text-xs">(예금주: ${saf(ev.payment.holder)})</span>`
+                              ? `<span class="text-gray-600 text-xs">(예금주: ${saf(
+                                  ev.payment.holder
+                                )})</span>`
                               : ""
                           }
                         </div>
@@ -20269,7 +21774,11 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                         <div class="flex justify-end">
                           <button 
                             type="button" 
-                            onclick="navigator.clipboard.writeText('${saf(ev.payment.bank || "")} ${saf(ev.payment.number || "")}').then(() => alert('계좌번호가 복사되었습니다!'))" 
+                            onclick="navigator.clipboard.writeText('${saf(
+                              ev.payment.bank || ""
+                            )} ${saf(
+                                ev.payment.number || ""
+                              )}').then(() => alert('계좌번호가 복사되었습니다!'))" 
                             class="bg-amber-600 hover:bg-amber-700 text-white px-3 py-1 rounded text-xs transition-colors"
                           >
                             <i class="fas fa-copy mr-1"></i>계좌번호 복사
@@ -20282,7 +21791,9 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                           ev.payment.note
                             ? `
                         <div class="text-sm text-amber-800 bg-amber-100 p-2 rounded">
-                          <i class="fas fa-info-circle mr-1"></i>${saf(ev.payment.note)}
+                          <i class="fas fa-info-circle mr-1"></i>${saf(
+                            ev.payment.note
+                          )}
                         </div>
                         `
                             : ""
@@ -24017,7 +25528,8 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
         const closedEvents = eventsData.filter(
           (ev) =>
             (ev.status === "closed" || ev.status === "archived") &&
-            ev.status !== "deleted"
+            ev.status !== "deleted" &&
+            ev.status !== "cancelled"
         );
 
         // 카테고리별로 분류
@@ -24528,7 +26040,10 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                 <button 
                   class="category-filter-btn bg-orange-500 text-white rounded-full px-3 py-2 sm:py-1 hover:bg-orange-600 transition-colors font-medium text-sm"
                   data-category="all">
-                  🏠 전체 (${tastingRestaurants.length})
+                  <span class="category-emoji" aria-hidden="true">🏠</span>
+                  <span class="category-label">전체 (${
+                    tastingRestaurants.length
+                  })</span>
                 </button>
                 ${restaurantCategories
                   .map(
@@ -24536,11 +26051,14 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                   <button 
                     class="category-filter-btn bg-gray-200 text-gray-700 rounded-full px-3 py-2 sm:py-1 hover:bg-orange-500 hover:text-white transition-colors font-medium text-sm"
                     data-category="${cat.name}">
-                    ${cat.emoji} ${cat.name} (${
+                    <span class="category-emoji" aria-hidden="true">${
+                      cat.emoji
+                    }</span>
+                    <span class="category-label">${cat.name} (${
                       tastingRestaurants.filter(
                         (r) => r.restaurantCategory === cat.name
                       ).length
-                    })
+                    })</span>
                   </button>
                 `
                   )
@@ -24800,27 +26318,36 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
 
               try {
                 const eventRef = doc(db, "events", eventId);
-                await runTransaction(db, async (transaction) => {
-                  const eventDoc = await transaction.get(eventRef);
-                  if (!eventDoc.exists())
-                    throw new Error("이벤트를 찾을 수 없습니다.");
+                await runTransaction(
+                  db,
+                  async (transaction) => {
+                    const eventDoc = await transaction.get(eventRef);
+                    if (!eventDoc.exists())
+                      throw new Error("이벤트를 찾을 수 없습니다.");
 
-                  const eventData = eventDoc.data();
-                  const reviews = eventData.reviews || [];
+                    const eventData = eventDoc.data();
+                    const reviews = eventData.reviews || [];
 
-                  // 해당 studentId의 리뷰 제거
-                  const updatedReviews = reviews.filter(
-                    (r) => r.studentId !== studentId
-                  );
+                    // 해당 studentId의 리뷰 제거
+                    const updatedReviews = reviews.filter(
+                      (r) => r.studentId !== studentId
+                    );
 
-                  transaction.update(eventRef, { reviews: updatedReviews });
-                });
+                    transaction.update(eventRef, { reviews: updatedReviews });
+                  },
+                  TRANSACTION_OPTIONS
+                );
 
                 showAlert("✅", "후기가 삭제되었습니다.");
                 renderRoadmapTab(isAdmin); // 다시 렌더링
               } catch (error) {
                 console.error("후기 삭제 오류:", error);
-                showAlert("😥", "후기 삭제 중 오류가 발생했습니다.");
+                if (error?.code === "resource-exhausted")
+                  showAlert(
+                    "😥",
+                    "요청이 너무 많아 잠시 후 다시 시도해주세요.<br>불편을 드려 죄송합니다."
+                  );
+                else showAlert("😥", "후기 삭제 중 오류가 발생했습니다.");
               }
             }
 
@@ -24838,29 +26365,38 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
 
               try {
                 const eventRef = doc(db, "events", eventId);
-                await runTransaction(db, async (transaction) => {
-                  const eventDoc = await transaction.get(eventRef);
-                  if (!eventDoc.exists())
-                    throw new Error("이벤트를 찾을 수 없습니다.");
+                await runTransaction(
+                  db,
+                  async (transaction) => {
+                    const eventDoc = await transaction.get(eventRef);
+                    if (!eventDoc.exists())
+                      throw new Error("이벤트를 찾을 수 없습니다.");
 
-                  const eventData = eventDoc.data();
-                  const restaurants = eventData.restaurants || [];
+                    const eventData = eventDoc.data();
+                    const restaurants = eventData.restaurants || [];
 
-                  // 해당 식당 제거
-                  const updatedRestaurants = restaurants.filter(
-                    (r) => r.name !== restaurantName
-                  );
+                    // 해당 식당 제거
+                    const updatedRestaurants = restaurants.filter(
+                      (r) => r.name !== restaurantName
+                    );
 
-                  transaction.update(eventRef, {
-                    restaurants: updatedRestaurants,
-                  });
-                });
+                    transaction.update(eventRef, {
+                      restaurants: updatedRestaurants,
+                    });
+                  },
+                  TRANSACTION_OPTIONS
+                );
 
                 showAlert("✅", "식당이 삭제되었습니다.");
                 renderRoadmapTab(isAdmin); // 다시 렌더링
               } catch (error) {
                 console.error("식당 삭제 오류:", error);
-                showAlert("😥", "식당 삭제 중 오류가 발생했습니다.");
+                if (error?.code === "resource-exhausted")
+                  showAlert(
+                    "😥",
+                    "요청이 너무 많아 잠시 후 다시 시도해주세요.<br>불편을 드려 죄송합니다."
+                  );
+                else showAlert("😥", "식당 삭제 중 오류가 발생했습니다.");
               }
             }
           });
@@ -24896,32 +26432,41 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
 
               try {
                 const eventRef = doc(db, "events", eventId);
-                await runTransaction(db, async (transaction) => {
-                  const eventDoc = await transaction.get(eventRef);
-                  if (!eventDoc.exists())
-                    throw new Error("이벤트를 찾을 수 없습니다.");
+                await runTransaction(
+                  db,
+                  async (transaction) => {
+                    const eventDoc = await transaction.get(eventRef);
+                    if (!eventDoc.exists())
+                      throw new Error("이벤트를 찾을 수 없습니다.");
 
-                  const eventData = eventDoc.data();
-                  const restaurants = eventData.restaurants || [];
+                    const eventData = eventDoc.data();
+                    const restaurants = eventData.restaurants || [];
 
-                  // 해당 식당의 카테고리 업데이트
-                  const updatedRestaurants = restaurants.map((r) => {
-                    if (r.name === restaurantName) {
-                      return { ...r, category: newCategory };
-                    }
-                    return r;
-                  });
+                    // 해당 식당의 카테고리 업데이트
+                    const updatedRestaurants = restaurants.map((r) => {
+                      if (r.name === restaurantName) {
+                        return { ...r, category: newCategory };
+                      }
+                      return r;
+                    });
 
-                  transaction.update(eventRef, {
-                    restaurants: updatedRestaurants,
-                  });
-                });
+                    transaction.update(eventRef, {
+                      restaurants: updatedRestaurants,
+                    });
+                  },
+                  TRANSACTION_OPTIONS
+                );
 
                 showAlert("✅", "카테고리가 변경되었습니다.");
                 renderRoadmapTab(isAdmin); // 다시 렌더링
               } catch (error) {
                 console.error("카테고리 변경 오류:", error);
-                showAlert("😥", "카테고리 변경 중 오류가 발생했습니다.");
+                if (error?.code === "resource-exhausted")
+                  showAlert(
+                    "😥",
+                    "요청이 너무 많아 잠시 후 다시 시도해주세요.<br>불편을 드려 죄송합니다."
+                  );
+                else showAlert("😥", "카테고리 변경 중 오류가 발생했습니다.");
               }
             }
           });
@@ -25383,18 +26928,27 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
         const sid = document.getElementById("new-admin-id").value.trim();
         if (!sid) return showAlert("😥", "학번을 입력하세요.");
         try {
-          await runTransaction(db, async (tx) => {
-            const ref = doc(db, "admins", "list");
-            const snap = await tx.get(ref);
-            const arr = snap.exists() ? snap.data().studentIds || [] : [];
-            if (!arr.includes(sid)) arr.push(sid);
-            tx.set(ref, { studentIds: arr }, { merge: true });
-          });
+          await runTransaction(
+            db,
+            async (tx) => {
+              const ref = doc(db, "admins", "list");
+              const snap = await tx.get(ref);
+              const arr = snap.exists() ? snap.data().studentIds || [] : [];
+              if (!arr.includes(sid)) arr.push(sid);
+              tx.set(ref, { studentIds: arr }, { merge: true });
+            },
+            TRANSACTION_OPTIONS
+          );
           closeEmergencyModal();
           showAlert("✅", `관리자에 ${saf(sid)}를(을) 추가했습니다.`);
         } catch (e) {
           console.warn(e);
-          showAlert("😥", "관리자 임명 중 오류가 발생했습니다.");
+          if (e?.code === "resource-exhausted")
+            showAlert(
+              "😥",
+              "요청이 너무 많아 잠시 후 다시 시도해주세요.<br>불편을 드려 죄송합니다."
+            );
+          else showAlert("😥", "관리자 임명 중 오류가 발생했습니다.");
         }
       }
 
@@ -26644,6 +28198,13 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
         if (act === "reserve-tasting") return reserveTasting(id, rid);
         if (act === "cancel-tasting") return cancelTasting(id, rid);
         if (act === "cancel-wait-tasting") return cancelWaitTasting(id, rid);
+        if (act === "admin-cancel") {
+          if (!isFullAdmin()) {
+            showAlert("🔒", "관리자만 이벤트를 관리할 수 있습니다.");
+            return;
+          }
+          return cancelEventForAdmin(id);
+        }
         if (act === "admin-edit") {
           if (!isFullAdmin()) {
             showAlert("🔒", "관리자만 이벤트를 수정할 수 있습니다.");
@@ -26706,7 +28267,14 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
           }
           return exportApplicantsXLSX(id);
         }
-        if (act === "write-review") return openReviewModal(id);
+        if (act === "write-review") {
+          const event = eventsData.find((e) => e.id === id);
+          if (event && (event.type === "mt" || event.type === "assembly")) {
+            showAlert("ℹ️", "MT와 총회는 후기 작성이 필요하지 않습니다.");
+            return;
+          }
+          return openReviewModal(id);
+        }
         if (act === "admin-confirm-activity") {
           if (!isFullAdmin()) {
             showAlert("🔒", "관리자만 활동을 관리할 수 있습니다.");
@@ -26814,6 +28382,12 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
       function openReviewModal(eventId) {
         const event = eventsData.find((e) => e.id === eventId);
         if (!event) return;
+
+        // MT와 총회는 후기 작성 불가
+        if (event.type === "mt" || event.type === "assembly") {
+          showAlert("ℹ️", "MT와 총회는 후기 작성이 필요하지 않습니다.");
+          return;
+        }
 
         const existingReview = event.reviews?.find(
           (r) => r.studentId === currentUser.studentId
@@ -27027,39 +28601,44 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
       async function saveEventReview(eventId, rating, comment) {
         const eventRef = doc(db, "events", eventId);
 
-        await runTransaction(db, async (transaction) => {
-          const eventDoc = await transaction.get(eventRef);
-          if (!eventDoc.exists()) throw new Error("이벤트를 찾을 수 없습니다.");
+        await runTransaction(
+          db,
+          async (transaction) => {
+            const eventDoc = await transaction.get(eventRef);
+            if (!eventDoc.exists())
+              throw new Error("이벤트를 찾을 수 없습니다.");
 
-          const eventData = eventDoc.data();
-          const reviews = eventData.reviews || [];
+            const eventData = eventDoc.data();
+            const reviews = eventData.reviews || [];
 
-          // 기존 평가 찾아서 업데이트하거나 새로 추가
-          const existingIndex = reviews.findIndex(
-            (r) => r.studentId === currentUser.studentId
-          );
-          const review = {
-            studentId: currentUser.studentId,
-            studentName: currentUser.name,
-            name: currentUser.name, // 리뷰 화면에서 사용하는 필드
-            rating: rating,
-            comment: comment || "", // 텍스트는 선택사항 (빈 문자열 허용)
-            timestamp: new Date().toISOString(),
-            createdAt:
-              existingIndex >= 0
-                ? reviews[existingIndex].createdAt
-                : new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          };
+            // 기존 평가 찾아서 업데이트하거나 새로 추가
+            const existingIndex = reviews.findIndex(
+              (r) => r.studentId === currentUser.studentId
+            );
+            const review = {
+              studentId: currentUser.studentId,
+              studentName: currentUser.name,
+              name: currentUser.name, // 리뷰 화면에서 사용하는 필드
+              rating: rating,
+              comment: comment || "", // 텍스트는 선택사항 (빈 문자열 허용)
+              timestamp: new Date().toISOString(),
+              createdAt:
+                existingIndex >= 0
+                  ? reviews[existingIndex].createdAt
+                  : new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            };
 
-          if (existingIndex >= 0) {
-            reviews[existingIndex] = review;
-          } else {
-            reviews.push(review);
-          }
+            if (existingIndex >= 0) {
+              reviews[existingIndex] = review;
+            } else {
+              reviews.push(review);
+            }
 
-          transaction.update(eventRef, { reviews: reviews });
-        });
+            transaction.update(eventRef, { reviews: reviews });
+          },
+          TRANSACTION_OPTIONS
+        );
 
         // eventsData 업데이트
         const eventIndex = eventsData.findIndex((e) => e.id === eventId);
@@ -28129,9 +29708,6 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
           closeBlockModal();
         }
       });
-
-      // 자동 마감 스케줄러 초기화
-      setupAutoCloseScheduler();
 
       // ===================== (끝) =====================
     </script>
