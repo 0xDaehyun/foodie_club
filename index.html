@@ -11558,7 +11558,7 @@
           showAlert("😥", "보관 처리 실패");
         }
       }
-
+      window.archiveEvent = archiveEvent;
       async function unarchiveEvent(id) {
         if (
           !confirm(
@@ -11580,6 +11580,7 @@
           showAlert("😥", "복원 실패");
         }
       }
+      window.unarchiveEvent = unarchiveEvent;
 
       // 보관된 이벤트에 참가자 추가 모달 열기
       async function openAddParticipantModal(eventId) {
@@ -11948,6 +11949,7 @@
           searchParticipants(searchInput.value);
         }
       }
+      window.openAddParticipantModal = openAddParticipantModal;
 
       // 참가자 추가 모달 닫기
       function closeAddParticipantModal() {
@@ -16464,7 +16466,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                 <i class="fas fa-ban mr-1"></i>활동 취소
               </button>`;
 
-        const participantManageButton = `<button type="button" class="px-3 py-1.5 text-xs bg-green-500 hover:bg-green-600 text-white rounded-full transition-colors" data-act="admin-add-participant" data-id="${ev.id}">
+        const participantManageButton = `<button type="button" class="px-3 py-1.5 text-xs bg-green-500 hover:bg-green-600 text-white rounded-full transition-colors" data-act="admin-add-participant" data-id="${ev.id}" onclick="openAddParticipantModal('${ev.id}')">
             <i class="fas fa-user-edit mr-1"></i>참가자 수정
           </button>`;
         const groupButton = `<button type="button" class="px-3 py-1.5 text-xs bg-purple-500 hover:bg-purple-600 text-white rounded-full transition-colors" data-act="group-maker" data-id="${ev.id}">
@@ -16472,10 +16474,10 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
           </button>`;
         const archiveToggleButton =
           ev.status === "archived"
-            ? `<button type="button" class="px-3 py-1.5 text-xs bg-amber-500 hover:bg-amber-600 text-white rounded-full transition-colors" data-act="admin-unarchive" data-id="${ev.id}">
+            ? `<button type="button" class="px-3 py-1.5 text-xs bg-amber-500 hover:bg-amber-600 text-white rounded-full transition-colors" data-act="admin-unarchive" data-id="${ev.id}" onclick="unarchiveEvent('${ev.id}')">
                 <i class="fas fa-rotate-left mr-1"></i>재게시
               </button>`
-            : `<button type="button" class="px-3 py-1.5 text-xs bg-amber-500 hover:bg-amber-600 text-white rounded-full transition-colors" data-act="admin-archive" data-id="${ev.id}">
+            : `<button type="button" class="px-3 py-1.5 text-xs bg-amber-500 hover:bg-amber-600 text-white rounded-full transition-colors" data-act="admin-archive" data-id="${ev.id}" onclick="archiveEvent('${ev.id}')">
                 <i class="fas fa-box-archive mr-1"></i>숨김 처리
               </button>`;
 
