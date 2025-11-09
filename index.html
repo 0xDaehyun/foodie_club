@@ -2121,13 +2121,6 @@
                   최근 신청 내역과 알림을 빠르게 확인하세요.
                 </p>
               </div>
-              <button
-                type="button"
-                id="my-page-open-button"
-                class="text-xs bg-orange-500 hover:bg-orange-600 text-white px-3 py-1.5 rounded-full font-semibold shadow-sm transition-all flex items-center gap-1"
-              >
-                <i class="fas fa-user" aria-hidden="true"></i>내 활동 이동
-              </button>
             </div>
             <div
               id="my-page-quick-summary"
@@ -4595,14 +4588,6 @@
           );
         });
       }
-      const myPageOpenButton = document.getElementById("my-page-open-button");
-      if (myPageOpenButton) {
-        myPageOpenButton.addEventListener("click", (event) => {
-          event.preventDefault();
-          scrollToMyPageSection();
-        });
-      }
-
       /* ===== 리스너 ===== */
       const unsubPublic = {
         admins: null,
@@ -9351,13 +9336,6 @@
             }
                   </p>
                 </div>
-                <button
-                  type="button"
-                  class="text-xs bg-orange-500 hover:bg-orange-600 text-white px-3 py-1.5 rounded-full font-semibold shadow-sm transition-all flex items-center gap-1"
-                  onclick="scrollToMyPageSection()"
-                >
-                  <i class="fas fa-user"></i>내 활동 열기
-                </button>
               </div>
               <div class="flex flex-wrap items-center gap-2 text-[11px] text-gray-600 mt-2">
                 <span class="px-2 py-1 bg-orange-50 rounded-full border border-orange-200 font-semibold">
