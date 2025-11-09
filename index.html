@@ -12424,26 +12424,39 @@
         }
 
         const confirmMessage = [
-          "이 활동을 취소하면:",
+          "이 활동을 삭제하면:",
           "• 모든 신청자와 대기자는 더 이상 활동을 볼 수 없습니다.",
-          "• '내 활동' 탭에서도 숨겨집니다.",
-          "• 작성된 미식회 후기는 그대로 유지됩니다.",
+          "• '내 활동' 탭에서도 완전히 사라집니다.",
+          "• 작성된 미식회 후기는 그대로 보관됩니다.",
           "",
-          "정말로 활동을 취소하시겠습니까?",
+          "정말로 활동을 취소(삭제)하시겠습니까?",
         ].join("\n");
 
         if (!confirm(confirmMessage)) return;
 
+        const verification = prompt(
+          '활동을 완전히 취소하려면 "활동취소"를 입력하세요.',
+          ""
+        );
+
+        if (verification !== "활동취소") {
+          showAlert(
+            "⚠️",
+            '활동 취소가 중단되었습니다. "활동취소"를 정확히 입력해주세요.'
+          );
+          return;
+        }
+
         try {
           await updateDoc(doc(db, "events", id), {
-            status: "cancelled",
-            cancelledAt: new Date().toISOString(),
-            cancelledBy: currentUser?.studentId || "admin",
+            status: "deleted",
+            deletedAt: new Date().toISOString(),
+            deletedBy: currentUser?.studentId || "admin",
           });
-          showAlert("🚫", "활동이 취소되었습니다.");
+          showAlert("🗑️", "활동이 삭제되었습니다.");
         } catch (error) {
           console.error("활동 취소 오류:", error);
-          showAlert("😥", `활동 취소에 실패했습니다: ${error.message}`);
+          showAlert("😥", `활동 삭제에 실패했습니다: ${error.message}`);
         }
       }
       // ==================== 조짜기 기능 (새 버전 - 간단명료) ====================
@@ -16197,17 +16210,17 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
         const events = (eventsData || [])
           .filter((ev) => ev && ev.status !== "deleted")
           .sort((a, b) => {
-        const getTime = (event) =>
-          new Date(
-            event.datetime ||
-              event.deadline ||
-              event.registrationStart ||
-              event.createdAt ||
-              event.created_at ||
-              event.created ||
-              0
-          ).getTime();
-        return getTime(b) - getTime(a);
+            const getTime = (event) =>
+              new Date(
+                event.datetime ||
+                  event.deadline ||
+                  event.registrationStart ||
+                  event.createdAt ||
+                  event.created_at ||
+                  event.created ||
+                  0
+              ).getTime();
+            return getTime(b) - getTime(a);
           });
 
         if (!events.length) {
@@ -16342,6 +16355,35 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
               ).toFixed(1)
             : null;
 
+        const sanitizedReviewId = (ev.id || "event")
+          .toString()
+          .replace(/[^\w-]/g, "");
+        const reviewToggleId = `reviews-${sanitizedReviewId}`;
+        const renderReviewItem = (review) => `
+          <div class="rounded-xl bg-white/90 border border-yellow-100 px-3 py-2 text-xs text-gray-600">
+            <div class="flex items-center justify-between text-[11px] text-gray-500 mb-1">
+              <span class="font-semibold text-gray-700">${saf(
+                review.name || maskStudentIdGlobal(review.studentId || "")
+              )}</span>
+              <span class="flex items-center gap-1 text-yellow-600 font-semibold">
+                <i class="fas fa-star text-yellow-500"></i>${Number(
+                  review.rating || 0
+                ).toFixed(1)}점
+              </span>
+            </div>
+            <p>${saf(review.comment || "후기 내용이 없습니다.")}</p>
+          </div>`;
+
+        const reviewPreviewHTML = reviews
+          .slice(0, 2)
+          .map(renderReviewItem)
+          .join("");
+        const reviewExtraHTML = reviews
+          .slice(2)
+          .map(renderReviewItem)
+          .join("");
+        const extraReviewCount = Math.max(reviews.length - 2, 0);
+
         const reviewHTML =
           reviews.length > 0
             ? `
@@ -16349,31 +16391,20 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                 <div class="flex items-center gap-2 text-sm text-yellow-700 font-semibold">
                   <i class="fas fa-star text-yellow-500"></i>후기 ${
                     reviews.length
-                  }건 · 평균 ${ratingAverage}점
+                  }건${ratingAverage ? ` · 평균 ${ratingAverage}점` : ""}
                 </div>
                 <div class="space-y-2">
-                  ${reviews
-                    .slice(0, 3)
-                    .map(
-                      (review) => `
-                        <div class="rounded-xl bg-white/90 border border-yellow-100 px-3 py-2 text-xs text-gray-600">
-                          <div class="flex items-center justify-between text-[11px] text-gray-500 mb-1">
-                            <span>${saf(review.name || "익명")}</span>
-                            <span>${Number(review.rating || 0).toFixed(
-                              1
-                            )}점</span>
-                          </div>
-                          <p>${saf(
-                            review.comment || "후기 내용이 없습니다."
-                          )}</p>
-                        </div>`
-                    )
-                    .join("")}
+                  ${reviewPreviewHTML}
                   ${
-                    reviews.length > 3
-                      ? `<p class="text-[11px] text-gray-500">외 ${
-                          reviews.length - 3
-                        }건의 후기가 있습니다.</p>`
+                    extraReviewCount > 0
+                      ? `
+                        <div id="${reviewToggleId}-hidden" class="hidden space-y-2 mt-2">
+                          ${reviewExtraHTML}
+                        </div>
+                        <button type="button" class="text-xs text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1" data-review-toggle="${reviewToggleId}" data-review-count="${extraReviewCount}">
+                          <i class="fas fa-chevron-down"></i>외 ${extraReviewCount}개 리뷰 보기
+                        </button>
+                      `
                       : ""
                   }
                 </div>
@@ -16386,10 +16417,10 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
             `;
 
         const cancellationNotice =
-          ev.status === "cancelled"
+          ev.status === "cancelled" || ev.status === "deleted"
             ? `
               <div class="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-600">
-                <i class="fas fa-triangle-exclamation mr-1"></i>취소된 활동입니다. 신청 내역은 숨겨지며, 작성된 미식회 후기는 별도로 관리됩니다.
+                <i class="fas fa-triangle-exclamation mr-1"></i>삭제된 활동입니다. 신청 내역은 숨겨지며, 작성된 미식회 후기는 별도로 관리됩니다.
               </div>
             `
             : "";
@@ -16453,8 +16484,8 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
             : "즉시";
 
         const cancelButtonHTML =
-          ev.status === "cancelled"
-            ? `<span class="px-3 py-1.5 text-xs bg-red-100 text-red-700 rounded-full border border-red-200">이미 취소된 활동</span>`
+          ev.status === "deleted"
+            ? `<span class="px-3 py-1.5 text-xs bg-red-100 text-red-700 rounded-full border border-red-200">삭제된 활동</span>`
             : `<button type="button" class="px-3 py-1.5 text-xs bg-red-500 hover:bg-red-600 text-white rounded-full transition-colors" data-act="admin-cancel" data-id="${ev.id}">
                 <i class="fas fa-ban mr-1"></i>활동 취소
               </button>`;
@@ -28228,6 +28259,19 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
         const rid = actionButton.dataset.rid;
 
         onEventActionClick(act, id, rid);
+      });
+
+      document.addEventListener("click", (e) => {
+        const toggleButton = e.target.closest("[data-review-toggle]");
+        if (!toggleButton) return;
+        const toggleId = toggleButton.dataset.reviewToggle;
+        const hiddenContainer = document.getElementById(`${toggleId}-hidden`);
+        if (!hiddenContainer) return;
+        const isHidden = hiddenContainer.classList.toggle("hidden");
+        const count = Number(toggleButton.dataset.reviewCount || "0");
+        toggleButton.innerHTML = isHidden
+          ? `<i class="fas fa-chevron-down"></i>외 ${count}개 리뷰 보기`
+          : '<i class="fas fa-chevron-up"></i>리뷰 접기';
       });
 
       function onEventActionClick(act, id, rid) {
