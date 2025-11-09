@@ -8255,7 +8255,7 @@
                       : ""
                   }
                   <div class="flex-1 min-w-0 space-y-3">
-                    <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+                      <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 w-full">
                       <div class="space-y-1">
                         <div class="flex items-center gap-2 flex-wrap">
                           <h4 class="font-bold text-lg ${
@@ -8870,11 +8870,11 @@
           }
 
           const detailGridHTML = detailItems.length
-            ? `<div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-gray-600">
+            ? `<div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-gray-600 w-full">
                 ${detailItems
                   .map(
                     (item) => `
-                  <div class="flex items-start gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2">
+                  <div class="flex items-start gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 w-full">
                     <i class="fas ${item.icon} text-slate-500 mt-0.5"></i>
                     <div>
                       <div class="text-[11px] text-slate-500">${item.label}</div>
