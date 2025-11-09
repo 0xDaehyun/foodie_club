@@ -9391,132 +9391,7 @@
                </div>`;
 
         // 보관된 이벤트 목록 (회장단만)
-        const archivedListHTML = isAdmin
-          ? `
-          <div class="section mt-6">
-            <div class="bg-yellow-50 border-2 border-yellow-200 rounded-xl overflow-hidden">
-              <button 
-                type="button" 
-                id="archived-events-toggle"
-                class="w-full px-6 py-4 flex items-center justify-between hover:bg-yellow-100 transition-colors"
-              >
-                <div class="flex items-center gap-3">
-                  <div class="w-10 h-10 bg-yellow-200 rounded-full flex items-center justify-center">
-                    <i class="fas fa-archive text-yellow-700"></i>
-                  </div>
-                  <div class="text-left">
-                    <h4 class="text-lg font-bold text-yellow-900">보관된 이벤트</h4>
-                    <p class="text-sm text-yellow-700">회장단만 볼 수 있는 숨김 처리된 ${
-                      archivedEvents.length
-                    }개의 이벤트</p>
-                  </div>
-                </div>
-                <i class="fas fa-chevron-down text-yellow-700 text-xl transition-transform" id="archived-toggle-icon"></i>
-              </button>
-              <div id="archived-events-content" class="hidden px-6 pb-6">
-                ${
-                  archivedEvents.length > 0
-                    ? `<div class="bg-white rounded-lg p-4 border-2 border-yellow-200">
-                      <div class="space-y-3">
-                        ${archivedEvents
-                          .sort((a, b) => (a.order || 999) - (b.order || 999))
-                          .map((ev) => {
-                            const typeIcon =
-                              ev.type === "tasting"
-                                ? "🍽️"
-                                : ev.type === "mt"
-                                ? "🏕️"
-                                : ev.type === "assembly"
-                                ? "🎤"
-                                : "📅";
-
-                            return `
-                              <div class="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200">
-                                <!-- 제목과 날짜 -->
-                                <div class="flex items-center gap-3 mb-3">
-                                  <span class="text-2xl">${typeIcon}</span>
-                                  <div class="flex-1 min-w-0">
-                                    <h5 class="font-semibold text-gray-800">${saf(
-                                      ev.title
-                                    )}</h5>
-                                    <p class="text-xs text-gray-500">
-                                      ${new Date(
-                                        ev.datetime
-                                      ).toLocaleDateString("ko-KR")} ${new Date(
-                              ev.datetime
-                            ).toLocaleTimeString("ko-KR", {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                                    </p>
-                                  </div>
-                                </div>
-                                
-                                <!-- 참가자 수 -->
-                                <div class="flex items-center justify-between text-sm text-gray-600 mb-3">
-                                  <span>참가자: ${
-                                    ev.type === "tasting"
-                                      ? (ev.restaurants || []).reduce(
-                                          (sum, r) =>
-                                            sum + (r.reservations?.length || 0),
-                                          0
-                                        )
-                                      : ev.applicants?.length || 0
-                                  }명</span>
-                                  <div class="flex flex-col gap-2">
-                                    <button 
-                                      type="button" 
-                                      class="text-green-600 hover:text-green-800 font-medium"
-                                      data-act="admin-add-participant" 
-                                      data-id="${ev.id}"
-                                      title="참가자 수정"
-                                    >
-                                      <i class="fas fa-user-edit mr-1"></i>참가자 수정
-                                    </button>
-                                    <button 
-                                      type="button" 
-                                      class="text-purple-600 hover:text-purple-800 font-medium"
-                                      data-act="group-maker" 
-                                      data-id="${ev.id}"
-                                      title="팀 구성하기"
-                                    >
-                                      <i class="fas fa-users mr-1"></i>팀 구성하기
-                                    </button>
-                                    <button 
-                                      type="button" 
-                                      class="text-orange-600 hover:text-orange-800 font-medium"
-                                      data-act="export-xlsx" 
-                                      data-id="${ev.id}"
-                                      title="명단 다운로드"
-                                    >
-                                      <i class="fas fa-file-excel mr-1"></i>명단 다운로드
-                                    </button>
-                                    <button 
-                                      type="button" 
-                                      class="text-blue-600 hover:text-blue-800 font-medium"
-                                      data-act="admin-unarchive" 
-                                      data-id="${ev.id}"
-                                      title="재게시"
-                                    >
-                                      <i class="fas fa-rotate-left mr-1"></i>재게시
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
-                            `;
-                          })
-                          .join("")}
-                      </div>
-                    </div>`
-                    : `<div class="text-center py-8 text-gray-500">
-                      <i class="fas fa-inbox text-3xl mb-2"></i>
-                      <p>보관된 이벤트가 없습니다.</p>
-                    </div>`
-                }
-              </div>
-            </div>
-          </div>`
-          : "";
+        const archivedListHTML = "";
 
         // 관리자인 경우: 점선 블록 + 이벤트 목록 + 보관 목록, 일반 회원: 이벤트 목록 + 내 활동 내역
         const myPageContent = `${myHistoryHTML}`;
@@ -11708,6 +11583,9 @@
 
       // 보관된 이벤트에 참가자 추가 모달 열기
       async function openAddParticipantModal(eventId) {
+        // 이미 열려 있는 참가자 수정 모달이 있다면 제거
+        closeAddParticipantModal();
+
         const event = eventsData.find((e) => e.id === eventId);
         if (!event) {
           showAlert("😥", "이벤트를 찾을 수 없습니다.");
@@ -16586,9 +16464,27 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                 <i class="fas fa-ban mr-1"></i>활동 취소
               </button>`;
 
+        const participantManageButton = `<button type="button" class="px-3 py-1.5 text-xs bg-green-500 hover:bg-green-600 text-white rounded-full transition-colors" data-act="admin-add-participant" data-id="${ev.id}">
+            <i class="fas fa-user-edit mr-1"></i>참가자 수정
+          </button>`;
+        const groupButton = `<button type="button" class="px-3 py-1.5 text-xs bg-purple-500 hover:bg-purple-600 text-white rounded-full transition-colors" data-act="group-maker" data-id="${ev.id}">
+            <i class="fas fa-users mr-1"></i>팀 구성하기
+          </button>`;
+        const archiveToggleButton =
+          ev.status === "archived"
+            ? `<button type="button" class="px-3 py-1.5 text-xs bg-amber-500 hover:bg-amber-600 text-white rounded-full transition-colors" data-act="admin-unarchive" data-id="${ev.id}">
+                <i class="fas fa-rotate-left mr-1"></i>재게시
+              </button>`
+            : `<button type="button" class="px-3 py-1.5 text-xs bg-amber-500 hover:bg-amber-600 text-white rounded-full transition-colors" data-act="admin-archive" data-id="${ev.id}">
+                <i class="fas fa-box-archive mr-1"></i>숨김 처리
+              </button>`;
+
         const actionButtons = `
           <div class="flex flex-wrap gap-2 mt-4">
             ${cancelButtonHTML}
+            ${archiveToggleButton}
+            ${participantManageButton}
+            ${groupButton}
             <button type="button" class="px-3 py-1.5 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded-full transition-colors" onclick="showEventDetailModal('${ev.id}')">
               <i class="fas fa-circle-info mr-1"></i>상세 보기
             </button>
@@ -27320,7 +27216,8 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                 restaurant.name || "",
                 restaurant.info || "",
                 restaurant.capacity || "",
-                restaurant.category || "기타"
+                restaurant.category || "기타",
+                restaurant.id || null
               )
             )
             .join("");
@@ -28255,9 +28152,12 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
         n = "",
         i = "",
         c = "",
-        category = "기타"
+        category = "기타",
+        existingId = null
       ) {
-        const rid = `res_${Math.random().toString(36).slice(2, 9)}`;
+        const rid =
+          (existingId && typeof existingId === "string" && existingId.trim()) ||
+          `res_${Math.random().toString(36).slice(2, 9)}`;
         return `
           <div class="restaurant-row bg-gradient-to-br from-white to-green-50 border-2 border-green-300 rounded-xl p-5 relative" data-id="${rid}">
             <!-- 삭제 버튼 -->
@@ -28512,7 +28412,8 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                     r.name || "",
                     r.info || "",
                     r.capacity || "",
-                    r.category || "기타"
+                    r.category || "기타",
+                    r.id || null
                   )
                 )
                 .join("") || createRestaurantFieldHTML();
