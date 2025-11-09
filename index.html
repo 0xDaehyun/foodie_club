@@ -28476,7 +28476,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
 
         document.getElementById(
           "review-modal-title"
-      ).textContent = `${event.title} 평가`;
+        ).textContent = `${event.title} 평가`;
         document.getElementById("review-modal-content").innerHTML = `
           <div class="space-y-3 md:space-y-4">
             <div class="text-xs md:text-sm text-gray-600">
@@ -28495,7 +28495,9 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                           (r) => r.id === participation.restaurantInfo.id
                         ) || null;
                       const menuLine = restaurant?.info
-                        ? `<p><strong>대표 메뉴:</strong> ${saf(restaurant.info)}</p>`
+                        ? `<p><strong>대표 메뉴:</strong> ${saf(
+                            restaurant.info
+                          )}</p>`
                         : "";
                       return `
                         <div class="mt-2 rounded-lg bg-orange-50 border border-orange-200 px-3 py-2 text-[11px] md:text-xs text-orange-700">
@@ -28505,8 +28507,8 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                           <p><strong>정원:</strong> ${
                             info.capacity ?? "-"
                           }명 · 신청 ${info.reservations}명 · 대기 ${
-                            info.waiting
-                          }명</p>
+                        info.waiting
+                      }명</p>
                           ${menuLine}
                         </div>
                       `;
