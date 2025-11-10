@@ -8005,7 +8005,7 @@
                         <i class="fas fa-calendar-check text-orange-600 text-base"></i>
                         <span class="text-sm font-bold text-gray-900">이벤트 실시일</span>
                       </div>
-                      <p class="text-base text-gray-800 ml-6">${
+                      <p class="text-base text-gray-800">${
                         ev.datetime
                           ? new Date(ev.datetime).toLocaleString("ko-KR", {
                               year: "numeric",
@@ -8022,7 +8022,7 @@
                         <i class="fas fa-clock text-red-600 text-base"></i>
                         <span class="text-sm font-bold text-gray-900">신청 마감일</span>
                       </div>
-                      <p class="text-base text-gray-800 ml-6">${
+                      <p class="text-base text-gray-800">${
                         ev.deadline
                           ? new Date(ev.deadline).toLocaleString("ko-KR", {
                               year: "numeric",
@@ -8167,6 +8167,9 @@
           .map((r) => {
             const cap = r.capacity ?? ev.limit ?? 0;
             const cnt = (r.reservations || []).length;
+            const spotsRemaining = cap > 0 ? Math.max(cap - cnt, 0) : null;
+            const isNearlyFull =
+              spotsRemaining !== null && spotsRemaining === 1;
             const mine = (r.reservations || [])
               .concat(r.waiting || [])
               .some((p) => p.studentId === currentUser?.studentId);
@@ -8255,20 +8258,26 @@
               const items = list
                 .slice()
                 .reverse()
-                .map(
-                  (a) =>
-                    `<span class="${bgColor} ${textColor} px-2 py-1 rounded-full text-xs flex items-center gap-1">
-                    <span class="text-xs">${saf(a.name)}</span>
+                .map((entry, index, arr) => {
+                  const waitPositionLabel =
+                    type === "waiting"
+                      ? `<span class="inline-flex items-center justify-center bg-white/40 border border-white/60 text-[10px] font-semibold px-1.5 py-0.5 rounded-full text-orange-900">대기 ${
+                          arr.length - index
+                        }번</span>`
+                      : "";
+                  return `<span class="${bgColor} ${textColor} px-2 py-1 rounded-full text-xs flex items-center gap-1">
+                    ${waitPositionLabel}
+                    <span class="text-xs">${saf(entry.name)}</span>
                     <span class="${textColor} font-mono text-xs">(${maskStudentId(
-                      a.studentId
-                    )})</span>
+                    entry.studentId
+                  )})</span>
                     ${
                       isFullAdmin()
-                        ? `<button class="ml-1 text-red-600 hover:text-red-800 transition-colors" onclick="confirmRemoveParticipant('${ev.id}', '${a.studentId}', '${type}', '${restaurantId}')" title="참가자 제외"><i class="fas fa-times"></i></button>`
+                        ? `<button class="ml-1 text-red-600 hover:text-red-800 transition-colors" onclick="confirmRemoveParticipant('${ev.id}', '${entry.studentId}', '${type}', '${restaurantId}')" title="참가자 제외"><i class="fas fa-times"></i></button>`
                         : ""
                     }
-                  </span>`
-                );
+                  </span>`;
+                });
 
               if (items.length === 0) return "";
 
@@ -25698,6 +25707,9 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                 restaurantInfo: restaurant.info,
                 restaurantImage: restaurant.imageUrl,
                 restaurantCategory: restaurantCategory,
+                capacity: restaurant.capacity ?? ev.limit ?? null,
+                reservationsCount: (restaurant.reservations || []).length,
+                waitingCount: (restaurant.waiting || []).length,
                 participantCount: participantIds.length,
                 reviews: restaurantReviews,
               });
@@ -25744,6 +25756,24 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
           const avgRating = calculateAverageRating(restaurant.reviews);
           const reviewCount = restaurant.reviews.length;
           const categoryEmoji = getCategoryEmoji(restaurant.restaurantCategory);
+          const capacity = restaurant.capacity ?? null;
+          const reservationsCount =
+            restaurant.reservationsCount ?? restaurant.participantCount ?? 0;
+          const spotsRemaining =
+            capacity && capacity > 0
+              ? Math.max(capacity - reservationsCount, 0)
+              : null;
+          const isNearlyFull = spotsRemaining !== null && spotsRemaining === 1;
+          const restaurantEventDate = toDateSafe(
+            restaurant.eventDate || restaurant.eventDateTime
+          );
+          const restaurantEventDateLabel = restaurantEventDate
+            ? restaurantEventDate.toLocaleDateString("ko-KR", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })
+            : "일시 미정";
 
           return `
             <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 group" data-restaurant-id="${
@@ -25789,31 +25819,37 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                           <i class="fas fa-store text-orange-600 text-sm"></i>
                           <span class="text-xs sm:text-sm font-semibold text-orange-700 uppercase tracking-wide">식당 이름</span>
                         </div>
-                        <div class="flex items-center gap-2 flex-wrap">
-                          <span class="text-2xl sm:text-3xl">${categoryEmoji}</span>
-                          <h4 class="text-xl sm:text-2xl font-extrabold text-gray-900 group-hover:text-orange-600 transition-colors bg-gradient-to-r from-orange-600 to-orange-700 bg-clip-text text-transparent">
-                            ${saf(
-                              restaurant.restaurantName || "(식당 이름 없음)"
-                            )}
-                          </h4>
-                          <span class="text-xs sm:text-sm text-gray-500 flex items-center gap-1 ml-2">
-                            <i class="fas fa-calendar text-orange-600"></i>
-                            ${new Date(restaurant.eventDate).toLocaleDateString(
-                              "ko-KR",
-                              {
-                                year: "numeric",
-                                month: "long",
-                                day: "numeric",
+                        <div class="flex flex-wrap items-start gap-3 w-full">
+                          <div class="flex flex-col items-start gap-2">
+                            <span class="text-2xl sm:text-3xl flex-shrink-0">${categoryEmoji}</span>
+                            <span class="inline-flex items-center gap-2 px-3 py-1.5 bg-white/80 border border-orange-200 rounded-xl text-xs sm:text-sm text-gray-600 shadow-sm w-full min-w-[9rem]">
+                              <i class="fas fa-calendar text-orange-500"></i>
+                              ${restaurantEventDateLabel}
+                            </span>
+                          </div>
+                          <div class="flex-1 min-w-[12rem]">
+                            <h4 class="text-xl sm:text-2xl font-extrabold text-gray-900 group-hover:text-orange-600 transition-colors bg-gradient-to-r from-orange-600 to-orange-700 bg-clip-text text-transparent flex items-center gap-2">
+                              ${saf(
+                                restaurant.restaurantName || "(식당 이름 없음)"
+                              )}
+                              ${
+                                isNearlyFull
+                                  ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-semibold rounded-full bg-red-500/10 text-red-600 border border-red-200">
+                                      <i class="fas fa-fire text-red-500"></i>마감 임박!
+                                    </span>`
+                                  : ""
                               }
-                            )}
-                          </span>
+                            </h4>
+                          </div>
                         </div>
                       </div>
-                      ${
-                        restaurant.restaurantCategory
-                          ? `<span class="inline-block bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-xs font-semibold">${restaurant.restaurantCategory}</span>`
-                          : ""
-                      }
+                    ${
+                      restaurant.restaurantCategory
+                        ? `<span class="inline-flex items-center gap-2 bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-xs font-semibold">
+                            <i class="fas fa-tags text-orange-500"></i>${restaurant.restaurantCategory}
+                          </span>`
+                        : ""
+                    }
                     </div>
                     ${
                       isAdmin && !restaurant.restaurantImage
