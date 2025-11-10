@@ -8163,7 +8163,28 @@
             </div>`;
       }
       function tastingCardHTML(ev) {
-        const list = (ev.restaurants || [])
+        const restaurantsSorted = (ev.restaurants || [])
+          .slice()
+          .sort((a, b) => {
+            const aCapRaw = a.capacity ?? ev.limit ?? 0;
+            const bCapRaw = b.capacity ?? ev.limit ?? 0;
+            const aCap =
+              Number.isFinite(Number(aCapRaw)) && Number(aCapRaw) > 0
+                ? Number(aCapRaw)
+                : 0;
+            const bCap =
+              Number.isFinite(Number(bCapRaw)) && Number(bCapRaw) > 0
+                ? Number(bCapRaw)
+                : 0;
+            const aCnt = (a.reservations || []).length;
+            const bCnt = (b.reservations || []).length;
+            const aAvailable = aCap === 0 || aCnt < aCap;
+            const bAvailable = bCap === 0 || bCnt < bCap;
+            if (aAvailable === bAvailable) return 0;
+            return aAvailable ? -1 : 1;
+          });
+
+        const list = restaurantsSorted
           .map((r) => {
             const rawCapacity = r.capacity ?? ev.limit ?? 0;
             const capNumber = Number(rawCapacity);
