@@ -10538,7 +10538,9 @@
           );
           showAlert("🗑️", "신청 취소됨");
         } catch (e) {
-          if (e?.code === "resource-exhausted")
+          if (e?.message === "cancelled-by-user") {
+            showToast("신청을 유지했습니다.");
+          } else if (e?.code === "resource-exhausted")
             showAlert(
               "😥",
               "요청이 너무 많아 잠시 후 다시 시도해주세요.<br>불편을 드려 죄송합니다."
@@ -10697,6 +10699,86 @@
       }
       async function cancelTasting(id, rid) {
         if (!currentUser) return;
+
+        const confirmModalHTML = `
+          <div class="fixed inset-0 bg-black/60 flex items-center justify-center z-[9999] px-4" id="cancel-tasting-confirm">
+            <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 space-y-4">
+              <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center text-2xl">⚠️</div>
+                <div>
+                  <h3 class="text-lg font-bold text-gray-900">신청 취소 전 확인해주세요</h3>
+                  <p class="text-sm text-gray-500">신청을 취소하면 대기자 명단의 첫 번째 회원이 자동으로 참가자로 이동합니다.</p>
+                </div>
+              </div>
+              <div class="bg-orange-50 border border-orange-200 rounded-xl p-3 text-xs text-orange-800 leading-relaxed">
+                <ul class="list-disc pl-4 space-y-1">
+                  <li>취소 후에는 되돌릴 수 없습니다.</li>
+                  <li>대기자가 없으면 자리만 비워집니다.</li>
+                  <li>다시 신청하려면 정원이 남아 있어야 합니다.</li>
+                </ul>
+              </div>
+              <div class="flex flex-col sm:flex-row gap-2">
+                <button type="button" class="flex-1 px-4 py-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-100 transition-colors" data-cancel-action="keep">
+                  신청 유지
+                </button>
+                <button type="button" class="flex-1 px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors font-semibold" data-cancel-action="confirm">
+                  신청 취소
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+
+        const existingModal = document.getElementById("cancel-tasting-confirm");
+        if (existingModal) existingModal.remove();
+        document.body.insertAdjacentHTML("beforeend", confirmModalHTML);
+
+        const modal = document.getElementById("cancel-tasting-confirm");
+        const keepBtn = modal?.querySelector('[data-cancel-action="keep"]');
+        const confirmBtn = modal?.querySelector(
+          '[data-cancel-action="confirm"]'
+        );
+
+        const cleanupModal = () => {
+          if (modal) modal.remove();
+        };
+
+        await new Promise((resolve, reject) => {
+          if (!modal || !keepBtn || !confirmBtn) {
+            cleanupModal();
+            reject(new Error("confirmation modal failed"));
+            return;
+          }
+
+          const handleKeep = () => {
+            cleanupModal();
+            reject(new Error("cancelled-by-user"));
+          };
+
+          const handleConfirm = () => {
+            cleanupModal();
+            resolve();
+          };
+
+          keepBtn.addEventListener("click", handleKeep, { once: true });
+          confirmBtn.addEventListener("click", handleConfirm, { once: true });
+
+          modal.addEventListener(
+            "click",
+            (e) => {
+              if (e.target === modal) {
+                cleanupModal();
+                reject(new Error("cancelled-by-user"));
+              }
+            },
+            { once: true }
+          );
+        }).catch((error) => {
+          if (error?.message !== "cancelled-by-user") {
+            console.error("취소 확인 오류:", error);
+          }
+          throw error;
+        });
 
         // 중복 클릭 방지
         const requestKey = `cancel-tasting-${id}-${rid}`;
