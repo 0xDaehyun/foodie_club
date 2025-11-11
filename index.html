@@ -4011,8 +4011,8 @@
             clearTimeout(dataLoadTimeout);
           }
 
-          // 5초 타임아웃: 로딩 화면이 길어지면 즉시 재접속
-          const loadingTimeout = 5000;
+          // 3초 타임아웃: 로딩 화면이 길어지면 즉시 재접속
+          const loadingTimeout = 3000;
           debugLog(`로딩 타임아웃 설정: ${loadingTimeout / 1000}초`);
 
           // 타임아웃 안에 로딩이 완료되지 않으면 재접속
@@ -5604,28 +5604,7 @@
                   : ""
               }
               
-              ${
-                isOnline && noDataLoaded
-                  ? `
-              <!-- 데이터 로드 실패 경고 -->
-              <div class="bg-yellow-50 border-2 border-yellow-300 rounded-xl p-4 md:p-5 mb-4 md:mb-6">
-                <div class="flex items-start gap-3">
-                  <div class="flex-shrink-0">
-                    <i class="fas fa-exclamation-triangle text-yellow-600 text-2xl"></i>
-                  </div>
-                  <div class="flex-1">
-                    <h3 class="text-base md:text-lg font-bold text-yellow-900 mb-2">
-                      데이터를 불러오지 못했습니다
-                    </h3>
-                    <p class="text-sm md:text-base text-yellow-800 leading-relaxed mb-3">
-                      서버 연결에 문제가 있을 수 있습니다. 잠시 후 자동으로 재시도됩니다.
-                    </p>
-                  </div>
-                </div>
-              </div>
-              `
-                  : ""
-              }
+              ${""}
               
               ${
                 isPendingMember
