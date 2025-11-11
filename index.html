@@ -3984,6 +3984,7 @@
       const MAX_RETRY_COUNT = 5; // 재시도 횟수 증가
       let dataLoadTimeout = null;
       let forceCheckTimeout = null; // 강제 검증 타임아웃
+      let autoReloadInterval = null; // 자동 재접속 인터벌
 
       // 카카오톡 인앱 브라우저 감지
       const isKakaoTalkInAppBrowser = /KAKAOTALK/i.test(navigator.userAgent);
@@ -4006,28 +4007,42 @@
 
           updateLoadingProgress(1, loadingMessage);
 
-          // 타임아웃 초기화
-          if (dataLoadTimeout) {
-            clearTimeout(dataLoadTimeout);
+          // 3초 이내에 로딩이 완료되지 않으면 즉시 재접속
+          if (!dataLoadTimeout) {
+            const loadingTimeout = 3000;
+            debugLog(`로딩 타임아웃 설정: ${loadingTimeout / 1000}초`);
+
+            dataLoadTimeout = setTimeout(() => {
+              const loadingScreen = document.getElementById("loading-screen");
+              const stillLoading =
+                loadingScreen &&
+                !loadingScreen.classList.contains("hidden") &&
+                loadingScreen.style.display !== "none";
+
+              if (stillLoading) {
+                debugError(
+                  `⚠️ 데이터 로딩 시간 초과 (${loadingTimeout / 1000}초)`
+                );
+                debugLog(
+                  `로드된 데이터: ${__loadingDataCount}/${__expectedDataSources}`
+                );
+                if (!autoReloadInterval) {
+                  autoReloadInterval = setInterval(() => {
+                    debugLog("자동 재접속 시도 중...");
+                    try {
+                      location.reload();
+                    } catch (reloadError) {
+                      debugError("재접속 시도 중 오류 발생:", reloadError);
+                    }
+                  }, loadingTimeout);
+                }
+                location.reload();
+              } else {
+                debugLog("로딩 화면이 이미 숨겨져 재접속을 건너뜁니다.");
+              }
+              dataLoadTimeout = null;
+            }, loadingTimeout);
           }
-
-          // 3초 타임아웃: 로딩 화면이 길어지면 즉시 재접속
-          const loadingTimeout = 3000;
-          debugLog(`로딩 타임아웃 설정: ${loadingTimeout / 1000}초`);
-
-          // 타임아웃 안에 로딩이 완료되지 않으면 재접속
-          dataLoadTimeout = setTimeout(() => {
-            if (__isInitialLoading) {
-              debugError(
-                `⚠️ 데이터 로딩 시간 초과 (${loadingTimeout / 1000}초)`
-              );
-              debugLog(
-                `로드된 데이터: ${__loadingDataCount}/${__expectedDataSources}`
-              );
-              // 즉시 재접속
-              location.reload();
-            }
-          }, loadingTimeout);
 
           if (__loadingDataCount >= __expectedDataSources) {
             debugLog("모든 데이터 소스 카운트 완료. 데이터 검증 시작...");
@@ -4036,6 +4051,11 @@
             // 타임아웃 클리어
             if (dataLoadTimeout) {
               clearTimeout(dataLoadTimeout);
+              dataLoadTimeout = null;
+            }
+            if (autoReloadInterval) {
+              clearInterval(autoReloadInterval);
+              autoReloadInterval = null;
             }
 
             // 데이터 완전 로드 확인 (로딩 화면은 verifyAllDataLoaded에서만 숨김)
