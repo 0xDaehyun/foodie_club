@@ -4011,8 +4011,8 @@
             clearTimeout(dataLoadTimeout);
           }
 
-          // 30초 타임아웃 (10회 재시도 20초 + 여유)
-          const loadingTimeout = 30000;
+          // 5초 타임아웃: 로딩 화면이 길어지면 즉시 재접속
+          const loadingTimeout = 5000;
           debugLog(`로딩 타임아웃 설정: ${loadingTimeout / 1000}초`);
 
           // 타임아웃 안에 로딩이 완료되지 않으면 재접속
@@ -28795,24 +28795,6 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
             ${highlightStats}
           </div>
         `;
-        const metaSection = `
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs md:text-sm text-gray-600">
-            <div class="flex items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2">
-              <i class="fas fa-flag text-orange-500"></i>
-              <span class="font-semibold text-gray-700">이벤트</span>
-              <span class="text-gray-900 font-semibold truncate">${saf(
-                event.title || "-"
-              )}</span>
-            </div>
-            <div class="flex items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2">
-              <i class="fas fa-calendar-day text-blue-500"></i>
-              <span class="font-semibold text-gray-700">일시</span>
-              <span class="text-gray-900 font-semibold">${saf(
-                eventDateDisplay
-              )}</span>
-            </div>
-          </div>
-        `;
 
         document.getElementById(
           "review-modal-title"
@@ -28820,7 +28802,6 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
         document.getElementById("review-modal-content").innerHTML = `
           <div class="space-y-4 md:space-y-5">
             ${highlightSection}
-            ${metaSection}
             
             <div>
               <label class="block text-xs md:text-sm font-medium text-gray-700 mb-1 md:mb-2">평점</label>
@@ -29177,33 +29158,6 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
       window.closeBlockModal = closeBlockModal;
       window.addModalScoreRow = addModalScoreRow;
       window.addModalQAItem = addModalQAItem;
-
-      // 모든 직책을 기본 상태로 리셋하는 함수
-      async function resetAllPositions() {
-        try {
-          // 회장단: 회장, 부회장만
-          const presidentPositions = ["회장", "부회장"];
-          await setDoc(doc(db, "settings", "presidentPositions"), {
-            positions: presidentPositions,
-          });
-
-          // 일반 임원: 운영진만
-          const regularPositions = ["운영진"];
-          await setDoc(doc(db, "settings", "regularPositions"), {
-            positions: regularPositions,
-          });
-
-          showAlert("✅", "모든 직책이 기본 상태로 리셋되었습니다.");
-          console.log("리셋된 회장단:", presidentPositions);
-          console.log("리셋된 일반 임원:", regularPositions);
-
-          // 페이지 새로고침
-          location.reload();
-        } catch (e) {
-          console.error(e);
-          showAlert("😥", "직책 리셋에 실패했습니다.");
-        }
-      }
 
       // 전역 함수로 등록
       window.resetAllPositions = resetAllPositions;
