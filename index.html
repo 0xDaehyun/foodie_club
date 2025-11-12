@@ -2006,6 +2006,13 @@
           <p class="loading-subtitle">
             맛있는 데이터를 준비하고 있어요.<br />잠시만 기다려주세요!
           </p>
+          <button
+            id="loading-retry-btn"
+            type="button"
+            class="hidden mt-4 inline-flex items-center justify-center px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold rounded-full transition-colors duration-200 shadow-sm"
+          >
+            <i class="fas fa-redo mr-2"></i>다시 시도
+          </button>
         </div>
         <p class="loading-tip">
           연결 상황에 따라 자동으로 새로고침될 수 있습니다.
@@ -3984,9 +3991,11 @@
       const MAX_RETRY_COUNT = 5; // 재시도 횟수 증가
       let dataLoadTimeout = null;
       let forceCheckTimeout = null; // 강제 검증 타임아웃
-      let autoReloadInterval = null; // 자동 재접속 인터벌
+      let dataWatchdogTimer = null; // 데이터 응답 감시 타이머
+      let autoReloadTimer = null; // 자동 재접속 타이머
       const AUTO_RELOAD_INTERVAL_MS = 3000;
       const AUTO_RELOAD_PARAM = "reloadTs";
+      const NETWORK_CHECK_URL = "https://www.google.com/favicon.ico";
 
       const normalizeUrlWithoutParam = () => {
         const [base, hash = ""] = window.location.href.split("#");
@@ -4008,42 +4017,126 @@
       const forceReload = (reason = "") => {
         debugLog(`강제 재접속 실행${reason ? ` (${reason})` : ""}`);
         try {
+          const nextUrl = appendReloadParam();
           if (isKakaoTalkInAppBrowser) {
-            const nextUrl = appendReloadParam();
             debugLog(`카카오 인앱 브라우저 강제 이동: ${nextUrl}`);
-            window.location.replace(nextUrl);
-          } else {
-            window.location.reload();
           }
+          window.location.replace(nextUrl);
         } catch (reloadError) {
           debugError("강제 재접속 실패:", reloadError);
         }
       };
 
-      const ensureAutoReconnectLoop = () => {
-        if (autoReloadInterval) {
+      const checkNetworkConnectivity = async () => {
+        if (navigator.onLine === false) {
+          return false;
+        }
+        try {
+          await fetch(NETWORK_CHECK_URL, {
+            mode: "no-cors",
+            cache: "no-store",
+          });
+          return true;
+        } catch (e) {
+          debugError("네트워크 체크 실패:", e);
+          return false;
+        }
+      };
+
+      const stopDataWatchdog = () => {
+        if (dataWatchdogTimer) {
+          clearTimeout(dataWatchdogTimer);
+          dataWatchdogTimer = null;
+        }
+      };
+
+      const startDataWatchdog = () => {
+        if (dataWatchdogTimer) {
           return;
         }
 
-        autoReloadInterval = setInterval(() => {
+        dataWatchdogTimer = setTimeout(async () => {
+          dataWatchdogTimer = null;
+          debugError("⚠️ 데이터 감시 타이머 발동 - 응답 지연");
+          showManualRetryButton();
+
+          const networkOk = await checkNetworkConnectivity();
+          if (!networkOk) {
+            debugLog("네트워크 이상 감지 - 재접속 루프 유지");
+            ensureAutoReconnectLoop(AUTO_RELOAD_INTERVAL_MS);
+            return;
+          }
+
+          forceReload("데이터 감시 타이머");
+        }, 10000);
+      };
+
+      const showManualRetryButton = () => {
+        const btn = document.getElementById("loading-retry-btn");
+        if (btn) {
+          btn.classList.remove("hidden");
+          btn.disabled = false;
+        }
+      };
+
+      const hideManualRetryButton = () => {
+        const btn = document.getElementById("loading-retry-btn");
+        if (btn) {
+          btn.classList.add("hidden");
+          btn.disabled = true;
+        }
+      };
+
+      const stopAutoReconnectLoop = () => {
+        if (autoReloadTimer) {
+          clearTimeout(autoReloadTimer);
+          autoReloadTimer = null;
+        }
+      };
+
+      const ensureAutoReconnectLoop = (delay = AUTO_RELOAD_INTERVAL_MS) => {
+        if (autoReloadTimer) {
+          return;
+        }
+
+        autoReloadTimer = setTimeout(async () => {
+          autoReloadTimer = null;
+
           const loadingScreen = document.getElementById("loading-screen");
           const stillLoading =
             loadingScreen &&
             !loadingScreen.classList.contains("hidden") &&
             getComputedStyle(loadingScreen).display !== "none";
 
-          if (stillLoading) {
-            debugLog("자동 재접속 시도 (주기적)...");
-            forceReload("주기적 재접속");
-          } else {
-            clearInterval(autoReloadInterval);
-            autoReloadInterval = null;
+          if (!stillLoading) {
+            hideManualRetryButton();
+            stopAutoReconnectLoop();
+            return;
           }
-        }, AUTO_RELOAD_INTERVAL_MS);
+
+          showManualRetryButton();
+
+          const networkOk = await checkNetworkConnectivity();
+          if (!networkOk) {
+            debugLog("네트워크 연결 불안정 - 재시도 예약");
+            ensureAutoReconnectLoop(AUTO_RELOAD_INTERVAL_MS);
+            return;
+          }
+
+          forceReload("주기적 재접속");
+          ensureAutoReconnectLoop(AUTO_RELOAD_INTERVAL_MS);
+        }, delay);
       };
 
       document.addEventListener("DOMContentLoaded", () => {
         ensureAutoReconnectLoop();
+        const retryBtn = document.getElementById("loading-retry-btn");
+        if (retryBtn) {
+          retryBtn.addEventListener("click", () => {
+            showManualRetryButton();
+            forceReload("사용자 수동 재시도");
+          });
+        }
       });
 
       // 카카오톡 인앱 브라우저 감지
@@ -4057,6 +4150,7 @@
 
         // 순차적인 로딩 진행률 업데이트
         if (__isInitialLoading) {
+          startDataWatchdog();
           const progressPercentage = Math.min(
             (__loadingDataCount / __expectedDataSources) * 90,
             90
@@ -4104,10 +4198,9 @@
               clearTimeout(dataLoadTimeout);
               dataLoadTimeout = null;
             }
-            if (autoReloadInterval) {
-              clearInterval(autoReloadInterval);
-              autoReloadInterval = null;
-            }
+            stopAutoReconnectLoop();
+            stopDataWatchdog();
+            hideManualRetryButton();
 
             // 데이터 완전 로드 확인 (로딩 화면은 verifyAllDataLoaded에서만 숨김)
             // __isInitialLoading은 verifyAllDataLoaded에서 실제로 데이터가 확인될 때 false로 설정
@@ -4133,6 +4226,9 @@
                 if (hasCriticalData) {
                   __isInitialLoading = false;
                   hideLoadingScreen();
+                  stopDataWatchdog();
+                  stopAutoReconnectLoop();
+                  hideManualRetryButton();
                 }
               }
             }, 5000); // 5초 후 강제 검증
@@ -27340,10 +27436,8 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
           loadingScreen.style.zIndex = "-1";
           loadingScreen.classList.add("hidden");
         }
-        if (autoReloadInterval) {
-          clearInterval(autoReloadInterval);
-          autoReloadInterval = null;
-        }
+        stopAutoReconnectLoop();
+        hideManualRetryButton();
       }
 
       // ===================== 초기화 =====================
