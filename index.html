@@ -493,7 +493,19 @@
         font-size: 1.8rem;
         font-weight: 800;
         letter-spacing: 2px;
-        color: #f97316;
+      }
+
+      /* 헤더 액션 버튼 크기 통일 */
+      #rank-button,
+      #notification-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.35rem;
+        padding: 0.5rem 1.25rem !important;
+        min-width: 7rem;
+        height: 44px;
+        border-radius: 9999px;
       }
 
       .loading-subtitle {
@@ -527,8 +539,8 @@
         }
       }
 
-      /* 조모임 버튼 그라데이션 효과 */
-      .rank-button-glow {
+      /* Foodie 로고 그라데이션 효과 */
+      .logo-glow {
         background: linear-gradient(
           135deg,
           #f97316 0%,
@@ -538,26 +550,19 @@
           #f97316 100%
         );
         background-size: 200% 200%;
-        animation: rank-gradient-shift 3s ease infinite;
-        box-shadow: 0 4px 15px rgba(249, 115, 22, 0.4),
-          0 0 10px rgba(249, 115, 22, 0.3),
-          inset 0 1px 0 rgba(255, 255, 255, 0.2);
-        border: none;
+        animation: rank-gradient-shift 3.8s ease infinite;
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent !important;
+        -webkit-text-fill-color: transparent;
+        text-shadow: 0 0 12px rgba(249, 115, 22, 0.35),
+          0 8px 24px rgba(249, 115, 22, 0.25);
       }
 
-      .rank-button-glow:hover {
-        background: linear-gradient(
-          135deg,
-          #ea580c 0%,
-          #f97316 25%,
-          #fb923c 50%,
-          #f97316 75%,
-          #ea580c 100%
-        );
-        background-size: 200% 200%;
-        box-shadow: 0 6px 20px rgba(249, 115, 22, 0.5),
-          0 0 15px rgba(249, 115, 22, 0.4),
-          inset 0 1px 0 rgba(255, 255, 255, 0.3);
+      @supports not ((-webkit-background-clip: text)) {
+        .logo-glow {
+          color: #f97316 !important;
+        }
       }
 
       @keyframes rank-gradient-shift {
@@ -2002,7 +2007,7 @@
             <span class="food-icon">🍕</span>
             <span class="food-icon">🍰</span>
           </div>
-          <div class="loading-logo">Foodie</div>
+          <div class="loading-logo logo-glow">Foodie</div>
           <p class="loading-subtitle">
             맛있는 데이터를 준비하고 있어요.<br />잠시만 기다려주세요!
           </p>
@@ -2059,7 +2064,7 @@
             <!-- 조모임 순위(모두 보임) -->
             <button
               id="rank-button"
-              class="text-sm md:text-base bg-orange-500 text-white rounded-full px-3 py-1 hover:bg-orange-600 rank-button-glow"
+              class="text-sm md:text-base bg-orange-500 text-white rounded-full hover:bg-orange-600 transition-all"
               aria-label="조모임 순위 보기"
               title="조모임 순위"
             >
@@ -2179,9 +2184,7 @@
                 <div class="text-center">
                   <!-- Foodie 로고 -->
                   <div class="mb-4">
-                    <h1
-                      class="text-4xl md:text-5xl font-bold text-gray-800 mb-2"
-                    >
+                    <h1 class="text-4xl md:text-5xl font-bold mb-2 logo-glow">
                       Foodie
                     </h1>
                     <div class="flex justify-center gap-2 mt-2">
@@ -3995,7 +3998,6 @@
       let autoReloadTimer = null; // 자동 재접속 타이머
       const AUTO_RELOAD_INTERVAL_MS = 3000;
       const AUTO_RELOAD_PARAM = "reloadTs";
-      const NETWORK_CHECK_URL = "https://www.google.com/favicon.ico";
 
       const normalizeUrlWithoutParam = () => {
         const [base, hash = ""] = window.location.href.split("#");
@@ -4027,19 +4029,28 @@
         }
       };
 
+      const getNetworkCheckUrl = () => {
+        try {
+          const { origin, pathname } = window.location;
+          return `${origin}${pathname}`;
+        } catch (e) {
+          return window.location.href;
+        }
+      };
+
       const checkNetworkConnectivity = async () => {
         if (navigator.onLine === false) {
           return false;
         }
         try {
-          await fetch(NETWORK_CHECK_URL, {
+          await fetch(getNetworkCheckUrl(), {
             mode: "no-cors",
             cache: "no-store",
           });
           return true;
         } catch (e) {
-          debugError("네트워크 체크 실패:", e);
-          return false;
+          debugError("네트워크 체크 실패, 재시도 진행:", e);
+          return true;
         }
       };
 
