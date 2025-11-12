@@ -3986,6 +3986,39 @@
       let forceCheckTimeout = null; // 강제 검증 타임아웃
       let autoReloadInterval = null; // 자동 재접속 인터벌
       const AUTO_RELOAD_INTERVAL_MS = 3000;
+      const AUTO_RELOAD_PARAM = "reloadTs";
+
+      const normalizeUrlWithoutParam = () => {
+        const [base, hash = ""] = window.location.href.split("#");
+        const url = new URL(base, window.location.origin);
+        url.searchParams.delete(AUTO_RELOAD_PARAM);
+        const normalized = url.toString();
+        return hash ? `${normalized}#${hash}` : normalized;
+      };
+
+      const appendReloadParam = () => {
+        const normalized = normalizeUrlWithoutParam();
+        const [base, hash = ""] = normalized.split("#");
+        const url = new URL(base, window.location.origin);
+        url.searchParams.set(AUTO_RELOAD_PARAM, `${Date.now()}`);
+        const next = url.toString();
+        return hash ? `${next}#${hash}` : next;
+      };
+
+      const forceReload = (reason = "") => {
+        debugLog(`강제 재접속 실행${reason ? ` (${reason})` : ""}`);
+        try {
+          if (isKakaoTalkInAppBrowser) {
+            const nextUrl = appendReloadParam();
+            debugLog(`카카오 인앱 브라우저 강제 이동: ${nextUrl}`);
+            window.location.replace(nextUrl);
+          } else {
+            window.location.reload();
+          }
+        } catch (reloadError) {
+          debugError("강제 재접속 실패:", reloadError);
+        }
+      };
 
       const ensureAutoReconnectLoop = () => {
         if (autoReloadInterval) {
@@ -4001,11 +4034,7 @@
 
           if (stillLoading) {
             debugLog("자동 재접속 시도 (주기적)...");
-            try {
-              location.reload();
-            } catch (reloadError) {
-              debugError("재접속 시도 중 오류 발생:", reloadError);
-            }
+            forceReload("주기적 재접속");
           } else {
             clearInterval(autoReloadInterval);
             autoReloadInterval = null;
@@ -4058,7 +4087,7 @@
                   `로드된 데이터: ${__loadingDataCount}/${__expectedDataSources}`
                 );
                 ensureAutoReconnectLoop();
-                location.reload();
+                forceReload("로딩 타임아웃");
               } else {
                 debugLog("로딩 화면이 이미 숨겨져 재접속을 건너뜁니다.");
               }
