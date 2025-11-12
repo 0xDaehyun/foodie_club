@@ -495,19 +495,6 @@
         letter-spacing: 2px;
       }
 
-      /* 헤더 액션 버튼 크기 통일 */
-      #rank-button,
-      #notification-badge {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.35rem;
-        padding: 0.5rem 1.25rem !important;
-        min-width: 7rem;
-        height: 44px;
-        border-radius: 9999px;
-      }
-
       .loading-subtitle {
         font-size: 0.95rem;
         color: #6b7280;
@@ -2064,7 +2051,7 @@
             <!-- 조모임 순위(모두 보임) -->
             <button
               id="rank-button"
-              class="text-sm md:text-base bg-orange-500 text-white rounded-full hover:bg-orange-600 transition-all"
+              class="text-sm md:text-base bg-orange-500 text-white rounded-full px-3 py-1 hover:bg-orange-600 transition-all flex items-center gap-1.5"
               aria-label="조모임 순위 보기"
               title="조모임 순위"
             >
