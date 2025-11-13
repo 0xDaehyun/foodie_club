@@ -3985,9 +3985,9 @@
       let autoReloadTimer = null; // 자동 재접속 타이머
       const AUTO_RELOAD_INTERVAL_MS = 3000;
       const AUTO_RELOAD_PARAM = "reloadTs";
-      const INITIAL_LOAD_GRACE_MS = 2500;
-      const MIN_RELOAD_INTERVAL_MS = 1500;
-      const MAX_AUTO_RELOAD_ATTEMPTS = 10;
+      const INITIAL_LOAD_GRACE_MS = 2000;
+      const MIN_RELOAD_INTERVAL_MS = 1200;
+      const MAX_AUTO_RELOAD_ATTEMPTS = Number.MAX_SAFE_INTEGER;
       const MAX_RELOAD_BACKOFF_MS = 10000;
 
       let pageLoadTimestamp = Date.now();
@@ -4398,7 +4398,9 @@
               updateLoadingProgress(95, "데이터 로드 실패. 재접속 중...");
               // 1초 후 자동 재접속
               setTimeout(() => {
-                location.reload();
+                showManualRetryButton();
+                ensureAutoReconnectLoop(MIN_RELOAD_INTERVAL_MS);
+                forceReload("데이터 확인 실패");
               }, 1000);
             }
           }
