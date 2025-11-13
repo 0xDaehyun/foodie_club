@@ -4094,7 +4094,12 @@
 
       const ensureAutoReconnectLoop = (delay = AUTO_RELOAD_INTERVAL_MS) => {
         if (autoReloadTimer) {
-          return;
+          if (delay === 0) {
+            clearTimeout(autoReloadTimer);
+            autoReloadTimer = null;
+          } else {
+            return;
+          }
         }
 
         autoReloadTimer = setTimeout(async () => {
@@ -4127,7 +4132,7 @@
       };
 
       document.addEventListener("DOMContentLoaded", () => {
-        ensureAutoReconnectLoop();
+        ensureAutoReconnectLoop(0);
         const retryBtn = document.getElementById("loading-retry-btn");
         if (retryBtn) {
           retryBtn.addEventListener("click", () => {
@@ -4148,6 +4153,7 @@
 
         // 순차적인 로딩 진행률 업데이트
         if (__isInitialLoading) {
+          ensureAutoReconnectLoop(0);
           startDataWatchdog();
           const progressPercentage = Math.min(
             (__loadingDataCount / __expectedDataSources) * 90,
@@ -9481,7 +9487,7 @@
                   <i class="fas fa-circle-user text-blue-600"></i>내 활동
                 </h3>
                 <p class="text-sm text-blue-700">
-                  최근 신청한 활동 한 건만 먼저 보여드릴게요. 나머지는 클릭해서 확인하세요.
+                  최근 신청한 활동
                 </p>
               </div>
               <div class="flex items-center gap-2 text-xs text-blue-700 flex-wrap">
