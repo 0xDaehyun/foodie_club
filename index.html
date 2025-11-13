@@ -3985,6 +3985,14 @@
       let autoReloadTimer = null; // 자동 재접속 타이머
       const AUTO_RELOAD_INTERVAL_MS = 3000;
       const AUTO_RELOAD_PARAM = "reloadTs";
+      const INITIAL_LOAD_GRACE_MS = 2500;
+      const MIN_RELOAD_INTERVAL_MS = 1500;
+      const MAX_AUTO_RELOAD_ATTEMPTS = 10;
+      const MAX_RELOAD_BACKOFF_MS = 10000;
+
+      let pageLoadTimestamp = Date.now();
+      let lastReloadTime = 0;
+      let reloadAttempts = 0;
 
       const normalizeUrlWithoutParam = () => {
         const [base, hash = ""] = window.location.href.split("#");
@@ -4006,6 +4014,13 @@
       const forceReload = (reason = "") => {
         debugLog(`강제 재접속 실행${reason ? ` (${reason})` : ""}`);
         try {
+          const now = Date.now();
+          lastReloadTime = now;
+          reloadAttempts = Math.min(
+            reloadAttempts + 1,
+            MAX_AUTO_RELOAD_ATTEMPTS + 1
+          );
+
           const nextUrl = appendReloadParam();
           if (isKakaoTalkInAppBrowser) {
             debugLog(`카카오 인앱 브라우저 강제 이동: ${nextUrl}`);
@@ -4092,6 +4107,15 @@
         }
       };
 
+      const resetAutoReloadState = () => {
+        reloadAttempts = 0;
+        lastReloadTime = 0;
+        pageLoadTimestamp = Date.now();
+        stopAutoReconnectLoop();
+        stopDataWatchdog();
+        hideManualRetryButton();
+      };
+
       const ensureAutoReconnectLoop = (delay = AUTO_RELOAD_INTERVAL_MS) => {
         if (autoReloadTimer) {
           if (delay === 0) {
@@ -4112,8 +4136,42 @@
             getComputedStyle(loadingScreen).display !== "none";
 
           if (!stillLoading) {
-            hideManualRetryButton();
+            resetAutoReloadState();
+            return;
+          }
+
+          const now = Date.now();
+
+          if (reloadAttempts === 0) {
+            const elapsedSinceLoad = now - pageLoadTimestamp;
+            if (elapsedSinceLoad < INITIAL_LOAD_GRACE_MS) {
+              const wait = Math.max(
+                500,
+                INITIAL_LOAD_GRACE_MS - elapsedSinceLoad
+              );
+              debugLog(
+                `초기 로딩 유예 (${elapsedSinceLoad}ms 경과). ${wait}ms 후 재확인`
+              );
+              ensureAutoReconnectLoop(wait);
+              return;
+            }
+          }
+
+          const elapsedSinceReload = now - lastReloadTime;
+          if (elapsedSinceReload < MIN_RELOAD_INTERVAL_MS) {
+            const wait = MIN_RELOAD_INTERVAL_MS - elapsedSinceReload;
+            debugLog(
+              `재접속 쿨다운 (${elapsedSinceReload}ms). ${wait}ms 후 재시도`
+            );
+            ensureAutoReconnectLoop(wait);
+            return;
+          }
+
+          if (reloadAttempts >= MAX_AUTO_RELOAD_ATTEMPTS) {
+            debugError("자동 재접속 최대 횟수 도달 - 수동 안내 표시");
+            showManualRetryButton();
             stopAutoReconnectLoop();
+            stopDataWatchdog();
             return;
           }
 
@@ -4126,13 +4184,21 @@
             return;
           }
 
+          const nextDelay = Math.min(
+            AUTO_RELOAD_INTERVAL_MS,
+            MAX_RELOAD_BACKOFF_MS
+          );
+
           forceReload("주기적 재접속");
-          ensureAutoReconnectLoop(AUTO_RELOAD_INTERVAL_MS);
+          ensureAutoReconnectLoop(nextDelay);
         }, delay);
       };
 
       document.addEventListener("DOMContentLoaded", () => {
-        ensureAutoReconnectLoop(0);
+        pageLoadTimestamp = Date.now();
+        reloadAttempts = 0;
+        lastReloadTime = 0;
+        ensureAutoReconnectLoop(AUTO_RELOAD_INTERVAL_MS);
         const retryBtn = document.getElementById("loading-retry-btn");
         if (retryBtn) {
           retryBtn.addEventListener("click", () => {
@@ -4153,7 +4219,6 @@
 
         // 순차적인 로딩 진행률 업데이트
         if (__isInitialLoading) {
-          ensureAutoReconnectLoop(0);
           startDataWatchdog();
           const progressPercentage = Math.min(
             (__loadingDataCount / __expectedDataSources) * 90,
@@ -4202,9 +4267,7 @@
               clearTimeout(dataLoadTimeout);
               dataLoadTimeout = null;
             }
-            stopAutoReconnectLoop();
-            stopDataWatchdog();
-            hideManualRetryButton();
+            resetAutoReloadState();
 
             // 데이터 완전 로드 확인 (로딩 화면은 verifyAllDataLoaded에서만 숨김)
             // __isInitialLoading은 verifyAllDataLoaded에서 실제로 데이터가 확인될 때 false로 설정
@@ -4231,7 +4294,7 @@
                   __isInitialLoading = false;
                   hideLoadingScreen();
                   stopDataWatchdog();
-                  stopAutoReconnectLoop();
+                  resetAutoReloadState();
                   hideManualRetryButton();
                 }
               }
@@ -27440,8 +27503,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
           loadingScreen.style.zIndex = "-1";
           loadingScreen.classList.add("hidden");
         }
-        stopAutoReconnectLoop();
-        hideManualRetryButton();
+        resetAutoReloadState();
       }
 
       // ===================== 초기화 =====================
