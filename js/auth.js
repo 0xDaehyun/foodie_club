@@ -612,6 +612,22 @@ export async function unlinkKakaoAccount() {
   // state.currentUser 확인
   if (!state.currentUser || !state.currentUser.studentId) {
     console.error("[카카오 연동 해제] state.currentUser가 없음");
+    
+    // localStorage에서 사용자 정보 확인
+    const saved = JSON.parse(localStorage.getItem("foodieUser") || "{}");
+    if (saved.studentId && saved.name) {
+      console.warn("[카카오 연동 해제] localStorage에는 사용자 정보가 있지만 state.currentUser가 없음. state 동기화 필요");
+      // state를 다시 로드해보기
+      const { verifyAutoLogin } = await import("./auth.js");
+      const autoLoginSuccess = await verifyAutoLogin(saved);
+      if (autoLoginSuccess) {
+        console.log("[카카오 연동 해제] 자동 로그인으로 state.currentUser 복구 성공");
+        // state가 복구되었으므로 자동으로 다시 시도
+        console.log("[카카오 연동 해제] state 복구 후 자동으로 unlinkKakaoAccount 재호출");
+        return await unlinkKakaoAccount();
+      }
+    }
+    
     showAlert("😥", "먼저 로그인해주세요.");
     return false;
   }
