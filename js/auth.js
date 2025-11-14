@@ -609,28 +609,70 @@ export async function linkKakaoAccount() {
  * 카카오 계정 연동 해제
  */
 export async function unlinkKakaoAccount() {
+  console.log("[카카오 연동 해제] 시작, state.currentUser:", state.currentUser);
+  
   // state.currentUser 확인
   if (!state.currentUser || !state.currentUser.studentId) {
-    console.error("[카카오 연동 해제] state.currentUser가 없음");
+    console.warn("[카카오 연동 해제] state.currentUser가 없음, localStorage 확인 중...");
     
     // localStorage에서 사용자 정보 확인
     const saved = JSON.parse(localStorage.getItem("foodieUser") || "{}");
-    if (saved.studentId && saved.name) {
-      console.warn("[카카오 연동 해제] localStorage에는 사용자 정보가 있지만 state.currentUser가 없음. state 동기화 필요");
-      // state를 다시 로드해보기
-      const { verifyAutoLogin } = await import("./auth.js");
-      const autoLoginSuccess = await verifyAutoLogin(saved);
-      if (autoLoginSuccess) {
-        console.log("[카카오 연동 해제] 자동 로그인으로 state.currentUser 복구 성공");
-        // state가 복구되었으므로 자동으로 다시 시도
-        console.log("[카카오 연동 해제] state 복구 후 자동으로 unlinkKakaoAccount 재호출");
-        return await unlinkKakaoAccount();
-      }
-    }
+    console.log("[카카오 연동 해제] localStorage 데이터:", saved);
     
-    showAlert("😥", "먼저 로그인해주세요.");
-    return false;
+    if (saved.studentId && saved.name) {
+      console.log("[카카오 연동 해제] localStorage에 사용자 정보 있음, state 복구 시도");
+      
+      // verifyAutoLogin을 사용하지 않고 직접 Firebase에서 확인
+      try {
+        const mref = doc(db, "members", saved.studentId);
+        const ms = await getDoc(mref);
+        if (ms.exists()) {
+          const d = ms.data() || {};
+          if ((d.name || "").trim() === saved.name) {
+            // state.currentUser 직접 설정
+            let kakaoUserId = d.kakaoUserId || null;
+            if (kakaoUserId !== null && kakaoUserId !== undefined && kakaoUserId !== "") {
+              kakaoUserId = String(kakaoUserId);
+            } else {
+              kakaoUserId = null;
+            }
+            
+            state.currentUser = {
+              studentId: saved.studentId,
+              name: saved.name,
+              kakaoUserId: kakaoUserId,
+              kakaoNickname: d.kakaoNickname || null,
+              kakaoProfileImage: d.kakaoProfileImage || null,
+            };
+            console.log("[카카오 연동 해제] state.currentUser 복구 완료:", state.currentUser);
+          } else {
+            console.error("[카카오 연동 해제] 이름 불일치");
+            showAlert("😥", "로그인 정보가 일치하지 않습니다. 다시 로그인해주세요.");
+            return false;
+          }
+        } else {
+          console.error("[카카오 연동 해제] Firebase에서 회원 정보를 찾을 수 없음");
+          showAlert("😥", "회원 정보를 찾을 수 없습니다. 다시 로그인해주세요.");
+          return false;
+        }
+      } catch (error) {
+        console.error("[카카오 연동 해제] Firebase 확인 오류:", error);
+        showAlert("😥", "로그인 상태를 확인할 수 없습니다. 다시 로그인해주세요.");
+        return false;
+      }
+    } else {
+      console.error("[카카오 연동 해제] localStorage에도 사용자 정보 없음");
+      showAlert("😥", "먼저 로그인해주세요.");
+      return false;
+    }
   }
+  
+  // 여기까지 왔으면 state.currentUser가 확실히 있음
+  console.log("[카카오 연동 해제] state.currentUser 확인 완료:", {
+    studentId: state.currentUser.studentId,
+    name: state.currentUser.name,
+    kakaoUserId: state.currentUser.kakaoUserId
+  });
   
   // Firebase에서 최신 정보 확인
   let hasKakaoAccount = false;
