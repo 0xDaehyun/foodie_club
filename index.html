@@ -3413,6 +3413,32 @@
               }
             });
           }
+
+          // 카카오 연동 해제 버튼 이벤트 핸들러 연결
+          const quickKakaoUnlinkBtn = summaryEl.querySelector(
+            "#quick-kakao-unlink-btn"
+          );
+          if (quickKakaoUnlinkBtn) {
+            quickKakaoUnlinkBtn.addEventListener("click", async (e) => {
+              if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+              }
+              try {
+                const { unlinkKakaoAccount } = await import("./js/auth.js");
+                const success = await unlinkKakaoAccount();
+                if (success) {
+                  // 성공 시 팝오버 닫고 페이지 새로고침
+                  el.notificationPop?.classList.add("hidden");
+                  setTimeout(() => {
+                    window.location.reload();
+                  }, 500);
+                }
+              } catch (error) {
+                console.error("내 활동 빠른보기 카카오 연동 해지 오류:", error);
+              }
+            });
+          }
         }
       };
 

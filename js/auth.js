@@ -324,13 +324,20 @@ export async function linkKakaoAccount() {
       const autoLoginSuccess = await verifyAutoLogin(saved);
       if (autoLoginSuccess) {
         console.log("[카카오 연동] 자동 로그인으로 state.currentUser 복구 성공");
-        // 다시 시도하지 않고 사용자에게 알림
-        showAlert("ℹ️", "로그인 상태를 복구했습니다. 다시 시도해주세요.");
-        return false;
+        // state가 복구되었으므로 자동으로 다시 시도
+        console.log("[카카오 연동] state 복구 후 자동으로 linkKakaoAccount 재호출");
+        return await linkKakaoAccount();
       }
     }
     
     showAlert("😥", "먼저 로그인해주세요.");
+    return false;
+  }
+  
+  // 이미 카카오 계정이 연동되어 있는지 확인
+  const currentKakaoUserId = state.currentUser?.kakaoUserId;
+  if (currentKakaoUserId && currentKakaoUserId !== null && currentKakaoUserId !== "" && currentKakaoUserId !== 0) {
+    showAlert("ℹ️", "이미 카카오 계정이 연동되어 있습니다.");
     return false;
   }
   
@@ -372,6 +379,39 @@ export async function linkKakaoAccount() {
       kakaoNickname,
       kakaoProfileImage
     });
+
+    // 이미 다른 계정에 연동된 카카오 계정인지 확인
+    const membersRef = collection(db, "members");
+    let existingLinkQuery = query(membersRef, where("kakaoUserId", "==", kakaoId));
+    let existingLinkSnapshot = await getDocs(existingLinkQuery);
+    
+    // 숫자로 찾지 못하면 문자열로도 시도
+    if (existingLinkSnapshot.empty) {
+      existingLinkQuery = query(membersRef, where("kakaoUserId", "==", kakaoIdString));
+      existingLinkSnapshot = await getDocs(existingLinkQuery);
+    }
+    
+    // 다른 계정에 이미 연동되어 있는지 확인
+    if (!existingLinkSnapshot.empty) {
+      const existingMember = existingLinkSnapshot.docs[0];
+      const existingStudentId = existingMember.id;
+      
+      // 현재 사용자와 다른 계정에 연동되어 있으면 에러
+      if (existingStudentId !== state.currentUser.studentId) {
+        const existingMemberData = existingMember.data();
+        showAlert(
+          "😥",
+          `이 카카오 계정은 이미 다른 계정(${existingMemberData.name || existingStudentId})에 연동되어 있습니다.<br>다른 카카오 계정을 사용하거나, 기존 연동을 해제한 후 다시 시도해주세요.`
+        );
+        // 카카오 로그아웃
+        Kakao.Auth.logout();
+        return false;
+      }
+      // 같은 계정에 이미 연동되어 있으면 성공 처리
+      console.log("[카카오 연동] 이미 같은 계정에 연동되어 있음");
+      showAlert("ℹ️", "이미 이 계정에 카카오 계정이 연동되어 있습니다.");
+      return true;
+    }
 
     // 기존 회원 정보에 카카오 정보 연동 (숫자로 저장)
     const memberRef = doc(db, "members", state.currentUser.studentId);
@@ -562,9 +602,43 @@ export async function linkKakaoAccount() {
  * 카카오 계정 연동 해제
  */
 export async function unlinkKakaoAccount() {
-  if (!state.currentUser?.kakaoUserId) {
-    showAlert("ℹ️", "연동된 카카오 계정이 없습니다.");
+  // state.currentUser 확인
+  if (!state.currentUser || !state.currentUser.studentId) {
+    console.error("[카카오 연동 해제] state.currentUser가 없음");
+    showAlert("😥", "먼저 로그인해주세요.");
     return false;
+  }
+  
+  // Firebase에서 최신 정보 확인
+  try {
+    const memberRef = doc(db, "members", state.currentUser.studentId);
+    const memberSnap = await getDoc(memberRef);
+    
+    if (!memberSnap.exists()) {
+      showAlert("😥", "회원 정보를 찾을 수 없습니다.");
+      return false;
+    }
+    
+    const memberData = memberSnap.data();
+    const hasKakaoAccount = memberData.kakaoUserId && 
+                           memberData.kakaoUserId !== null && 
+                           memberData.kakaoUserId !== "" && 
+                           memberData.kakaoUserId !== 0;
+    
+    if (!hasKakaoAccount) {
+      showAlert("ℹ️", "연동된 카카오 계정이 없습니다.");
+      return false;
+    }
+  } catch (error) {
+    console.error("[카카오 연동 해제] Firebase 확인 오류:", error);
+    // Firebase 확인 실패 시 state.currentUser로 확인
+    if (!state.currentUser?.kakaoUserId || 
+        state.currentUser.kakaoUserId === null || 
+        state.currentUser.kakaoUserId === "" || 
+        state.currentUser.kakaoUserId === 0) {
+      showAlert("ℹ️", "연동된 카카오 계정이 없습니다.");
+      return false;
+    }
   }
 
   if (!confirm("카카오 계정 연동을 해제하시겠습니까?")) {
