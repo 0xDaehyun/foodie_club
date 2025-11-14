@@ -4260,13 +4260,13 @@
 
           // 회원 목록이 로딩 중인지 확인 (자동 재접속 방지)
           const subtabContainer = document.getElementById("subtab-container");
-          const isMembersLoading = subtabContainer && (
-            subtabContainer.innerHTML.includes("데이터를 불러오는 중") ||
-            subtabContainer.innerHTML.includes("회원 데이터가 없음") ||
-            (subtabContainer.innerHTML.includes("회원 관리") && 
-             !subtabContainer.innerHTML.includes("회원 목록") &&
-             !subtabContainer.innerHTML.includes("member-card"))
-          );
+          const isMembersLoading =
+            subtabContainer &&
+            (subtabContainer.innerHTML.includes("데이터를 불러오는 중") ||
+              subtabContainer.innerHTML.includes("회원 데이터가 없음") ||
+              (subtabContainer.innerHTML.includes("회원 관리") &&
+                !subtabContainer.innerHTML.includes("회원 목록") &&
+                !subtabContainer.innerHTML.includes("member-card")));
 
           if (!stillLoading && !isMembersLoading) {
             resetAutoReloadState();
@@ -9788,14 +9788,25 @@
             </div>
           `;
 
-        // 카카오 연동 상태 확인
-        const kakaoUserId = currentUser?.kakaoUserId;
+        // 카카오 연동 상태 확인 (window.state.currentUser 우선 사용, 없으면 currentUser 사용)
+        // window.state.currentUser가 최신 상태이므로 우선 사용
+        const stateUser = (typeof window !== 'undefined' && window.state?.currentUser) ? window.state.currentUser : null;
+        const userForKakaoCheck = stateUser || currentUser;
+        const kakaoUserId = userForKakaoCheck?.kakaoUserId;
         const hasKakaoAccount =
           kakaoUserId !== undefined &&
           kakaoUserId !== null &&
           kakaoUserId !== "" &&
           kakaoUserId !== 0 &&
           !(typeof kakaoUserId === "string" && kakaoUserId.trim() === "");
+        
+        console.log("[내 활동 팝오버] 카카오 연동 상태 확인:", {
+          userForKakaoCheck: userForKakaoCheck?.studentId,
+          kakaoUserId,
+          hasKakaoAccount,
+          state_currentUser: (typeof window !== 'undefined' && window.state?.currentUser) ? window.state.currentUser?.kakaoUserId : 'state 없음',
+          currentUser_kakaoUserId: currentUser?.kakaoUserId
+        });
 
         const quickSummaryHTML = currentUser
           ? `

@@ -1,5 +1,9 @@
 // /js/main.js
 import { state } from "./state.js";
+// state를 전역으로 노출 (index.html에서 사용하기 위해)
+if (typeof window !== 'undefined') {
+  window.state = state;
+}
 import { registerRenderer, scheduleRender, saf, showAlert } from "./utils.js";
 import {
   loginWithStudent,
