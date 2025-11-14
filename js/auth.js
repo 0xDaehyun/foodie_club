@@ -605,8 +605,11 @@ export async function linkKakaoAccount() {
     setTimeout(() => {
       showKakaoFriendAddGuide(() => {
         // 모달이 닫힌 후 실행될 콜백
-        console.log("[카카오 연동] 친구추가 안내 모달 닫힘, 화면 갱신 시작");
-        scheduleRender(); // 화면 갱신
+        console.log("[카카오 연동] 친구추가 안내 모달 닫힘, 페이지 새로고침 시작");
+        // 페이지 새로고침 (친구추가 모달을 확인한 후)
+        setTimeout(() => {
+          window.location.reload();
+        }, 300);
       });
     }, 500);
     

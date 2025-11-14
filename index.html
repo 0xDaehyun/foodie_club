@@ -3402,11 +3402,8 @@
                 const { linkKakaoAccount } = await import("./js/auth.js");
                 const success = await linkKakaoAccount();
                 if (success) {
-                  // 성공 시 팝오버 닫고 페이지 새로고침
+                  // 성공 시 팝오버 닫기 (친구추가 모달이 닫힌 후 자동으로 새로고침됨)
                   el.notificationPop?.classList.add("hidden");
-                  setTimeout(() => {
-                    window.location.reload();
-                  }, 500);
                 }
               } catch (error) {
                 console.error("내 활동 빠른보기 카카오 연동 오류:", error);
@@ -4845,7 +4842,6 @@
             }
           } catch {}
           ensureAdminOptionals();
-
         } catch {}
       }
 
@@ -24303,9 +24299,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
               </span>
               ${
                 isAdmin
-                  ? `<button class="delete-suggestion px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600" data-id="${
-                      s.id
-                    }">삭제</button>`
+                  ? `<button class="delete-suggestion px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600" data-id="${s.id}">삭제</button>`
                   : ""
               }
             </div>
