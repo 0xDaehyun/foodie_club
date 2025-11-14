@@ -354,6 +354,8 @@ export async function linkKakaoAccount() {
       Kakao.Auth.login({
         success: (auth) => resolve(auth),
         fail: (err) => reject(err),
+        // 계정 선택 화면 강제 표시 (다른 계정 선택 가능)
+        prompt: 'select_account',
       });
     });
 
@@ -875,6 +877,8 @@ export async function loginWithKakao() {
       Kakao.Auth.login({
         success: (auth) => resolve(auth),
         fail: (err) => reject(err),
+        // 계정 선택 화면 강제 표시 (다른 계정 선택 가능)
+        prompt: 'select_account',
       });
     });
 
