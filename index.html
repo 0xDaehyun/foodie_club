@@ -24275,30 +24275,6 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
 
       /* ===== 문의하기 탭 (DEPRECATED - 새 시스템으로 대체됨) ===== */
 
-        listContainer.innerHTML =
-          list ||
-          `<div class="text-center py-8 text-gray-400">
-          <i class="fas fa-inbox text-3xl mb-2"></i>
-          <p>아직 문의가 없습니다.</p>
-        </div>`;
-
-        // 삭제 버튼 이벤트
-        listContainer.onclick = async (e) => {
-          const b = e.target.closest("button[data-act='del-sug']");
-          if (b) {
-            if (!confirm("이 문의를 삭제하시겠습니까?")) return;
-            try {
-              await deleteDoc(doc(db, "suggestions", b.dataset.id));
-              showAlert("🗑️", "삭제되었습니다.");
-              renderInquiryList(); // 목록 다시 렌더링
-            } catch (err) {
-              console.warn(err);
-              showAlert("😥", "삭제 실패");
-            }
-          }
-        };
-      }
-
       /* ===== 문의 모달 (DEPRECATED) ===== */
       function openInquiryModal_DEPRECATED() {
         const modal = document.getElementById("inquiry-modal");

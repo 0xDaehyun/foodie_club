@@ -810,8 +810,8 @@ export async function unlinkKakaoAccount() {
     console.log("[카카오 연동 해제] localStorage 업데이트 완료:", saved);
 
     // 카카오 로그아웃
-    if (window.Kakao && Kakao.Auth.getAccessToken()) {
-      Kakao.Auth.logout();
+    if (window.Kakao && window.Kakao.Auth && window.Kakao.Auth.getAccessToken()) {
+      window.Kakao.Auth.logout();
     }
 
     showAlert("✅", "카카오 계정 연동이 해제되었습니다.");
