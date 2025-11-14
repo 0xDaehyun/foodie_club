@@ -87,6 +87,11 @@ function showTab(name) {
 function renderReservationTab(isAdmin) {
   console.log("=== renderReservationTab 함수 시작 ===");
   console.log("renderReservationTab 함수가 호출되었습니다!", isAdmin);
+  console.log("state.currentUser:", state.currentUser);
+  console.log(
+    "state.currentUser?.kakaoUserId:",
+    state.currentUser?.kakaoUserId
+  );
   const c = document.getElementById("reservation-tab");
   console.log("reservation-tab 요소:", c);
   if (!c) {
@@ -112,7 +117,7 @@ function renderReservationTab(isAdmin) {
     ? state.eventsData.filter((e) => e.status === "archived")
     : [];
 
-  // 내 활동 섹션 추가
+  // 내 활동 섹션 - 새로 재구성
   const participatedEvents = state.eventsData.filter((ev) => {
     if (!state.currentUser) return false;
     if (ev.status === "deleted") return false;
@@ -133,46 +138,78 @@ function renderReservationTab(isAdmin) {
     return isApplicant || isRestaurantApplicant;
   });
 
-  // 디버깅 로그
-  console.log("=== 내 활동 섹션 디버깅 ===");
-  console.log("현재 사용자:", state.currentUser?.studentId);
-  console.log("전체 이벤트 수:", state.eventsData.length);
-  console.log("참가한 이벤트 수:", participatedEvents.length);
-  console.log(
-    "참가한 이벤트 목록:",
-    participatedEvents.map((ev) => ({
-      id: ev.id,
-      title: ev.title,
-      type: ev.type,
-      status: ev.status,
-      applicants: ev.applicants?.length || 0,
-    }))
-  );
+  // 카카오 연동 상태 확인
+  const kakaoUserId = state.currentUser?.kakaoUserId;
+  const hasKakaoAccount =
+    kakaoUserId !== undefined &&
+    kakaoUserId !== null &&
+    kakaoUserId !== "" &&
+    kakaoUserId !== 0 &&
+    !(typeof kakaoUserId === "string" && kakaoUserId.trim() === "");
 
   const myActivityHTML = `
     <div class="section mt-6">
-      <div class="bg-gradient-to-r from-orange-50 to-yellow-50 border-2 border-orange-200 rounded-xl overflow-hidden">
-        <div class="px-6 py-4 bg-gradient-to-r from-orange-500 to-yellow-500">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-              <i class="fas fa-history text-white text-xl"></i>
+      <div class="bg-gradient-to-r from-orange-50 to-yellow-50 border-2 border-orange-200 rounded-xl overflow-hidden shadow-lg">
+        <!-- 헤더 섹션 -->
+        <div class="px-6 py-5 bg-gradient-to-r from-orange-500 to-yellow-500">
+          <div class="flex items-center justify-between flex-wrap gap-4">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
+                <i class="fas fa-history text-white text-2xl"></i>
+              </div>
+              <div>
+                <h4 class="text-xl font-bold text-white mb-1">내 활동</h4>
+                <p class="text-orange-100 text-sm">참가했던 이벤트와 미식회를 확인하세요</p>
+              </div>
             </div>
-            <div>
-              <h4 class="text-lg font-bold text-white">내 활동</h4>
-              <p class="text-orange-100 text-sm">참가했던 활동들을 확인해보세요</p>
+            ${
+              !hasKakaoAccount
+                ? `
+            <button
+              id="activity-kakao-link-btn"
+              type="button"
+              class="px-5 py-2.5 bg-[#FEE500] hover:bg-[#FDD835] text-gray-900 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center text-sm shadow-md hover:shadow-lg transform hover:scale-105"
+            >
+              <svg
+                class="w-5 h-5 mr-2"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path
+                  d="M12 3c5.799 0 10.5 3.664 10.5 8.185 0 4.52-4.701 8.184-10.5 8.184a13.5 13.5 0 0 1-1.727-.11l-4.408 2.883c-.501.265-.678.236-.472-.413l.892-3.678c-2.88-1.46-4.785-3.99-4.785-6.866C1.5 6.665 6.201 3 12 3z"
+                />
+              </svg>
+              카카오 계정 연동하기
+            </button>
+            `
+                : `
+            <div class="px-4 py-2 bg-white/20 rounded-lg backdrop-blur-sm flex items-center gap-2">
+              <i class="fas fa-check-circle text-white"></i>
+              <span class="text-white text-sm font-medium">카카오 계정 연동됨</span>
             </div>
+            `
+            }
           </div>
         </div>
+        
+        <!-- 콘텐츠 섹션 -->
         <div class="p-6">
           ${
             participatedEvents.length > 0
               ? `
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             ${participatedEvents
               .map((ev) => {
-                const eventDate = new Date(ev.datetime).toLocaleDateString(
-                  "ko-KR"
-                );
+                const eventDate = new Date(ev.datetime);
+                const dateStr = eventDate.toLocaleDateString("ko-KR", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                });
+                const timeStr = eventDate.toLocaleTimeString("ko-KR", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                });
                 const hasReview = ev.reviews?.find(
                   (r) => r.studentId === state.currentUser.studentId
                 );
@@ -204,173 +241,72 @@ function renderReservationTab(isAdmin) {
                     ? "🎤"
                     : "📅";
 
-                return `
-                <div class="bg-white rounded-lg p-4 border border-orange-200 shadow-sm hover:shadow-md transition-shadow">
-                  <div class="flex items-start gap-3 mb-3">
-                    <span class="text-2xl">${typeIcon}</span>
-                    <div class="flex-1 min-w-0">
-                      <h5 class="font-bold text-gray-800 mb-1">${
-                        ev.title || ev.activityName || "제목 없음"
-                      }</h5>
-                      <p class="text-sm text-gray-500 mb-2">${eventDate}</p>
-                      ${
-                        restaurantName
-                          ? `
-                      <p class="text-sm text-orange-600 font-medium">
-                        <i class="fas fa-utensils mr-1"></i>${restaurantName}
-                      </p>
-                      `
-                          : ""
-                      }
-                    </div>
-                  </div>
-                  <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-2 text-sm text-gray-600">
-                      <span><i class="fas fa-users mr-1"></i>${
-                        ev.applicants?.length || 0
-                      }명</span>
-                    </div>
-                    ${
-                      hasReview
-                        ? `
-                    <span class="text-green-600 text-sm font-medium">
-                      <i class="fas fa-check-circle mr-1"></i>후기 작성됨
-                    </span>
-                    `
-                        : `
-                    <button
-                      onclick="openReviewModal('${ev.id}', '${ev.title || ""}')"
-                      class="text-orange-600 hover:text-orange-700 text-sm font-medium transition-colors"
-                    >
-                      <i class="fas fa-star mr-1"></i>후기 작성
-                    </button>
-                    `
-                    }
-                  </div>
-                </div>
-                `;
-              })
-              .join("")}
-          </div>
-          `
-              : `
-          <div class="text-center py-8">
-            <div class="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <i class="fas fa-calendar-check text-2xl text-orange-500"></i>
-            </div>
-            <h5 class="text-lg font-bold text-gray-700 mb-2">내 활동 섹션이 표시되었습니다!</h5>
-            <p class="text-gray-500 text-sm">참가한 이벤트 수: ${
-              participatedEvents.length
-            }개</p>
-            <p class="text-gray-500 text-sm">전체 이벤트 수: ${
-              state.eventsData.length
-            }개</p>
-            <p class="text-gray-500 text-sm">현재 사용자: ${
-              state.currentUser?.studentId || "로그인되지 않음"
-            }</p>
-          </div>
-          `
-          }
-        </div>
-      </div>
-    </div>
-  `;
-
-  // 내 활동 섹션 HTML 생성
-  const myActivityHTML = `
-    <div class="section mt-6">
-      <div class="bg-gradient-to-r from-orange-50 to-yellow-50 border-2 border-orange-200 rounded-xl overflow-hidden">
-        <div class="px-6 py-4 bg-gradient-to-r from-orange-500 to-yellow-500">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-              <i class="fas fa-history text-white text-xl"></i>
-            </div>
-            <div>
-              <h4 class="text-lg font-bold text-white">내 활동</h4>
-              <p class="text-orange-100 text-sm">참가했던 활동들을 확인해보세요</p>
-            </div>
-          </div>
-        </div>
-        <div class="p-6">
-          ${
-            participatedEvents.length > 0
-              ? `
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            ${participatedEvents
-              .map((ev) => {
-                const eventDate = new Date(ev.datetime).toLocaleDateString(
-                  "ko-KR"
-                );
-                const hasReview = ev.reviews?.find(
-                  (r) => r.studentId === state.currentUser.studentId
-                );
-
-                let restaurantName = "";
-                if (
-                  ev.type === "tasting" &&
-                  ev.restaurants &&
-                  state.currentUser
-                ) {
-                  for (const restaurant of ev.restaurants) {
-                    if (
-                      restaurant.reservations?.some(
-                        (res) => res.studentId === state.currentUser.studentId
-                      )
-                    ) {
-                      restaurantName = restaurant.name;
-                      break;
-                    }
-                  }
-                }
-
-                const typeIcon =
+                const typeLabel =
                   ev.type === "tasting"
-                    ? "🍽️"
+                    ? "미식회"
                     : ev.type === "mt"
-                    ? "🏕️"
+                    ? "MT"
                     : ev.type === "assembly"
-                    ? "🎤"
-                    : "📅";
+                    ? "총회"
+                    : "이벤트";
 
                 return `
-                <div class="bg-white rounded-lg p-4 border border-orange-200 shadow-sm hover:shadow-md transition-shadow">
-                  <div class="flex items-start gap-3 mb-3">
-                    <span class="text-2xl">${typeIcon}</span>
+                <div class="bg-white rounded-xl p-5 border-2 border-orange-100 shadow-md hover:shadow-xl transition-all duration-200 hover:border-orange-300">
+                  <div class="flex items-start gap-4 mb-4">
+                    <div class="text-3xl">${typeIcon}</div>
                     <div class="flex-1 min-w-0">
-                      <h5 class="font-bold text-gray-800 mb-1">${
-                        ev.title || ev.activityName || "제목 없음"
-                      }</h5>
-                      <p class="text-sm text-gray-500 mb-2">${eventDate}</p>
-                      ${
-                        restaurantName
-                          ? `
-                      <p class="text-sm text-orange-600 font-medium">
-                        <i class="fas fa-utensils mr-1"></i>${restaurantName}
-                      </p>
-                      `
-                          : ""
-                      }
+                      <div class="flex items-center gap-2 mb-2">
+                        <span class="px-2 py-1 bg-orange-100 text-orange-700 text-xs font-semibold rounded">
+                          ${typeLabel}
+                        </span>
+                      </div>
+                      <h5 class="font-bold text-gray-800 text-lg mb-2 line-clamp-2">
+                        ${ev.title || ev.activityName || "제목 없음"}
+                      </h5>
+                      <div class="space-y-1">
+                        <p class="text-sm text-gray-600">
+                          <i class="far fa-calendar mr-2 text-orange-500"></i>
+                          ${dateStr}
+                        </p>
+                        <p class="text-sm text-gray-600">
+                          <i class="far fa-clock mr-2 text-orange-500"></i>
+                          ${timeStr}
+                        </p>
+                        ${
+                          restaurantName
+                            ? `
+                        <p class="text-sm text-orange-600 font-semibold mt-2">
+                          <i class="fas fa-utensils mr-2"></i>${restaurantName}
+                        </p>
+                        `
+                            : ""
+                        }
+                      </div>
                     </div>
                   </div>
-                  <div class="flex items-center justify-between">
+                  
+                  <div class="flex items-center justify-between pt-4 border-t border-gray-100">
                     <div class="flex items-center gap-2 text-sm text-gray-600">
-                      <span><i class="fas fa-users mr-1"></i>${
+                      <i class="fas fa-users text-orange-500"></i>
+                      <span class="font-medium">${
                         ev.applicants?.length || 0
-                      }명</span>
+                      }명 참가</span>
                     </div>
                     ${
                       hasReview
                         ? `
-                    <span class="text-green-600 text-sm font-medium">
-                      <i class="fas fa-check-circle mr-1"></i>후기 작성됨
+                    <span class="px-3 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full flex items-center gap-1">
+                      <i class="fas fa-check-circle"></i>
+                      후기 작성됨
                     </span>
                     `
                         : `
                     <button
                       onclick="openReviewModal('${ev.id}', '${ev.title || ""}')"
-                      class="text-orange-600 hover:text-orange-700 text-sm font-medium transition-colors"
+                      class="px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold rounded-lg transition-colors flex items-center gap-1"
                     >
-                      <i class="fas fa-star mr-1"></i>후기 작성
+                      <i class="fas fa-star"></i>
+                      후기 작성
                     </button>
                     `
                     }
@@ -382,12 +318,40 @@ function renderReservationTab(isAdmin) {
           </div>
           `
               : `
-          <div class="text-center py-8">
-            <div class="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <i class="fas fa-calendar-check text-2xl text-orange-500"></i>
+          <div class="text-center py-12">
+            <div class="w-20 h-20 bg-gradient-to-br from-orange-100 to-yellow-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+              <i class="fas fa-calendar-check text-3xl text-orange-500"></i>
             </div>
-            <h5 class="text-lg font-bold text-gray-700 mb-2">참가한 활동이 없습니다</h5>
-            <p class="text-gray-500 text-sm">이벤트에 참가하면 여기에 표시됩니다</p>
+            <h5 class="text-xl font-bold text-gray-800 mb-2">아직 참가한 활동이 없습니다</h5>
+            <p class="text-gray-500 mb-6">이벤트나 미식회에 참가하면 여기에 표시됩니다</p>
+            ${
+              !hasKakaoAccount
+                ? `
+            <div class="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4 max-w-md mx-auto">
+              <p class="text-sm text-gray-700 mb-3">
+                <i class="fas fa-info-circle text-yellow-600 mr-2"></i>
+                카카오 계정을 연동하면 더 편리하게 이용할 수 있습니다
+              </p>
+              <button
+                id="activity-kakao-link-btn-empty"
+                type="button"
+                class="w-full px-4 py-2.5 bg-[#FEE500] hover:bg-[#FDD835] text-gray-900 rounded-lg font-semibold transition-colors flex items-center justify-center"
+              >
+                <svg
+                  class="w-5 h-5 mr-2"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <path
+                    d="M12 3c5.799 0 10.5 3.664 10.5 8.185 0 4.52-4.701 8.184-10.5 8.184a13.5 13.5 0 0 1-1.727-.11l-4.408 2.883c-.501.265-.678.236-.472-.413l.892-3.678c-2.88-1.46-4.785-3.99-4.785-6.866C1.5 6.665 6.201 3 12 3z"
+                  />
+                </svg>
+                카카오 계정 연동하기
+              </button>
+            </div>
+            `
+                : ""
+            }
           </div>
           `
           }
@@ -485,10 +449,10 @@ function renderReservationTab(isAdmin) {
     : "";
 
   console.log("=== HTML 생성 시작 ===");
-  console.log("myActivityHTML:", myActivityHTML.substring(0, 100) + "...");
+  console.log("hasKakaoAccount:", hasKakaoAccount);
   console.log(
-    "archivedEventsHTML:",
-    archivedEventsHTML.substring(0, 100) + "..."
+    "myActivityHTML에 카카오 버튼 포함:",
+    myActivityHTML.includes("activity-kakao-link-btn")
   );
 
   c.innerHTML =
@@ -508,6 +472,41 @@ function renderReservationTab(isAdmin) {
 
   console.log("=== HTML 생성 완료 ===");
   console.log("탭 콘텐츠:", c.innerHTML.substring(0, 200) + "...");
+
+  // 카카오 연동 버튼 이벤트 핸들러 연결
+  const activityKakaoLinkBtn = c.querySelector("#activity-kakao-link-btn");
+  const activityKakaoLinkBtnEmpty = c.querySelector(
+    "#activity-kakao-link-btn-empty"
+  );
+
+  const setupKakaoLinkHandler = (btn) => {
+    if (btn) {
+      btn.addEventListener("click", async (e) => {
+        if (e) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+        try {
+          const { linkKakaoAccount } = await import("./auth.js");
+          const success = await linkKakaoAccount();
+          if (success) {
+            // 성공 시 탭 다시 렌더링
+            renderReservationTab(isAdmin);
+          }
+        } catch (error) {
+          console.error("내 활동 카카오 연동 오류:", error);
+        }
+      });
+    }
+  };
+
+  setupKakaoLinkHandler(activityKakaoLinkBtn);
+  setupKakaoLinkHandler(activityKakaoLinkBtnEmpty);
+
+  console.log("카카오 연동 버튼 이벤트 핸들러 연결 완료:", {
+    헤더_버튼: activityKakaoLinkBtn !== null,
+    빈_상태_버튼: activityKakaoLinkBtnEmpty !== null,
+  });
 
   c.addEventListener("click", async (e) => {
     const b = e.target.closest("button[data-act]");

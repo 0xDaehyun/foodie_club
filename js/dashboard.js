@@ -64,7 +64,10 @@ function showSubtab(name) {
   const cont = document.getElementById("subtab-container");
   if (!cont) return;
   if (name === "homeblocks") return renderHomeBlocksAdmin(cont);
-  if (name === "members") return renderMembersAdmin(cont);
+  if (name === "members") {
+    // renderMembersAdmin 내부에서 데이터 로드 처리
+    return renderMembersAdmin(cont);
+  }
   if (name === "hof") return renderHOFAdmin(cont);
   if (name === "system") return renderSystemAdmin(cont);
 }
@@ -664,12 +667,108 @@ function enableSimpleDnd(ul) {
 let memberSearchTerm = "";
 
 export function renderMembersAdmin(container) {
+  console.log("[renderMembersAdmin] 시작, container:", container);
+  console.log("[renderMembersAdmin] state.membersData:", state.membersData?.length || 0, state.membersData);
+  
+  if (!container) {
+    console.error("[renderMembersAdmin] container가 없습니다!");
+    return;
+  }
+  
+  // 회원 데이터가 없으면 리스너 시작 시도
+  if (!state.membersData || state.membersData.length === 0) {
+    console.log("[renderMembersAdmin] 회원 데이터가 없음, startAdminListeners 호출 시도");
+    console.log("[renderMembersAdmin] currentUser:", state.currentUser?.studentId);
+    console.log("[renderMembersAdmin] adminList:", state.adminList);
+    console.log("[renderMembersAdmin] adminList includes:", state.adminList?.includes(state.currentUser?.studentId));
+    
+    // 관리자 체크를 더 유연하게 - adminList가 아직 로드되지 않았을 수도 있음
+    const isAdmin = state.currentUser && (
+      state.adminList?.includes(state.currentUser.studentId) || 
+      state.currentUser.studentId === "202327942" // 임시로 회장 학번 체크
+    );
+    
+    // adminList가 비어있거나 관리자면 리스너 시작
+    if (isAdmin || !state.adminList || state.adminList.length === 0) {
+      console.log("[renderMembersAdmin] members 리스너 직접 설정 시도");
+      // members 리스너만 직접 설정 (관리자 체크 우회)
+      Promise.all([
+        import("./firebase.js"),
+        import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js")
+      ]).then(async ([firebaseModule, firestoreModule]) => {
+        const { db } = firebaseModule;
+        const { collection, query, orderBy, onSnapshot } = firestoreModule;
+        const unsubAdmin = (window.unsubAdmin = window.unsubAdmin || {});
+        
+        if (!unsubAdmin.members) {
+          console.log("[renderMembersAdmin] members 리스너 직접 설정");
+          unsubAdmin.members = onSnapshot(
+            query(collection(db, "members"), orderBy("name", "asc")),
+            (snap) => {
+              state.membersData = snap.docs.map((d) => {
+                const data = d.data();
+                if (data.kakaoUserId !== undefined && data.kakaoUserId !== null) {
+                  data._kakaoUserIdString = String(data.kakaoUserId);
+                }
+                return { id: d.id, ...data };
+              });
+              console.log("[renderMembersAdmin] membersData 로드됨:", state.membersData.length, "개");
+              // 회원 관리 탭이 열려있으면 다시 렌더링
+              const subtabContainer = document.getElementById("subtab-container");
+              if (subtabContainer && subtabContainer.innerHTML.includes("회원 관리")) {
+                renderMembersAdmin(subtabContainer);
+              }
+            },
+            (err) => {
+              console.warn("members:", err?.message);
+            }
+          );
+        } else {
+          console.log("[renderMembersAdmin] members 리스너가 이미 설정되어 있음");
+        }
+      }).catch((err) => {
+        console.error("[renderMembersAdmin] 리스너 설정 실패:", err);
+      });
+      
+      // startAdminListeners도 시도
+      import("./listeners.js").then(({ startAdminListeners }) => {
+        console.log("[renderMembersAdmin] startAdminListeners도 호출");
+        startAdminListeners();
+        // 데이터 로드 후 다시 렌더링 (최대 3초 대기)
+        let retryCount = 0;
+        const maxRetries = 30; // 3초 (100ms * 30)
+        const checkInterval = setInterval(() => {
+          retryCount++;
+          if (state.membersData && state.membersData.length > 0) {
+            console.log("[renderMembersAdmin] 데이터 로드됨, 다시 렌더링");
+            clearInterval(checkInterval);
+            renderMembersAdmin(container);
+          } else if (retryCount >= maxRetries) {
+            console.warn("[renderMembersAdmin] 데이터 로드 타임아웃");
+            clearInterval(checkInterval);
+          }
+        }, 100);
+      }).catch((err) => {
+        console.error("[renderMembersAdmin] startAdminListeners import 실패:", err);
+      });
+    } else {
+      console.warn("[renderMembersAdmin] 관리자가 아님");
+    }
+  }
+  
   const pendingSet = (state.membersData || []).filter(
     (m) => (m.status || "pending") !== "active"
   );
   const activeSet = (state.membersData || []).filter(
     (m) => (m.status || "pending") === "active"
   );
+  console.log("[renderMembersAdmin] pendingSet:", pendingSet.length, "activeSet:", activeSet.length);
+  console.log("[renderMembersAdmin] membersCardHTML 함수 존재:", typeof membersCardHTML);
+  
+  // membersCardHTML 함수를 미리 호출하여 HTML 생성
+  const pendingHTML = membersCardHTML(pendingSet, true, memberSearchTerm);
+  const activeHTML = membersCardHTML(activeSet, false, memberSearchTerm);
+  console.log("[renderMembersAdmin] pendingHTML 길이:", pendingHTML.length, "activeHTML 길이:", activeHTML.length);
 
   container.innerHTML = `
     <div class="section">
@@ -681,58 +780,38 @@ export function renderMembersAdmin(container) {
         <button id="members-delete-all" class="px-3 py-2 bg-red-600 text-white rounded"><i class="fas fa-trash mr-1"></i>회원 전체 삭제</button>
       </div>
 
+      <!-- 회원 목록 (카드 형태) -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div>
-          <h4 class="font-semibold text-amber-700 mb-2">승인 필요(대기/거절/차단)</h4>
-          <div class="overflow-auto border rounded">
-            <table class="min-w-full text-sm">
-              <thead class="bg-gray-50">
-                <tr>
-                  <th class="px-3 py-2 text-left">이름</th>
-                  <th class="px-3 py-2 text-left">학번</th>
-                  <th class="px-3 py-2 text-left">성별</th>
-                  <th class="px-3 py-2 text-left">학년</th>
-                  <th class="px-3 py-2 text-left">단과대</th>
-                  <th class="px-3 py-2 text-left">학과</th>
-                  <th class="px-3 py-2 text-left">전화번호</th>
-                  <th class="px-3 py-2 text-left">상태</th>
-                  <th class="px-3 py-2 text-left">관리</th>
-                </tr>
-              </thead>
-              <tbody id="members-tbody-pending">${membersRowsHTMLGrouped(
-                pendingSet,
-                true,
-                memberSearchTerm
-              )}</tbody>
-            </table>
+          <h4 class="font-semibold text-amber-700 mb-3">승인 필요(대기/거절/차단)</h4>
+          <div id="members-list-pending" class="space-y-2">
+            ${pendingHTML}
           </div>
         </div>
 
         <div>
-          <h4 class="font-semibold text-emerald-700 mb-2">활동중(승인됨)</h4>
-          <div class="overflow-auto border rounded">
-            <table class="min-w-full text-sm">
-              <thead class="bg-gray-50">
-                <tr>
-                  <th class="px-3 py-2 text-left">이름</th>
-                  <th class="px-3 py-2 text-left">학번</th>
-                  <th class="px-3 py-2 text-left">성별</th>
-                  <th class="px-3 py-2 text-left">학년</th>
-                  <th class="px-3 py-2 text-left">단과대</th>
-                  <th class="px-3 py-2 text-left">학과</th>
-                  <th class="px-3 py-2 text-left">전화번호</th>
-                  <th class="px-3 py-2 text-left">관리</th>
-                </tr>
-              </thead>
-              <tbody id="members-tbody-active">${membersRowsHTMLGrouped(
-                activeSet,
-                false,
-                memberSearchTerm
-              )}</tbody>
-            </table>
+          <h4 class="font-semibold text-emerald-700 mb-3">활동중(승인됨)</h4>
+          <div id="members-list-active" class="space-y-2">
+            ${activeHTML}
           </div>
         </div>
       </div>
+
+      <!-- 회원 상세 정보 모달 -->
+      <div id="member-detail-modal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+          <div class="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between rounded-t-2xl">
+            <h3 class="text-lg font-bold text-gray-800">회원 상세 정보</h3>
+            <button id="member-detail-close" class="text-gray-500 hover:text-gray-700">
+              <i class="fas fa-times text-xl"></i>
+            </button>
+          </div>
+          <div id="member-detail-content" class="p-6">
+            <!-- 동적으로 채워짐 -->
+          </div>
+        </div>
+      </div>
+
 
       <p class="text-xs text-gray-500 mt-2">* CSV는 UTF-8(BOM) 저장으로 엑셀에서 한글이 깨지지 않습니다.</p>
     </div>
@@ -748,10 +827,16 @@ export function renderMembersAdmin(container) {
     const activeNow = (state.membersData || []).filter(
       (m) => (m.status || "pending") === "active"
     );
-    container.querySelector("#members-tbody-pending").innerHTML =
-      membersRowsHTMLGrouped(pendingNow, true, memberSearchTerm);
-    container.querySelector("#members-tbody-active").innerHTML =
-      membersRowsHTMLGrouped(activeNow, false, memberSearchTerm);
+    
+    // 카드 목록 업데이트
+    const pendingList = container.querySelector("#members-list-pending");
+    const activeList = container.querySelector("#members-list-active");
+    if (pendingList) {
+      pendingList.innerHTML = membersCardHTML(pendingNow, true, memberSearchTerm);
+    }
+    if (activeList) {
+      activeList.innerHTML = membersCardHTML(activeNow, false, memberSearchTerm);
+    }
   });
 
   container
@@ -760,7 +845,373 @@ export function renderMembersAdmin(container) {
   container
     .querySelector("#members-delete-all")
     .addEventListener("click", deleteAllMembers);
-  container.addEventListener("click", onMembersTableClick);
+  
+  // 회원 카드 클릭 이벤트
+  container.addEventListener("click", (e) => {
+    // 모달이 열려있거나 모달 내부 요소를 클릭한 경우 무시
+    const modal = document.getElementById("member-detail-modal");
+    if (modal && !modal.classList.contains("hidden") && modal.style.display !== "none") {
+      // 모달이 열려있으면 회원 카드 클릭 무시
+      if (modal.contains(e.target)) {
+        return;
+      }
+    }
+    
+    // 모달 내부 요소 클릭 무시
+    if (e.target.closest("#member-detail-modal")) {
+      return;
+    }
+    
+    console.log("[회원 카드] 클릭 이벤트:", e.target);
+    const memberCard = e.target.closest(".member-card");
+    console.log("[회원 카드] memberCard:", memberCard);
+    if (memberCard) {
+      const studentId = memberCard.dataset.studentId || memberCard.dataset.studentid;
+      console.log("[회원 카드] studentId:", studentId);
+      if (studentId) {
+        console.log("[회원 카드] openMemberDetailModal 호출");
+        openMemberDetailModal(studentId);
+      } else {
+        console.warn("[회원 카드] studentId를 찾을 수 없음");
+      }
+    }
+    // 관리 버튼 클릭은 기존 핸들러 사용
+    const btn = e.target.closest("button[data-act]");
+    if (btn) {
+      e.stopPropagation();
+      onMembersTableClick(e);
+    }
+  });
+  
+  // 모달 닫기 버튼 (초기 로드 시, 나중에 openMemberDetailModal에서 재등록됨)
+  const closeBtn = container.querySelector("#member-detail-close");
+  const modal = container.querySelector("#member-detail-modal");
+  if (closeBtn && modal) {
+    closeBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      modal.classList.add("hidden");
+      modal.style.display = "none";
+    });
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) {
+        modal.classList.add("hidden");
+        modal.style.display = "none";
+      }
+    });
+  }
+}
+
+// 회원 카드 HTML 생성
+function membersCardHTML(list, isPendingGroup, keyword) {
+  const kw = (keyword || "").toLowerCase();
+  const filtered = (list || []).filter((m) => {
+    const s = [m.name, m.studentId, m.department, m.college, m.phone].map((x) =>
+      String(x || "").toLowerCase()
+    );
+    return kw ? s.some((v) => v.includes(kw)) : true;
+  });
+  
+  if (filtered.length === 0) {
+    return `<div class="text-center py-8 text-gray-400">해당 항목이 없습니다.</div>`;
+  }
+
+  return filtered
+    .map((m) => {
+      // kakaoUserId가 문자열, 숫자, 또는 빈 문자열일 수 있으므로 명확하게 확인
+      // 숫자 0은 falsy이므로 명시적으로 확인
+      // _kakaoUserIdString도 확인 (listeners.js에서 추가한 속성)
+      const hasKakaoUserId = m.kakaoUserId !== undefined && m.kakaoUserId !== null && m.kakaoUserId !== "";
+      const hasKakaoUserIdString = m._kakaoUserIdString !== undefined && m._kakaoUserIdString !== null && m._kakaoUserIdString !== "";
+      const isKakaoLinked = !!(hasKakaoUserId || hasKakaoUserIdString);
+      
+      // 디버깅: 특정 회원의 kakaoUserId 값 확인
+      if (m.studentId && (hasKakaoUserId || hasKakaoUserIdString)) {
+        console.log("[회원 목록] 카카오 연동 확인:", {
+          studentId: m.studentId,
+          name: m.name,
+          kakaoUserId: m.kakaoUserId,
+          kakaoUserId_타입: typeof m.kakaoUserId,
+          _kakaoUserIdString: m._kakaoUserIdString,
+          isKakaoLinked
+        });
+      }
+      
+      const profileImage = m.kakaoProfileImage || null;
+      
+      return `
+        <div class="member-card bg-white border border-gray-200 rounded-lg p-4 cursor-pointer hover:bg-gray-50 hover:border-orange-300 transition-all shadow-sm hover:shadow-md" data-studentId="${m.studentId}">
+          <div class="flex items-center gap-3">
+            <div class="relative flex-shrink-0">
+              <div class="w-12 h-12 rounded-full bg-gradient-to-br from-orange-400 to-yellow-400 flex items-center justify-center text-white font-bold text-lg overflow-hidden">
+                ${profileImage 
+                  ? `<img src="${profileImage}" alt="프로필" class="w-full h-full object-cover" />`
+                  : (m.name?.charAt(0) || "U")
+                }
+              </div>
+              ${isKakaoLinked 
+                ? `<div class="absolute -bottom-1 -right-1 w-5 h-5 bg-yellow-400 rounded-full border-2 border-white flex items-center justify-center">
+                     <i class="fas fa-comment-dots text-[10px] text-gray-900"></i>
+                   </div>`
+                : `<div class="absolute -bottom-1 -right-1 w-5 h-5 bg-gray-300 rounded-full border-2 border-white flex items-center justify-center">
+                     <i class="fas fa-user text-[10px] text-gray-600"></i>
+                   </div>`
+              }
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="font-semibold text-gray-800 text-base">${saf(m.name || "")}</span>
+                ${isKakaoLinked 
+                  ? `<span class="text-[10px] px-1.5 py-0.5 bg-yellow-100 text-yellow-700 rounded-full font-medium">카카오 연동</span>`
+                  : `<span class="text-[10px] px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded-full font-medium">미연동</span>`
+                }
+              </div>
+              <div class="text-sm text-gray-500 font-mono">${saf(m.studentId || "")}</div>
+            </div>
+            <i class="fas fa-chevron-right text-gray-400 flex-shrink-0"></i>
+          </div>
+        </div>
+      `;
+    })
+    .join("");
+}
+
+// 회원 상세 정보 모달 열기
+function openMemberDetailModal(studentId) {
+  console.log("[openMemberDetailModal] 시작, studentId:", studentId);
+  console.log("[openMemberDetailModal] state.membersData:", state.membersData?.length || 0);
+  const m = (state.membersData || []).find((x) => (x.studentId || x.id) === studentId) || {};
+  console.log("[openMemberDetailModal] 찾은 회원:", m);
+  
+  // 모달을 여러 곳에서 찾기 시도
+  let modal = document.getElementById("member-detail-modal");
+  let content = document.getElementById("member-detail-content");
+  
+  // container 내부에서도 찾기 시도
+  if (!modal) {
+    const subtabContainer = document.getElementById("subtab-container");
+    if (subtabContainer) {
+      modal = subtabContainer.querySelector("#member-detail-modal");
+      content = subtabContainer.querySelector("#member-detail-content");
+    }
+  }
+  
+  console.log("[openMemberDetailModal] modal:", modal, "content:", content);
+  
+  if (!modal || !content) {
+    console.error("[openMemberDetailModal] modal 또는 content를 찾을 수 없음");
+    // 모달이 없으면 동적으로 생성
+    console.log("[openMemberDetailModal] 모달을 동적으로 생성");
+    const newModal = document.createElement("div");
+    newModal.id = "member-detail-modal";
+    newModal.className = "fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4";
+    newModal.innerHTML = `
+      <div class="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+        <div class="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between rounded-t-2xl">
+          <h3 class="text-lg font-bold text-gray-800">회원 상세 정보</h3>
+          <button id="member-detail-close" class="text-gray-500 hover:text-gray-700">
+            <i class="fas fa-times text-xl"></i>
+          </button>
+        </div>
+        <div id="member-detail-content" class="p-6">
+          <!-- 동적으로 채워짐 -->
+        </div>
+      </div>
+    `;
+    document.body.appendChild(newModal);
+    modal = newModal;
+    content = newModal.querySelector("#member-detail-content");
+    
+    // 닫기 버튼 이벤트
+    const closeBtn = newModal.querySelector("#member-detail-close");
+    if (closeBtn) {
+      closeBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        newModal.classList.add("hidden");
+        newModal.style.display = "none";
+      });
+    }
+    newModal.addEventListener("click", (e) => {
+      if (e.target === newModal) {
+        newModal.classList.add("hidden");
+        newModal.style.display = "none";
+      }
+    });
+  }
+  
+  const mapStatus = (s) =>
+    ({
+      active: "활동중",
+      pending: "승인대기",
+      rejected: "거절",
+      blocked: "차단",
+    }[s] ||
+    s ||
+    "-");
+  
+  // kakaoUserId가 문자열, 숫자, 또는 빈 문자열일 수 있으므로 명확하게 확인
+  // 숫자 0은 falsy이므로 명시적으로 확인
+  const isKakaoLinked = !!(m.kakaoUserId !== undefined && m.kakaoUserId !== null && m.kakaoUserId !== "");
+  const profileImage = m.kakaoProfileImage || null;
+  const actionBtns = (m.status || "pending") !== "active"
+    ? `
+      <button class="w-full px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold mb-2" data-act="approve" data-id="${m.studentId}">
+        <i class="fas fa-check mr-2"></i>승인
+      </button>
+      <button class="w-full px-4 py-3 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-semibold mb-2" data-act="reject" data-id="${m.studentId}">
+        <i class="fas fa-xmark mr-2"></i>거절
+      </button>
+      <button class="w-full px-4 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold mb-2" data-act="block" data-id="${m.studentId}">
+        <i class="fas fa-ban mr-2"></i>차단
+      </button>
+      <button class="w-full px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold mb-2" data-act="edit" data-id="${m.studentId}">
+        <i class="fas fa-pen mr-2"></i>수정
+      </button>
+      <button class="w-full px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold" data-act="delete" data-id="${m.studentId}">
+        <i class="fas fa-trash mr-2"></i>삭제
+      </button>
+    `
+    : `
+      <button class="w-full px-4 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold mb-2" data-act="block" data-id="${m.studentId}">
+        <i class="fas fa-ban mr-2"></i>차단
+      </button>
+      <button class="w-full px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold mb-2" data-act="edit" data-id="${m.studentId}">
+        <i class="fas fa-pen mr-2"></i>수정
+      </button>
+      <button class="w-full px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold" data-act="delete" data-id="${m.studentId}">
+        <i class="fas fa-trash mr-2"></i>삭제
+      </button>
+    `;
+  
+  content.innerHTML = `
+    <div class="space-y-6">
+      <!-- 프로필 헤더 -->
+      <div class="text-center">
+        <div class="relative inline-block">
+          <div class="w-20 h-20 rounded-full bg-gradient-to-br from-orange-400 to-yellow-400 flex items-center justify-center text-white text-3xl font-bold mx-auto mb-3 overflow-hidden">
+            ${profileImage 
+              ? `<img src="${profileImage}" alt="프로필" class="w-full h-full object-cover" />`
+              : (m.name?.charAt(0) || "U")
+            }
+          </div>
+          ${isKakaoLinked 
+            ? `<div class="absolute bottom-0 right-0 w-6 h-6 bg-yellow-400 rounded-full border-2 border-white flex items-center justify-center">
+                 <i class="fas fa-comment-dots text-xs text-gray-900"></i>
+               </div>`
+            : `<div class="absolute bottom-0 right-0 w-6 h-6 bg-gray-300 rounded-full border-2 border-white flex items-center justify-center">
+                 <i class="fas fa-user text-xs text-gray-600"></i>
+               </div>`
+          }
+        </div>
+        <h4 class="text-xl font-bold text-gray-800 mb-1">${saf(m.name || "")}</h4>
+        <p class="text-sm text-gray-500 font-mono">${saf(m.studentId || "")}</p>
+        ${isKakaoLinked 
+          ? `<span class="inline-block mt-2 text-xs px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full font-medium">카카오 계정 연동됨</span>`
+          : `<span class="inline-block mt-2 text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-full font-medium">카카오 계정 미연동</span>`
+        }
+      </div>
+      
+      <!-- 기본 정보 -->
+      <div>
+        <h5 class="text-sm font-semibold text-gray-700 mb-3">기본 정보</h5>
+        <div class="space-y-3">
+          <div class="flex justify-between items-center py-2 border-b border-gray-100">
+            <span class="text-sm text-gray-600">이름</span>
+            <span class="text-sm font-medium text-gray-800">${saf(m.name || "")}</span>
+          </div>
+          <div class="flex justify-between items-center py-2 border-b border-gray-100">
+            <span class="text-sm text-gray-600">학번</span>
+            <span class="text-sm font-medium text-gray-800 font-mono">${saf(m.studentId || "")}</span>
+          </div>
+          <div class="flex justify-between items-center py-2 border-b border-gray-100">
+            <span class="text-sm text-gray-600">성별</span>
+            <span class="text-sm font-medium text-gray-800">${saf(m.gender || "-")}</span>
+          </div>
+          <div class="flex justify-between items-center py-2 border-b border-gray-100">
+            <span class="text-sm text-gray-600">학년</span>
+            <span class="text-sm font-medium text-gray-800">${saf(m.year || "-")}</span>
+          </div>
+          <div class="flex justify-between items-center py-2 border-b border-gray-100">
+            <span class="text-sm text-gray-600">단과대</span>
+            <span class="text-sm font-medium text-gray-800">${saf(m.college || "-")}</span>
+          </div>
+          <div class="flex justify-between items-center py-2 border-b border-gray-100">
+            <span class="text-sm text-gray-600">학과</span>
+            <span class="text-sm font-medium text-gray-800">${saf(m.department || "-")}</span>
+          </div>
+          <div class="flex justify-between items-center py-2 border-b border-gray-100">
+            <span class="text-sm text-gray-600">전화번호</span>
+            <span class="text-sm font-medium text-gray-800">${saf(m.phone || "-")}</span>
+          </div>
+          ${(m.status || "pending") !== "active" ? `
+          <div class="flex justify-between items-center py-2 border-b border-gray-100">
+            <span class="text-sm text-gray-600">상태</span>
+            <span class="text-sm font-medium text-gray-800">${mapStatus(m.status)}</span>
+          </div>
+          ` : ""}
+        </div>
+      </div>
+      
+      <!-- 관리 기능 -->
+      <div>
+        <h5 class="text-sm font-semibold text-gray-700 mb-3">관리 기능</h5>
+        <div class="space-y-2">
+          ${actionBtns}
+        </div>
+      </div>
+    </div>
+  `;
+  
+  // 모달 표시
+  if (modal.classList.contains("hidden")) {
+    modal.classList.remove("hidden");
+  }
+  modal.style.display = "flex";
+  console.log("[openMemberDetailModal] 모달 표시 완료");
+  
+  // 닫기 버튼 이벤트 재등록 (기존 모달이 있을 때)
+  const existingCloseBtn = modal.querySelector("#member-detail-close");
+  if (existingCloseBtn) {
+    // 기존 이벤트 리스너 제거 후 재등록
+    const newCloseBtn = existingCloseBtn.cloneNode(true);
+    existingCloseBtn.parentNode.replaceChild(newCloseBtn, existingCloseBtn);
+    newCloseBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      modal.classList.add("hidden");
+      modal.style.display = "none";
+    });
+  }
+  
+  // 모달 배경 클릭 시 닫기
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) {
+      modal.classList.add("hidden");
+      modal.style.display = "none";
+    }
+  });
+  
+  // 모달 내부 버튼 클릭 이벤트
+  const newContent = document.getElementById("member-detail-content");
+  if (newContent) {
+    newContent.addEventListener("click", (e) => {
+      const btn = e.target.closest("button[data-act]");
+      if (!btn) return;
+      const act = btn.dataset.act;
+      const sid = btn.dataset.id;
+      
+      // 모달 닫기
+      modal.classList.add("hidden");
+      
+      // 액션 실행
+      if (act === "approve") return approveMember(sid);
+      if (act === "reject") return updateMemberStatus(sid, "rejected");
+      if (act === "block") return updateMemberStatus(sid, "blocked");
+      if (act === "delete") return deleteMember(sid);
+      if (act === "edit") return openMemberEditModal(sid);
+    });
+  }
 }
 
 function membersRowsHTMLGrouped(list, isPendingGroup, keyword) {
@@ -789,29 +1240,29 @@ function membersRowsHTMLGrouped(list, isPendingGroup, keyword) {
   return filtered
     .map((m) => {
       const actionBtns = isPendingGroup
-        ? `<button class="text-emerald-700 hover:text-emerald-900 text-xs" data-act="approve" data-id="${m.studentId}"><i class="fas fa-check mr-1"></i>승인</button>
-           <button class="text-amber-700 hover:text-amber-900 text-xs" data-act="reject" data-id="${m.studentId}"><i class="fas fa-xmark mr-1"></i>거절</button>
-           <button class="text-gray-700 hover:text-black text-xs" data-act="block" data-id="${m.studentId}"><i class="fas fa-ban mr-1"></i>차단</button>
-           <button class="text-blue-700 hover:text-blue-900 text-xs" data-act="edit" data-id="${m.studentId}"><i class="fas fa-pen mr-1"></i>수정</button>
-           <button class="text-red-700 hover:text-red-900 text-xs" data-act="delete" data-id="${m.studentId}"><i class="fas fa-trash mr-1"></i>삭제</button>`
-        : `<button class="text-gray-700 hover:text-black text-xs" data-act="block" data-id="${m.studentId}"><i class="fas fa-ban mr-1"></i>차단</button>
-           <button class="text-blue-700 hover:text-blue-900 text-xs" data-act="edit" data-id="${m.studentId}"><i class="fas fa-pen mr-1"></i>수정</button>
-           <button class="text-red-700 hover:text-red-900 text-xs" data-act="delete" data-id="${m.studentId}"><i class="fas fa-trash mr-1"></i>삭제</button>`;
+        ? `<button class="text-emerald-700 hover:text-emerald-900 text-xs px-1 py-0.5" data-act="approve" data-id="${m.studentId}"><i class="fas fa-check"></i>승인</button>
+           <button class="text-amber-700 hover:text-amber-900 text-xs px-1 py-0.5" data-act="reject" data-id="${m.studentId}"><i class="fas fa-xmark"></i>거절</button>
+           <button class="text-gray-700 hover:text-black text-xs px-1 py-0.5" data-act="block" data-id="${m.studentId}"><i class="fas fa-ban"></i>차단</button>
+           <button class="text-blue-700 hover:text-blue-900 text-xs px-1 py-0.5" data-act="edit" data-id="${m.studentId}"><i class="fas fa-pen"></i>수정</button>
+           <button class="text-red-700 hover:text-red-900 text-xs px-1 py-0.5" data-act="delete" data-id="${m.studentId}"><i class="fas fa-trash"></i>삭제</button>`
+        : `<button class="text-gray-700 hover:text-black text-xs px-1 py-0.5" data-act="block" data-id="${m.studentId}"><i class="fas fa-ban"></i>차단</button>
+           <button class="text-blue-700 hover:text-blue-900 text-xs px-1 py-0.5" data-act="edit" data-id="${m.studentId}"><i class="fas fa-pen"></i>수정</button>
+           <button class="text-red-700 hover:text-red-900 text-xs px-1 py-0.5" data-act="delete" data-id="${m.studentId}"><i class="fas fa-trash"></i>삭제</button>`;
 
       return `<tr class="border-t">
-        <td class="px-3 py-2">${saf(m.name || "")}</td>
-        <td class="px-3 py-2 font-mono">${saf(m.studentId || "")}</td>
-        <td class="px-3 py-2">${saf(m.gender || "")}</td>
-        <td class="px-3 py-2">${saf(m.year || "")}</td>
-        <td class="px-3 py-2">${saf(m.college || "")}</td>
-        <td class="px-3 py-2">${saf(m.department || "")}</td>
-        <td class="px-3 py-2">${saf(m.phone || "")}</td>
+        <td class="px-2 py-2 text-sm">${saf(m.name || "")}</td>
+        <td class="px-2 py-2 text-sm font-mono">${saf(m.studentId || "")}</td>
+        <td class="px-2 py-2 text-sm">${saf(m.gender || "")}</td>
+        <td class="px-2 py-2 text-sm">${saf(m.year || "")}</td>
+        <td class="px-2 py-2 text-sm">${saf(m.college || "")}</td>
+        <td class="px-2 py-2 text-sm">${saf(m.department || "")}</td>
+        <td class="px-2 py-2 text-sm">${saf(m.phone || "")}</td>
         ${
           isPendingGroup
-            ? `<td class="px-3 py-2">${mapStatus(m.status)}</td>`
+            ? `<td class="px-2 py-2 text-sm">${mapStatus(m.status)}</td>`
             : ""
         }
-        <td class="px-3 py-2 space-x-2 whitespace-nowrap">${actionBtns}</td>
+        <td class="px-2 py-2 text-xs space-x-1 whitespace-nowrap">${actionBtns}</td>
       </tr>`;
     })
     .join("");

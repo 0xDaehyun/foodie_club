@@ -69,6 +69,19 @@ export function openDuesModal() {
   el.duesModal.classList.remove("hidden");
 }
 
+// 회원 가입 시 카카오 연동 정보 저장
+let signupKakaoInfo = null;
+
+export function setSignupKakaoInfo(info) {
+  signupKakaoInfo = info;
+  const statusDiv = document.getElementById("signup-kakao-status");
+  const statusText = document.getElementById("signup-kakao-status-text");
+  if (statusDiv && statusText) {
+    statusDiv.classList.remove("hidden");
+    statusText.textContent = `카카오 계정이 연동되었습니다. (${info.nickname || "연동됨"})`;
+  }
+}
+
 export async function confirmSignup(skipConfirm) {
   const sid = document.getElementById("signupId").value.trim();
   const nm = document.getElementById("signupName").value.trim();
@@ -95,7 +108,9 @@ export async function confirmSignup(skipConfirm) {
       document.getElementById("studentName").value = ms.data().name || nm;
       return;
     }
-    await setDoc(mref, {
+    
+    // 회원 정보 생성 (카카오 연동 정보 포함)
+    const memberData = {
       studentId: sid,
       name: nm,
       gender,
@@ -105,7 +120,28 @@ export async function confirmSignup(skipConfirm) {
       phone,
       status: "pending",
       requestedAt: serverTimestamp(),
-    });
+    };
+    
+    // 카카오 연동 정보가 있으면 추가 (숫자로 저장)
+    if (signupKakaoInfo) {
+      // 카카오 ID는 숫자로 저장 (문자열이면 숫자로 변환)
+      const kakaoId = typeof signupKakaoInfo.id === "string" 
+        ? Number(signupKakaoInfo.id) 
+        : Number(signupKakaoInfo.id);
+      memberData.kakaoUserId = kakaoId;
+      memberData.kakaoNickname = signupKakaoInfo.nickname;
+      memberData.kakaoProfileImage = signupKakaoInfo.profileImage;
+    }
+    
+    await setDoc(mref, memberData);
+    
+    // 카카오 연동 정보 초기화
+    signupKakaoInfo = null;
+    const statusDiv = document.getElementById("signup-kakao-status");
+    if (statusDiv) {
+      statusDiv.classList.add("hidden");
+    }
+    
     el.signupModal.classList.add("hidden");
     showAlert(
       "⏳",

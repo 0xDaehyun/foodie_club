@@ -68,6 +68,12 @@ export const clearAdmin = () =>
     }
   });
 
+// 모든 리스너 정리 (로그아웃 시 사용)
+export function stopAllListeners() {
+  clearPublic();
+  clearAdmin();
+}
+
 // 로딩 상태 관리
 let loadingStates = new Set();
 let dataLoadedFlags = {
@@ -106,10 +112,15 @@ const MAX_RETRIES = 5; // 최대 5번 재시도로 증가
 
 const checkAndRetryEmptyData = () => {
   // blocks 데이터가 로드되었는데 비어있으면 즉시 재시도
-  if (dataLoadedFlags.blocks && (!state.blocksData || state.blocksData.length === 0)) {
+  if (
+    dataLoadedFlags.blocks &&
+    (!state.blocksData || state.blocksData.length === 0)
+  ) {
     if (retryCounts.blocks < MAX_RETRIES && unsubPublic.blocks) {
       retryCounts.blocks++;
-      console.warn(`blocks 데이터가 비어있어 즉시 재로딩합니다. (${retryCounts.blocks}/${MAX_RETRIES})`);
+      console.warn(
+        `blocks 데이터가 비어있어 즉시 재로딩합니다. (${retryCounts.blocks}/${MAX_RETRIES})`
+      );
       unsubPublic.blocks();
       unsubPublic.blocks = null;
       // 지체없이 즉시 재시도
@@ -120,7 +131,10 @@ const checkAndRetryEmptyData = () => {
               query(collection(db, "homepageBlocks"), orderBy("order", "asc")),
               (snap) => {
                 const hasData = snap.docs.length > 0;
-                state.blocksData = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+                state.blocksData = snap.docs.map((d) => ({
+                  id: d.id,
+                  ...d.data(),
+                }));
                 if (hasData) retryCounts.blocks = 0; // 성공 시 카운터 리셋
                 markDataLoaded("blocks");
                 scheduleRender();
@@ -140,15 +154,22 @@ const checkAndRetryEmptyData = () => {
         }
       }, 0);
     } else if (retryCounts.blocks >= MAX_RETRIES) {
-      console.warn(`blocks 데이터 재로딩 ${MAX_RETRIES}번 시도했지만 여전히 비어있습니다.`);
+      console.warn(
+        `blocks 데이터 재로딩 ${MAX_RETRIES}번 시도했지만 여전히 비어있습니다.`
+      );
     }
   }
   
   // roadmap 데이터가 로드되었는데 비어있으면 즉시 재시도
-  if (dataLoadedFlags.roadmap && (!state.roadmapData || state.roadmapData.length === 0)) {
+  if (
+    dataLoadedFlags.roadmap &&
+    (!state.roadmapData || state.roadmapData.length === 0)
+  ) {
     if (retryCounts.roadmap < MAX_RETRIES && unsubPublic.roadmap) {
       retryCounts.roadmap++;
-      console.warn(`roadmap 데이터가 비어있어 즉시 재로딩합니다. (${retryCounts.roadmap}/${MAX_RETRIES})`);
+      console.warn(
+        `roadmap 데이터가 비어있어 즉시 재로딩합니다. (${retryCounts.roadmap}/${MAX_RETRIES})`
+      );
       unsubPublic.roadmap();
       unsubPublic.roadmap = null;
       setTimeout(() => {
@@ -158,7 +179,10 @@ const checkAndRetryEmptyData = () => {
               collection(db, "roadmap"),
               (snap) => {
                 const hasData = snap.docs.length > 0;
-                state.roadmapData = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+                state.roadmapData = snap.docs.map((d) => ({
+                  id: d.id,
+                  ...d.data(),
+                }));
                 if (hasData) retryCounts.roadmap = 0;
                 markDataLoaded("roadmap");
                 scheduleRender();
@@ -178,15 +202,22 @@ const checkAndRetryEmptyData = () => {
         }
       }, 0);
     } else if (retryCounts.roadmap >= MAX_RETRIES) {
-      console.warn(`roadmap 데이터 재로딩 ${MAX_RETRIES}번 시도했지만 여전히 비어있습니다.`);
+      console.warn(
+        `roadmap 데이터 재로딩 ${MAX_RETRIES}번 시도했지만 여전히 비어있습니다.`
+      );
     }
   }
   
   // events 데이터가 로드되었는데 비어있으면 즉시 재시도
-  if (dataLoadedFlags.events && (!state.eventsData || state.eventsData.length === 0)) {
+  if (
+    dataLoadedFlags.events &&
+    (!state.eventsData || state.eventsData.length === 0)
+  ) {
     if (retryCounts.events < MAX_RETRIES && unsubPublic.events) {
       retryCounts.events++;
-      console.warn(`events 데이터가 비어있어 즉시 재로딩합니다. (${retryCounts.events}/${MAX_RETRIES})`);
+      console.warn(
+        `events 데이터가 비어있어 즉시 재로딩합니다. (${retryCounts.events}/${MAX_RETRIES})`
+      );
       unsubPublic.events();
       unsubPublic.events = null;
       setTimeout(() => {
@@ -196,7 +227,10 @@ const checkAndRetryEmptyData = () => {
               query(collection(db, "events"), orderBy("datetime", "asc")),
               (snap) => {
                 const hasData = snap.docs.length > 0;
-                state.eventsData = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+                state.eventsData = snap.docs.map((d) => ({
+                  id: d.id,
+                  ...d.data(),
+                }));
                 if (hasData) retryCounts.events = 0;
                 markDataLoaded("events");
                 scheduleRender();
@@ -216,7 +250,9 @@ const checkAndRetryEmptyData = () => {
         }
       }, 0);
     } else if (retryCounts.events >= MAX_RETRIES) {
-      console.warn(`events 데이터 재로딩 ${MAX_RETRIES}번 시도했지만 여전히 비어있습니다.`);
+      console.warn(
+        `events 데이터 재로딩 ${MAX_RETRIES}번 시도했지만 여전히 비어있습니다.`
+      );
     }
   }
 };
@@ -239,7 +275,8 @@ const updateLoadingUI = () => {
     if (!loadingEl) {
       loadingEl = document.createElement("div");
       loadingEl.id = loadingId;
-      loadingEl.className = "fixed top-20 left-1/2 transform -translate-x-1/2 z-50 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 animate-pulse";
+      loadingEl.className =
+        "fixed top-20 left-1/2 transform -translate-x-1/2 z-50 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 animate-pulse";
       loadingEl.innerHTML = `
         <div class="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
         <span class="text-sm font-medium">데이터를 불러오는 중...</span>
@@ -294,13 +331,18 @@ export function startPublicListeners(USE_DEMO_OFFLINE) {
     
     const timeoutId = setTimeout(() => {
       if (!hasData) {
-        console.warn(`${key}: 데이터 로딩 타임아웃 (${timeoutMs}ms), 재시도합니다.`);
+        console.warn(
+          `${key}: 데이터 로딩 타임아웃 (${timeoutMs}ms), 재시도합니다.`
+        );
         retryListener(key, setupFn, 0);
       }
     }, timeoutMs);
 
     const wrappedListener = (snap) => {
-      const hasAnyData = snap && (snap.exists !== false) && (snap.docs ? snap.docs.length > 0 : true);
+      const hasAnyData =
+        snap &&
+        snap.exists !== false &&
+        (snap.docs ? snap.docs.length > 0 : true);
       if (!hasAnyData && isFirstCheck) {
         immediateCheck();
         return;
@@ -400,7 +442,10 @@ export function startPublicListeners(USE_DEMO_OFFLINE) {
           "blocks",
           (snap) => {
             const hasData = snap.docs.length > 0;
-            state.blocksData = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+            state.blocksData = snap.docs.map((d) => ({
+              id: d.id,
+              ...d.data(),
+            }));
             markDataLoaded("blocks");
             scheduleRender();
             // 데이터가 비어있으면 즉시 체크
@@ -427,7 +472,10 @@ export function startPublicListeners(USE_DEMO_OFFLINE) {
           "roadmap",
           (snap) => {
             const hasData = snap.docs.length > 0;
-            state.roadmapData = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+            state.roadmapData = snap.docs.map((d) => ({
+              id: d.id,
+              ...d.data(),
+            }));
             markDataLoaded("roadmap");
             scheduleRender();
             // 데이터가 비어있으면 즉시 체크
@@ -459,7 +507,10 @@ export function startPublicListeners(USE_DEMO_OFFLINE) {
           "events",
           (snap) => {
             const hasData = snap.docs.length > 0;
-            state.eventsData = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+            state.eventsData = snap.docs.map((d) => ({
+              id: d.id,
+              ...d.data(),
+            }));
             markDataLoaded("events");
             scheduleRender();
             // 데이터가 비어있으면 즉시 체크
@@ -518,13 +569,18 @@ export function startAdminListeners() {
     
     const timeoutId = setTimeout(() => {
       if (!hasData) {
-        console.warn(`${key}: 데이터 로딩 타임아웃 (${timeoutMs}ms), 재시도합니다.`);
+        console.warn(
+          `${key}: 데이터 로딩 타임아웃 (${timeoutMs}ms), 재시도합니다.`
+        );
         retryListener(key, setupFn, 0);
       }
     }, timeoutMs);
 
     const wrappedListener = (snap) => {
-      const hasAnyData = snap && (snap.exists !== false) && (snap.docs ? snap.docs.length > 0 : true);
+      const hasAnyData =
+        snap &&
+        snap.exists !== false &&
+        (snap.docs ? snap.docs.length > 0 : true);
       if (!hasAnyData && isFirstCheck) {
         immediateCheck();
         return;
@@ -571,7 +627,10 @@ export function startAdminListeners() {
         setupWithTimeout(
           "history",
           (snap) => {
-            state.historyData = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+            state.historyData = snap.docs.map((d) => ({
+              id: d.id,
+              ...d.data(),
+            }));
             scheduleRender();
           },
           setupHistory
@@ -592,8 +651,29 @@ export function startAdminListeners() {
         setupWithTimeout(
           "members",
           (snap) => {
-            state.membersData = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+            state.membersData = snap.docs.map((d) => {
+              const data = d.data();
+              // kakaoUserId는 숫자로 저장되어 있지만, 표시를 위해 문자열로도 보관
+              // 원본 숫자 값은 유지하되, 표시용 문자열도 추가
+              if (data.kakaoUserId !== undefined && data.kakaoUserId !== null && data.kakaoUserId !== "") {
+                // 원본 타입 유지 (숫자면 숫자, 문자열이면 문자열)
+                // 하지만 표시를 위해 문자열 버전도 준비
+                data._kakaoUserIdString = String(data.kakaoUserId);
+              } else {
+                // kakaoUserId가 null이거나 빈 값이면 _kakaoUserIdString도 제거
+                delete data._kakaoUserIdString;
+              }
+              return { id: d.id, ...data };
+            });
+            console.log("[listeners] membersData 로드됨:", state.membersData.length, "개");
             scheduleRender();
+            // 회원 관리 탭이 열려있으면 다시 렌더링
+            const subtabContainer = document.getElementById("subtab-container");
+            if (subtabContainer && subtabContainer.innerHTML.includes("회원 관리")) {
+              import("./dashboard.js").then(({ renderMembersAdmin }) => {
+                renderMembersAdmin(subtabContainer);
+              });
+            }
           },
           setupMembers
         ),
@@ -613,7 +693,10 @@ export function startAdminListeners() {
         setupWithTimeout(
           "presence",
           (snap) => {
-            state.presenceData = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+            state.presenceData = snap.docs.map((d) => ({
+              id: d.id,
+              ...d.data(),
+            }));
             computeOnline();
             renderPresenceUI();
           },
