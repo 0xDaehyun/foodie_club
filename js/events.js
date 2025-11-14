@@ -764,9 +764,35 @@ export async function reserveGeneral(id) {
         timestamp: new Date().toISOString(),
       };
       const lim = parseInt(ev.limit || 0, 10) || 0;
+      const wasWaiting = lim > 0 && ev.applicants.length >= lim;
       if (lim === 0 || ev.applicants.length < lim) ev.applicants.push(entry);
       else ev.waiting.push(entry);
       tx.update(ref, { applicants: ev.applicants, waiting: ev.waiting });
+      
+      // 알림 전송 (비동기, 트랜잭션 외부에서 처리)
+      setTimeout(async () => {
+        try {
+          const { notifyActivityReservation, notifyWaitlistToConfirmed } = await import("./kakao-notifications.js");
+          const eventData = {
+            title: ev.title,
+            datetime: ev.datetime,
+            location: ev.location,
+          };
+          const userData = {
+            kakaoUserId: state.currentUser?.kakaoUserId,
+          };
+          
+          if (wasWaiting) {
+            // 대기순번으로 신청됨
+            await notifyActivityReservation(eventData, userData);
+          } else {
+            // 바로 확정됨
+            await notifyActivityReservation(eventData, userData);
+          }
+        } catch (error) {
+          console.error("알림 전송 오류:", error);
+        }
+      }, 100);
     });
     showAlert("✅", "신청 완료!");
   } catch {
@@ -783,16 +809,51 @@ export async function cancelGeneral(id) {
       ev.applicants ??= [];
       ev.waiting ??= [];
       const before = ev.applicants.length;
+      const wasInApplicants = ev.applicants.some(p => p.studentId === state.currentUser.studentId);
       ev.applicants = ev.applicants.filter(
         (p) => p.studentId !== state.currentUser.studentId
       );
+      const movedFromWaiting = ev.applicants.length < before && ev.waiting.length > 0;
       if (ev.applicants.length < before) {
-        if (ev.waiting.length > 0) ev.applicants.push(ev.waiting.shift());
+        if (ev.waiting.length > 0) {
+          const movedUser = ev.waiting.shift();
+          ev.applicants.push(movedUser);
+        }
       } else
         ev.waiting = ev.waiting.filter(
           (p) => p.studentId !== state.currentUser.studentId
         );
       tx.update(ref, { applicants: ev.applicants, waiting: ev.waiting });
+      
+      // 알림 전송 (비동기, 트랜잭션 외부에서 처리)
+      setTimeout(async () => {
+        try {
+          const { notifyActivityCancellation, notifyWaitlistToConfirmed } = await import("./kakao-notifications.js");
+          const eventData = {
+            title: ev.title,
+            datetime: ev.datetime,
+            location: ev.location,
+          };
+          
+          // 취소한 사용자에게 알림
+          const cancelUserData = {
+            kakaoUserId: state.currentUser?.kakaoUserId,
+          };
+          await notifyActivityCancellation(eventData, cancelUserData);
+          
+          // 대기순번에서 확정된 사용자에게 알림
+          if (movedFromWaiting) {
+            const movedUser = ev.applicants.find(p => 
+              !wasInApplicants && p.studentId !== state.currentUser.studentId
+            );
+            if (movedUser?.kakaoUserId) {
+              await notifyWaitlistToConfirmed(eventData, { kakaoUserId: movedUser.kakaoUserId });
+            }
+          }
+        } catch (error) {
+          console.error("알림 전송 오류:", error);
+        }
+      }, 100);
     });
     showAlert("🗑️", "신청 취소됨");
   } catch {
@@ -820,6 +881,7 @@ export async function reserveTasting(id, rid) {
       r.reservations ??= [];
       r.waiting ??= [];
       const cap = r.capacity ?? ev.limit ?? 0;
+      const wasWaiting = r.reservations.length >= cap;
       const entry = {
         ...state.currentUser,
         ...prof,
@@ -829,6 +891,24 @@ export async function reserveTasting(id, rid) {
       else r.waiting.push(entry);
       ev.restaurants[idx] = r;
       tx.update(ref, { restaurants: ev.restaurants });
+      
+      // 알림 전송 (비동기, 트랜잭션 외부에서 처리)
+      setTimeout(async () => {
+        try {
+          const { notifyActivityReservation } = await import("./kakao-notifications.js");
+          const eventData = {
+            title: ev.title,
+            datetime: ev.datetime,
+            location: r.name,
+          };
+          const userData = {
+            kakaoUserId: state.currentUser?.kakaoUserId,
+          };
+          await notifyActivityReservation(eventData, userData);
+        } catch (error) {
+          console.error("알림 전송 오류:", error);
+        }
+      }, 100);
     });
     showAlert("✅", "처리되었습니다.");
   } catch (e) {
@@ -854,17 +934,52 @@ export async function cancelTasting(id, rid) {
       r.reservations ??= [];
       r.waiting ??= [];
       const before = r.reservations.length;
+      const wasInReservations = r.reservations.some(p => p.studentId === state.currentUser.studentId);
       r.reservations = r.reservations.filter(
         (p) => p.studentId !== state.currentUser.studentId
       );
+      const movedFromWaiting = r.reservations.length < before && r.waiting.length > 0;
       if (r.reservations.length < before) {
-        if (r.waiting.length > 0) r.reservations.push(r.waiting.shift());
+        if (r.waiting.length > 0) {
+          const movedUser = r.waiting.shift();
+          r.reservations.push(movedUser);
+        }
       } else
         r.waiting = r.waiting.filter(
           (p) => p.studentId !== state.currentUser.studentId
         );
       ev.restaurants[idx] = r;
       tx.update(ref, { restaurants: ev.restaurants });
+      
+      // 알림 전송 (비동기, 트랜잭션 외부에서 처리)
+      setTimeout(async () => {
+        try {
+          const { notifyActivityCancellation, notifyWaitlistToConfirmed } = await import("./kakao-notifications.js");
+          const eventData = {
+            title: ev.title,
+            datetime: ev.datetime,
+            location: r.name,
+          };
+          
+          // 취소한 사용자에게 알림
+          const cancelUserData = {
+            kakaoUserId: state.currentUser?.kakaoUserId,
+          };
+          await notifyActivityCancellation(eventData, cancelUserData);
+          
+          // 대기순번에서 확정된 사용자에게 알림
+          if (movedFromWaiting) {
+            const movedUser = r.reservations.find(p => 
+              !wasInReservations && p.studentId !== state.currentUser.studentId
+            );
+            if (movedUser?.kakaoUserId) {
+              await notifyWaitlistToConfirmed(eventData, { kakaoUserId: movedUser.kakaoUserId });
+            }
+          }
+        } catch (error) {
+          console.error("알림 전송 오류:", error);
+        }
+      }, 100);
     });
     showAlert("🗑️", "취소되었습니다.");
   } catch {

@@ -3,6 +3,7 @@ import { state } from "./state.js";
 import { showAlert, scheduleRender } from "./utils.js";
 import { startPresence, stopPresence } from "./presence.js";
 import { db, auth } from "./firebase.js";
+import { showKakaoFriendAddGuide } from "./kakao-notifications.js";
 import {
   doc,
   getDoc,
@@ -589,6 +590,12 @@ export async function linkKakaoAccount() {
     }
 
     showAlert("✅", "카카오 계정이 연동되었습니다.");
+    
+    // 동아리 카카오 계정 친구추가 안내 모달 표시
+    setTimeout(() => {
+      showKakaoFriendAddGuide();
+    }, 500);
+    
     scheduleRender(); // 화면 갱신
     return true;
   } catch (error) {
@@ -610,6 +617,7 @@ export async function unlinkKakaoAccount() {
   }
   
   // Firebase에서 최신 정보 확인
+  let hasKakaoAccount = false;
   try {
     const memberRef = doc(db, "members", state.currentUser.studentId);
     const memberSnap = await getDoc(memberRef);
@@ -620,10 +628,37 @@ export async function unlinkKakaoAccount() {
     }
     
     const memberData = memberSnap.data();
-    const hasKakaoAccount = memberData.kakaoUserId && 
-                           memberData.kakaoUserId !== null && 
-                           memberData.kakaoUserId !== "" && 
-                           memberData.kakaoUserId !== 0;
+    console.log("[카카오 연동 해제] Firebase에서 읽은 데이터:", {
+      kakaoUserId: memberData.kakaoUserId,
+      타입: typeof memberData.kakaoUserId,
+      state_currentUser_kakaoUserId: state.currentUser?.kakaoUserId,
+      state_타입: typeof state.currentUser?.kakaoUserId
+    });
+    
+    // 숫자와 문자열 모두 확인 (Firebase는 숫자로 저장, state는 문자열로 저장 가능)
+    const firebaseKakaoUserId = memberData.kakaoUserId;
+    const stateKakaoUserId = state.currentUser?.kakaoUserId;
+    
+    // Firebase에서 읽은 값 확인 (숫자 또는 문자열)
+    const hasFirebaseKakao = firebaseKakaoUserId !== null && 
+                             firebaseKakaoUserId !== undefined && 
+                             firebaseKakaoUserId !== "" && 
+                             firebaseKakaoUserId !== 0;
+    
+    // state.currentUser 값 확인 (문자열 또는 숫자)
+    const hasStateKakao = stateKakaoUserId !== null && 
+                         stateKakaoUserId !== undefined && 
+                         stateKakaoUserId !== "" && 
+                         stateKakaoUserId !== 0;
+    
+    // 둘 중 하나라도 있으면 연동되어 있는 것으로 판단
+    hasKakaoAccount = hasFirebaseKakao || hasStateKakao;
+    
+    console.log("[카카오 연동 해제] 연동 상태 확인:", {
+      hasFirebaseKakao,
+      hasStateKakao,
+      hasKakaoAccount
+    });
     
     if (!hasKakaoAccount) {
       showAlert("ℹ️", "연동된 카카오 계정이 없습니다.");
@@ -632,10 +667,13 @@ export async function unlinkKakaoAccount() {
   } catch (error) {
     console.error("[카카오 연동 해제] Firebase 확인 오류:", error);
     // Firebase 확인 실패 시 state.currentUser로 확인
-    if (!state.currentUser?.kakaoUserId || 
-        state.currentUser.kakaoUserId === null || 
-        state.currentUser.kakaoUserId === "" || 
-        state.currentUser.kakaoUserId === 0) {
+    const stateKakaoUserId = state.currentUser?.kakaoUserId;
+    hasKakaoAccount = stateKakaoUserId !== null && 
+                     stateKakaoUserId !== undefined && 
+                     stateKakaoUserId !== "" && 
+                     stateKakaoUserId !== 0;
+    
+    if (!hasKakaoAccount) {
       showAlert("ℹ️", "연동된 카카오 계정이 없습니다.");
       return false;
     }
