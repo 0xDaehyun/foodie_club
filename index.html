@@ -24299,6 +24299,70 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
         };
       }
 
+      /* ===== 문의 모달 (DEPRECATED) ===== */
+      function openInquiryModal_DEPRECATED() {
+        const modal = document.getElementById("inquiry-modal");
+        modal.classList.remove("hidden");
+        renderInquiryList();
+        setupInquirySubmit();
+      }
+
+      function renderInquiryList() {
+        const isAdmin =
+          currentUser && adminList.includes(currentUser.studentId);
+        const listContainer = document.getElementById("modal-suggestions-list");
+
+        const list = (suggestionsData || [])
+          .map(
+            (s) => `
+          <div class="border rounded-lg p-4 bg-white shadow-sm hover:shadow-md transition-shadow">
+            <div class="text-sm text-gray-500 flex items-center justify-between mb-2">
+              <span class="font-medium">
+                <i class="fas fa-user-circle mr-1 text-orange-500"></i>
+                ${saf(s.name || "익명")} · ${
+              s.timestamp?.toDate
+                ? s.timestamp.toDate().toLocaleDateString()
+                : ""
+            }
+              </span>
+              ${
+                isAdmin
+                  ? `<button class="delete-suggestion px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600" data-id="${
+                      s.id
+                    }">삭제</button>`
+                  : ""
+              }
+            </div>
+            <p class="text-gray-800">${saf(s.content || "")}</p>
+          </div>
+        `
+          )
+          .join("");
+
+        listContainer.innerHTML =
+          list ||
+          '<p class="text-gray-400 text-center py-4">아직 문의가 없습니다.</p>';
+
+        // 삭제 버튼 이벤트 리스너
+        if (isAdmin) {
+          document.querySelectorAll(".delete-suggestion").forEach((btn) => {
+            btn.addEventListener("click", async () => {
+              const id = btn.dataset.id;
+              if (!id) return;
+              if (!confirm("이 문의를 삭제하시겠습니까?")) return;
+              try {
+                await deleteDoc(doc(db, "suggestions", id));
+                showAlert("✅", "삭제되었습니다.");
+                renderInquiryList();
+              } catch (err) {
+                console.warn(err);
+                showAlert("😥", "삭제 실패");
+              }
+            });
+          });
+        }
+      }
+
       function setupInquirySubmit() {
         const submitBtn = document.getElementById("modal-sug-submit");
         const titleInput = document.getElementById("modal-sug-title");
