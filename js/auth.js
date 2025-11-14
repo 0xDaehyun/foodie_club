@@ -349,13 +349,20 @@ export async function linkKakaoAccount() {
 
   try {
     console.log("[카카오 연동] 카카오 로그인 요청 시작");
+    
+    // 기존 카카오 세션 정리 (다른 계정 선택 가능하도록)
+    if (window.Kakao && window.Kakao.Auth && window.Kakao.Auth.getAccessToken()) {
+      console.log("[카카오 연동] 기존 카카오 세션 정리 중...");
+      window.Kakao.Auth.logout();
+      // 로그아웃 후 잠시 대기 (세션 정리 시간 확보)
+      await new Promise(resolve => setTimeout(resolve, 300));
+    }
+    
     // 카카오 로그인 요청
     const authObj = await new Promise((resolve, reject) => {
       Kakao.Auth.login({
         success: (auth) => resolve(auth),
         fail: (err) => reject(err),
-        // 계정 선택 화면 강제 표시 (다른 계정 선택 가능)
-        prompt: 'select_account',
       });
     });
 
@@ -872,13 +879,19 @@ export async function loginWithKakao() {
   }
 
   try {
+    // 기존 카카오 세션 정리 (다른 계정 선택 가능하도록)
+    if (window.Kakao && window.Kakao.Auth && window.Kakao.Auth.getAccessToken()) {
+      console.log("[카카오 로그인] 기존 카카오 세션 정리 중...");
+      window.Kakao.Auth.logout();
+      // 로그아웃 후 잠시 대기 (세션 정리 시간 확보)
+      await new Promise(resolve => setTimeout(resolve, 300));
+    }
+    
     // 카카오 로그인 요청
     const authObj = await new Promise((resolve, reject) => {
       Kakao.Auth.login({
         success: (auth) => resolve(auth),
         fail: (err) => reject(err),
-        // 계정 선택 화면 강제 표시 (다른 계정 선택 가능)
-        prompt: 'select_account',
       });
     });
 
