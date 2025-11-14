@@ -551,49 +551,77 @@ export function startAdminListeners() {
   };
 
   // 타임아웃 체크를 위한 헬퍼 함수 (0.1초로 변경, 초기 로드 시 즉시 체크)
+  // 재시도 횟수 추적
+  const retryCounts = {};
+  const MAX_RETRIES = 3;
+  
   const setupWithTimeout = (key, listenerFn, setupFn, timeoutMs = 100) => {
     let hasData = false;
     let isFirstCheck = true;
+    let immediateCheckCalled = false;
     showLoadingIndicator(`admin-${key}`);
     
-    // 초기 로드 즉시 체크
+    // 초기 로드 즉시 체크 (재시도 횟수 제한)
     const immediateCheck = () => {
+      if (immediateCheckCalled) return; // 이미 호출되었으면 무시
+      immediateCheckCalled = true;
+      
       if (isFirstCheck && !hasData) {
         isFirstCheck = false;
         setTimeout(() => {
           if (!hasData) {
-            console.warn(`${key}: 초기 데이터 로드 실패, 즉시 재시도합니다.`);
-            retryListener(key, setupFn, 0);
+            const retryCount = (retryCounts[key] || 0) + 1;
+            if (retryCount <= MAX_RETRIES) {
+              retryCounts[key] = retryCount;
+              console.warn(`${key}: 초기 데이터 로드 실패, 재시도합니다. (${retryCount}/${MAX_RETRIES})`);
+              retryListener(key, setupFn, 100); // 즉시 재시도 대신 100ms 지연
+            } else {
+              console.error(`${key}: 최대 재시도 횟수(${MAX_RETRIES}) 초과, 재시도를 중단합니다.`);
+              hideLoadingIndicator(`admin-${key}`);
+              retryCounts[key] = 0; // 재시도 횟수 리셋
+            }
           }
-        }, 0);
+        }, 100); // 즉시 재시도 대신 100ms 지연
       }
     };
     
     const timeoutId = setTimeout(() => {
       if (!hasData) {
-        console.warn(
-          `${key}: 데이터 로딩 타임아웃 (${timeoutMs}ms), 재시도합니다.`
-        );
-        retryListener(key, setupFn, 0);
+        const retryCount = (retryCounts[key] || 0) + 1;
+        if (retryCount <= MAX_RETRIES) {
+          retryCounts[key] = retryCount;
+          console.warn(
+            `${key}: 데이터 로딩 타임아웃 (${timeoutMs}ms), 재시도합니다. (${retryCount}/${MAX_RETRIES})`
+          );
+          retryListener(key, setupFn, 100);
+        } else {
+          console.error(`${key}: 최대 재시도 횟수(${MAX_RETRIES}) 초과, 재시도를 중단합니다.`);
+          hideLoadingIndicator(`admin-${key}`);
+          retryCounts[key] = 0; // 재시도 횟수 리셋
+        }
       }
     }, timeoutMs);
 
     const wrappedListener = (snap) => {
-      const hasAnyData =
-        snap &&
-        snap.exists !== false &&
-        (snap.docs ? snap.docs.length > 0 : true);
-      if (!hasAnyData && isFirstCheck) {
-        immediateCheck();
+      // snap이 존재하면 (빈 컬렉션도 유효한 데이터로 간주)
+      if (snap !== null && snap !== undefined) {
+        hasData = true;
+        clearTimeout(timeoutId);
+        hideLoadingIndicator(`admin-${key}`);
+        retryCounts[key] = 0; // 성공 시 재시도 횟수 리셋
+        listenerFn(snap);
         return;
       }
-      hasData = true;
-      clearTimeout(timeoutId);
-      hideLoadingIndicator(`admin-${key}`);
-      listenerFn(snap);
+      
+      // snap이 null이거나 undefined인 경우에만 재시도 고려
+      if (isFirstCheck && !hasData) {
+        isFirstCheck = false;
+        immediateCheck();
+      }
     };
 
-    immediateCheck();
+    // 초기 체크는 제거 (즉시 재시도 방지)
+    // immediateCheck();
 
     return wrappedListener;
   };
@@ -707,7 +735,17 @@ export function startAdminListeners() {
         (err) => {
           console.warn("presence:", err?.message);
           hideLoadingIndicator("admin-presence");
-          retryListener("presence", setupPresence, 100);
+          
+          // 재시도 횟수 제한
+          const retryCount = (retryCounts["presence"] || 0) + 1;
+          if (retryCount <= MAX_RETRIES) {
+            retryCounts["presence"] = retryCount;
+            console.warn(`presence 리스너 오류, 재시도합니다. (${retryCount}/${MAX_RETRIES})`);
+            retryListener("presence", setupPresence, 1000); // 1초 지연 후 재시도
+          } else {
+            console.error(`presence 리스너 최대 재시도 횟수(${MAX_RETRIES}) 초과, 재시도를 중단합니다.`);
+            retryCounts["presence"] = 0; // 재시도 횟수 리셋
+          }
         }
       );
     };
