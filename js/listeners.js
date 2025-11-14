@@ -10,6 +10,8 @@ export const unsubPublic = {
   blocks: null,
   roadmap: null,
   events: null,
+  foodMenus: null,
+  regularPositions: null,
 };
 export const unsubAdmin = {
   suggestions: null,
