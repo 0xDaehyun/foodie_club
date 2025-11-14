@@ -9788,28 +9788,102 @@
             </div>
           `;
 
-        // 카카오 연동 상태 확인 (window.state.currentUser 우선 사용, 없으면 currentUser 사용)
-        // window.state.currentUser가 최신 상태이므로 우선 사용
-        const stateUser = (typeof window !== 'undefined' && window.state?.currentUser) ? window.state.currentUser : null;
-        const userForKakaoCheck = stateUser || currentUser;
-        const kakaoUserId = userForKakaoCheck?.kakaoUserId;
-        const hasKakaoAccount =
-          kakaoUserId !== undefined &&
-          kakaoUserId !== null &&
-          kakaoUserId !== "" &&
-          kakaoUserId !== 0 &&
-          !(typeof kakaoUserId === "string" && kakaoUserId.trim() === "");
+        // 카카오 연동 상태 확인 (Firebase에서 최신 정보 가져오기)
+        // 비동기로 Firebase에서 최신 카카오 정보를 가져와서 확인
+        let hasKakaoAccount = false;
+        let kakaoUserId = null;
         
-        console.log("[내 활동 팝오버] 카카오 연동 상태 확인:", {
-          userForKakaoCheck: userForKakaoCheck?.studentId,
-          kakaoUserId,
-          hasKakaoAccount,
-          state_currentUser: (typeof window !== 'undefined' && window.state?.currentUser) ? window.state.currentUser?.kakaoUserId : 'state 없음',
-          currentUser_kakaoUserId: currentUser?.kakaoUserId
-        });
-
-        const quickSummaryHTML = currentUser
-          ? `
+        // Firebase에서 최신 카카오 정보 가져오기
+        if (currentUser?.studentId) {
+          // Firebase에서 최신 정보를 가져오는 Promise
+          const getKakaoInfoFromFirebase = async () => {
+            try {
+              const { doc, getDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+              const { db } = await import("./js/firebase.js");
+              const memberRef = doc(db, "members", currentUser.studentId);
+              const memberSnap = await getDoc(memberRef);
+              
+              if (memberSnap.exists()) {
+                const memberData = memberSnap.data();
+                const firebaseKakaoUserId = memberData.kakaoUserId;
+                
+                // 숫자와 문자열 모두 확인
+                if (firebaseKakaoUserId !== null && 
+                    firebaseKakaoUserId !== undefined && 
+                    firebaseKakaoUserId !== "" && 
+                    firebaseKakaoUserId !== 0) {
+                  kakaoUserId = firebaseKakaoUserId;
+                  hasKakaoAccount = true;
+                  
+                  // currentUser도 업데이트
+                  if (currentUser) {
+                    currentUser.kakaoUserId = typeof firebaseKakaoUserId === 'number' 
+                      ? String(firebaseKakaoUserId) 
+                      : firebaseKakaoUserId;
+                  }
+                  
+                  console.log("[내 활동 팝오버] Firebase에서 카카오 정보 가져옴:", {
+                    kakaoUserId,
+                    hasKakaoAccount
+                  });
+                  
+                  // HTML 다시 생성 및 업데이트
+                  generateAndUpdateQuickSummary();
+                } else {
+                  console.log("[내 활동 팝오버] Firebase에서 카카오 정보 없음");
+                }
+              }
+            } catch (error) {
+              console.error("[내 활동 팝오버] Firebase에서 카카오 정보 가져오기 실패:", error);
+              // 실패 시 기존 로직 사용
+              checkKakaoFromStateOrCurrentUser();
+            }
+          };
+          
+          // 기존 state나 currentUser에서 확인하는 함수
+          const checkKakaoFromStateOrCurrentUser = () => {
+            const stateUser =
+              typeof window !== "undefined" && window.state?.currentUser
+                ? window.state.currentUser
+                : null;
+            const userForKakaoCheck = stateUser || currentUser;
+            kakaoUserId = userForKakaoCheck?.kakaoUserId;
+            hasKakaoAccount =
+              kakaoUserId !== undefined &&
+              kakaoUserId !== null &&
+              kakaoUserId !== "" &&
+              kakaoUserId !== 0 &&
+              !(typeof kakaoUserId === "string" && kakaoUserId.trim() === "");
+          };
+          
+          // quickSummaryHTML을 생성하는 함수
+          const generateAndUpdateQuickSummary = () => {
+            checkKakaoFromStateOrCurrentUser(); // 먼저 state나 currentUser에서 확인
+            
+            console.log("[내 활동 팝오버] 카카오 연동 상태 확인:", {
+              studentId: currentUser?.studentId,
+              kakaoUserId,
+              hasKakaoAccount,
+              state_currentUser:
+                typeof window !== "undefined" && window.state?.currentUser
+                  ? window.state.currentUser?.kakaoUserId
+                  : "state 없음",
+              currentUser_kakaoUserId: currentUser?.kakaoUserId,
+            });
+            
+            // quickSummaryHTML 생성 (기존 코드)
+            const quickSummaryHTML = currentUser
+              ? generateQuickSummaryHTML()
+              : `<div class="text-center text-gray-500 text-sm py-3">
+                  로그인 후 내 활동을 확인할 수 있습니다.
+                </div>`;
+            
+            updateMyPageQuickSummary(quickSummaryHTML);
+          };
+          
+          // quickSummaryHTML 생성 함수 분리
+          const generateQuickSummaryHTML = () => {
+            return `
           <div class="space-y-3 text-sm text-center">
             <div class="rounded-2xl border border-orange-100 bg-white px-4 py-3 shadow-sm">
               <div class="flex flex-col items-center gap-2">
@@ -9895,12 +9969,35 @@
               ${quickEventSummaryHTML}
             </div>
           </div>
-        `
-          : `<div class="text-center text-gray-500 text-sm py-3">
+        `;
+          };
+          
+          // 먼저 기존 로직으로 빠르게 표시
+          generateAndUpdateQuickSummary();
+          
+          // 그 다음 Firebase에서 최신 정보 가져오기 (비동기)
+          getKakaoInfoFromFirebase();
+        } else {
+          // currentUser가 없으면 기존 로직 사용
+          const stateUser =
+            typeof window !== "undefined" && window.state?.currentUser
+              ? window.state.currentUser
+              : null;
+          const userForKakaoCheck = stateUser || currentUser;
+          kakaoUserId = userForKakaoCheck?.kakaoUserId;
+          hasKakaoAccount =
+            kakaoUserId !== undefined &&
+            kakaoUserId !== null &&
+            kakaoUserId !== "" &&
+            kakaoUserId !== 0 &&
+            !(typeof kakaoUserId === "string" && kakaoUserId.trim() === "");
+        } else {
+          // currentUser가 없으면 기본 메시지 표시
+          const quickSummaryHTML = `<div class="text-center text-gray-500 text-sm py-3">
               로그인 후 내 활동을 확인할 수 있습니다.
             </div>`;
-
-        updateMyPageQuickSummary(quickSummaryHTML);
+          updateMyPageQuickSummary(quickSummaryHTML);
+        }
 
         const activeListHTML =
           activeEvents.length === 0
