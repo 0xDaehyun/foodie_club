@@ -1,0 +1,24 @@
+# Firebase
+# .firebaserc는 프로젝트 설정이므로 버전 관리에 포함
+firebase-debug.log
+firebase-debug.*.log
+
+# Node modules
+node_modules/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Backup files
+*.bak
+*.backup
+index_backup.html
+
