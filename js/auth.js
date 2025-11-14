@@ -601,11 +601,15 @@ export async function linkKakaoAccount() {
     showAlert("✅", "카카오 계정이 연동되었습니다.");
     
     // 동아리 카카오 계정 친구추가 안내 모달 표시
+    // 모달이 닫힌 후에만 화면 갱신 및 페이지 새로고침
     setTimeout(() => {
-      showKakaoFriendAddGuide();
+      showKakaoFriendAddGuide(() => {
+        // 모달이 닫힌 후 실행될 콜백
+        console.log("[카카오 연동] 친구추가 안내 모달 닫힘, 화면 갱신 시작");
+        scheduleRender(); // 화면 갱신
+      });
     }, 500);
     
-    scheduleRender(); // 화면 갱신
     return true;
   } catch (error) {
     console.error("[auth] 카카오 연동 실패:", error);

@@ -3,8 +3,9 @@
 
 /**
  * 동아리 카카오 계정 친구추가 안내 모달 표시
+ * @param {Function} onClose - 모달이 닫힐 때 호출될 콜백 함수
  */
-export function showKakaoFriendAddGuide() {
+export function showKakaoFriendAddGuide(onClose) {
   // 동아리 카카오 계정 정보 (설정에서 가져올 수 있도록)
   const CLUB_KAKAO_ID = "동아리카카오계정"; // 실제 카카오톡 ID로 변경 필요
   const CLUB_KAKAO_NAME = "푸디 동아리"; // 동아리 이름
@@ -83,6 +84,10 @@ export function showKakaoFriendAddGuide() {
   
   const closeModal = () => {
     modal.remove();
+    // 모달이 닫힌 후 콜백 호출
+    if (onClose && typeof onClose === 'function') {
+      onClose();
+    }
   };
   
   closeBtn?.addEventListener("click", closeModal);
