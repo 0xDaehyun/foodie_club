@@ -24303,11 +24303,11 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
       function openInquiryModal_DEPRECATED() {
         const modal = document.getElementById("inquiry-modal");
         modal.classList.remove("hidden");
-        renderInquiryList();
+        renderInquiryList_DEPRECATED();
         setupInquirySubmit();
       }
 
-      function renderInquiryList() {
+      function renderInquiryList_DEPRECATED() {
         const isAdmin =
           currentUser && adminList.includes(currentUser.studentId);
         const listContainer = document.getElementById("modal-suggestions-list");
