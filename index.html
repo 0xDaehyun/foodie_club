@@ -4258,8 +4258,25 @@
             !loadingScreen.classList.contains("hidden") &&
             getComputedStyle(loadingScreen).display !== "none";
 
-          if (!stillLoading) {
+          // 회원 목록이 로딩 중인지 확인 (자동 재접속 방지)
+          const subtabContainer = document.getElementById("subtab-container");
+          const isMembersLoading = subtabContainer && (
+            subtabContainer.innerHTML.includes("데이터를 불러오는 중") ||
+            subtabContainer.innerHTML.includes("회원 데이터가 없음") ||
+            (subtabContainer.innerHTML.includes("회원 관리") && 
+             !subtabContainer.innerHTML.includes("회원 목록") &&
+             !subtabContainer.innerHTML.includes("member-card"))
+          );
+
+          if (!stillLoading && !isMembersLoading) {
             resetAutoReloadState();
+            return;
+          }
+
+          // 회원 목록이 로딩 중이면 자동 재접속 중단 (데이터 로딩 대기)
+          if (isMembersLoading) {
+            debugLog("회원 목록 로딩 중 - 자동 재접속 대기");
+            ensureAutoReconnectLoop(AUTO_RELOAD_INTERVAL_MS * 2); // 더 긴 간격으로 재확인
             return;
           }
 

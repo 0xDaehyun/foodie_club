@@ -675,9 +675,21 @@ export function renderMembersAdmin(container) {
     return;
   }
   
-  // 회원 데이터가 없으면 리스너 시작 시도
+  // 회원 데이터가 없으면 로딩 메시지 표시 및 리스너 시작 시도
   if (!state.membersData || state.membersData.length === 0) {
-    console.log("[renderMembersAdmin] 회원 데이터가 없음, startAdminListeners 호출 시도");
+    console.log("[renderMembersAdmin] 회원 데이터가 없음, 로딩 메시지 표시 및 리스너 시작 시도");
+    
+    // 로딩 메시지 표시 (자동 재접속 방지를 위해)
+    container.innerHTML = `
+      <div class="section">
+        <h3 class="text-xl font-bold text-gray-800 mb-4">회원 관리</h3>
+        <div class="text-center py-8 text-gray-500">
+          <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mb-4"></div>
+          <p class="text-sm">회원 데이터를 불러오는 중입니다...</p>
+          <p class="text-xs text-gray-400 mt-2">잠시만 기다려주세요.</p>
+        </div>
+      </div>
+    `;
     console.log("[renderMembersAdmin] currentUser:", state.currentUser?.studentId);
     console.log("[renderMembersAdmin] adminList:", state.adminList);
     console.log("[renderMembersAdmin] adminList includes:", state.adminList?.includes(state.currentUser?.studentId));
@@ -734,9 +746,9 @@ export function renderMembersAdmin(container) {
       import("./listeners.js").then(({ startAdminListeners }) => {
         console.log("[renderMembersAdmin] startAdminListeners도 호출");
         startAdminListeners();
-        // 데이터 로드 후 다시 렌더링 (최대 3초 대기)
+        // 데이터 로드 후 다시 렌더링 (최대 10초 대기, 무한 재시도 방지)
         let retryCount = 0;
-        const maxRetries = 30; // 3초 (100ms * 30)
+        const maxRetries = 100; // 10초 (100ms * 100)
         const checkInterval = setInterval(() => {
           retryCount++;
           if (state.membersData && state.membersData.length > 0) {
@@ -746,6 +758,16 @@ export function renderMembersAdmin(container) {
           } else if (retryCount >= maxRetries) {
             console.warn("[renderMembersAdmin] 데이터 로드 타임아웃");
             clearInterval(checkInterval);
+            // 타임아웃 시 에러 메시지 표시
+            container.innerHTML = `
+              <div class="section">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">회원 관리</h3>
+                <div class="text-center py-8 text-gray-500">
+                  <p class="text-sm mb-2">⚠️ 회원 데이터를 불러오는데 시간이 걸리고 있습니다.</p>
+                  <p class="text-xs text-gray-400">페이지를 새로고침하거나 잠시 후 다시 시도해주세요.</p>
+                </div>
+              </div>
+            `;
           }
         }, 100);
       }).catch((err) => {
