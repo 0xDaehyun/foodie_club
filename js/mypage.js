@@ -29,9 +29,10 @@ export function renderMyPageTab() {
       <div class="bg-white rounded-lg border border-gray-200 p-6 mb-6">
         <div class="flex items-center gap-4 mb-4">
           <div class="w-16 h-16 rounded-full bg-gradient-to-br from-orange-400 to-yellow-400 flex items-center justify-center text-white text-2xl font-bold">
-            ${kakaoProfileImage 
-              ? `<img src="${kakaoProfileImage}" alt="프로필" class="w-full h-full rounded-full object-cover" />`
-              : user.name?.charAt(0) || "U"
+            ${
+              kakaoProfileImage
+                ? `<img src="${kakaoProfileImage}" alt="프로필" class="w-full h-full rounded-full object-cover" />`
+                : user.name?.charAt(0) || "U"
             }
           </div>
           <div>
@@ -61,15 +62,20 @@ export function renderMyPageTab() {
           </span>
         </div>
 
-        ${isKakaoLinked ? `
+        ${
+          isKakaoLinked
+            ? `
           <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
             <div class="flex items-center gap-3 mb-2">
-              ${kakaoProfileImage 
-                ? `<img src="${kakaoProfileImage}" alt="카카오 프로필" class="w-10 h-10 rounded-full" />`
-                : `<div class="w-10 h-10 rounded-full bg-yellow-400 flex items-center justify-center text-white font-bold">K</div>`
+              ${
+                kakaoProfileImage
+                  ? `<img src="${kakaoProfileImage}" alt="카카오 프로필" class="w-10 h-10 rounded-full" />`
+                  : `<div class="w-10 h-10 rounded-full bg-yellow-400 flex items-center justify-center text-white font-bold">K</div>`
               }
               <div>
-                <p class="font-semibold text-gray-800">${saf(kakaoNickname || "카카오 계정")}</p>
+                <p class="font-semibold text-gray-800">${saf(
+                  kakaoNickname || "카카오 계정"
+                )}</p>
                 <p class="text-xs text-gray-500">카카오 계정이 연동되어 있습니다</p>
               </div>
             </div>
@@ -81,7 +87,8 @@ export function renderMyPageTab() {
           >
             <i class="fas fa-unlink mr-2"></i>카카오 계정 연동 해제
           </button>
-        ` : `
+        `
+            : `
           <button
             id="kakao-link-btn"
             type="button"
@@ -98,7 +105,8 @@ export function renderMyPageTab() {
             </svg>
             카카오 계정 연동하기
           </button>
-        `}
+        `
+        }
       </div>
     </div>
   `;
@@ -108,7 +116,8 @@ export function renderMyPageTab() {
   if (linkBtn) {
     linkBtn.addEventListener("click", async () => {
       linkBtn.disabled = true;
-      linkBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>연동 중...';
+      linkBtn.innerHTML =
+        '<i class="fas fa-spinner fa-spin mr-2"></i>연동 중...';
       const success = await linkKakaoAccount();
       if (success) {
         scheduleRender();
@@ -129,21 +138,16 @@ export function renderMyPageTab() {
   if (unlinkBtn) {
     unlinkBtn.addEventListener("click", async () => {
       unlinkBtn.disabled = true;
-      unlinkBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>해제 중...';
+      unlinkBtn.innerHTML =
+        '<i class="fas fa-spinner fa-spin mr-2"></i>해제 중...';
       const success = await unlinkKakaoAccount();
       if (success) {
         scheduleRender();
       } else {
         unlinkBtn.disabled = false;
-        unlinkBtn.innerHTML = '<i class="fas fa-unlink mr-2"></i>카카오 계정 연동 해제';
+        unlinkBtn.innerHTML =
+          '<i class="fas fa-unlink mr-2"></i>카카오 계정 연동 해제';
       }
     });
   }
 }
-
-
-
-
-
-
-
