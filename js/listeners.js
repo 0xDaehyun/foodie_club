@@ -347,6 +347,49 @@ export function startPublicListeners(USE_DEMO_OFFLINE) {
 
     isProcessing = false;
     console.log("[순차 로딩] 모든 데이터 로딩 완료");
+    
+    // 순차 로딩 완료 플래그 설정
+    if (typeof window !== "undefined" && window.setSequentialLoadingComplete) {
+      window.setSequentialLoadingComplete(true);
+      console.log("[순차 로딩] 플래그 설정 완료");
+    } else {
+      console.warn("[순차 로딩] setSequentialLoadingComplete 함수를 찾을 수 없습니다.");
+    }
+    
+    // 순차 로딩 완료 시 로딩 화면 닫기 (직접 닫기)
+    const closeLoadingScreen = () => {
+      console.log("[순차 로딩] 로딩 화면 닫기 시도");
+      const loadingScreen = document.getElementById("loading-screen");
+      if (loadingScreen) {
+        console.log("[순차 로딩] 로딩 화면 요소 찾음, 닫는 중...");
+        // 플래그 설정 (나중에 hideLoadingScreen이 호출될 때를 대비)
+        if (typeof window !== "undefined" && window.setSequentialLoadingComplete) {
+          window.setSequentialLoadingComplete(true);
+        }
+        // 직접 로딩 화면 닫기
+        loadingScreen.style.display = "none";
+        loadingScreen.style.visibility = "hidden";
+        loadingScreen.style.opacity = "0";
+        loadingScreen.style.pointerEvents = "none";
+        loadingScreen.style.zIndex = "-1";
+        loadingScreen.classList.add("hidden");
+        console.log("[순차 로딩] 로딩 화면 닫기 완료");
+        
+        // window.hideLoadingScreen도 호출 (혹시 다른 로직이 있을 수 있음)
+        if (typeof window !== "undefined" && window.hideLoadingScreen) {
+          try {
+            window.hideLoadingScreen();
+          } catch (e) {
+            console.warn("[순차 로딩] hideLoadingScreen 호출 중 오류:", e);
+          }
+        }
+      } else {
+        console.warn("[순차 로딩] 로딩 화면 요소를 찾을 수 없습니다.");
+      }
+    };
+    
+    // 약간의 지연을 두어 모든 데이터가 완전히 처리되도록 함
+    setTimeout(closeLoadingScreen, 300);
   };
 
   // 재시도 로직을 위한 헬퍼 함수
@@ -554,7 +597,7 @@ export function startPublicListeners(USE_DEMO_OFFLINE) {
   if (!unsubPublic.events) {
     const setupEvents = (resolveOnce) => {
       unsubPublic.events = onSnapshot(
-        query(collection(db, "events"), orderBy("datetime", "asc")),
+        query(collection(db, "events"), orderBy("datetime", "desc")),
         setupWithTimeout(
           "events",
           (snap) => {

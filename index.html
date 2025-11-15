@@ -257,6 +257,44 @@
           scrollbar-width: none;
         }
 
+        /* 미식회 리뷰 스크롤바 스타일 (데스크톱) */
+        .review-list::-webkit-scrollbar {
+          width: 8px;
+        }
+
+        .review-list::-webkit-scrollbar-track {
+          background: #fef3e2;
+          border-radius: 10px;
+        }
+
+        .review-list::-webkit-scrollbar-thumb {
+          background: #f97316;
+          border-radius: 10px;
+        }
+
+        .review-list::-webkit-scrollbar-thumb:hover {
+          background: #ea580c;
+        }
+
+        /* 미식회 식당 카드 컨테이너 스크롤바 스타일 */
+        #restaurant-cards-container::-webkit-scrollbar {
+          width: 8px;
+        }
+
+        #restaurant-cards-container::-webkit-scrollbar-track {
+          background: #fef3e2;
+          border-radius: 10px;
+        }
+
+        #restaurant-cards-container::-webkit-scrollbar-thumb {
+          background: #f97316;
+          border-radius: 10px;
+        }
+
+        #restaurant-cards-container::-webkit-scrollbar-thumb:hover {
+          background: #ea580c;
+        }
+
         /* 전체 화면 스크롤바 숨김 */
         body {
           overflow-x: hidden;
@@ -3260,6 +3298,9 @@
       const USE_DEMO_OFFLINE = false; // 항상 Firebase 사용하도록 변경
       const DEBUG_MODE = localStorage.getItem("foodie_debug") === "true"; // 개발 모드 토글
 
+      // 내 활동 팝오버 Firebase 정보 로드 플래그 (전역)
+      let firebaseKakaoInfoLoadedForUser = null; // studentId를 키로 사용
+
       // 개발 모드 로그 헬퍼
       const debugLog = (...args) => {
         if (DEBUG_MODE) console.log(...args);
@@ -4448,12 +4489,17 @@
                   foodMenusData &&
                   Array.isArray(foodMenusData);
 
-                if (hasCriticalData) {
+                // 순차 로딩이 완료되었고 필수 데이터가 있으면 로딩 화면 닫기
+                if (hasCriticalData && sequentialLoadingComplete) {
                   __isInitialLoading = false;
                   hideLoadingScreen();
                   stopDataWatchdog();
                   resetAutoReloadState();
                   hideManualRetryButton();
+                } else if (!sequentialLoadingComplete) {
+                  debugLog(
+                    "⏳ 순차 로딩이 아직 완료되지 않아 로딩 화면을 유지합니다."
+                  );
                 }
               }
             }, 5000); // 5초 후 강제 검증
@@ -4800,13 +4846,16 @@
       }
       const logout = async () => {
         try {
+          // 모든 리스너 정리 (Firebase 권한 오류 방지)
+          clearPublic();
+          clearAdmin();
           stopPresence();
           localStorage.removeItem("foodieUser");
           currentUser = null;
-          clearAdmin();
           clearAutoLogin(); // 자동 로그인 정보 삭제
           myProfileData = null;
           myProfileLoading = false;
+          firebaseKakaoInfoLoadedForUser = null; // Firebase 정보 로드 플래그 리셋
           await signOut(auth);
           clearAutoCloseScheduler();
 
@@ -5076,6 +5125,16 @@
 
       const handleRealtimeListenerError = (context, error) => {
         console.warn(`[Firestore] 실시간 리스너 오류 발생 (${context})`, error);
+
+        // 로그아웃 상태에서는 모든 오류를 무시 (정상적인 동작)
+        if (!currentUser) {
+          console.log(
+            `[Firestore] 로그아웃 상태에서 리스너 오류 무시 (${context})`
+          );
+          return;
+        }
+
+        // 로그인 상태에서만 오류 처리
         if (error?.code === "permission-denied") {
           showAlert(
             "⚠️",
@@ -5191,6 +5250,60 @@
 
           isProcessing = false;
           console.log("[순차 로딩] 모든 데이터 로딩 완료");
+
+          // 순차 로딩 완료 플래그 설정
+          if (
+            typeof window !== "undefined" &&
+            window.setSequentialLoadingComplete
+          ) {
+            window.setSequentialLoadingComplete(true);
+            console.log("[순차 로딩] 플래그 설정 완료");
+          } else {
+            console.warn(
+              "[순차 로딩] setSequentialLoadingComplete 함수를 찾을 수 없습니다."
+            );
+          }
+
+          // 순차 로딩 완료 시 로딩 화면 닫기 (직접 닫기)
+          const closeLoadingScreen = () => {
+            console.log("[순차 로딩] 로딩 화면 닫기 시도");
+            const loadingScreen = document.getElementById("loading-screen");
+            if (loadingScreen) {
+              console.log("[순차 로딩] 로딩 화면 요소 찾음, 닫는 중...");
+              // 플래그 설정 (나중에 hideLoadingScreen이 호출될 때를 대비)
+              if (
+                typeof window !== "undefined" &&
+                window.setSequentialLoadingComplete
+              ) {
+                window.setSequentialLoadingComplete(true);
+              }
+              // 직접 로딩 화면 닫기
+              loadingScreen.style.display = "none";
+              loadingScreen.style.visibility = "hidden";
+              loadingScreen.style.opacity = "0";
+              loadingScreen.style.pointerEvents = "none";
+              loadingScreen.style.zIndex = "-1";
+              loadingScreen.classList.add("hidden");
+              console.log("[순차 로딩] 로딩 화면 닫기 완료");
+
+              // window.hideLoadingScreen도 호출 (혹시 다른 로직이 있을 수 있음)
+              if (typeof window !== "undefined" && window.hideLoadingScreen) {
+                try {
+                  window.hideLoadingScreen();
+                } catch (e) {
+                  console.warn(
+                    "[순차 로딩] hideLoadingScreen 호출 중 오류:",
+                    e
+                  );
+                }
+              }
+            } else {
+              console.warn("[순차 로딩] 로딩 화면 요소를 찾을 수 없습니다.");
+            }
+          };
+
+          // 약간의 지연을 두어 모든 데이터가 완전히 처리되도록 함
+          setTimeout(closeLoadingScreen, 300);
         };
 
         // 각 리스너를 큐에 추가
@@ -5705,8 +5818,16 @@
                   }
                 });
 
-                // order 필드로 정렬
-                eventsData.sort((a, b) => (a.order || 0) - (b.order || 0));
+                // datetime 기준 최신순으로 정렬 (Firebase에서 이미 desc로 가져오지만, 혹시 모를 경우를 대비)
+                eventsData.sort((a, b) => {
+                  const dateA = a.datetime?.toDate
+                    ? a.datetime.toDate()
+                    : new Date(a.datetime || 0);
+                  const dateB = b.datetime?.toDate
+                    ? b.datetime.toDate()
+                    : new Date(b.datetime || 0);
+                  return dateB - dateA; // 최신순 (desc)
+                });
 
                 console.log("=== Firebase에서 이벤트 로드 ===");
                 console.log(
@@ -6306,7 +6427,7 @@
 
           // 문의 버튼 이벤트는 위에서 이벤트 위임으로 처리됨
 
-          // 상단 조모임/미니게임 버튼 이벤트
+          // 상단 조모임 버튼 이벤트
           const rankBtnDup = document.getElementById("rank-button-duplicate");
           if (rankBtnDup) {
             rankBtnDup.addEventListener("click", () => {
@@ -9382,6 +9503,15 @@
         const c = document.getElementById("reservation-tab");
         if (!c) return;
 
+        // 데이터가 아직 로드되지 않았으면 로딩 표시
+        if (eventsData === null || eventsData === undefined) {
+          c.innerHTML = `<div class="text-center py-12">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-orange-500 border-t-transparent mb-3"></div>
+            <p class="text-gray-500">데이터를 불러오는 중...</p>
+          </div>`;
+          return;
+        }
+
         // 활성 이벤트와 보관 이벤트를 분리
         const activeEvents = eventsData.filter((e) => {
           if (e.status === "closed") return false;
@@ -10161,6 +10291,10 @@
         if (currentUser?.studentId) {
           // Firebase에서 최신 정보를 가져오는 Promise
           const getKakaoInfoFromFirebase = async () => {
+            // 이미 로드된 경우 중복 호출 방지 (전역 플래그 사용)
+            if (firebaseKakaoInfoLoadedForUser === currentUser.studentId)
+              return;
+
             try {
               const { doc, getDoc } = await import(
                 "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js"
@@ -10191,25 +10325,39 @@
                         : firebaseKakaoUserId;
                   }
 
-                  console.log(
-                    "[내 활동 팝오버] Firebase에서 카카오 정보 가져옴:",
-                    {
-                      kakaoUserId,
-                      hasKakaoAccount,
-                    }
-                  );
+                  // DEBUG_MODE일 때만 로그 출력
+                  if (DEBUG_MODE) {
+                    console.log(
+                      "[내 활동 팝오버] Firebase에서 카카오 정보 가져옴:",
+                      {
+                        kakaoUserId,
+                        hasKakaoAccount,
+                      }
+                    );
+                  }
 
+                  firebaseKakaoInfoLoadedForUser = currentUser.studentId;
                   // HTML 다시 생성 및 업데이트
                   generateAndUpdateQuickSummary();
                 } else {
-                  console.log("[내 활동 팝오버] Firebase에서 카카오 정보 없음");
+                  firebaseKakaoInfoLoadedForUser = currentUser.studentId;
+                  if (DEBUG_MODE) {
+                    console.log(
+                      "[내 활동 팝오버] Firebase에서 카카오 정보 없음"
+                    );
+                  }
                 }
+              } else {
+                firebaseKakaoInfoLoadedForUser = currentUser.studentId;
               }
             } catch (error) {
-              console.error(
-                "[내 활동 팝오버] Firebase에서 카카오 정보 가져오기 실패:",
-                error
-              );
+              firebaseKakaoInfoLoadedForUser = currentUser.studentId;
+              if (DEBUG_MODE) {
+                console.error(
+                  "[내 활동 팝오버] Firebase에서 카카오 정보 가져오기 실패:",
+                  error
+                );
+              }
               // 실패 시 기존 로직 사용
               checkKakaoFromStateOrCurrentUser();
             }
@@ -10235,16 +10383,19 @@
           const generateAndUpdateQuickSummary = () => {
             checkKakaoFromStateOrCurrentUser(); // 먼저 state나 currentUser에서 확인
 
-            console.log("[내 활동 팝오버] 카카오 연동 상태 확인:", {
-              studentId: currentUser?.studentId,
-              kakaoUserId,
-              hasKakaoAccount,
-              state_currentUser:
-                typeof window !== "undefined" && window.state?.currentUser
-                  ? window.state.currentUser?.kakaoUserId
-                  : "state 없음",
-              currentUser_kakaoUserId: currentUser?.kakaoUserId,
-            });
+            // DEBUG_MODE일 때만 로그 출력
+            if (DEBUG_MODE) {
+              console.log("[내 활동 팝오버] 카카오 연동 상태 확인:", {
+                studentId: currentUser?.studentId,
+                kakaoUserId,
+                hasKakaoAccount,
+                state_currentUser:
+                  typeof window !== "undefined" && window.state?.currentUser
+                    ? window.state.currentUser?.kakaoUserId
+                    : "state 없음",
+                currentUser_kakaoUserId: currentUser?.kakaoUserId,
+              });
+            }
 
             // quickSummaryHTML 생성 (기존 코드)
             const quickSummaryHTML = currentUser
@@ -18529,20 +18680,57 @@
                     </h5>
                     <div class="flex flex-wrap gap-2">
                       ${menus
-                        .map(
-                          (menu) => `
+                        .map((menu) => {
+                          // 식당 이름과 메뉴를 분리하여 표시
+                          const displayName =
+                            menu.restaurantName && menu.menuName
+                              ? `<div class="flex flex-col">
+                                  <span class="font-semibold text-gray-800">${saf(
+                                    menu.restaurantName
+                                  )}</span>
+                                  <span class="text-gray-600 text-xs">${saf(
+                                    menu.menuName
+                                  )}</span>
+                                </div>`
+                              : menu.name
+                              ? `<div class="flex flex-col">
+                                  ${
+                                    menu.name.includes(" - ")
+                                      ? menu.name
+                                          .split(" - ")
+                                          .map((part, idx) =>
+                                            idx === 0
+                                              ? `<span class="font-semibold text-gray-800">${saf(
+                                                  part
+                                                )}</span>`
+                                              : `<span class="text-gray-600 text-xs">${saf(
+                                                  part
+                                                )}</span>`
+                                          )
+                                          .join("")
+                                      : `<span>${saf(menu.name)}</span>`
+                                  }
+                                </div>`
+                              : `<span>메뉴 이름 없음</span>`;
+
+                          return `
                         <span class="inline-flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-gray-300 text-sm">
-                          <span>${menu.name}</span>
+                          ${displayName}
                           <button
                             class="admin-delete-menu-btn text-red-500 hover:text-red-700 transition-colors"
                             data-id="${menu.id}"
-                            data-name="${menu.name}"
+                            data-name="${
+                              menu.name ||
+                              (menu.restaurantName && menu.menuName
+                                ? `${menu.restaurantName} - ${menu.menuName}`
+                                : "")
+                            }"
                           >
                             <i class="fas fa-times"></i>
                           </button>
                         </span>
-                      `
-                        )
+                      `;
+                        })
                         .join("")}
                     </div>
                   </div>
@@ -24595,20 +24783,57 @@
                     </h5>
                     <div class="flex flex-wrap gap-2">
                       ${menus
-                        .map(
-                          (menu) => `
+                        .map((menu) => {
+                          // 식당 이름과 메뉴를 분리하여 표시
+                          const displayName =
+                            menu.restaurantName && menu.menuName
+                              ? `<div class="flex flex-col">
+                                  <span class="font-semibold text-gray-800">${saf(
+                                    menu.restaurantName
+                                  )}</span>
+                                  <span class="text-gray-600 text-xs">${saf(
+                                    menu.menuName
+                                  )}</span>
+                                </div>`
+                              : menu.name
+                              ? `<div class="flex flex-col">
+                                  ${
+                                    menu.name.includes(" - ")
+                                      ? menu.name
+                                          .split(" - ")
+                                          .map((part, idx) =>
+                                            idx === 0
+                                              ? `<span class="font-semibold text-gray-800">${saf(
+                                                  part
+                                                )}</span>`
+                                              : `<span class="text-gray-600 text-xs">${saf(
+                                                  part
+                                                )}</span>`
+                                          )
+                                          .join("")
+                                      : `<span>${saf(menu.name)}</span>`
+                                  }
+                                </div>`
+                              : `<span>메뉴 이름 없음</span>`;
+
+                          return `
                         <span class="inline-flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-gray-300 text-sm">
-                          <span>${menu.name}</span>
+                          ${displayName}
                           <button
                             class="delete-menu-btn text-red-500 hover:text-red-700 transition-colors"
                             data-id="${menu.id}"
-                            data-name="${menu.name}"
+                            data-name="${
+                              menu.name ||
+                              (menu.restaurantName && menu.menuName
+                                ? `${menu.restaurantName} - ${menu.menuName}`
+                                : "")
+                            }"
                           >
                             <i class="fas fa-times"></i>
                           </button>
                         </span>
-                      `
-                        )
+                      `;
+                        })
                         .join("")}
                     </div>
                   </div>
@@ -25195,6 +25420,15 @@
         const c = document.getElementById("roadmap-tab");
         if (!c) return;
 
+        // 데이터가 아직 로드되지 않았으면 로딩 표시
+        if (eventsData === null || eventsData === undefined) {
+          c.innerHTML = `<div class="text-center py-12">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-orange-500 border-t-transparent mb-3"></div>
+            <p class="text-gray-500">데이터를 불러오는 중...</p>
+          </div>`;
+          return;
+        }
+
         // 마감된 이벤트만 가져오기 (삭제된 이벤트 제외)
         const closedEvents = eventsData.filter(
           (ev) =>
@@ -25295,7 +25529,11 @@
         };
 
         // 식당 카드 생성 함수 (미식회용)
-        const createRestaurantCard = (restaurant) => {
+        const createRestaurantCard = (
+          restaurant,
+          index = 0,
+          showScrollHint = false
+        ) => {
           const avgRating = calculateAverageRating(restaurant.reviews);
           const reviewCount = restaurant.reviews.length;
           const categoryEmoji = getCategoryEmoji(restaurant.restaurantCategory);
@@ -25504,14 +25742,17 @@
                             restaurant.reviews.length > 0
                               ? `
                             <div class="mt-3 space-y-3">
-                              <p class="text-sm sm:text-base font-bold text-gray-800 mb-3 flex items-center">
-                                <i class="fas fa-comment-dots mr-2 text-orange-500"></i>후기
-                              </p>
-                              <div class="review-list" data-event-id="${
-                                restaurant.eventId
-                              }" data-restaurant-name="${saf(
+                              <div class="mb-3">
+                                <p class="text-sm sm:text-base font-bold text-gray-800 flex items-center">
+                                  <i class="fas fa-comment-dots mr-2 text-orange-500"></i>후기
+                                </p>
+                              </div>
+                              <div class="review-list-container relative">
+                                <div class="review-list max-h-96 overflow-y-auto pr-2 pb-4" data-event-id="${
+                                  restaurant.eventId
+                                }" data-restaurant-name="${saf(
                                   restaurant.restaurantName
-                                )}" data-show-all="false">
+                                )}" data-show-all="false" style="scrollbar-width: thin; scrollbar-color: #f97316 #fef3e2;">
                                 ${restaurant.reviews
                                   .filter((r) => r.comment && r.comment.trim())
                                   .slice(0, 1)
@@ -25550,6 +25791,7 @@
                                 `
                                   )
                                   .join("")}
+                                </div>
                               </div>
                               ${
                                 restaurant.reviews.filter(
@@ -25733,6 +25975,20 @@
                       }</span>개 식당
                     </div>
                   </div>
+                  
+                  ${
+                    tastingRestaurants.length > 1
+                      ? `<div class="my-4 text-center">
+                          <div class="inline-block bg-white/95 backdrop-blur-sm py-2 px-4 rounded-lg shadow-lg border-2 border-orange-200">
+                            <p class="text-xs sm:text-sm text-orange-600 font-semibold flex items-center justify-center gap-2 animate-pulse">
+                              <i class="fas fa-chevron-down"></i>
+                              스크롤하여 더 많은 식당 후기 보기
+                              <i class="fas fa-chevron-down"></i>
+                            </p>
+                          </div>
+                        </div>`
+                      : ""
+                  }
 
                   ${
                     tastingRestaurants.length > 0
@@ -25807,9 +26063,13 @@
                   <div id="restaurant-list-container">
                     ${
                       tastingRestaurants.length > 0
-                        ? `<div class="grid grid-cols-1 gap-4 sm:gap-6" id="restaurant-cards">${tastingRestaurants
-                            .map(createRestaurantCard)
-                            .join("")}</div>`
+                        ? `<div class="max-h-[70vh] overflow-y-auto pr-2" id="restaurant-cards-container" style="scrollbar-width: thin; scrollbar-color: #f97316 #fef3e2;">
+                            <div class="grid grid-cols-1 gap-4 sm:gap-6" id="restaurant-cards">${tastingRestaurants
+                              .map((restaurant, index) =>
+                                createRestaurantCard(restaurant, index, false)
+                              )
+                              .join("")}</div>
+                          </div>`
                         : `<div class="text-center py-12 text-gray-400">
                             <i class="fas fa-utensils text-4xl mb-3"></i>
                             <p>아직 진행된 미식회가 없습니다</p>
@@ -25912,7 +26172,9 @@
             // 결과 렌더링
             if (filteredRestaurants.length > 0) {
               restaurantCardsContainer.innerHTML = filteredRestaurants
-                .map(createRestaurantCard)
+                .map((restaurant, index) =>
+                  createRestaurantCard(restaurant, index)
+                )
                 .join("");
             } else if (searchTerm) {
               restaurantCardsContainer.innerHTML = `
@@ -25943,7 +26205,9 @@
             } else {
               // 기본 상태 (전체 표시)
               restaurantCardsContainer.innerHTML = filteredRestaurants
-                .map(createRestaurantCard)
+                .map((restaurant, index) =>
+                  createRestaurantCard(restaurant, index)
+                )
                 .join("");
             }
           };
@@ -26691,30 +26955,38 @@
         debugLog(`로딩 진행률: ${loadingProgress}% - ${text || ""}`);
       }
 
+      // 순차 로딩 완료 플래그
+      let sequentialLoadingComplete = false;
+
+      // 순차 로딩 완료 플래그 설정 함수
+      window.setSequentialLoadingComplete = (value) => {
+        sequentialLoadingComplete = value;
+      };
+
       // 로딩 화면 숨기기 함수
       function hideLoadingScreen() {
-        const loadingScreen = document.getElementById("loading-screen");
-        if (loadingScreen && loadingAnimationComplete) {
-          debugLog("✅ 로딩 화면 숨김 (모든 데이터 소스 응답 완료)");
-          // 강제로 숨기기
-          loadingScreen.style.display = "none";
-          loadingScreen.style.visibility = "hidden";
-          loadingScreen.style.opacity = "0";
-          loadingScreen.style.pointerEvents = "none";
-          loadingScreen.style.zIndex = "-1";
-          loadingScreen.classList.add("hidden");
-        } else if (loadingScreen) {
-          // 애니메이션 완료를 기다리지 않고 강제로 숨기기
-          debugLog("✅ 로딩 화면 강제 숨김");
-          loadingScreen.style.display = "none";
-          loadingScreen.style.visibility = "hidden";
-          loadingScreen.style.opacity = "0";
-          loadingScreen.style.pointerEvents = "none";
-          loadingScreen.style.zIndex = "-1";
-          loadingScreen.classList.add("hidden");
+        // 순차 로딩이 완료되지 않았으면 로딩 화면을 닫지 않음
+        if (!sequentialLoadingComplete) {
+          debugLog("⏳ 순차 로딩이 완료되지 않아 로딩 화면을 유지합니다.");
+          return;
         }
-        resetAutoReloadState();
+
+        const loadingScreen = document.getElementById("loading-screen");
+        if (loadingScreen) {
+          // 순차 로딩이 완료되었으면 애니메이션 완료 여부와 관계없이 강제로 숨기기
+          debugLog("✅ 로딩 화면 숨김 (순차 로딩 완료)");
+          loadingScreen.style.display = "none";
+          loadingScreen.style.visibility = "hidden";
+          loadingScreen.style.opacity = "0";
+          loadingScreen.style.pointerEvents = "none";
+          loadingScreen.style.zIndex = "-1";
+          loadingScreen.classList.add("hidden");
+          resetAutoReloadState();
+        }
       }
+
+      // window 객체에 노출
+      window.hideLoadingScreen = hideLoadingScreen;
 
       // ===================== 초기화 =====================
       // 페이지 로드 시 초기화
