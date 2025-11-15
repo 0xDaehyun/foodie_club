@@ -299,7 +299,57 @@ const updateLoadingUI = () => {
 };
 
 export function startPublicListeners(USE_DEMO_OFFLINE) {
-  // 재시도 로직을 위한 헬퍼 함수 (0.1초로 변경)
+  // 순차 로딩을 위한 큐
+  const listenerQueue = [];
+  let isProcessing = false;
+
+  // 리스너를 큐에 추가하고 순차적으로 처리
+  const addToQueue = (setupFn, key) => {
+    listenerQueue.push({ setupFn, key });
+    if (!isProcessing) {
+      processQueue();
+    }
+  };
+
+  // 큐에서 하나씩 처리
+  const processQueue = async () => {
+    if (isProcessing || listenerQueue.length === 0) return;
+    isProcessing = true;
+
+    while (listenerQueue.length > 0) {
+      const { setupFn, key } = listenerQueue.shift();
+      await new Promise((resolve) => {
+        console.log(`[순차 로딩] ${key} 데이터 로딩 시작...`);
+        showLoadingIndicator(key);
+        
+        // 리스너 설정 함수를 래핑하여 완료 시 resolve
+        const originalSetupFn = setupFn;
+        const wrappedSetupFn = () => {
+          let resolved = false;
+          const resolveOnce = () => {
+            if (!resolved) {
+              resolved = true;
+              console.log(`[순차 로딩] ${key} 데이터 로딩 완료`);
+              hideLoadingIndicator(key);
+              // 다음 리스너를 위해 약간의 지연
+              setTimeout(resolve, 200);
+            }
+          };
+
+          // 원래 setupFn을 호출하되, 첫 데이터 수신 시 resolve
+          const result = originalSetupFn(resolveOnce);
+          return result;
+        };
+
+        wrappedSetupFn();
+      });
+    }
+
+    isProcessing = false;
+    console.log("[순차 로딩] 모든 데이터 로딩 완료");
+  };
+
+  // 재시도 로직을 위한 헬퍼 함수
   const retryListener = (key, setupFn, delay = 100) => {
     showLoadingIndicator(key);
     return setTimeout(() => {
@@ -311,32 +361,18 @@ export function startPublicListeners(USE_DEMO_OFFLINE) {
     }, delay);
   };
 
-  // 타임아웃 체크를 위한 헬퍼 함수 (0.1초로 변경, 초기 로드 시 즉시 체크)
-  const setupWithTimeout = (key, listenerFn, setupFn, timeoutMs = 100) => {
+  // 타임아웃 체크를 위한 헬퍼 함수 (순차 로딩용)
+  const setupWithTimeout = (key, listenerFn, setupFn, resolveOnce, timeoutMs = 5000) => {
     let hasData = false;
     let isFirstCheck = true;
-    showLoadingIndicator(key);
-    
-    // 초기 로드 즉시 체크 (데이터가 없으면 바로 재시도)
-    const immediateCheck = () => {
-      if (isFirstCheck && !hasData) {
-        isFirstCheck = false;
-        // 데이터가 없으면 타임아웃 없이 즉시 재시도
-        setTimeout(() => {
-          if (!hasData) {
-            console.warn(`${key}: 초기 데이터 로드 실패, 즉시 재시도합니다.`);
-            retryListener(key, setupFn, 0);
-          }
-        }, 0);
-      }
-    };
     
     const timeoutId = setTimeout(() => {
       if (!hasData) {
         console.warn(
-          `${key}: 데이터 로딩 타임아웃 (${timeoutMs}ms), 재시도합니다.`
+          `${key}: 데이터 로딩 타임아웃 (${timeoutMs}ms), 다음으로 진행합니다.`
         );
-        retryListener(key, setupFn, 0);
+        // 타임아웃 시에도 다음으로 진행
+        resolveOnce();
       }
     }, timeoutMs);
 
@@ -345,24 +381,25 @@ export function startPublicListeners(USE_DEMO_OFFLINE) {
         snap &&
         snap.exists !== false &&
         (snap.docs ? snap.docs.length > 0 : true);
-      if (!hasAnyData && isFirstCheck) {
-        immediateCheck();
-        return;
+      
+      if (isFirstCheck) {
+        hasData = true;
+        clearTimeout(timeoutId);
+        isFirstCheck = false;
+        listenerFn(snap);
+        resolveOnce(); // 첫 데이터 수신 시 완료 처리
+      } else {
+        // 이후 업데이트는 그냥 처리
+        listenerFn(snap);
       }
-      hasData = true;
-      clearTimeout(timeoutId);
-      hideLoadingIndicator(key);
-      listenerFn(snap);
     };
-
-    // 초기 체크 실행
-    immediateCheck();
 
     return wrappedListener;
   };
 
+  // 각 리스너를 큐에 추가
   if (!unsubPublic.admins) {
-    const setupAdmins = () => {
+    const setupAdmins = (resolveOnce) => {
       unsubPublic.admins = onSnapshot(
         doc(db, "admins", "list"),
         setupWithTimeout(
@@ -372,19 +409,21 @@ export function startPublicListeners(USE_DEMO_OFFLINE) {
             ensureAdminOptionals();
             scheduleRender();
           },
-          setupAdmins
+          setupAdmins,
+          resolveOnce
         ),
         (err) => {
           console.warn("admins:", err?.message);
           hideLoadingIndicator("admins");
-          retryListener("admins", setupAdmins, 100);
+          resolveOnce(); // 오류 발생 시에도 다음으로 진행
         }
       );
     };
-    setupAdmins();
+    addToQueue(setupAdmins, "admins");
   }
+  
   if (!unsubPublic.signup) {
-    const setupSignup = () => {
+    const setupSignup = (resolveOnce) => {
       unsubPublic.signup = onSnapshot(
         doc(db, "settings", "signup"),
         setupWithTimeout(
@@ -395,19 +434,21 @@ export function startPublicListeners(USE_DEMO_OFFLINE) {
               : { open: false, start: "", end: "" };
             scheduleRender();
           },
-          setupSignup
+          setupSignup,
+          resolveOnce
         ),
         (err) => {
           console.warn("signup:", err?.message);
           hideLoadingIndicator("signup");
-          retryListener("signup", setupSignup, 100);
+          resolveOnce();
         }
       );
     };
-    setupSignup();
+    addToQueue(setupSignup, "signup");
   }
+  
   if (!unsubPublic.dues) {
-    const setupDues = () => {
+    const setupDues = (resolveOnce) => {
       unsubPublic.dues = onSnapshot(
         doc(db, "settings", "dues"),
         setupWithTimeout(
@@ -425,19 +466,21 @@ export function startPublicListeners(USE_DEMO_OFFLINE) {
                 };
             scheduleRender();
           },
-          setupDues
+          setupDues,
+          resolveOnce
         ),
         (err) => {
           console.warn("dues:", err?.message);
           hideLoadingIndicator("dues");
-          retryListener("dues", setupDues, 100);
+          resolveOnce();
         }
       );
     };
-    setupDues();
+    addToQueue(setupDues, "dues");
   }
+  
   if (!unsubPublic.blocks) {
-    const setupBlocks = () => {
+    const setupBlocks = (resolveOnce) => {
       unsubPublic.blocks = onSnapshot(
         query(collection(db, "homepageBlocks"), orderBy("order", "asc")),
         setupWithTimeout(
@@ -450,24 +493,31 @@ export function startPublicListeners(USE_DEMO_OFFLINE) {
             }));
             markDataLoaded("blocks");
             scheduleRender();
-            // 데이터가 비어있으면 즉시 체크
             if (!hasData) {
               setTimeout(() => checkAndRetryEmptyData(), 100);
             }
           },
-          setupBlocks
+          setupBlocks,
+          resolveOnce
         ),
         (err) => {
           console.warn("blocks:", err?.message);
           hideLoadingIndicator("blocks");
-          retryListener("blocks", setupBlocks, 100);
+          resolveOnce();
         }
       );
     };
-    setupBlocks();
+    addToQueue(setupBlocks, "blocks");
   }
+  
   if (!unsubPublic.roadmap) {
-    const setupRoadmap = () => {
+    const setupRoadmap = (resolveOnce) => {
+      if (USE_DEMO_OFFLINE) {
+        state.roadmapData = DEMO.roadmap;
+        scheduleRender();
+        resolveOnce();
+        return;
+      }
       unsubPublic.roadmap = onSnapshot(
         collection(db, "roadmap"),
         setupWithTimeout(
@@ -480,29 +530,29 @@ export function startPublicListeners(USE_DEMO_OFFLINE) {
             }));
             markDataLoaded("roadmap");
             scheduleRender();
-            // 데이터가 비어있으면 즉시 체크
             if (!hasData) {
               setTimeout(() => checkAndRetryEmptyData(), 100);
             }
           },
-          setupRoadmap
+          setupRoadmap,
+          resolveOnce
         ),
         (err) => {
           console.warn("roadmap:", err?.message);
           if (USE_DEMO_OFFLINE) {
             state.roadmapData = DEMO.roadmap;
             scheduleRender();
-          } else {
-            hideLoadingIndicator("roadmap");
-            retryListener("roadmap", setupRoadmap, 100);
           }
+          hideLoadingIndicator("roadmap");
+          resolveOnce();
         }
       );
     };
-    setupRoadmap();
+    addToQueue(setupRoadmap, "roadmap");
   }
+  
   if (!unsubPublic.events) {
-    const setupEvents = () => {
+    const setupEvents = (resolveOnce) => {
       unsubPublic.events = onSnapshot(
         query(collection(db, "events"), orderBy("datetime", "asc")),
         setupWithTimeout(
@@ -515,21 +565,21 @@ export function startPublicListeners(USE_DEMO_OFFLINE) {
             }));
             markDataLoaded("events");
             scheduleRender();
-            // 데이터가 비어있으면 즉시 체크
             if (!hasData) {
               setTimeout(() => checkAndRetryEmptyData(), 100);
             }
           },
-          setupEvents
+          setupEvents,
+          resolveOnce
         ),
         (err) => {
           console.warn("events:", err?.message);
           hideLoadingIndicator("events");
-          retryListener("events", setupEvents, 100);
+          resolveOnce();
         }
       );
     };
-    setupEvents();
+    addToQueue(setupEvents, "events");
   }
 }
 

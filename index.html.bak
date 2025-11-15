@@ -496,7 +496,6 @@
         font-size: 1.8rem;
         font-weight: 800;
         letter-spacing: 2px;
-        color: #f97316;
       }
 
       .loading-subtitle {
@@ -530,8 +529,8 @@
         }
       }
 
-      /* 조모임 버튼 그라데이션 효과 */
-      .rank-button-glow {
+      /* Foodie 로고 그라데이션 효과 */
+      .logo-glow {
         background: linear-gradient(
           135deg,
           #f97316 0%,
@@ -541,26 +540,19 @@
           #f97316 100%
         );
         background-size: 200% 200%;
-        animation: rank-gradient-shift 3s ease infinite;
-        box-shadow: 0 4px 15px rgba(249, 115, 22, 0.4),
-          0 0 10px rgba(249, 115, 22, 0.3),
-          inset 0 1px 0 rgba(255, 255, 255, 0.2);
-        border: none;
+        animation: rank-gradient-shift 3.8s ease infinite;
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent !important;
+        -webkit-text-fill-color: transparent;
+        text-shadow: 0 0 12px rgba(249, 115, 22, 0.35),
+          0 8px 24px rgba(249, 115, 22, 0.25);
       }
 
-      .rank-button-glow:hover {
-        background: linear-gradient(
-          135deg,
-          #ea580c 0%,
-          #f97316 25%,
-          #fb923c 50%,
-          #f97316 75%,
-          #ea580c 100%
-        );
-        background-size: 200% 200%;
-        box-shadow: 0 6px 20px rgba(249, 115, 22, 0.5),
-          0 0 15px rgba(249, 115, 22, 0.4),
-          inset 0 1px 0 rgba(255, 255, 255, 0.3);
+      @supports not ((-webkit-background-clip: text)) {
+        .logo-glow {
+          color: #f97316 !important;
+        }
       }
 
       @keyframes rank-gradient-shift {
@@ -2005,10 +1997,17 @@
             <span class="food-icon">🍕</span>
             <span class="food-icon">🍰</span>
           </div>
-          <div class="loading-logo">Foodie</div>
+          <div class="loading-logo logo-glow">Foodie</div>
           <p class="loading-subtitle">
             맛있는 데이터를 준비하고 있어요.<br />잠시만 기다려주세요!
           </p>
+          <button
+            id="loading-retry-btn"
+            type="button"
+            class="hidden mt-4 inline-flex items-center justify-center px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold rounded-full transition-colors duration-200 shadow-sm"
+          >
+            <i class="fas fa-redo mr-2"></i>다시 시도
+          </button>
         </div>
         <p class="loading-tip">
           연결 상황에 따라 자동으로 새로고침될 수 있습니다.
@@ -2055,7 +2054,7 @@
             <!-- 조모임 순위(모두 보임) -->
             <button
               id="rank-button"
-              class="text-sm md:text-base bg-orange-500 text-white rounded-full px-3 py-1 hover:bg-orange-600 rank-button-glow"
+              class="text-sm md:text-base bg-orange-500 text-white rounded-full px-3 py-1 hover:bg-orange-600 transition-all flex items-center gap-1.5"
               aria-label="조모임 순위 보기"
               title="조모임 순위"
             >
@@ -2112,18 +2111,16 @@
           aria-modal="true"
         >
           <div class="space-y-4" id="my-page-quick-panel">
-            <div class="flex items-start justify-between gap-3">
-              <div>
-                <h3
-                  id="my-page-quick-title"
-                  class="text-base font-bold text-gray-800"
-                >
-                  내 활동 한눈에 보기
-                </h3>
-                <p class="text-xs text-gray-500">
-                  최근 신청 내역과 알림을 빠르게 확인하세요.
-                </p>
-              </div>
+            <div class="text-center">
+              <h3
+                id="my-page-quick-title"
+                class="text-base font-bold text-gray-800"
+              >
+                내 활동 한눈에 보기
+              </h3>
+              <p class="text-xs text-gray-500 mt-1">
+                최근 신청 내역을 빠르게 확인하세요.
+              </p>
             </div>
             <div
               id="my-page-quick-summary"
@@ -2131,33 +2128,6 @@
             >
               <div class="text-center text-gray-500 text-sm py-3">
                 내 활동 정보를 불러오는 중입니다...
-              </div>
-            </div>
-            <div class="border-t border-gray-100 pt-3">
-              <div class="flex items-center justify-between mb-2">
-                <h4
-                  class="text-sm font-semibold text-gray-800 flex items-center gap-2"
-                >
-                  <i class="fas fa-bell text-orange-500"></i>알림
-                </h4>
-                <button
-                  class="text-xs text-blue-600 hover:text-blue-800"
-                  onclick="openInquiryModal()"
-                  aria-label="문의 모달 열기"
-                >
-                  <i class="fas fa-paper-plane mr-1" aria-hidden="true"></i>문의
-                  보내기
-                </button>
-              </div>
-              <div
-                id="notification-list"
-                class="max-h-64 overflow-auto text-sm"
-                role="list"
-                aria-label="알림 목록"
-              >
-                <div class="text-center text-gray-500 py-4">
-                  알림이 없습니다
-                </div>
               </div>
             </div>
           </div>
@@ -2175,9 +2145,7 @@
                 <div class="text-center">
                   <!-- Foodie 로고 -->
                   <div class="mb-4">
-                    <h1
-                      class="text-4xl md:text-5xl font-bold text-gray-800 mb-2"
-                    >
+                    <h1 class="text-4xl md:text-5xl font-bold mb-2 logo-glow">
                       Foodie
                     </h1>
                     <div class="flex justify-center gap-2 mt-2">
@@ -2967,6 +2935,27 @@
             class="input-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 sm:col-span-2"
           />
         </div>
+        <!-- 카카오 연동 버튼 (회원가입 시) -->
+        <div class="mt-4">
+          <button
+            id="signup-kakao-link-btn"
+            type="button"
+            class="w-full px-4 py-2 bg-[#FEE500] hover:bg-[#FDD835] text-gray-900 rounded-lg font-semibold transition-colors flex items-center justify-center"
+          >
+            <svg class="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M12 3c5.799 0 10.5 3.664 10.5 8.185 0 4.52-4.701 8.184-10.5 8.184a13.5 13.5 0 0 1-1.727-.11l-4.408 2.883c-.501.265-.678.236-.472-.413l.892-3.678c-2.88-1.46-4.785-3.99-4.785-6.866C1.5 6.665 6.201 3 12 3z"
+              />
+            </svg>
+            카카오 계정 연동하기
+          </button>
+          <div
+            id="signup-kakao-status"
+            class="hidden mt-2 text-sm text-green-600 bg-green-50 border border-green-200 rounded-lg p-2"
+          >
+            <span id="signup-kakao-status-text"></span>
+          </div>
+        </div>
         <div class="flex gap-2 mt-5">
           <button
             id="signup-confirm-button"
@@ -3053,6 +3042,63 @@
     </div>
 
     <!-- App Script -->
+    <script>
+      // 카카오 로그인 버튼 핸들러 (전역 함수로 등록, main.js 로드 전에도 작동)
+      window.handleKakaoLogin = async function (e) {
+        if (e) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+
+        console.log("카카오 로그인 버튼 클릭됨");
+
+        // 카카오 SDK 초기화 확인
+        if (typeof window.Kakao === "undefined") {
+          alert("카카오 SDK가 로드되지 않았습니다. 페이지를 새로고침해주세요.");
+          return;
+        }
+
+        // 전역 초기화 함수 사용 (중복 초기화 방지)
+        if (window.Kakao.isInitialized()) {
+          console.log("카카오 SDK는 이미 초기화되어 있습니다.");
+        } else if (typeof window.initKakaoSDK === "function") {
+          window.initKakaoSDK();
+        } else {
+          const KAKAO_JS_KEY = "28869968a8cfea9a996172c117d64eb2";
+          if (KAKAO_JS_KEY) {
+            try {
+              window.Kakao.init(KAKAO_JS_KEY);
+              console.log("카카오 SDK 초기화 완료");
+            } catch (error) {
+              console.error("카카오 SDK 초기화 오류:", error);
+              alert("카카오 SDK 초기화에 실패했습니다.");
+              return;
+            }
+          }
+        }
+
+        if (!window.Kakao.isInitialized()) {
+          alert("카카오 SDK 초기화에 실패했습니다.");
+          return;
+        }
+
+        try {
+          // js/auth.js의 loginWithKakao 함수 사용
+          const { loginWithKakao } = await import("./js/auth.js");
+          const ok = await loginWithKakao();
+          if (ok) {
+            // 로그인 성공 시 페이지 새로고침
+            window.location.reload();
+          }
+        } catch (error) {
+          console.error("카카오 로그인 오류:", error);
+          alert(
+            "카카오 로그인 중 오류가 발생했습니다: " + (error.message || error)
+          );
+        }
+      };
+    </script>
+
     <script type="module">
       /* ==== 공용: 데스크톱 DnD + 모바일 화살표 순서 변경 ==== */
       // 전역 유틸 네임스페이스(여러 번 실행돼도 안전)
@@ -3339,7 +3385,61 @@
 
       const updateMyPageQuickSummary = (html) => {
         const summaryEl = document.getElementById("my-page-quick-summary");
-        if (summaryEl) summaryEl.innerHTML = html;
+        if (summaryEl) {
+          summaryEl.innerHTML = html;
+
+          // 카카오 연동 버튼 이벤트 핸들러 연결
+          const quickKakaoLinkBtn = summaryEl.querySelector(
+            "#quick-kakao-link-btn"
+          );
+          if (quickKakaoLinkBtn) {
+            quickKakaoLinkBtn.addEventListener("click", async (e) => {
+              if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+              }
+              try {
+                const { linkKakaoAccount } = await import("./js/auth.js");
+                const success = await linkKakaoAccount();
+                if (success) {
+                  // 성공 시 팝오버 닫고 페이지 새로고침
+                  el.notificationPop?.classList.add("hidden");
+                  setTimeout(() => {
+                    window.location.reload();
+                  }, 500);
+                }
+              } catch (error) {
+                console.error("내 활동 빠른보기 카카오 연동 오류:", error);
+              }
+            });
+          }
+
+          // 카카오 연동 해제 버튼 이벤트 핸들러 연결
+          const quickKakaoUnlinkBtn = summaryEl.querySelector(
+            "#quick-kakao-unlink-btn"
+          );
+          if (quickKakaoUnlinkBtn) {
+            quickKakaoUnlinkBtn.addEventListener("click", async (e) => {
+              if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+              }
+              try {
+                const { unlinkKakaoAccount } = await import("./js/auth.js");
+                const success = await unlinkKakaoAccount();
+                if (success) {
+                  // 성공 시 팝오버 닫고 페이지 새로고침
+                  el.notificationPop?.classList.add("hidden");
+                  setTimeout(() => {
+                    window.location.reload();
+                  }, 500);
+                }
+              } catch (error) {
+                console.error("내 활동 빠른보기 카카오 연동 해지 오류:", error);
+              }
+            });
+          }
+        }
       };
 
       const scrollToMyPageSection = () => {
@@ -3868,6 +3968,46 @@
         const v = Number(n || 0);
         return isNaN(v) ? "" : v.toLocaleString("ko-KR") + "원";
       };
+      const toDateSafe = (value) => {
+        if (!value) return null;
+        if (value instanceof Date) {
+          return Number.isNaN(value.getTime()) ? null : value;
+        }
+        if (
+          typeof value === "object" &&
+          value !== null &&
+          typeof value.toDate === "function"
+        ) {
+          try {
+            const converted = value.toDate();
+            if (
+              converted instanceof Date &&
+              !Number.isNaN(converted.getTime())
+            ) {
+              return converted;
+            }
+          } catch (err) {
+            // ignore conversion errors
+          }
+        }
+        if (typeof value === "number") {
+          const fromNumber = new Date(value);
+          return Number.isNaN(fromNumber.getTime()) ? null : fromNumber;
+        }
+        if (typeof value === "string") {
+          const fromString = new Date(value);
+          return Number.isNaN(fromString.getTime()) ? null : fromString;
+        }
+        return null;
+      };
+      const formatDateTimeForInput = (value) => {
+        const date = toDateSafe(value);
+        if (!date) return "";
+        const pad = (num) => String(num).padStart(2, "0");
+        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
+          date.getDate()
+        )}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+      };
       const timeAgo = (ms) => {
         const diff = (Date.now() - ms) / 1000;
         if (diff < 60) return `${Math.max(0, Math.floor(diff))}초 전`;
@@ -3944,7 +4084,9 @@
             if (subtabContainer && currentDashboardTab) {
               // 현재 열려있는 대시보드 서브탭만 다시 렌더링
               if (currentDashboardTab === "members") {
-                renderMembersAdmin(subtabContainer);
+                import("./js/dashboard.js").then(({ renderMembersAdmin }) => {
+                  renderMembersAdmin(subtabContainer);
+                });
               } else if (currentDashboardTab === "groups") {
                 renderGroupsAdmin(subtabContainer);
               } else {
@@ -3965,6 +4107,232 @@
       const MAX_RETRY_COUNT = 5; // 재시도 횟수 증가
       let dataLoadTimeout = null;
       let forceCheckTimeout = null; // 강제 검증 타임아웃
+      let dataWatchdogTimer = null; // 데이터 응답 감시 타이머
+      let autoReloadTimer = null; // 자동 재접속 타이머
+      const AUTO_RELOAD_INTERVAL_MS = 3000;
+      const AUTO_RELOAD_PARAM = "reloadTs";
+      const INITIAL_LOAD_GRACE_MS = 2000;
+      const MIN_RELOAD_INTERVAL_MS = 1200;
+      const MAX_AUTO_RELOAD_ATTEMPTS = Number.MAX_SAFE_INTEGER;
+      const MAX_RELOAD_BACKOFF_MS = 10000;
+
+      let pageLoadTimestamp = Date.now();
+      let lastReloadTime = 0;
+      let reloadAttempts = 0;
+
+      const normalizeUrlWithoutParam = () => {
+        const [base, hash = ""] = window.location.href.split("#");
+        const url = new URL(base, window.location.origin);
+        url.searchParams.delete(AUTO_RELOAD_PARAM);
+        const normalized = url.toString();
+        return hash ? `${normalized}#${hash}` : normalized;
+      };
+
+      const appendReloadParam = () => {
+        const normalized = normalizeUrlWithoutParam();
+        const [base, hash = ""] = normalized.split("#");
+        const url = new URL(base, window.location.origin);
+        url.searchParams.set(AUTO_RELOAD_PARAM, `${Date.now()}`);
+        const next = url.toString();
+        return hash ? `${next}#${hash}` : next;
+      };
+
+      const forceReload = (reason = "") => {
+        debugLog(`강제 재접속 실행${reason ? ` (${reason})` : ""}`);
+        try {
+          const now = Date.now();
+          lastReloadTime = now;
+          reloadAttempts = Math.min(
+            reloadAttempts + 1,
+            MAX_AUTO_RELOAD_ATTEMPTS + 1
+          );
+
+          const nextUrl = appendReloadParam();
+          if (isKakaoTalkInAppBrowser) {
+            debugLog(`카카오 인앱 브라우저 강제 이동: ${nextUrl}`);
+          }
+          window.location.replace(nextUrl);
+        } catch (reloadError) {
+          debugError("강제 재접속 실패:", reloadError);
+        }
+      };
+
+      const getNetworkCheckUrl = () => {
+        try {
+          const { origin, pathname } = window.location;
+          return `${origin}${pathname}`;
+        } catch (e) {
+          return window.location.href;
+        }
+      };
+
+      const checkNetworkConnectivity = async () => {
+        if (navigator.onLine === false) {
+          return false;
+        }
+        try {
+          await fetch(getNetworkCheckUrl(), {
+            mode: "no-cors",
+            cache: "no-store",
+          });
+          return true;
+        } catch (e) {
+          debugError("네트워크 체크 실패, 재시도 진행:", e);
+          return true;
+        }
+      };
+
+      const stopDataWatchdog = () => {
+        if (dataWatchdogTimer) {
+          clearTimeout(dataWatchdogTimer);
+          dataWatchdogTimer = null;
+        }
+      };
+
+      const startDataWatchdog = () => {
+        if (dataWatchdogTimer) {
+          return;
+        }
+
+        dataWatchdogTimer = setTimeout(async () => {
+          dataWatchdogTimer = null;
+          debugError("⚠️ 데이터 감시 타이머 발동 - 응답 지연");
+          showManualRetryButton();
+
+          const networkOk = await checkNetworkConnectivity();
+          if (!networkOk) {
+            debugLog("네트워크 이상 감지 - 재접속 루프 유지");
+            ensureAutoReconnectLoop(AUTO_RELOAD_INTERVAL_MS);
+            return;
+          }
+
+          forceReload("데이터 감시 타이머");
+        }, 10000);
+      };
+
+      const showManualRetryButton = () => {
+        const btn = document.getElementById("loading-retry-btn");
+        if (btn) {
+          btn.classList.remove("hidden");
+          btn.disabled = false;
+        }
+      };
+
+      const hideManualRetryButton = () => {
+        const btn = document.getElementById("loading-retry-btn");
+        if (btn) {
+          btn.classList.add("hidden");
+          btn.disabled = true;
+        }
+      };
+
+      const stopAutoReconnectLoop = () => {
+        if (autoReloadTimer) {
+          clearTimeout(autoReloadTimer);
+          autoReloadTimer = null;
+        }
+      };
+
+      const resetAutoReloadState = () => {
+        reloadAttempts = 0;
+        lastReloadTime = 0;
+        pageLoadTimestamp = Date.now();
+        stopAutoReconnectLoop();
+        stopDataWatchdog();
+        hideManualRetryButton();
+      };
+
+      const ensureAutoReconnectLoop = (delay = AUTO_RELOAD_INTERVAL_MS) => {
+        if (autoReloadTimer) {
+          if (delay === 0) {
+            clearTimeout(autoReloadTimer);
+            autoReloadTimer = null;
+          } else {
+            return;
+          }
+        }
+
+        autoReloadTimer = setTimeout(async () => {
+          autoReloadTimer = null;
+
+          const loadingScreen = document.getElementById("loading-screen");
+          const stillLoading =
+            loadingScreen &&
+            !loadingScreen.classList.contains("hidden") &&
+            getComputedStyle(loadingScreen).display !== "none";
+
+          if (!stillLoading) {
+            resetAutoReloadState();
+            return;
+          }
+
+          const now = Date.now();
+
+          if (reloadAttempts === 0) {
+            const elapsedSinceLoad = now - pageLoadTimestamp;
+            if (elapsedSinceLoad < INITIAL_LOAD_GRACE_MS) {
+              const wait = Math.max(
+                500,
+                INITIAL_LOAD_GRACE_MS - elapsedSinceLoad
+              );
+              debugLog(
+                `초기 로딩 유예 (${elapsedSinceLoad}ms 경과). ${wait}ms 후 재확인`
+              );
+              ensureAutoReconnectLoop(wait);
+              return;
+            }
+          }
+
+          const elapsedSinceReload = now - lastReloadTime;
+          if (elapsedSinceReload < MIN_RELOAD_INTERVAL_MS) {
+            const wait = MIN_RELOAD_INTERVAL_MS - elapsedSinceReload;
+            debugLog(
+              `재접속 쿨다운 (${elapsedSinceReload}ms). ${wait}ms 후 재시도`
+            );
+            ensureAutoReconnectLoop(wait);
+            return;
+          }
+
+          if (reloadAttempts >= MAX_AUTO_RELOAD_ATTEMPTS) {
+            debugError("자동 재접속 최대 횟수 도달 - 수동 안내 표시");
+            showManualRetryButton();
+            stopAutoReconnectLoop();
+            stopDataWatchdog();
+            return;
+          }
+
+          showManualRetryButton();
+
+          const networkOk = await checkNetworkConnectivity();
+          if (!networkOk) {
+            debugLog("네트워크 연결 불안정 - 재시도 예약");
+            ensureAutoReconnectLoop(AUTO_RELOAD_INTERVAL_MS);
+            return;
+          }
+
+          const nextDelay = Math.min(
+            AUTO_RELOAD_INTERVAL_MS,
+            MAX_RELOAD_BACKOFF_MS
+          );
+
+          forceReload("주기적 재접속");
+          ensureAutoReconnectLoop(nextDelay);
+        }, delay);
+      };
+
+      document.addEventListener("DOMContentLoaded", () => {
+        pageLoadTimestamp = Date.now();
+        reloadAttempts = 0;
+        lastReloadTime = 0;
+        ensureAutoReconnectLoop(AUTO_RELOAD_INTERVAL_MS);
+        const retryBtn = document.getElementById("loading-retry-btn");
+        if (retryBtn) {
+          retryBtn.addEventListener("click", () => {
+            showManualRetryButton();
+            forceReload("사용자 수동 재시도");
+          });
+        }
+      });
 
       // 카카오톡 인앱 브라우저 감지
       const isKakaoTalkInAppBrowser = /KAKAOTALK/i.test(navigator.userAgent);
@@ -3977,6 +4345,7 @@
 
         // 순차적인 로딩 진행률 업데이트
         if (__isInitialLoading) {
+          startDataWatchdog();
           const progressPercentage = Math.min(
             (__loadingDataCount / __expectedDataSources) * 90,
             90
@@ -3987,28 +4356,33 @@
 
           updateLoadingProgress(1, loadingMessage);
 
-          // 타임아웃 초기화
-          if (dataLoadTimeout) {
-            clearTimeout(dataLoadTimeout);
+          // 3초 이내에 로딩이 완료되지 않으면 즉시 재접속
+          if (!dataLoadTimeout) {
+            const loadingTimeout = 3000;
+            debugLog(`로딩 타임아웃 설정: ${loadingTimeout / 1000}초`);
+
+            dataLoadTimeout = setTimeout(() => {
+              const loadingScreen = document.getElementById("loading-screen");
+              const stillLoading =
+                loadingScreen &&
+                !loadingScreen.classList.contains("hidden") &&
+                loadingScreen.style.display !== "none";
+
+              if (stillLoading) {
+                debugError(
+                  `⚠️ 데이터 로딩 시간 초과 (${loadingTimeout / 1000}초)`
+                );
+                debugLog(
+                  `로드된 데이터: ${__loadingDataCount}/${__expectedDataSources}`
+                );
+                ensureAutoReconnectLoop();
+                forceReload("로딩 타임아웃");
+              } else {
+                debugLog("로딩 화면이 이미 숨겨져 재접속을 건너뜁니다.");
+              }
+              dataLoadTimeout = null;
+            }, loadingTimeout);
           }
-
-          // 30초 타임아웃 (10회 재시도 20초 + 여유)
-          const loadingTimeout = 30000;
-          debugLog(`로딩 타임아웃 설정: ${loadingTimeout / 1000}초`);
-
-          // 타임아웃 안에 로딩이 완료되지 않으면 재접속
-          dataLoadTimeout = setTimeout(() => {
-            if (__isInitialLoading) {
-              debugError(
-                `⚠️ 데이터 로딩 시간 초과 (${loadingTimeout / 1000}초)`
-              );
-              debugLog(
-                `로드된 데이터: ${__loadingDataCount}/${__expectedDataSources}`
-              );
-              // 즉시 재접속
-              location.reload();
-            }
-          }, loadingTimeout);
 
           if (__loadingDataCount >= __expectedDataSources) {
             debugLog("모든 데이터 소스 카운트 완료. 데이터 검증 시작...");
@@ -4017,7 +4391,9 @@
             // 타임아웃 클리어
             if (dataLoadTimeout) {
               clearTimeout(dataLoadTimeout);
+              dataLoadTimeout = null;
             }
+            resetAutoReloadState();
 
             // 데이터 완전 로드 확인 (로딩 화면은 verifyAllDataLoaded에서만 숨김)
             // __isInitialLoading은 verifyAllDataLoaded에서 실제로 데이터가 확인될 때 false로 설정
@@ -4043,6 +4419,9 @@
                 if (hasCriticalData) {
                   __isInitialLoading = false;
                   hideLoadingScreen();
+                  stopDataWatchdog();
+                  resetAutoReloadState();
+                  hideManualRetryButton();
                 }
               }
             }, 5000); // 5초 후 강제 검증
@@ -4145,7 +4524,9 @@
               updateLoadingProgress(95, "데이터 로드 실패. 재접속 중...");
               // 1초 후 자동 재접속
               setTimeout(() => {
-                location.reload();
+                showManualRetryButton();
+                ensureAutoReconnectLoop(MIN_RELOAD_INTERVAL_MS);
+                forceReload("데이터 확인 실패");
               }, 1000);
             }
           }
@@ -4379,9 +4760,6 @@
           );
           ensureAdminOptionals();
 
-          // 로그인 성공 시 버튼 가시성 업데이트
-          updateGameButtonsVisibility();
-
           renderAll();
         } catch (e) {
           debugWarn(e);
@@ -4399,9 +4777,6 @@
           myProfileLoading = false;
           await signOut(auth);
           clearAutoCloseScheduler();
-
-          // 로그아웃 시 버튼 가시성 업데이트
-          updateGameButtonsVisibility();
 
           // 로딩 화면 표시 및 "잘 먹었습니다" 메시지
           const loadingScreen = document.getElementById("loading-screen");
@@ -4471,8 +4846,6 @@
           } catch {}
           ensureAdminOptionals();
 
-          // 자동 로그인 성공 시 버튼 가시성 업데이트
-          updateGameButtonsVisibility();
         } catch {}
       }
 
@@ -4557,25 +4930,6 @@
           : `<div class="text-gray-400">지금은 접속자가 없습니다.</div>`;
       }
 
-      function updateGameButtonsVisibility() {
-        const gameButtonsContainer = document.getElementById(
-          "game-buttons-container"
-        );
-        const headerFoodBtn = document.getElementById("header-food-btn");
-
-        if (!gameButtonsContainer) return;
-
-        // currentUser가 있으면 로그인 상태, 없으면 로그아웃 상태
-        if (currentUser) {
-          // 로그인 상태: 버튼 표시
-          gameButtonsContainer.classList.remove("hidden");
-          if (headerFoodBtn) headerFoodBtn.classList.remove("hidden");
-        } else {
-          // 로그아웃 상태: 버튼 숨김
-          gameButtonsContainer.classList.add("hidden");
-          if (headerFoodBtn) headerFoodBtn.classList.add("hidden");
-        }
-      }
       document.addEventListener("click", (e) => {
         if (
           !e.target.closest("#presence-badge") &&
@@ -5370,9 +5724,8 @@
           clearAutoCloseScheduler();
         }
 
-        // 게임 점수 데이터 로드 (모든 로그인 사용자)
+        // 조모임 데이터 로드
         if (currentUser) {
-          loadGameScores();
           loadGroupsData();
         }
       }
@@ -5466,6 +5819,57 @@
           document
             .getElementById("signup-confirm-button")
             .addEventListener("click", () => confirmSignup(false));
+
+          // 회원가입 모달의 카카오 연동 버튼
+          const signupKakaoLinkBtn = document.getElementById(
+            "signup-kakao-link-btn"
+          );
+          if (signupKakaoLinkBtn) {
+            signupKakaoLinkBtn.addEventListener("click", async () => {
+              try {
+                const { linkKakaoAccount } = await import("./js/auth.js");
+                const success = await linkKakaoAccount();
+                if (success) {
+                  // 회원가입 모달에서 카카오 연동 정보 가져오기
+                  const { setSignupKakaoInfo } = await import("./js/signup.js");
+                  const userInfo = await new Promise((resolve, reject) => {
+                    if (typeof Kakao === "undefined" || !Kakao.API) {
+                      reject(new Error("Kakao SDK not loaded"));
+                      return;
+                    }
+                    Kakao.API.request({
+                      url: "/v2/user/me",
+                      success: (res) => resolve(res),
+                      fail: (err) => reject(err),
+                    });
+                  });
+                  setSignupKakaoInfo({
+                    id: userInfo.id,
+                    nickname: userInfo.kakao_account?.profile?.nickname || null,
+                    profileImage:
+                      userInfo.kakao_account?.profile?.profile_image_url ||
+                      null,
+                  });
+                }
+              } catch (error) {
+                console.error("회원가입 카카오 연동 오류:", error);
+              }
+            });
+          }
+
+          // 내 활동 섹션의 카카오 연동 버튼 핸들러
+          window.handleKakaoLinkFromActivity = async function (e) {
+            if (e) {
+              e.preventDefault();
+              e.stopPropagation();
+            }
+            try {
+              const { linkKakaoAccount } = await import("./js/auth.js");
+              await linkKakaoAccount();
+            } catch (error) {
+              console.error("내 활동 카카오 연동 오류:", error);
+            }
+          };
           document
             .getElementById("dues-proceed-button")
             .addEventListener("click", () => {
@@ -5585,28 +5989,7 @@
                   : ""
               }
               
-              ${
-                isOnline && noDataLoaded
-                  ? `
-              <!-- 데이터 로드 실패 경고 -->
-              <div class="bg-yellow-50 border-2 border-yellow-300 rounded-xl p-4 md:p-5 mb-4 md:mb-6">
-                <div class="flex items-start gap-3">
-                  <div class="flex-shrink-0">
-                    <i class="fas fa-exclamation-triangle text-yellow-600 text-2xl"></i>
-                  </div>
-                  <div class="flex-1">
-                    <h3 class="text-base md:text-lg font-bold text-yellow-900 mb-2">
-                      데이터를 불러오지 못했습니다
-                    </h3>
-                    <p class="text-sm md:text-base text-yellow-800 leading-relaxed mb-3">
-                      서버 연결에 문제가 있을 수 있습니다. 잠시 후 자동으로 재시도됩니다.
-                    </p>
-                  </div>
-                </div>
-              </div>
-              `
-                  : ""
-              }
+              ${""}
               
               ${
                 isPendingMember
@@ -5863,7 +6246,6 @@
           // 로그아웃 상태에서는 renderRoadmap() 호출하지 않음 (블록 시스템으로 대체)
           renderBlocks();
           updateSignupUI();
-          updateGameButtonsVisibility();
         }
         document.getElementById("rank-close").addEventListener("click", () => {
           document.getElementById("rank-modal").classList.add("hidden");
@@ -6343,7 +6725,7 @@
             }">
                       ${getBlockAdminButtons(b)}
                       <div class="accordion-header cursor-pointer p-3 md:p-4 lg:p-6">
-                        <div class="flex flex-col gap-2">
+                    <div class="flex flex-col gap-2 w-full">
                           <div class="flex items-center justify-between w-full">
                             <h3 class="text-base md:text-lg lg:text-xl font-bold text-gray-700 break-words flex-1 min-w-0 pr-2"><i class="fas fa-map-signs mr-2 text-orange-500 flex-shrink-0"></i><span class="break-words">${saf(
                               b.title || "로드맵"
@@ -7986,7 +8368,7 @@
                         <i class="fas fa-calendar-check text-orange-600 text-base"></i>
                         <span class="text-sm font-bold text-gray-900">이벤트 실시일</span>
                       </div>
-                      <p class="text-base text-gray-800 ml-6">${
+                      <p class="text-base text-gray-800">${
                         ev.datetime
                           ? new Date(ev.datetime).toLocaleString("ko-KR", {
                               year: "numeric",
@@ -8003,7 +8385,7 @@
                         <i class="fas fa-clock text-red-600 text-base"></i>
                         <span class="text-sm font-bold text-gray-900">신청 마감일</span>
                       </div>
-                      <p class="text-base text-gray-800 ml-6">${
+                      <p class="text-base text-gray-800">${
                         ev.deadline
                           ? new Date(ev.deadline).toLocaleString("ko-KR", {
                               year: "numeric",
@@ -8144,10 +8526,37 @@
             </div>`;
       }
       function tastingCardHTML(ev) {
-        const list = (ev.restaurants || [])
+        const restaurantsSorted = (ev.restaurants || [])
+          .slice()
+          .sort((a, b) => {
+            const aCapRaw = a.capacity ?? ev.limit ?? 0;
+            const bCapRaw = b.capacity ?? ev.limit ?? 0;
+            const aCap =
+              Number.isFinite(Number(aCapRaw)) && Number(aCapRaw) > 0
+                ? Number(aCapRaw)
+                : 0;
+            const bCap =
+              Number.isFinite(Number(bCapRaw)) && Number(bCapRaw) > 0
+                ? Number(bCapRaw)
+                : 0;
+            const aCnt = (a.reservations || []).length;
+            const bCnt = (b.reservations || []).length;
+            const aAvailable = aCap === 0 || aCnt < aCap;
+            const bAvailable = bCap === 0 || bCnt < bCap;
+            if (aAvailable === bAvailable) return 0;
+            return aAvailable ? -1 : 1;
+          });
+
+        const list = restaurantsSorted
           .map((r) => {
-            const cap = r.capacity ?? ev.limit ?? 0;
+            const rawCapacity = r.capacity ?? ev.limit ?? 0;
+            const capNumber = Number(rawCapacity);
+            const cap =
+              Number.isFinite(capNumber) && capNumber > 0 ? capNumber : 0;
             const cnt = (r.reservations || []).length;
+            const spotsRemaining = cap > 0 ? Math.max(cap - cnt, 0) : null;
+            const isNearlyFull =
+              spotsRemaining !== null && spotsRemaining === 1;
             const mine = (r.reservations || [])
               .concat(r.waiting || [])
               .some((p) => p.studentId === currentUser?.studentId);
@@ -8236,20 +8645,26 @@
               const items = list
                 .slice()
                 .reverse()
-                .map(
-                  (a) =>
-                    `<span class="${bgColor} ${textColor} px-2 py-1 rounded-full text-xs flex items-center gap-1">
-                    <span class="text-xs">${saf(a.name)}</span>
+                .map((entry, index, arr) => {
+                  const waitPositionLabel =
+                    type === "waiting"
+                      ? `<span class="inline-flex items-center justify-center bg-white/40 border border-white/60 text-[10px] font-semibold px-1.5 py-0.5 rounded-full text-orange-900">대기 ${
+                          arr.length - index
+                        }번</span>`
+                      : "";
+                  return `<span class="${bgColor} ${textColor} px-2 py-1 rounded-full text-xs flex items-center gap-1">
+                    ${waitPositionLabel}
+                    <span class="text-xs">${saf(entry.name)}</span>
                     <span class="${textColor} font-mono text-xs">(${maskStudentId(
-                      a.studentId
-                    )})</span>
+                    entry.studentId
+                  )})</span>
                     ${
                       isFullAdmin()
-                        ? `<button class="ml-1 text-red-600 hover:text-red-800 transition-colors" onclick="confirmRemoveParticipant('${ev.id}', '${a.studentId}', '${type}', '${restaurantId}')" title="참가자 제외"><i class="fas fa-times"></i></button>`
+                        ? `<button class="ml-1 text-red-600 hover:text-red-800 transition-colors" onclick="confirmRemoveParticipant('${ev.id}', '${entry.studentId}', '${type}', '${restaurantId}')" title="참가자 제외"><i class="fas fa-times"></i></button>`
                         : ""
                     }
-                  </span>`
-                );
+                  </span>`;
+                });
 
               if (items.length === 0) return "";
 
@@ -8387,39 +8802,47 @@
                   </div>`
                 : "";
             return `
-              <div class="restaurant-card border-2 border-orange-200/70 rounded-3xl bg-white/95 shadow-sm hover:shadow-lg transition-all duration-300 p-5 space-y-4">
-                <div class="flex flex-col lg:flex-row lg:items-stretch gap-5">
-                    ${
-                      r.imageUrl
-                        ? `<div class="w-full lg:w-48 flex-shrink-0">
-                              <img src="${saf(r.imageUrl)}" alt="${saf(
-                            r.name
-                          )}" class="w-full h-40 object-cover rounded-2xl border border-orange-100" onerror="this.style.display='none'">
-                            </div>`
-                        : ""
-                    }
-                  <div class="flex-1 min-w-0 space-y-3">
-                      <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 w-full">
-                      <div class="space-y-1">
-                        <div class="flex items-center gap-2 flex-wrap">
-                          <h4 class="font-bold text-lg ${
-                            cnt >= cap && cap > 0
-                              ? "text-gray-400 line-through decoration-2 decoration-red-400"
-                              : "text-gray-900"
-                          }">${saf(r.name)}</h4>
-                          ${
-                            cnt >= cap && cap > 0
-                              ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-100 text-red-600 text-[11px] font-semibold">
-                                  <i class="fas fa-ban text-xs"></i>마감
-                                </span>`
-                              : ""
-                          }
-                        </div>
-                        <p class="text-sm text-gray-600 mt-1">${saf(
-                          r.info || "세부 정보가 아직 없습니다."
-                        )}</p>
-                    </div>
-                      <div class="hidden lg:flex flex-col items-end gap-1 text-xs text-gray-500">
+              <div class="restaurant-card border-2 border-orange-200/70 rounded-3xl bg-white/95 shadow-sm hover:shadow-lg transition-all duration-300 p-5 space-y-4 w-full">
+                <div class="flex flex-col gap-5">
+                  ${
+                    r.imageUrl
+                      ? `<div class="w-full">
+                          <img src="${saf(r.imageUrl)}" alt="${saf(
+                          r.name
+                        )}" class="w-full h-40 object-cover rounded-2xl border border-orange-100" onerror="this.style.display='none'">
+                        </div>`
+                      : ""
+                  }
+                  <div class="flex flex-col gap-3">
+                    <div class="space-y-2">
+                      <div class="flex items-center gap-2 flex-wrap">
+                        <h4 class="font-bold text-lg ${
+                          cnt >= cap && cap > 0
+                            ? "text-gray-400 line-through decoration-2 decoration-red-400"
+                            : "text-gray-900"
+                        } flex items-center gap-2">${saf(r.name)}
+                        ${
+                          isNearlyFull && cnt < cap
+                            ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-semibold rounded-full bg-red-500/10 text-red-600 border border-red-200">
+                                <i class="fas fa-fire text-red-500"></i>마감 임박!
+                              </span>`
+                            : ""
+                        }
+                        </h4>
+                        ${
+                          cnt >= cap && cap > 0
+                            ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-100 text-red-600 text-[11px] font-semibold">
+                                <i class="fas fa-ban text-xs"></i>마감
+                              </span>`
+                            : ""
+                        }
+                      </div>
+                      <p class="text-sm mt-1 ${
+                        cnt >= cap && cap > 0
+                          ? "text-gray-400 line-through decoration-2 decoration-red-300"
+                          : "text-gray-600"
+                      }">${saf(r.info || "세부 정보가 아직 없습니다.")}</p>
+                      <div class="flex flex-wrap items-center gap-2 text-xs text-gray-500">
                         <span class="px-2 py-1 rounded-full bg-orange-50 border border-orange-200 font-semibold text-gray-800">
                           정원 ${cnt}/${cap}
                         </span>
@@ -8431,27 +8854,23 @@
                               </span>`
                             : ""
                         }
-                    </div>
+                      </div>
                     </div>
                     ${
                       currentUser
                         ? `
-                    ${namesList}
-                    ${waitingList}
+                      ${namesList}
+                      ${waitingList}
                     `
                         : ""
                     }
                   </div>
-                  <div class="w-full lg:w-64 flex flex-col gap-2">
-                    <div class="lg:hidden flex items-center justify-between text-xs text-gray-600 bg-orange-50 border border-orange-100 px-3 py-2 rounded-xl">
-                      <span>정원</span>
-                      <span class="font-semibold text-gray-800">${cnt}/${cap}명</span>
-                    </div>
+                  <div class="flex flex-col gap-2">
                     ${btn}
                     ${getCancelNotice()}
                   </div>
-                    </div>
-                  </div>`;
+                </div>
+              </div>`;
           })
           .join("");
         const isAdmin =
@@ -8522,7 +8941,7 @@
                     </div>
                     
                     <div class="p-4">
-                      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">${list}</div>
+                      <div class="flex flex-col gap-4 w-full">${list}</div>
                       
                       <div class="mt-4 pt-3 border-t border-gray-100">
                         <div class="flex justify-between items-center">
@@ -8797,6 +9216,7 @@
               myEntry: null,
               waitPosition: null,
               restaurantInfo: null,
+              restaurantId: null,
               applicantCount: (ev.applicants || []).length,
               waitingCount: (ev.waiting || []).length,
             };
@@ -8812,6 +9232,12 @@
 
           if (ev.type === "tasting" && Array.isArray(ev.restaurants)) {
             for (const restaurant of ev.restaurants) {
+              const restaurantId =
+                restaurant.id ||
+                restaurant.rid ||
+                restaurant.restaurantId ||
+                restaurant.name ||
+                "";
               const reservations = restaurant.reservations || [];
               const waitings = restaurant.waiting || [];
               const reservationIndex = reservations.findIndex(
@@ -8822,6 +9248,7 @@
                 restaurantName = restaurant.name || "";
                 myEntry = reservations[reservationIndex];
                 restaurantInfo = {
+                  id: restaurantId || null,
                   name: restaurant.name || "",
                   capacity: restaurant.capacity ?? reservations.length,
                   reservations: reservations.length,
@@ -8846,6 +9273,7 @@
                 waitPosition = waitingIndex + 1;
                 myEntry = waitings[waitingIndex];
                 restaurantInfo = {
+                  id: restaurantId || null,
                   name: restaurant.name || "",
                   capacity: restaurant.capacity ?? reservations.length,
                   reservations: reservations.length,
@@ -8920,6 +9348,7 @@
             myEntry,
             waitPosition,
             restaurantInfo,
+            restaurantId: restaurantInfo?.id || null,
             applicantCount: (ev.applicants || []).length,
             waitingCount: (ev.waiting || []).length,
           };
@@ -8991,6 +9420,7 @@
             icon: "fa-calendar-alt",
             label: "이벤트 날짜",
             value: formatDateTime(ev.datetime),
+            fullWidth: true,
           });
           if (participation.waitPosition) {
             detailItems.push({
@@ -9031,16 +9461,17 @@
           const detailGridHTML = detailItems.length
             ? `<div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-gray-600 w-full">
                 ${detailItems
-                  .map(
-                    (item) => `
-                  <div class="flex items-start gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 w-full">
+                  .map((item) => {
+                    const spanClass = item.fullWidth ? "sm:col-span-2" : "";
+                    return `
+                  <div class="${spanClass} flex items-start gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 w-full">
                     <i class="fas ${item.icon} text-slate-500 mt-0.5"></i>
-                    <div>
+                    <div class="flex-1">
                       <div class="text-[11px] text-slate-500">${item.label}</div>
                       <div class="font-semibold text-slate-800 leading-snug">${item.value}</div>
                     </div>
-                  </div>`
-                  )
+                  </div>`;
+                  })
                   .join("")}
               </div>`
             : "";
@@ -9066,49 +9497,55 @@
               <i class="fas fa-info-circle mr-1"></i>상세 보기
             </button>`;
 
+          const statusChipsHTML = `
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full ${
+                meta.chipClass
+              }">
+                ${meta.label}
+              </span>
+              ${
+                statusLabel
+                  ? `<span class="text-[11px] font-semibold px-2 py-0.5 rounded-full ${statusClass}">
+                      ${statusLabel}
+                    </span>`
+                  : ""
+              }
+              ${
+                reviewEntry
+                  ? '<span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700 flex items-center gap-1"><i class="fas fa-star text-yellow-500"></i>작성</span>'
+                  : '<span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 flex items-center gap-1"><i class="fas fa-star"></i>미작성</span>'
+              }
+            </div>
+          `;
+
           return `
             <div class="${containerClass}">
-              <div class="flex items-start gap-3">
-                <div class="w-11 h-11 rounded-2xl bg-orange-100 flex items-center justify-center text-2xl">
-                  ${meta.icon}
+              <div class="flex flex-col gap-2">
+                <div class="flex items-center gap-3">
+                  <div class="w-11 h-11 rounded-2xl bg-orange-100 flex items-center justify-center text-2xl flex-shrink-0">
+                    ${meta.icon}
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <h5 class="text-base font-bold text-gray-900 leading-tight truncate">
+                      ${saf(primaryTitle)}
+                    </h5>
+                    ${
+                      subtitleTitle
+                        ? `<p class="text-xs text-gray-500 truncate mt-0.5">${saf(
+                            subtitleTitle
+                          )}</p>`
+                        : ""
+                    }
+                  </div>
                 </div>
-                <div class="flex-1 min-w-0 space-y-1">
-              <div class="flex flex-wrap items-center gap-2">
-                <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full ${
-                  meta.chipClass
-                }">
-                  ${meta.label}
-                </span>
-                ${
-                  statusLabel
-                    ? `<span class="text-[11px] font-semibold px-2 py-0.5 rounded-full ${statusClass}">
-                        ${statusLabel}
-                      </span>`
-                    : ""
-                }
-                ${
-                  reviewEntry
-                    ? '<span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700 flex items-center gap-1"><i class="fas fa-star text-yellow-500"></i>작성</span>'
-                    : '<span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 flex items-center gap-1"><i class="fas fa-star"></i>미작성</span>'
-                }
+                ${statusChipsHTML}
+                ${detailGridHTML}
+                <div class="flex flex-wrap items-center justify-end gap-2 pt-1">
+                  ${detailButtonHTML}
+                  ${reviewButtonHTML}
+                </div>
               </div>
-                  <h5 class="text-base font-bold text-gray-900 truncate">${saf(
-                    primaryTitle
-                  )}</h5>
-                  ${
-                    subtitleTitle
-                      ? `<p class="text-xs text-gray-500">${saf(
-                          subtitleTitle
-                        )}</p>`
-                      : ""
-                  }
-                  ${detailGridHTML}
-                                      </div>
-                                    </div>
-              <div class="flex flex-wrap items-center justify-end gap-2 pt-1">
-                ${detailButtonHTML}
-                ${reviewButtonHTML}
-                                  </div>
             </div>
           `;
         };
@@ -9263,7 +9700,7 @@
                   <i class="fas fa-circle-user text-blue-600"></i>내 활동
                 </h3>
                 <p class="text-sm text-blue-700">
-                  최근 신청한 활동 한 건만 먼저 보여드릴게요. 나머지는 클릭해서 확인하세요.
+                  최근 신청한 활동
                 </p>
               </div>
               <div class="flex items-center gap-2 text-xs text-blue-700 flex-wrap">
@@ -9297,7 +9734,7 @@
               const participation = getParticipationDetails(latestEvent);
               return `
                 <div class="rounded-2xl border border-blue-100 bg-blue-50/70 px-3 py-3 space-y-2">
-                  <div class="flex items-center justify-between gap-2">
+                  <div class="flex items-center justify-center gap-2">
                     <div class="font-semibold text-gray-800 truncate">
                       ${saf(latestEvent.title || "최근 신청한 활동")}
                     </div>
@@ -9307,7 +9744,7 @@
                       ${meta.label}
                     </span>
                   </div>
-                  <div class="flex flex-wrap items-center gap-2 text-[11px] text-gray-600">
+                  <div class="flex flex-wrap items-center justify-center gap-2 text-[11px] text-gray-600">
                     <span><i class="fas fa-calendar-day text-blue-500 mr-1"></i>${formatDateTime(
                       latestEvent.datetime
                     )}</span>
@@ -9326,7 +9763,7 @@
                   </div>
                   ${
                     participation.companionsLine
-                      ? `<p class="text-[11px] text-gray-500 leading-relaxed">${participation.companionsLine}</p>`
+                      ? `<p class="text-[11px] text-gray-500 leading-relaxed text-center">${participation.companionsLine}</p>`
                       : ""
                   }
                                 </div>
@@ -9338,28 +9775,73 @@
             </div>
           `;
 
+        // 카카오 연동 상태 확인
+        const kakaoUserId = currentUser?.kakaoUserId;
+        const hasKakaoAccount =
+          kakaoUserId !== undefined &&
+          kakaoUserId !== null &&
+          kakaoUserId !== "" &&
+          kakaoUserId !== 0 &&
+          !(typeof kakaoUserId === "string" && kakaoUserId.trim() === "");
+
         const quickSummaryHTML = currentUser
           ? `
-          <div class="space-y-3 text-sm">
+          <div class="space-y-3 text-sm text-center">
             <div class="rounded-2xl border border-orange-100 bg-white px-4 py-3 shadow-sm">
-              <div class="flex items-center justify-between gap-2">
-                <div>
-                  <div class="flex items-center gap-2">
-                    <span class="font-semibold text-gray-900">${saf(
-                      currentUser.name || ""
-                    )}</span>
-                    <span class="text-[11px] px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 font-semibold">
-                      ${saf(currentUser.position || "일반 회원")}
-                    </span>
-                  </div>
-                  <p class="text-xs text-gray-500 mt-0.5">
-                    ${saf(currentUser.studentId || "-")}${
+              <div class="flex flex-col items-center gap-2">
+                <div class="flex flex-wrap items-center justify-center gap-2">
+                  <span class="font-semibold text-gray-900">${saf(
+                    currentUser.name || ""
+                  )}</span>
+                  <span class="text-[11px] px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 font-semibold">
+                    ${saf(currentUser.position || "일반 회원")}
+                  </span>
+                  ${
+                    hasKakaoAccount
+                      ? `<span class="text-[11px] px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700 font-semibold flex items-center gap-1">
+                          <i class="fas fa-check-circle text-yellow-600"></i>카카오 연동
+                        </span>`
+                      : ""
+                  }
+                </div>
+                <p class="text-xs text-gray-500">
+                  ${saf(currentUser.studentId || "-")}${
               profile.department ? ` · ${saf(profile.department)}` : ""
             }
-                  </p>
-                </div>
+                </p>
               </div>
-              <div class="flex flex-wrap items-center gap-2 text-[11px] text-gray-600 mt-2">
+              ${
+                !hasKakaoAccount
+                  ? `<div class="mt-3 pt-3 border-t border-orange-100">
+                      <button
+                        id="quick-kakao-link-btn"
+                        type="button"
+                        class="w-full px-3 py-2 bg-[#FEE500] hover:bg-[#FDD835] text-gray-900 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center text-xs shadow-sm hover:shadow-md"
+                      >
+                        <svg
+                          class="w-4 h-4 mr-2"
+                          viewBox="0 0 24 24"
+                          fill="currentColor"
+                        >
+                          <path
+                            d="M12 3c5.799 0 10.5 3.664 10.5 8.185 0 4.52-4.701 8.184-10.5 8.184a13.5 13.5 0 0 1-1.727-.11l-4.408 2.883c-.501.265-.678.236-.472-.413l.892-3.678c-2.88-1.46-4.785-3.99-4.785-6.866C1.5 6.665 6.201 3 12 3z"
+                          />
+                        </svg>
+                        카카오 계정 연동하기
+                      </button>
+                    </div>`
+                  : `<div class="mt-3 pt-3 border-t border-orange-100">
+                      <button
+                        id="quick-kakao-unlink-btn"
+                        type="button"
+                        class="w-full px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-semibold transition-all duration-200 flex items-center justify-center text-xs shadow-sm hover:shadow-md"
+                      >
+                        <i class="fas fa-unlink mr-2"></i>
+                        카카오 계정 연동 해지하기
+                      </button>
+                    </div>`
+              }
+              <div class="flex flex-wrap items-center justify-center gap-2 text-[11px] text-gray-600 mt-2">
                 <span class="px-2 py-1 bg-orange-50 rounded-full border border-orange-200 font-semibold">
                   총 ${stats.total}회 참여
                 </span>
@@ -9376,7 +9858,7 @@
                       <div class="font-semibold text-gray-800 truncate">
                         다음 일정: ${saf(nextUpcoming.title || "예정된 활동")}
                       </div>
-                      <div class="flex items-center gap-1 text-[11px] text-gray-500 mt-0.5">
+                      <div class="flex items-center justify-center gap-1 text-[11px] text-gray-500 mt-0.5">
                         <i class="fas fa-clock text-orange-500"></i>${formatDateTime(
                           nextUpcoming.datetime
                         )}
@@ -9385,7 +9867,9 @@
                   : ""
               }
             </div>
-            ${quickEventSummaryHTML}
+            <div class="text-center">
+              ${quickEventSummaryHTML}
+            </div>
           </div>
         `
           : `<div class="text-center text-gray-500 text-sm py-3">
@@ -10464,7 +10948,9 @@
           );
           showAlert("🗑️", "신청 취소됨");
         } catch (e) {
-          if (e?.code === "resource-exhausted")
+          if (e?.message === "cancelled-by-user") {
+            showToast("신청을 유지했습니다.");
+          } else if (e?.code === "resource-exhausted")
             showAlert(
               "😥",
               "요청이 너무 많아 잠시 후 다시 시도해주세요.<br>불편을 드려 죄송합니다."
@@ -10623,6 +11109,86 @@
       }
       async function cancelTasting(id, rid) {
         if (!currentUser) return;
+
+        const confirmModalHTML = `
+          <div class="fixed inset-0 bg-black/60 flex items-center justify-center z-[9999] px-4" id="cancel-tasting-confirm">
+            <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 space-y-4">
+              <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center text-2xl">⚠️</div>
+                <div>
+                  <h3 class="text-lg font-bold text-gray-900">신청 취소 전 확인해주세요</h3>
+                  <p class="text-sm text-gray-500">신청을 취소하면 대기자 명단의 첫 번째 회원이 자동으로 참가자로 이동합니다.</p>
+                </div>
+              </div>
+              <div class="bg-orange-50 border border-orange-200 rounded-xl p-3 text-xs text-orange-800 leading-relaxed">
+                <ul class="list-disc pl-4 space-y-1">
+                  <li>취소 후에는 되돌릴 수 없습니다.</li>
+                  <li>대기자가 없으면 자리만 비워집니다.</li>
+                  <li>다시 신청하려면 정원이 남아 있어야 합니다.</li>
+                </ul>
+              </div>
+              <div class="flex flex-col sm:flex-row gap-2">
+                <button type="button" class="flex-1 px-4 py-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-100 transition-colors" data-cancel-action="keep">
+                  신청 유지
+                </button>
+                <button type="button" class="flex-1 px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors font-semibold" data-cancel-action="confirm">
+                  신청 취소
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+
+        const existingModal = document.getElementById("cancel-tasting-confirm");
+        if (existingModal) existingModal.remove();
+        document.body.insertAdjacentHTML("beforeend", confirmModalHTML);
+
+        const modal = document.getElementById("cancel-tasting-confirm");
+        const keepBtn = modal?.querySelector('[data-cancel-action="keep"]');
+        const confirmBtn = modal?.querySelector(
+          '[data-cancel-action="confirm"]'
+        );
+
+        const cleanupModal = () => {
+          if (modal) modal.remove();
+        };
+
+        await new Promise((resolve, reject) => {
+          if (!modal || !keepBtn || !confirmBtn) {
+            cleanupModal();
+            reject(new Error("confirmation modal failed"));
+            return;
+          }
+
+          const handleKeep = () => {
+            cleanupModal();
+            reject(new Error("cancelled-by-user"));
+          };
+
+          const handleConfirm = () => {
+            cleanupModal();
+            resolve();
+          };
+
+          keepBtn.addEventListener("click", handleKeep, { once: true });
+          confirmBtn.addEventListener("click", handleConfirm, { once: true });
+
+          modal.addEventListener(
+            "click",
+            (e) => {
+              if (e.target === modal) {
+                cleanupModal();
+                reject(new Error("cancelled-by-user"));
+              }
+            },
+            { once: true }
+          );
+        }).catch((error) => {
+          if (error?.message !== "cancelled-by-user") {
+            console.error("취소 확인 오류:", error);
+          }
+          throw error;
+        });
 
         // 중복 클릭 방지
         const requestKey = `cancel-tasting-${id}-${rid}`;
@@ -15793,7 +16359,9 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                 ".subtab-btn.bg-gray-800"
               );
               if (activeTab && activeTab.dataset.sub === "members") {
-                renderMembersAdmin(subtabContainer);
+                import("./js/dashboard.js").then(({ renderMembersAdmin }) => {
+                  renderMembersAdmin(subtabContainer);
+                });
               }
             }
           } catch (error) {
@@ -15968,9 +16536,11 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
         }
         showSubtab(initialTab);
       }
-      function showSubtab(name) {
+      async function showSubtab(name) {
         const cont = document.getElementById("subtab-container");
         if (name === "members") {
+          // js/dashboard.js의 renderMembersAdmin 함수 사용
+          const { renderMembersAdmin } = await import("./js/dashboard.js");
           renderMembersAdmin(cont);
           return;
         }
@@ -16286,9 +16856,8 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
         })();
 
         const formatDateTimeLabel = (value) => {
-          if (!value) return "미정";
-          const date = new Date(value);
-          if (Number.isNaN(date.getTime())) return "미정";
+          const date = toDateSafe(value);
+          if (!date) return "미정";
           return date.toLocaleString("ko-KR", {
             year: "numeric",
             month: "long",
@@ -16484,9 +17053,11 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                         </div>
                         ${
                           restaurant.info
-                            ? `<p class="text-xs text-gray-600 mt-1">${saf(
-                                restaurant.info
-                              )}</p>`
+                            ? `<p class="text-xs mt-1 ${
+                                isRestaurantFull
+                                  ? "text-gray-400 line-through decoration-2 decoration-red-300"
+                                  : "text-gray-600"
+                              }">${saf(restaurant.info)}</p>`
                             : ""
                         }
                       </div>
@@ -19283,279 +19854,17 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
       }
 
       /* ===== 회원 관리 탭 (요청사항 2, 7: 버튼 단순화/그룹 분리) ===== */
-      function renderMembersAdmin(container) {
-        const signup = signupSettings || { open: false, start: "", end: "" };
-        const pendingSet = (membersData || []).filter(
-          (m) => (m.status || "pending") !== "active"
+      // index.html의 renderMembersAdmin 함수는 제거됨 - js/dashboard.js의 함수 사용
+      // 실제 renderMembersAdmin은 js/dashboard.js에서 import하여 사용
+      async function renderMembersAdmin(container) {
+        const { renderMembersAdmin: renderMembersAdminFromJS } = await import(
+          "./js/dashboard.js"
         );
-        const activeSet = (membersData || []).filter(
-          (m) => (m.status || "pending") === "active"
-        );
-
-        container.innerHTML = `<div class="section">
-          <h3 class="text-xl font-bold text-gray-800 mb-2">회원 관리</h3>
-
-          <!-- 회원가입 설정 -->
-          <div class="mb-6 p-4 bg-white border-2 border-gray-200 rounded-lg">
-            <div class="flex items-center gap-3 mb-3">
-              <i class="fas fa-user-plus text-2xl text-orange-500"></i>
-              <div>
-                <h3 class="text-xl font-bold text-gray-800">회원가입 설정</h3>
-                <p class="text-sm text-gray-600">새로운 회원의 가입 신청 허용 여부를 관리합니다</p>
-              </div>
-            </div>
-            <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-4">
-              <div class="flex">
-                <div class="flex-shrink-0">
-                  <i class="fas fa-info-circle text-blue-400"></i>
-                </div>
-                <div class="ml-3">
-                  <p class="text-sm text-blue-700">
-                    <strong>닫기:</strong> 회원가입 페이지에서 가입 버튼이 비활성화되며, 신규 회원이 가입할 수 없습니다<br>
-                    <strong>열기:</strong> 회원가입이 활성화되어 누구나 가입 신청을 할 수 있습니다 (관리자 승인 필요)
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div class="flex items-center gap-4">
-              <button type="button" id="signup-closed-btn" class="flex-1 py-3 px-4 rounded-lg font-semibold transition-all border-2 ${
-                !signup.open
-                  ? "bg-red-500 text-white border-red-500"
-                  : "bg-white text-gray-700 border-gray-300 hover:border-red-300"
-              }">
-                <i class="fas fa-lock mr-2"></i>가입 닫기
-              </button>
-              <button type="button" id="signup-open-btn" class="flex-1 py-3 px-4 rounded-lg font-semibold transition-all border-2 ${
-                signup.open
-                  ? "bg-green-500 text-white border-green-500"
-                  : "bg-white text-gray-700 border-gray-300 hover:border-green-300"
-              }">
-                <i class="fas fa-lock-open mr-2"></i>가입 열기
-              </button>
-            </div>
-            <div class="mt-3 text-sm ${
-              signup.open
-                ? "text-green-700 bg-green-50"
-                : "text-red-700 bg-red-50"
-            } px-4 py-2 rounded-lg border ${
-          signup.open ? "border-green-200" : "border-red-200"
-        }">
-              <i class="fas ${
-                signup.open ? "fa-check-circle" : "fa-times-circle"
-              } mr-2"></i>
-              현재 상태: <strong>${
-                signup.open ? "가입 가능" : "가입 불가"
-              }</strong>
-            </div>
-          </div>
-
-          <!-- 엑셀 업로드 섹션 -->
-          <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
-            <h4 class="text-lg font-semibold text-gray-800 mb-3">
-              <i class="fas fa-file-excel mr-2 text-green-600"></i>엑셀 파일로 회원 일괄 관리
-            </h4>
-            <div class="space-y-3">
-              <div class="text-sm text-gray-600">
-                <p class="mb-2">📋 <strong>파일 양식:</strong> 이름, 학번, 성별, 학년, 단과대, 학과, 전화번호, 상태</p>
-                <p class="mb-2">📝 <strong>상태 값:</strong> 승인, 대기, 거절, 차단</p>
-                <p class="text-xs text-gray-500">• 지원 형식: Excel (.xlsx, .xls), CSV (.csv)</p>
-                <p class="text-xs text-gray-500">• 중복 회원(학번 기준)은 정보가 업데이트됩니다</p>
-                <p class="text-xs text-gray-500">• 새로운 회원은 자동으로 '대기' 상태로 등록됩니다</p>
-                <p class="text-xs text-blue-600">• 양식에 맞지 않아도 인식된 정보만으로 처리됩니다</p>
-              </div>
-              
-              <!-- 드래그 앤 드롭 영역 -->
-              <div id="file-drop-zone" class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-green-400 transition-colors cursor-pointer">
-                <div class="space-y-2">
-                  <i class="fas fa-cloud-upload-alt text-3xl text-gray-400"></i>
-                  <p class="text-gray-600 font-medium">파일을 드래그하여 놓거나 클릭하여 선택하세요</p>
-                  <p class="text-xs text-gray-500">Excel (.xlsx, .xls) 또는 CSV (.csv) 파일</p>
-                </div>
-              </div>
-              
-              <div class="flex items-center gap-3">
-                <input type="file" id="excel-upload" accept=".xlsx,.xls,.csv" class="hidden">
-                            <button id="excel-upload-btn" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors" title="엑셀 파일을 선택하여 회원 정보를 일괄 업로드합니다">
-                  <i class="fas fa-upload mr-2"></i>파일 선택
-                </button>
-                            <button id="download-template" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors" title="회원 정보 업로드용 엑셀 양식을 다운로드합니다">
-                  <i class="fas fa-download mr-2"></i>양식 다운로드
-                </button>
-              </div>
-              <div id="upload-progress" class="hidden">
-                <div class="bg-blue-100 border border-blue-300 rounded p-3">
-                  <div class="flex items-center">
-                    <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
-                    <span class="text-sm text-blue-700">엑셀 파일을 처리 중입니다...</span>
-                  </div>
-                </div>
-              </div>
-              <div id="upload-result" class="hidden">
-                <!-- 업로드 결과가 여기에 표시됩니다 -->
-              </div>
-            </div>
-          </div>
-
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <div>
-              <div class="flex items-center justify-between mb-2">
-                <h4 class="font-semibold text-amber-700">승인 필요(대기/거절/차단) <span class="bg-amber-100 text-amber-800 px-2 py-1 rounded-full text-xs ml-2">${
-                  pendingSet.length
-                }명</span></h4>
-                <div class="flex items-center gap-2">
-                  <button id="members-bulk-approve" class="px-3 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors text-sm">
-                    <i class="fas fa-check-circle mr-1"></i>일괄 승인
-                  </button>
-                  <button id="add-member-btn" class="px-3 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors text-sm" title="새로운 회원을 수동으로 추가합니다">
-                    <i class="fas fa-user-plus mr-1"></i>회원 수동 추가
-                  </button>
-                </div>
-              </div>
-              <div class="overflow-auto border rounded">
-                <table class="min-w-full text-sm">
-                  <thead class="bg-gray-50">
-                    <tr>
-                      <th class="px-3 py-2 text-left">이름</th>
-                      <th class="px-3 py-2 text-left">학번</th>
-                      <th class="px-3 py-2 text-left">성별</th>
-                      <th class="px-3 py-2 text-left">학년</th>
-                      <th class="px-3 py-2 text-left">단과대</th>
-                      <th class="px-3 py-2 text-left">학과</th>
-                      <th class="px-3 py-2 text-left">전화번호</th>
-                      <th class="px-3 py-2 text-left">상태</th>
-                      <th class="px-3 py-2 text-left">관리</th>
-                    </tr>
-                  </thead>
-                  <tbody id="members-tbody-pending">${membersRowsHTMLGrouped(
-                    pendingSet,
-                    true,
-                    memberSearchTerm
-                  )}</tbody>
-                </table>
-              </div>
-            </div>
-
-            <div>
-              <div class="flex items-center justify-between mb-2">
-                <h4 class="font-semibold text-emerald-700">활동중(승인됨) <span class="bg-emerald-100 text-emerald-800 px-2 py-1 rounded-full text-xs ml-2">${
-                  activeSet.length
-                }명</span></h4>
-                <button id="members-export" class="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm">
-                  <i class="fas fa-file-csv mr-1"></i>전체명단 다운로드
-                </button>
-              </div>
-              <div class="mb-2">
-                <input id="member-search" class="w-full px-3 py-2 border-2 border-emerald-200 rounded-lg bg-white text-gray-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200" placeholder="🔍 이름/학번/학과 검색...">
-              </div>
-              <div class="overflow-auto border rounded">
-                <table class="min-w-full text-sm">
-                  <thead class="bg-gray-50">
-                    <tr>
-                      <th class="px-3 py-2 text-left">이름</th>
-                      <th class="px-3 py-2 text-left">학번</th>
-                      <th class="px-3 py-2 text-left">성별</th>
-                      <th class="px-3 py-2 text-left">학년</th>
-                      <th class="px-3 py-2 text-left">단과대</th>
-                      <th class="px-3 py-2 text-left">학과</th>
-                      <th class="px-3 py-2 text-left">전화번호</th>
-                      <th class="px-3 py-2 text-left">관리</th>
-                    </tr>
-                  </thead>
-                  <tbody id="members-tbody-active">${membersRowsHTMLGrouped(
-                    activeSet,
-                    false,
-                    memberSearchTerm
-                  )}</tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-
-          <p class="text-xs text-gray-500 mt-2">* CSV는 UTF-8(BOM)으로 저장되어 엑셀에서 한글이 깨지지 않습니다.</p>
-
-          <!-- 위험한 작업 섹션 -->
-          <div class="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <h4 class="text-lg font-semibold text-red-800 mb-2">
-              <i class="fas fa-exclamation-triangle mr-2"></i>위험한 작업
-            </h4>
-            <p class="text-sm text-red-700 mb-3">
-              아래 작업은 되돌릴 수 없습니다. 신중하게 진행해주세요.
-            </p>
-            <button id="members-delete-all" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors">
-              <i class="fas fa-trash mr-2"></i>회원 전체 삭제
-            </button>
-          </div>
-        </div>`;
-
-        // 검색 (활동중 회원만)
-        const searchInput = container.querySelector("#member-search");
-        if (searchInput) {
-          searchInput.value = memberSearchTerm;
-          searchInput.addEventListener("input", (e) => {
-            memberSearchTerm = e.target.value;
-            const activeSetNow = (membersData || []).filter(
-              (m) => (m.status || "pending") === "active"
-            );
-            container.querySelector("#members-tbody-active").innerHTML =
-              membersRowsHTMLGrouped(activeSetNow, false, memberSearchTerm);
-          });
-        }
-
-        // 버튼들
-        container
-          .querySelector("#add-member-btn")
-          .addEventListener("click", openAddMemberModal);
-        // 모든 CSV 다운로드 버튼에 이벤트 연결
-        container.querySelectorAll("#members-export").forEach((btn) => {
-          btn.addEventListener("click", exportMembersCSV);
-        });
-        container
-          .querySelector("#members-bulk-approve")
-          .addEventListener("click", bulkApproveMembers);
-        container
-          .querySelector("#members-delete-all")
-          .addEventListener("click", deleteAllMembers);
-
-        // 회원가입 설정 버튼 핸들러
-        const signupClosedBtn = container.querySelector("#signup-closed-btn");
-        const signupOpenBtn = container.querySelector("#signup-open-btn");
-
-        if (signupClosedBtn) {
-          signupClosedBtn.onclick = async () => {
-            try {
-              await setDoc(
-                doc(db, "settings", "signup"),
-                { open: false },
-                { merge: true }
-              );
-              showAlert("✅", "회원가입이 닫혔습니다.");
-              renderMembersAdmin(container); // 페이지 다시 렌더링
-            } catch (e) {
-              console.warn(e);
-              showAlert("😥", "저장 실패");
-            }
-          };
-        }
-
-        if (signupOpenBtn) {
-          signupOpenBtn.onclick = async () => {
-            try {
-              await setDoc(
-                doc(db, "settings", "signup"),
-                { open: true },
-                { merge: true }
-              );
-              showAlert("✅", "회원가입이 열렸습니다.");
-              renderMembersAdmin(container); // 페이지 다시 렌더링
-            } catch (e) {
-              console.warn(e);
-              showAlert("😥", "저장 실패");
-            }
-          };
-        }
-
-        container.addEventListener("click", onMembersTableClick);
+        return renderMembersAdminFromJS(container);
       }
+
+      // 기존 함수의 나머지 부분은 제거됨 (js/dashboard.js로 이동)
+      // 아래는 호환성을 위해 유지되는 헬퍼 함수들
       function membersRowsHTMLGrouped(list, isPendingGroup, keyword) {
         const kw = (keyword || "").toLowerCase();
         const filtered = (list || []).filter((m) => {
@@ -19837,7 +20146,9 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
               const subtabContainer =
                 document.getElementById("subtab-container");
               if (subtabContainer) {
-                renderMembersAdmin(subtabContainer);
+                import("./js/dashboard.js").then(({ renderMembersAdmin }) => {
+                  renderMembersAdmin(subtabContainer);
+                });
               }
             } catch (error) {
               console.error("관리자 추가 오류:", error);
@@ -20030,7 +20341,9 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
           setTimeout(() => {
             const subtabContainer = document.getElementById("subtab-container");
             if (subtabContainer) {
-              renderMembersAdmin(subtabContainer);
+              import("./js/dashboard.js").then(({ renderMembersAdmin }) => {
+                renderMembersAdmin(subtabContainer);
+              });
             }
           }, 1000);
         } catch (error) {
@@ -21901,29 +22214,35 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                               restaurant.capacity || ev.limit || 0;
 
                             // 신청한 사람 이름 찾기
-                            const participantNames = reservations.map((res) => {
-                              const member = membersData?.find(
-                                (m) => m.studentId === res.studentId
-                              );
-                              return (
-                                member?.name ||
-                                res.name ||
-                                res.studentId ||
-                                "익명"
-                              );
-                            });
+                            const participantNames = reservations
+                              .slice()
+                              .reverse()
+                              .map((res) => {
+                                const member = membersData?.find(
+                                  (m) => m.studentId === res.studentId
+                                );
+                                return (
+                                  member?.name ||
+                                  res.name ||
+                                  res.studentId ||
+                                  "익명"
+                                );
+                              });
 
-                            const waitingNames = waiting.map((wait) => {
-                              const member = membersData?.find(
-                                (m) => m.studentId === wait.studentId
-                              );
-                              return (
-                                member?.name ||
-                                wait.name ||
-                                wait.studentId ||
-                                "익명"
-                              );
-                            });
+                            const waitingNames = waiting
+                              .slice()
+                              .reverse()
+                              .map((wait) => {
+                                const member = membersData?.find(
+                                  (m) => m.studentId === wait.studentId
+                                );
+                                return (
+                                  member?.name ||
+                                  wait.name ||
+                                  wait.studentId ||
+                                  "익명"
+                                );
+                              });
 
                             // 현재 사용자가 신청한 식당인지 확인
                             const isMyRestaurant =
@@ -22021,6 +22340,8 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                           <p class="text-xs font-semibold text-gray-600 mb-1">참가자 목록:</p>
                           <div class="flex flex-wrap gap-1">
                             ${ev.applicants
+                              .slice()
+                              .reverse()
                               .map((app) => {
                                 const member = membersData?.find(
                                   (m) => m.studentId === app.studentId
@@ -23953,79 +24274,6 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
       // 기존 슬롯머신 관련 함수들 삭제됨
 
       /* ===== 문의하기 탭 (DEPRECATED - 새 시스템으로 대체됨) ===== */
-
-      // 게임 점수 저장
-      async function saveGameScore(gameType, score, details = {}) {
-        if (!currentUser) return;
-
-        try {
-          // 이름 중복 확인
-          const existingScores = gameScores[gameType] || [];
-          const duplicateName = existingScores.find(
-            (s) => s.name === currentUser.name
-          );
-
-          if (duplicateName) {
-            // 중복된 이름이 있는 경우 기존 기록과 비교
-            let shouldUpdate = false;
-
-            if (gameType === "color-memory") {
-              // 색깔 기억하기: 더 높은 레벨이면 업데이트
-              shouldUpdate =
-                (details.level || 0) > (duplicateName.details.level || 0);
-            } else if (gameType === "car-racing") {
-              // 자동차 레이싱: 더 긴 거리면 업데이트
-              shouldUpdate =
-                (details.distance || 0) > (duplicateName.details.distance || 0);
-            } else if (gameType === "ball-bounce") {
-              // 공 튀기기: 더 높은 점수면 업데이트
-              shouldUpdate =
-                (details.score || 0) > (duplicateName.details.score || 0);
-            } else {
-              // 숫자 맞추기: 더 적은 시도 횟수면 업데이트
-              shouldUpdate =
-                (details.attempts || 999) <
-                (duplicateName.details.attempts || 999);
-            }
-
-            if (shouldUpdate) {
-              // 기존 기록을 업데이트
-              await updateDoc(doc(db, "gameScores", duplicateName.id), {
-                score: score,
-                details: details,
-                timestamp: new Date(),
-                date: getTodayString(),
-              });
-              showAlert("🎉", "기존 기록을 갱신했습니다!");
-            } else {
-              return;
-            }
-          } else {
-            // 새로운 기록 저장
-            const scoreData = {
-              studentId: currentUser.studentId,
-              name: currentUser.name,
-              gameType: gameType,
-              score: score,
-              details: details,
-              timestamp: new Date(),
-              date: new Date().toISOString().split("T")[0], // YYYY-MM-DD 형식
-            };
-
-            await addDoc(collection(db, "gameScores"), scoreData);
-            showAlert("🎉", "새로운 기록이 저장되었습니다!");
-          }
-
-          // 로컬 데이터는 onSnapshot에서 자동 업데이트됨
-          console.log(`${gameType} 점수 저장 완료`);
-        } catch (error) {
-          console.error("점수 저장 오류:", error);
-          showAlert("😥", "점수 저장에 실패했습니다.");
-        }
-      }
-
-      // 게임 랭킹 렌더링
-      function renderGameRankings() {
         const content = document.getElementById("ranking-content");
         if (!content) return;
 
@@ -25097,85 +25345,6 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
         );
       }
 
-      // 게임 점수 데이터 로드
-      function loadGameScores() {
-        if (!currentUser) return;
-
-        const unsubscribe = onSnapshot(
-          collection(db, "gameScores"),
-          (snapshot) => {
-            markRealtimeHealthy();
-            gameScores = {};
-            snapshot.forEach((doc) => {
-              const data = doc.data();
-              if (!gameScores[data.gameType]) {
-                gameScores[data.gameType] = [];
-              }
-              gameScores[data.gameType].push({
-                id: doc.id,
-                ...data,
-              });
-            });
-            console.log("게임 점수 로드됨:", gameScores);
-          },
-          (error) => {
-            console.error("게임 점수 로드 오류:", error);
-            handleRealtimeListenerError("gameScores", error);
-          }
-        );
-
-        return unsubscribe;
-      }
-
-      // 게임 버튼 이벤트 리스너
-      document.addEventListener("DOMContentLoaded", () => {
-        document
-          .getElementById("number-guess-btn")
-          ?.addEventListener("click", startNumberGuessGame);
-        document
-          .getElementById("color-memory-btn")
-          ?.addEventListener("click", startColorMemoryGame);
-        document
-          .getElementById("car-racing-btn")
-          ?.addEventListener("click", startCarRacingGame);
-
-        document
-          .getElementById("ball-bounce-btn")
-          ?.addEventListener("click", startBallBounceGame);
-
-        document
-          .getElementById("game-back-btn")
-          ?.addEventListener("click", showGameSelection);
-        document
-          .getElementById("game-restart-btn")
-          ?.addEventListener("click", () => {
-            if (currentGame === "number-guess") startNumberGuessGame();
-            else if (currentGame === "color-memory") startColorMemoryGame();
-            else if (currentGame === "car-racing") startCarRacingGame();
-            else if (currentGame === "ball-bounce") startBallBounceGame();
-          });
-
-        // 탭 버튼 이벤트 리스너
-        document
-          .getElementById("games-tab-btn")
-          ?.addEventListener("click", () => {
-            document.getElementById("games-tab-btn").className =
-              "flex-1 py-2 px-4 text-center font-medium text-purple-600 border-b-2 border-purple-600";
-            document.getElementById("ranking-tab-btn").className =
-              "flex-1 py-2 px-4 text-center font-medium text-gray-500 hover:text-gray-700";
-            showGameSelectionFromRanking();
-          });
-
-        document
-          .getElementById("ranking-tab-btn")
-          ?.addEventListener("click", () => {
-            document.getElementById("ranking-tab-btn").className =
-              "flex-1 py-2 px-4 text-center font-medium text-purple-600 border-b-2 border-purple-600";
-            document.getElementById("games-tab-btn").className =
-              "flex-1 py-2 px-4 text-center font-medium text-gray-500 hover:text-gray-700";
-            showRankingScreen();
-          });
-      });
 
       /* ===== 문의하기 탭 (DEPRECATED - 새 시스템으로 대체됨) ===== */
       /* ===== 문의 모달 (DEPRECATED) ===== */
@@ -25633,6 +25802,9 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                 restaurantInfo: restaurant.info,
                 restaurantImage: restaurant.imageUrl,
                 restaurantCategory: restaurantCategory,
+                capacity: restaurant.capacity ?? ev.limit ?? null,
+                reservationsCount: (restaurant.reservations || []).length,
+                waitingCount: (restaurant.waiting || []).length,
                 participantCount: participantIds.length,
                 reviews: restaurantReviews,
               });
@@ -25679,6 +25851,35 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
           const avgRating = calculateAverageRating(restaurant.reviews);
           const reviewCount = restaurant.reviews.length;
           const categoryEmoji = getCategoryEmoji(restaurant.restaurantCategory);
+          const rawCapacity =
+            restaurant.capacity ??
+            restaurant.limit ??
+            restaurant.maxCapacity ??
+            null;
+          const parsedCapacity =
+            rawCapacity != null ? Number(rawCapacity) : null;
+          const capacity =
+            parsedCapacity != null &&
+            Number.isFinite(parsedCapacity) &&
+            parsedCapacity > 0
+              ? parsedCapacity
+              : null;
+          const reservationsCount = Number(
+            restaurant.reservationsCount ?? restaurant.participantCount ?? 0
+          );
+          const spotsRemaining =
+            capacity != null ? Math.max(capacity - reservationsCount, 0) : null;
+          const isNearlyFull = spotsRemaining !== null && spotsRemaining === 1;
+          const restaurantEventDate = toDateSafe(
+            restaurant.eventDate || restaurant.eventDateTime
+          );
+          const restaurantEventDateLabel = restaurantEventDate
+            ? restaurantEventDate.toLocaleDateString("ko-KR", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })
+            : "일시 미정";
 
           return `
             <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 group" data-restaurant-id="${
@@ -25724,31 +25925,35 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                           <i class="fas fa-store text-orange-600 text-sm"></i>
                           <span class="text-xs sm:text-sm font-semibold text-orange-700 uppercase tracking-wide">식당 이름</span>
                         </div>
-                        <div class="flex items-center gap-2 flex-wrap">
-                          <span class="text-2xl sm:text-3xl">${categoryEmoji}</span>
-                          <h4 class="text-xl sm:text-2xl font-extrabold text-gray-900 group-hover:text-orange-600 transition-colors bg-gradient-to-r from-orange-600 to-orange-700 bg-clip-text text-transparent">
-                            ${saf(
-                              restaurant.restaurantName || "(식당 이름 없음)"
-                            )}
-                          </h4>
-                          <span class="text-xs sm:text-sm text-gray-500 flex items-center gap-1 ml-2">
-                            <i class="fas fa-calendar text-orange-600"></i>
-                            ${new Date(restaurant.eventDate).toLocaleDateString(
-                              "ko-KR",
-                              {
-                                year: "numeric",
-                                month: "long",
-                                day: "numeric",
+                        <div class="flex flex-wrap items-start gap-3 w-full">
+                          <div class="flex items-center gap-2 min-w-0 flex-1">
+                            <span class="text-2xl sm:text-3xl flex-shrink-0">${categoryEmoji}</span>
+                            <h4 class="text-xl sm:text-2xl font-extrabold text-gray-900 group-hover:text-orange-600 transition-colors bg-gradient-to-r from-orange-600 to-orange-700 bg-clip-text text-transparent flex items-center gap-2 truncate">
+                              ${saf(
+                                restaurant.restaurantName || "(식당 이름 없음)"
+                              )}
+                              ${
+                                isNearlyFull
+                                  ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-semibold rounded-full bg-red-500/10 text-red-600 border border-red-200">
+                                      <i class="fas fa-fire text-red-500"></i>마감 임박!
+                                    </span>`
+                                  : ""
                               }
-                            )}
+                            </h4>
+                          </div>
+                          <span class="inline-flex items-center gap-2 px-3 py-1.5 bg-white/80 border border-orange-200 rounded-xl text-xs sm:text-sm text-gray-600 shadow-sm w-full sm:w-auto min-w-[9rem]">
+                            <i class="fas fa-calendar text-orange-500"></i>
+                            ${restaurantEventDateLabel}
                           </span>
                         </div>
                       </div>
-                      ${
-                        restaurant.restaurantCategory
-                          ? `<span class="inline-block bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-xs font-semibold">${restaurant.restaurantCategory}</span>`
-                          : ""
-                      }
+                    ${
+                      restaurant.restaurantCategory
+                        ? `<span class="inline-flex items-center gap-2 bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-xs font-semibold">
+                            <i class="fas fa-tags text-orange-500"></i>${restaurant.restaurantCategory}
+                          </span>`
+                        : ""
+                    }
                     </div>
                     ${
                       isAdmin && !restaurant.restaurantImage
@@ -25799,14 +26004,14 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                       : ""
                   }
                   
-                  <!-- 카테고리 표시 -->
+                  ${
+                    isAdmin
+                      ? `
+                  <!-- 카테고리 표시 (관리자 전용) -->
                   <div class="mt-2 flex items-center gap-2">
                     <span class="text-xs sm:text-sm text-gray-500 flex items-center">
                       <i class="fas fa-tags mr-1"></i>카테고리:
                     </span>
-                    ${
-                      isAdmin
-                        ? `
                       <select 
                         class="text-xs px-2 py-1 border border-gray-300 rounded-lg focus:border-orange-400 focus:outline-none bg-white"
                         data-action="update-category"
@@ -25826,16 +26031,10 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
                           )
                           .join("")}
                       </select>
-                    `
-                        : `
-                      <span class="inline-flex items-center px-2 py-1 bg-orange-100 text-orange-800 rounded-full text-xs font-semibold">
-                              ${getCategoryEmoji(
-                                restaurant.restaurantCategory
-                              )} ${restaurant.restaurantCategory || "기타"}
-                      </span>
-                    `
-                    }
                   </div>
+                    `
+                      : ""
+                  }
                 </div>
 
                 ${
@@ -27064,6 +27263,7 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
           loadingScreen.style.zIndex = "-1";
           loadingScreen.classList.add("hidden");
         }
+        resetAutoReloadState();
       }
 
       // ===================== 초기화 =====================
@@ -27199,23 +27399,22 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
         if (titleInput) titleInput.value = event.title || "";
 
         const datetimeInput = document.getElementById("tasting-datetime");
-        if (datetimeInput && event.datetime) {
-          const date = new Date(event.datetime);
-          datetimeInput.value = date.toISOString().slice(0, 16);
+        if (datetimeInput) {
+          datetimeInput.value = formatDateTimeForInput(event.datetime);
         }
 
         const registrationStartInput = document.getElementById(
           "tasting-registration-start"
         );
-        if (registrationStartInput && event.registrationStart) {
-          const date = new Date(event.registrationStart);
-          registrationStartInput.value = date.toISOString().slice(0, 16);
+        if (registrationStartInput) {
+          registrationStartInput.value = formatDateTimeForInput(
+            event.registrationStart
+          );
         }
 
         const deadlineInput = document.getElementById("tasting-deadline");
-        if (deadlineInput && event.deadline) {
-          const date = new Date(event.deadline);
-          deadlineInput.value = date.toISOString().slice(0, 16);
+        if (deadlineInput) {
+          deadlineInput.value = formatDateTimeForInput(event.deadline);
         }
 
         const limitInput = document.getElementById("tasting-limit");
@@ -28397,10 +28596,17 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
 
         if (eventType) eventType.value = event.type || "tasting";
         if (eventTitle) eventTitle.value = event.title || "";
-        if (eventDatetime) eventDatetime.value = event.datetime || "";
-        if (eventRegistrationStart)
-          eventRegistrationStart.value = event.registrationStart || "";
-        if (eventDeadline) eventDeadline.value = event.deadline || "";
+        if (eventDatetime) {
+          eventDatetime.value = formatDateTimeForInput(event.datetime);
+        }
+        if (eventRegistrationStart) {
+          eventRegistrationStart.value = formatDateTimeForInput(
+            event.registrationStart
+          );
+        }
+        if (eventDeadline) {
+          eventDeadline.value = formatDateTimeForInput(event.deadline);
+        }
         if (eventLimit) eventLimit.value = event.limit || "";
         if (eventStatus) eventStatus.value = event.status || "open";
 
@@ -28465,48 +28671,111 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
           (r) => r.studentId === currentUser.studentId
         );
 
+        const formatReviewDateTime = (value) => {
+          const date = toDateSafe(value);
+          if (!date) return "일시 미정";
+          const weekday = date.toLocaleDateString("ko-KR", {
+            weekday: "short",
+          });
+          return `${date.toLocaleDateString("ko-KR", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          })} (${weekday}) ${date.toLocaleTimeString("ko-KR", {
+            hour: "2-digit",
+            minute: "2-digit",
+          })}`;
+        };
+
+        const participation = getParticipationDetails(event);
+        const typeLabelText = typeLabel(event.type) || "이벤트";
+        const eventDateDisplay = formatReviewDateTime(event.datetime);
+        const highlightTitle =
+          event.type === "tasting" && participation.restaurantName
+            ? participation.restaurantName
+            : event.title || "이벤트";
+        const highlightSubtitle =
+          event.type === "tasting" && participation.restaurantName
+            ? event.title || ""
+            : "";
+        const selectedRestaurant =
+          event.type === "tasting" && Array.isArray(event.restaurants)
+            ? event.restaurants.find((restaurant) => {
+                const rid =
+                  restaurant.id ||
+                  restaurant.rid ||
+                  restaurant.restaurantId ||
+                  restaurant.name ||
+                  "";
+                if (participation.restaurantId) {
+                  return participation.restaurantId === rid;
+                }
+                return (restaurant.name || "") === participation.restaurantName;
+              }) || null
+            : null;
+        const highlightMenu = selectedRestaurant?.info || "";
+        const highlightStats =
+          event.type === "tasting" && participation.restaurantInfo
+            ? `
+                <div class="mt-3 flex flex-wrap justify-center gap-2 text-[11px] md:text-xs text-orange-700">
+                  <span class="inline-flex items-center gap-1 px-2 py-1 bg-white/70 rounded-full border border-orange-200">
+                    <i class="fas fa-users"></i>정원 ${
+                      participation.restaurantInfo.capacity ?? "-"
+                    }명
+                  </span>
+                  <span class="inline-flex items-center gap-1 px-2 py-1 bg-white/70 rounded-full border border-orange-200">
+                    <i class="fas fa-user-check"></i>신청 ${
+                      participation.restaurantInfo.reservations ?? 0
+                    }명
+                  </span>
+                  <span class="inline-flex items-center gap-1 px-2 py-1 bg-white/70 rounded-full border border-orange-200">
+                    <i class="fas fa-user-clock"></i>대기 ${
+                      participation.restaurantInfo.waiting ?? 0
+                    }명
+                  </span>
+                </div>
+              `
+            : "";
+        const highlightSection = `
+          <div class="rounded-3xl bg-gradient-to-br from-orange-100 via-white to-orange-50 border border-orange-200 shadow-sm px-4 py-5 text-center space-y-2">
+            <div class="inline-flex items-center justify-center gap-2 text-[11px] md:text-xs font-semibold uppercase tracking-wider text-orange-600">
+              <i class="fas fa-pen-nib"></i>${saf(typeLabelText)} 후기
+            </div>
+            <div class="text-2xl md:text-3xl font-black text-orange-900 leading-tight">
+              ${saf(highlightTitle)}
+            </div>
+            <div class="text-sm md:text-base font-semibold text-gray-800 tracking-tight">
+              ${saf(eventDateDisplay)}
+            </div>
+            ${
+              highlightSubtitle
+                ? `<div class="text-[12px] md:text-sm text-gray-500">${saf(
+                    highlightSubtitle
+                  )}</div>`
+                : ""
+            }
+            ${
+              highlightMenu
+                ? `<div class="mt-3 inline-flex items-start gap-2 rounded-2xl bg-white/80 px-3 py-2 text-left text-xs md:text-sm text-gray-700 border border-orange-200 shadow-inner">
+                    <span class="text-orange-500 font-semibold flex items-center gap-1">
+                      <i class="fas fa-utensils"></i>대표 메뉴
+                    </span>
+                    <span class="font-medium leading-snug">${saf(
+                      highlightMenu
+                    )}</span>
+                  </div>`
+                : ""
+            }
+            ${highlightStats}
+          </div>
+        `;
+
         document.getElementById(
           "review-modal-title"
         ).textContent = `${event.title} 평가`;
         document.getElementById("review-modal-content").innerHTML = `
-          <div class="space-y-3 md:space-y-4">
-            <div class="text-xs md:text-sm text-gray-600">
-              <p><strong>이벤트:</strong> ${saf(event.title)}</p>
-              <p><strong>일시:</strong> ${new Date(
-                event.datetime
-              ).toLocaleDateString("ko-KR")}</p>
-              ${
-                event.type === "tasting"
-                  ? (() => {
-                      const participation = getParticipationDetails(event);
-                      if (!participation.restaurantInfo) return "";
-                      const info = participation.restaurantInfo;
-                      const restaurant =
-                        event.restaurants?.find(
-                          (r) => r.id === participation.restaurantInfo.id
-                        ) || null;
-                      const menuLine = restaurant?.info
-                        ? `<p><strong>대표 메뉴:</strong> ${saf(
-                            restaurant.info
-                          )}</p>`
-                        : "";
-                      return `
-                        <div class="mt-2 rounded-lg bg-orange-50 border border-orange-200 px-3 py-2 text-[11px] md:text-xs text-orange-700">
-                          <p><strong>참여 식당:</strong> ${saf(
-                            info.name || "미정"
-                          )}</p>
-                          <p><strong>정원:</strong> ${
-                            info.capacity ?? "-"
-                          }명 · 신청 ${info.reservations}명 · 대기 ${
-                        info.waiting
-                      }명</p>
-                          ${menuLine}
-                        </div>
-                      `;
-                    })()
-                  : ""
-              }
-            </div>
+          <div class="space-y-4 md:space-y-5">
+            ${highlightSection}
             
             <div>
               <label class="block text-xs md:text-sm font-medium text-gray-700 mb-1 md:mb-2">평점</label>
@@ -28863,33 +29132,6 @@ ${window.__pendingNewMembers.length}명의 새 회원 추가
       window.closeBlockModal = closeBlockModal;
       window.addModalScoreRow = addModalScoreRow;
       window.addModalQAItem = addModalQAItem;
-
-      // 모든 직책을 기본 상태로 리셋하는 함수
-      async function resetAllPositions() {
-        try {
-          // 회장단: 회장, 부회장만
-          const presidentPositions = ["회장", "부회장"];
-          await setDoc(doc(db, "settings", "presidentPositions"), {
-            positions: presidentPositions,
-          });
-
-          // 일반 임원: 운영진만
-          const regularPositions = ["운영진"];
-          await setDoc(doc(db, "settings", "regularPositions"), {
-            positions: regularPositions,
-          });
-
-          showAlert("✅", "모든 직책이 기본 상태로 리셋되었습니다.");
-          console.log("리셋된 회장단:", presidentPositions);
-          console.log("리셋된 일반 임원:", regularPositions);
-
-          // 페이지 새로고침
-          location.reload();
-        } catch (e) {
-          console.error(e);
-          showAlert("😥", "직책 리셋에 실패했습니다.");
-        }
-      }
 
       // 전역 함수로 등록
       window.resetAllPositions = resetAllPositions;

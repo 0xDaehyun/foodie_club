@@ -82,6 +82,14 @@ export function setSignupKakaoInfo(info) {
   }
 }
 
+export function clearSignupKakaoInfo() {
+  signupKakaoInfo = null;
+  const statusDiv = document.getElementById("signup-kakao-status");
+  if (statusDiv) {
+    statusDiv.classList.add("hidden");
+  }
+}
+
 export async function confirmSignup(skipConfirm) {
   const sid = document.getElementById("signupId").value.trim();
   const nm = document.getElementById("signupName").value.trim();
