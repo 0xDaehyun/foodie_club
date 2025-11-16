@@ -8788,7 +8788,7 @@
                               </div>
                               <div class="flex items-center gap-2 flex-wrap">
                                 <span class="text-3xl sm:text-4xl">${typeIcon}</span>
-                                <h3 class="text-2xl sm:text-3xl font-extrabold text-gray-900 group-hover:text-orange-600 transition-colors bg-gradient-to-r from-orange-600 to-orange-700 bg-clip-text text-transparent">
+                                <h3 class="text-2xl sm:text-3xl font-extrabold text-gray-900">
                                   ${saf(ev.title)}
                                 </h3>
                               </div>
@@ -9343,7 +9343,7 @@
                                   </div>
                                   <div class="flex items-center gap-2 flex-wrap">
                                     <span class="text-3xl sm:text-4xl">${typeIcon}</span>
-                                    <h3 class="text-2xl sm:text-3xl font-extrabold text-gray-900 group-hover:text-orange-600 transition-colors bg-gradient-to-r from-orange-600 to-orange-700 bg-clip-text text-transparent">
+                                    <h3 class="text-2xl sm:text-3xl font-bold text-gray-800">
                                       ${saf(ev.title)}
                                     </h3>
                                   </div>
@@ -10020,6 +10020,10 @@
         };
 
         const profile = myProfileData || {};
+        const quickProfileImage =
+          (currentUser && currentUser.kakaoProfileImage) ||
+          profile.kakaoProfileImage ||
+          null;
         const membershipStatusMap = {
           active: "활동중",
           pending: "승인 대기",
@@ -10373,6 +10377,19 @@
                   <div class="rounded-2xl border border-orange-100 bg-white px-4 py-3 shadow-sm">
                     <div class="flex flex-col items-center gap-2">
                       <div class="flex flex-wrap items-center justify-center gap-2">
+                        ${
+                          quickProfileImage
+                            ? `<span class="w-7 h-7 rounded-full bg-gradient-to-br from-orange-400 to-yellow-400 flex items-center justify-center text-white text-xs font-bold overflow-hidden">
+                                 <img src="${quickProfileImage}" alt="프로필" class="w-full h-full object-cover" />
+                               </span>`
+                            : `<span class="w-7 h-7 rounded-full bg-gradient-to-br from-orange-400 to-yellow-400 flex items-center justify-center text-white text-xs font-bold">
+                                 ${saf(
+                                   currentUser.name
+                                     ? currentUser.name?.charAt(0)
+                                     : "U"
+                                 )}
+                               </span>`
+                        }
                         <span class="font-semibold text-gray-900">${saf(
                           currentUser.name || ""
                         )}</span>
@@ -10482,8 +10499,8 @@
                             <i class="fas fa-utensils text-2xl text-orange-500"></i>
                           </div>
                           <div>
-                            <h3 class="text-lg font-bold text-gray-800 group-hover:text-orange-600">미식회 만들기</h3>
-                            <p class="text-sm text-gray-500 group-hover:text-orange-500">새로운 미식회를 만들어보세요</p>
+                            <h3 class="text-lg font-bold text-gray-800">미식회 만들기</h3>
+                            <p class="text-sm text-gray-500">새로운 미식회를 만들어보세요</p>
                           </div>
                         </div>
                       </div>
@@ -21792,7 +21809,11 @@
           const dayForModal = String(currentDate.getDate()).padStart(2, "0");
           const dateString = `${yearForModal}-${monthForModal}-${dayForModal}`;
 
-          calendarHTML += `<div class="${dayClass}" onclick="openAddEventModal('${dateString}')">`;
+          const dayClickAttr = isAdmin
+            ? `onclick="openAddEventModal('${dateString}')"`
+            : "";
+
+          calendarHTML += `<div class="${dayClass}" ${dayClickAttr}>`;
           calendarHTML += `<div class="calendar-day-number">${currentDate.getDate()}</div>`;
 
           // 이벤트들 추가
@@ -21859,21 +21880,10 @@
       }
 
       window.openAddEventModal = function (selectedDate) {
-        // 현재 관리자 상태 확인
-        const adminPositions = {
-          12345678: "개발자",
-          202013136: "총무",
-          202018357: "기타",
-          202114029: "부회장",
-          202327942: "회장",
-          202416596: "홍보부장",
-          202419743: "기획부장",
-        };
-
-        const isAdmin = currentUser && adminPositions[currentUser.studentId];
-
-        if (!currentUser || !isAdmin) {
-          return; // 관리자가 아니면 조용히 종료
+        // 회장단(풀 어드민)만 새 일정 추가 가능
+        if (!currentUser || !isFullAdmin()) {
+          showAlert("ℹ️", "푸디 캘린더는 회장단만 수정/추가할 수 있습니다.");
+          return;
         }
 
         const modal = document.createElement("div");
@@ -22000,23 +22010,12 @@
             });
 
           // 관리자 권한 확인
-          const adminPositions = {
-            12345678: "개발자",
-            202013136: "총무",
-            202018357: "기타",
-            202114029: "부회장",
-            202327942: "회장",
-            202416596: "홍보부장",
-            202419743: "기획부장",
-          };
-          const isAdmin = currentUser && adminPositions[currentUser.studentId];
-
           const calendarHTML = generateCalendar(
             currentCalendarYear,
             currentCalendarMonth,
             sorted,
             true, // 로그인 상태에서는 다운로드 버튼 표시
-            isAdmin, // 관리자 권한 전달
+            isFullAdmin(), // 회장단만 수정 가능
             true // 로그인 상태에서는 네비게이션 버튼과 안내 문구 표시
           );
           accordionContent.innerHTML = calendarHTML;
@@ -25619,7 +25618,7 @@
                               <div class="flex flex-wrap items-start gap-3 w-full">
                                 <div class="flex items-center gap-2 min-w-0 flex-1">
                                   <span class="text-2xl sm:text-3xl flex-shrink-0">${categoryEmoji}</span>
-                                  <h4 class="text-xl sm:text-2xl font-extrabold text-gray-900 group-hover:text-orange-600 transition-colors bg-gradient-to-r from-orange-600 to-orange-700 bg-clip-text text-transparent flex items-center gap-2 truncate">
+                                  <h4 class="text-xl sm:text-2xl font-bold text-gray-800 flex items-center gap-2 truncate">
                                     ${saf(
                                       restaurant.restaurantName ||
                                         "(식당 이름 없음)"

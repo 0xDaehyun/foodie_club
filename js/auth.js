@@ -96,44 +96,48 @@ export async function loginWithStudent(sidRaw, nameRaw) {
     // Firebase에서 최신 카카오 정보 가져오기 (localStorage 무시, Firebase 우선)
     // kakaoUserId는 숫자로 저장되어 있을 수 있으므로 문자열로 변환
     let kakaoUserId = data.kakaoUserId || null;
-    if (kakaoUserId !== null && kakaoUserId !== undefined && kakaoUserId !== "") {
+    if (
+      kakaoUserId !== null &&
+      kakaoUserId !== undefined &&
+      kakaoUserId !== ""
+    ) {
       kakaoUserId = String(kakaoUserId); // 문자열로 통일
     } else {
       kakaoUserId = null; // null, undefined, 빈 문자열은 모두 null로 처리
     }
     const kakaoNickname = data.kakaoNickname || null;
     const kakaoProfileImage = data.kakaoProfileImage || null;
-    
+
     // Firebase에서 가져온 값만 사용 (localStorage 무시)
     const finalKakaoUserId = kakaoUserId;
     const finalKakaoNickname = kakaoNickname;
     const finalKakaoProfileImage = kakaoProfileImage;
-    
+
     console.log("[학번 로그인] Firebase에서 가져온 카카오 정보:", {
       원본_kakaoUserId: data.kakaoUserId,
       타입: typeof data.kakaoUserId,
       변환된_kakaoUserId: finalKakaoUserId,
       kakaoNickname: finalKakaoNickname,
-      kakaoProfileImage: finalKakaoProfileImage
+      kakaoProfileImage: finalKakaoProfileImage,
     });
-    
+
     // 세션 저장 + 전역 상태 갱신 (카카오 정보 포함)
     localStorage.setItem(
       "foodieUser",
-      JSON.stringify({ 
-        studentId: sid, 
+      JSON.stringify({
+        studentId: sid,
         name: nm,
         kakaoUserId: finalKakaoUserId,
         kakaoNickname: finalKakaoNickname,
-        kakaoProfileImage: finalKakaoProfileImage
+        kakaoProfileImage: finalKakaoProfileImage,
       })
     );
-    state.currentUser = { 
-      studentId: sid, 
+    state.currentUser = {
+      studentId: sid,
       name: nm,
       kakaoUserId: finalKakaoUserId,
       kakaoNickname: finalKakaoNickname,
-      kakaoProfileImage: finalKakaoProfileImage
+      kakaoProfileImage: finalKakaoProfileImage,
     };
 
     // Presence 시작
@@ -144,12 +148,12 @@ export async function loginWithStudent(sidRaw, nameRaw) {
 
     // ✅ 화면 갱신
     scheduleRender();
-    
+
     // 로그인 성공 후 페이지 새로고침 (화면 갱신을 위해)
     setTimeout(() => {
       window.location.reload();
     }, 500);
-    
+
     return true;
   } catch (e) {
     console.warn("[auth] login error:", e?.message || e);
@@ -177,22 +181,26 @@ export async function verifyAutoLogin(saved) {
     // Firebase에서 최신 카카오 정보 가져오기 (localStorage 무시, Firebase 우선)
     // kakaoUserId는 숫자로 저장되어 있을 수 있으므로 문자열로 변환
     let kakaoUserId = d.kakaoUserId || null;
-    if (kakaoUserId !== null && kakaoUserId !== undefined && kakaoUserId !== "") {
+    if (
+      kakaoUserId !== null &&
+      kakaoUserId !== undefined &&
+      kakaoUserId !== ""
+    ) {
       kakaoUserId = String(kakaoUserId); // 문자열로 통일
     } else {
       kakaoUserId = null; // null, undefined, 빈 문자열은 모두 null로 처리
     }
     const kakaoNickname = d.kakaoNickname || null;
     const kakaoProfileImage = d.kakaoProfileImage || null;
-    
+
     console.log("[자동 로그인] Firebase에서 가져온 카카오 정보:", {
       원본_kakaoUserId: d.kakaoUserId,
       타입: typeof d.kakaoUserId,
       변환된_kakaoUserId: kakaoUserId,
       kakaoNickname,
-      kakaoProfileImage
+      kakaoProfileImage,
     });
-    
+
     state.currentUser = {
       studentId: saved.studentId,
       name: saved.name,
@@ -200,7 +208,7 @@ export async function verifyAutoLogin(saved) {
       kakaoNickname: kakaoNickname,
       kakaoProfileImage: kakaoProfileImage,
     };
-    
+
     // localStorage에도 Firebase에서 가져온 최신 카카오 정보 저장
     const updated = {
       ...saved,
@@ -229,31 +237,31 @@ export async function logoutUser() {
     // 모든 리스너 정리 (Firebase 권한 오류 방지)
     const { stopAllListeners } = await import("./listeners.js");
     stopAllListeners();
-    
+
     stopPresence();
-    
+
     // 카카오 연동 정보는 유지하고 나머지만 삭제
     const saved = JSON.parse(localStorage.getItem("foodieUser") || "{}");
     const kakaoInfo = {
       kakaoUserId: saved.kakaoUserId || null,
       kakaoNickname: saved.kakaoNickname || null,
-      kakaoProfileImage: saved.kakaoProfileImage || null
+      kakaoProfileImage: saved.kakaoProfileImage || null,
     };
-    
+
     // 카카오 정보만 유지하고 나머지 삭제
     if (kakaoInfo.kakaoUserId) {
       localStorage.setItem("foodieUser", JSON.stringify(kakaoInfo));
       console.log("[로그아웃] 카카오 정보 유지:", kakaoInfo);
     } else {
-    localStorage.removeItem("foodieUser");
+      localStorage.removeItem("foodieUser");
       console.log("[로그아웃] 카카오 정보 없음, localStorage 삭제");
     }
-    
+
     // 카카오 SDK는 로그아웃하지 않음 (연동 정보 유지를 위해)
-    
+
     state.currentUser = null;
     state.adminList = [];
-    
+
     // 상태 데이터 초기화
     state.membersData = [];
     state.eventsData = [];
@@ -275,14 +283,14 @@ export async function logoutUser() {
  */
 export async function linkKakaoAccount() {
   console.log("[카카오 연동] linkKakaoAccount 함수 시작");
-  
+
   // 카카오 SDK 초기화 확인 및 초기화
   if (typeof window.Kakao === "undefined") {
     console.error("[카카오 연동] Kakao SDK가 정의되지 않음");
     showAlert("😥", "카카오 SDK가 로드되지 않았습니다.");
     return false;
   }
-  
+
   // 전역 초기화 함수 사용 (중복 초기화 방지)
   if (Kakao.isInitialized()) {
     // 이미 초기화됨
@@ -298,7 +306,7 @@ export async function linkKakaoAccount() {
       }
     }
   }
-  
+
   if (!Kakao.isInitialized()) {
     showAlert("😥", "카카오 SDK가 초기화되지 않았습니다.");
     return false;
@@ -310,57 +318,73 @@ export async function linkKakaoAccount() {
     currentUser: state.currentUser,
     studentId: state.currentUser?.studentId,
     name: state.currentUser?.name,
-    localStorage: localStorage.getItem("foodieUser")
+    localStorage: localStorage.getItem("foodieUser"),
   });
-  
+
   if (!state.currentUser) {
     console.error("[카카오 연동] state.currentUser가 없음");
-    
+
     // localStorage에서 사용자 정보 확인
     const saved = JSON.parse(localStorage.getItem("foodieUser") || "{}");
     if (saved.studentId && saved.name) {
-      console.warn("[카카오 연동] localStorage에는 사용자 정보가 있지만 state.currentUser가 없음. state 동기화 필요");
+      console.warn(
+        "[카카오 연동] localStorage에는 사용자 정보가 있지만 state.currentUser가 없음. state 동기화 필요"
+      );
       // state를 다시 로드해보기
       const { verifyAutoLogin } = await import("./auth.js");
       const autoLoginSuccess = await verifyAutoLogin(saved);
       if (autoLoginSuccess) {
-        console.log("[카카오 연동] 자동 로그인으로 state.currentUser 복구 성공");
+        console.log(
+          "[카카오 연동] 자동 로그인으로 state.currentUser 복구 성공"
+        );
         // state가 복구되었으므로 자동으로 다시 시도
-        console.log("[카카오 연동] state 복구 후 자동으로 linkKakaoAccount 재호출");
+        console.log(
+          "[카카오 연동] state 복구 후 자동으로 linkKakaoAccount 재호출"
+        );
         return await linkKakaoAccount();
       }
     }
-    
+
     showAlert("😥", "먼저 로그인해주세요.");
     return false;
   }
-  
+
   // 이미 카카오 계정이 연동되어 있는지 확인
   const currentKakaoUserId = state.currentUser?.kakaoUserId;
-  if (currentKakaoUserId && currentKakaoUserId !== null && currentKakaoUserId !== "" && currentKakaoUserId !== 0) {
+  if (
+    currentKakaoUserId &&
+    currentKakaoUserId !== null &&
+    currentKakaoUserId !== "" &&
+    currentKakaoUserId !== 0
+  ) {
     showAlert("ℹ️", "이미 카카오 계정이 연동되어 있습니다.");
     return false;
   }
-  
+
   console.log("[카카오 연동] 현재 사용자:", {
     studentId: state.currentUser.studentId,
-    name: state.currentUser.name
+    name: state.currentUser.name,
   });
 
   try {
     console.log("[카카오 연동] 카카오 로그인 요청 시작");
-    
+
     // 기존 카카오 세션 정리 (다른 계정 선택 가능하도록)
-    if (window.Kakao && window.Kakao.Auth && window.Kakao.Auth.getAccessToken()) {
+    if (
+      window.Kakao &&
+      window.Kakao.Auth &&
+      window.Kakao.Auth.getAccessToken()
+    ) {
       console.log("[카카오 연동] 기존 카카오 세션 정리 중...");
       window.Kakao.Auth.logout();
       // 로그아웃 후 잠시 대기 (세션 정리 시간 확보)
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await new Promise((resolve) => setTimeout(resolve, 300));
     }
-    
-    // 카카오 로그인 요청
+
+    // 카카오 로그인 요청 (프로필 이미지/닉네임 권한 포함)
     const authObj = await new Promise((resolve, reject) => {
       Kakao.Auth.login({
+        scope: "profile_nickname,profile_image",
         success: (auth) => resolve(auth),
         fail: (err) => reject(err),
       });
@@ -387,31 +411,39 @@ export async function linkKakaoAccount() {
       kakaoId,
       kakaoIdString,
       kakaoNickname,
-      kakaoProfileImage
+      kakaoProfileImage,
     });
 
     // 이미 다른 계정에 연동된 카카오 계정인지 확인
     const membersRef = collection(db, "members");
-    let existingLinkQuery = query(membersRef, where("kakaoUserId", "==", kakaoId));
+    let existingLinkQuery = query(
+      membersRef,
+      where("kakaoUserId", "==", kakaoId)
+    );
     let existingLinkSnapshot = await getDocs(existingLinkQuery);
-    
+
     // 숫자로 찾지 못하면 문자열로도 시도
     if (existingLinkSnapshot.empty) {
-      existingLinkQuery = query(membersRef, where("kakaoUserId", "==", kakaoIdString));
+      existingLinkQuery = query(
+        membersRef,
+        where("kakaoUserId", "==", kakaoIdString)
+      );
       existingLinkSnapshot = await getDocs(existingLinkQuery);
     }
-    
+
     // 다른 계정에 이미 연동되어 있는지 확인
     if (!existingLinkSnapshot.empty) {
       const existingMember = existingLinkSnapshot.docs[0];
       const existingStudentId = existingMember.id;
-      
+
       // 현재 사용자와 다른 계정에 연동되어 있으면 에러
       if (existingStudentId !== state.currentUser.studentId) {
         const existingMemberData = existingMember.data();
         showAlert(
           "😥",
-          `이 카카오 계정은 이미 다른 계정(${existingMemberData.name || existingStudentId})에 연동되어 있습니다.<br>다른 카카오 계정을 사용하거나, 기존 연동을 해제한 후 다시 시도해주세요.`
+          `이 카카오 계정은 이미 다른 계정(${
+            existingMemberData.name || existingStudentId
+          })에 연동되어 있습니다.<br>다른 카카오 계정을 사용하거나, 기존 연동을 해제한 후 다시 시도해주세요.`
         );
         // 카카오 로그아웃
         Kakao.Auth.logout();
@@ -425,7 +457,7 @@ export async function linkKakaoAccount() {
 
     // 기존 회원 정보에 카카오 정보 연동 (숫자로 저장)
     const memberRef = doc(db, "members", state.currentUser.studentId);
-    
+
     // 저장 전 현재 상태 확인
     const beforeSnap = await getDoc(memberRef);
     if (beforeSnap.exists()) {
@@ -433,23 +465,23 @@ export async function linkKakaoAccount() {
       console.log("[카카오 연동] 저장 전 상태:", {
         studentId: state.currentUser.studentId,
         기존_kakaoUserId: beforeData.kakaoUserId,
-        기존_타입: typeof beforeData.kakaoUserId
+        기존_타입: typeof beforeData.kakaoUserId,
       });
     }
-    
+
     await updateDoc(memberRef, {
       kakaoUserId: kakaoId, // 숫자로 저장
       kakaoNickname: kakaoNickname,
       kakaoProfileImage: kakaoProfileImage,
       kakaoLinkedAt: new Date().toISOString(),
     });
-    
+
     console.log("[카카오 연동] Firebase에 저장 완료:", {
       studentId: state.currentUser.studentId,
       저장한_kakaoUserId: kakaoId,
-      저장한_타입: typeof kakaoId
+      저장한_타입: typeof kakaoId,
     });
-    
+
     // 저장 확인: 즉시 다시 읽어서 확인
     const verifyRef = doc(db, "members", state.currentUser.studentId);
     const verifySnap = await getDoc(verifyRef);
@@ -458,23 +490,26 @@ export async function linkKakaoAccount() {
       showAlert("😥", "회원 정보를 찾을 수 없습니다.");
       return false;
     }
-    
+
     const verifyData = verifySnap.data();
     console.log("[카카오 연동] 저장 확인:", {
       저장된_kakaoUserId: verifyData.kakaoUserId,
       타입: typeof verifyData.kakaoUserId,
       원본_kakaoId: kakaoId,
       원본_타입: typeof kakaoId,
-      저장_성공: verifyData.kakaoUserId === kakaoId
+      저장_성공: verifyData.kakaoUserId === kakaoId,
     });
-    
+
     // 저장이 제대로 안되었으면 에러
     if (verifyData.kakaoUserId !== kakaoId) {
       console.error("[카카오 연동] 저장 실패: 저장된 값과 원본 값이 다름");
-      showAlert("😥", "카카오 계정 연동 저장에 실패했습니다. 다시 시도해주세요.");
+      showAlert(
+        "😥",
+        "카카오 계정 연동 저장에 실패했습니다. 다시 시도해주세요."
+      );
       return false;
     }
-    
+
     // state.membersData에서 해당 회원 찾아서 업데이트
     if (state.membersData && Array.isArray(state.membersData)) {
       const memberIndex = state.membersData.findIndex(
@@ -489,7 +524,10 @@ export async function linkKakaoAccount() {
           kakaoProfileImage: verifyData.kakaoProfileImage,
         };
         // _kakaoUserIdString도 추가 (listeners.js와 동일한 형식)
-        if (updatedMember.kakaoUserId !== undefined && updatedMember.kakaoUserId !== null) {
+        if (
+          updatedMember.kakaoUserId !== undefined &&
+          updatedMember.kakaoUserId !== null
+        ) {
           updatedMember._kakaoUserIdString = String(updatedMember.kakaoUserId);
         }
         state.membersData[memberIndex] = updatedMember;
@@ -497,17 +535,25 @@ export async function linkKakaoAccount() {
           studentId: state.currentUser.studentId,
           kakaoUserId: updatedMember.kakaoUserId,
           타입: typeof updatedMember.kakaoUserId,
-          _kakaoUserIdString: updatedMember._kakaoUserIdString
+          _kakaoUserIdString: updatedMember._kakaoUserIdString,
         });
       } else {
-        console.warn("[카카오 연동] state.membersData에서 회원을 찾을 수 없음:", {
-          studentId: state.currentUser.studentId,
-          membersData_길이: state.membersData.length,
-          membersData_학번들: state.membersData.map(m => m.studentId || m.id)
-        });
+        console.warn(
+          "[카카오 연동] state.membersData에서 회원을 찾을 수 없음:",
+          {
+            studentId: state.currentUser.studentId,
+            membersData_길이: state.membersData.length,
+            membersData_학번들: state.membersData.map(
+              (m) => m.studentId || m.id
+            ),
+          }
+        );
       }
     } else {
-      console.warn("[카카오 연동] state.membersData가 없거나 배열이 아님:", state.membersData);
+      console.warn(
+        "[카카오 연동] state.membersData가 없거나 배열이 아님:",
+        state.membersData
+      );
     }
 
     // 현재 사용자 상태 업데이트 (문자열로 저장하여 일관성 유지)
@@ -516,7 +562,7 @@ export async function linkKakaoAccount() {
       showAlert("😥", "로그인 상태를 확인할 수 없습니다.");
       return false;
     }
-    
+
     state.currentUser.kakaoUserId = kakaoIdString;
     state.currentUser.kakaoNickname = kakaoNickname;
     state.currentUser.kakaoProfileImage = kakaoProfileImage;
@@ -531,21 +577,24 @@ export async function linkKakaoAccount() {
         kakaoProfileImage: kakaoProfileImage,
       })
     );
-    
+
     console.log("[카카오 연동] state.currentUser 업데이트 완료:", {
       studentId: state.currentUser.studentId,
       kakaoUserId: state.currentUser.kakaoUserId,
-      타입: typeof state.currentUser.kakaoUserId
+      타입: typeof state.currentUser.kakaoUserId,
     });
-    
+
     // 화면 갱신 (renderReservationTab이 다시 호출되도록)
     scheduleRender();
-    
+
     // renderReservationTab을 직접 호출하여 내 활동 섹션 업데이트
     setTimeout(async () => {
       try {
         const { renderReservationTab } = await import("./tabs.js");
-        const isAdmin = !!(state.currentUser && state.adminList?.includes(state.currentUser.studentId));
+        const isAdmin = !!(
+          state.currentUser &&
+          state.adminList?.includes(state.currentUser.studentId)
+        );
         renderReservationTab(isAdmin);
         console.log("[카카오 연동] renderReservationTab 재호출 완료");
       } catch (error) {
@@ -567,25 +616,36 @@ export async function linkKakaoAccount() {
           kakaoProfileImage: kakaoProfileImage,
         };
         // _kakaoUserIdString도 추가 (listeners.js와 동일한 형식)
-        if (state.membersData[memberIndex].kakaoUserId !== undefined && state.membersData[memberIndex].kakaoUserId !== null) {
-          state.membersData[memberIndex]._kakaoUserIdString = String(state.membersData[memberIndex].kakaoUserId);
+        if (
+          state.membersData[memberIndex].kakaoUserId !== undefined &&
+          state.membersData[memberIndex].kakaoUserId !== null
+        ) {
+          state.membersData[memberIndex]._kakaoUserIdString = String(
+            state.membersData[memberIndex].kakaoUserId
+          );
         }
         console.log("[카카오 연동] state.membersData 강제 업데이트 완료:", {
           studentId: state.currentUser.studentId,
           kakaoUserId: state.membersData[memberIndex].kakaoUserId,
           타입: typeof state.membersData[memberIndex].kakaoUserId,
-          _kakaoUserIdString: state.membersData[memberIndex]._kakaoUserIdString
+          _kakaoUserIdString: state.membersData[memberIndex]._kakaoUserIdString,
         });
       } else {
-        console.warn("[카카오 연동] state.membersData에서 회원을 찾을 수 없음:", {
-          studentId: state.currentUser.studentId,
-          membersData_길이: state.membersData.length
-        });
+        console.warn(
+          "[카카오 연동] state.membersData에서 회원을 찾을 수 없음:",
+          {
+            studentId: state.currentUser.studentId,
+            membersData_길이: state.membersData.length,
+          }
+        );
       }
     } else {
-      console.warn("[카카오 연동] state.membersData가 없거나 배열이 아님:", state.membersData);
+      console.warn(
+        "[카카오 연동] state.membersData가 없거나 배열이 아님:",
+        state.membersData
+      );
     }
-    
+
     // 회원 목록이 열려있으면 즉시 렌더링
     const subtabContainer = document.getElementById("subtab-container");
     if (subtabContainer) {
@@ -599,20 +659,22 @@ export async function linkKakaoAccount() {
     }
 
     showAlert("✅", "카카오 계정이 연동되었습니다.");
-    
+
     // 동아리 카카오 계정 친구추가 안내 모달 표시
     // 모달이 닫힌 후에만 화면 갱신 및 페이지 새로고침
     setTimeout(() => {
       showKakaoFriendAddGuide(() => {
         // 모달이 닫힌 후 실행될 콜백
-        console.log("[카카오 연동] 친구추가 안내 모달 닫힘, 페이지 새로고침 시작");
+        console.log(
+          "[카카오 연동] 친구추가 안내 모달 닫힘, 페이지 새로고침 시작"
+        );
         // 페이지 새로고침 (친구추가 모달을 확인한 후)
         setTimeout(() => {
           window.location.reload();
         }, 300);
       });
     }, 500);
-    
+
     return true;
   } catch (error) {
     console.error("[auth] 카카오 연동 실패:", error);
@@ -626,18 +688,22 @@ export async function linkKakaoAccount() {
  */
 export async function unlinkKakaoAccount() {
   console.log("[카카오 연동 해제] 시작, state.currentUser:", state.currentUser);
-  
+
   // state.currentUser 확인
   if (!state.currentUser || !state.currentUser.studentId) {
-    console.warn("[카카오 연동 해제] state.currentUser가 없음, localStorage 확인 중...");
-    
+    console.warn(
+      "[카카오 연동 해제] state.currentUser가 없음, localStorage 확인 중..."
+    );
+
     // localStorage에서 사용자 정보 확인
     const saved = JSON.parse(localStorage.getItem("foodieUser") || "{}");
     console.log("[카카오 연동 해제] localStorage 데이터:", saved);
-    
+
     if (saved.studentId && saved.name) {
-      console.log("[카카오 연동 해제] localStorage에 사용자 정보 있음, state 복구 시도");
-      
+      console.log(
+        "[카카오 연동 해제] localStorage에 사용자 정보 있음, state 복구 시도"
+      );
+
       // verifyAutoLogin을 사용하지 않고 직접 Firebase에서 확인
       try {
         const mref = doc(db, "members", saved.studentId);
@@ -647,12 +713,16 @@ export async function unlinkKakaoAccount() {
           if ((d.name || "").trim() === saved.name) {
             // state.currentUser 직접 설정
             let kakaoUserId = d.kakaoUserId || null;
-            if (kakaoUserId !== null && kakaoUserId !== undefined && kakaoUserId !== "") {
+            if (
+              kakaoUserId !== null &&
+              kakaoUserId !== undefined &&
+              kakaoUserId !== ""
+            ) {
               kakaoUserId = String(kakaoUserId);
             } else {
               kakaoUserId = null;
             }
-            
+
             state.currentUser = {
               studentId: saved.studentId,
               name: saved.name,
@@ -660,20 +730,31 @@ export async function unlinkKakaoAccount() {
               kakaoNickname: d.kakaoNickname || null,
               kakaoProfileImage: d.kakaoProfileImage || null,
             };
-            console.log("[카카오 연동 해제] state.currentUser 복구 완료:", state.currentUser);
+            console.log(
+              "[카카오 연동 해제] state.currentUser 복구 완료:",
+              state.currentUser
+            );
           } else {
             console.error("[카카오 연동 해제] 이름 불일치");
-            showAlert("😥", "로그인 정보가 일치하지 않습니다. 다시 로그인해주세요.");
+            showAlert(
+              "😥",
+              "로그인 정보가 일치하지 않습니다. 다시 로그인해주세요."
+            );
             return false;
           }
         } else {
-          console.error("[카카오 연동 해제] Firebase에서 회원 정보를 찾을 수 없음");
+          console.error(
+            "[카카오 연동 해제] Firebase에서 회원 정보를 찾을 수 없음"
+          );
           showAlert("😥", "회원 정보를 찾을 수 없습니다. 다시 로그인해주세요.");
           return false;
         }
       } catch (error) {
         console.error("[카카오 연동 해제] Firebase 확인 오류:", error);
-        showAlert("😥", "로그인 상태를 확인할 수 없습니다. 다시 로그인해주세요.");
+        showAlert(
+          "😥",
+          "로그인 상태를 확인할 수 없습니다. 다시 로그인해주세요."
+        );
         return false;
       }
     } else {
@@ -682,58 +763,60 @@ export async function unlinkKakaoAccount() {
       return false;
     }
   }
-  
+
   // 여기까지 왔으면 state.currentUser가 확실히 있음
   console.log("[카카오 연동 해제] state.currentUser 확인 완료:", {
     studentId: state.currentUser.studentId,
     name: state.currentUser.name,
-    kakaoUserId: state.currentUser.kakaoUserId
+    kakaoUserId: state.currentUser.kakaoUserId,
   });
-  
+
   // Firebase에서 최신 정보 확인
   let hasKakaoAccount = false;
   try {
     const memberRef = doc(db, "members", state.currentUser.studentId);
     const memberSnap = await getDoc(memberRef);
-    
+
     if (!memberSnap.exists()) {
       showAlert("😥", "회원 정보를 찾을 수 없습니다.");
       return false;
     }
-    
+
     const memberData = memberSnap.data();
     console.log("[카카오 연동 해제] Firebase에서 읽은 데이터:", {
       kakaoUserId: memberData.kakaoUserId,
       타입: typeof memberData.kakaoUserId,
       state_currentUser_kakaoUserId: state.currentUser?.kakaoUserId,
-      state_타입: typeof state.currentUser?.kakaoUserId
+      state_타입: typeof state.currentUser?.kakaoUserId,
     });
-    
+
     // 숫자와 문자열 모두 확인 (Firebase는 숫자로 저장, state는 문자열로 저장 가능)
     const firebaseKakaoUserId = memberData.kakaoUserId;
     const stateKakaoUserId = state.currentUser?.kakaoUserId;
-    
+
     // Firebase에서 읽은 값 확인 (숫자 또는 문자열)
-    const hasFirebaseKakao = firebaseKakaoUserId !== null && 
-                             firebaseKakaoUserId !== undefined && 
-                             firebaseKakaoUserId !== "" && 
-                             firebaseKakaoUserId !== 0;
-    
+    const hasFirebaseKakao =
+      firebaseKakaoUserId !== null &&
+      firebaseKakaoUserId !== undefined &&
+      firebaseKakaoUserId !== "" &&
+      firebaseKakaoUserId !== 0;
+
     // state.currentUser 값 확인 (문자열 또는 숫자)
-    const hasStateKakao = stateKakaoUserId !== null && 
-                         stateKakaoUserId !== undefined && 
-                         stateKakaoUserId !== "" && 
-                         stateKakaoUserId !== 0;
-    
+    const hasStateKakao =
+      stateKakaoUserId !== null &&
+      stateKakaoUserId !== undefined &&
+      stateKakaoUserId !== "" &&
+      stateKakaoUserId !== 0;
+
     // 둘 중 하나라도 있으면 연동되어 있는 것으로 판단
     hasKakaoAccount = hasFirebaseKakao || hasStateKakao;
-    
+
     console.log("[카카오 연동 해제] 연동 상태 확인:", {
       hasFirebaseKakao,
       hasStateKakao,
-      hasKakaoAccount
+      hasKakaoAccount,
     });
-    
+
     if (!hasKakaoAccount) {
       showAlert("ℹ️", "연동된 카카오 계정이 없습니다.");
       return false;
@@ -742,11 +825,12 @@ export async function unlinkKakaoAccount() {
     console.error("[카카오 연동 해제] Firebase 확인 오류:", error);
     // Firebase 확인 실패 시 state.currentUser로 확인
     const stateKakaoUserId = state.currentUser?.kakaoUserId;
-    hasKakaoAccount = stateKakaoUserId !== null && 
-                     stateKakaoUserId !== undefined && 
-                     stateKakaoUserId !== "" && 
-                     stateKakaoUserId !== 0;
-    
+    hasKakaoAccount =
+      stateKakaoUserId !== null &&
+      stateKakaoUserId !== undefined &&
+      stateKakaoUserId !== "" &&
+      stateKakaoUserId !== 0;
+
     if (!hasKakaoAccount) {
       showAlert("ℹ️", "연동된 카카오 계정이 없습니다.");
       return false;
@@ -765,18 +849,18 @@ export async function unlinkKakaoAccount() {
       kakaoProfileImage: null,
       kakaoLinkedAt: null,
     });
-    
+
     console.log("[카카오 연동 해제] Firebase에 저장 완료");
-    
+
     // 저장 확인: 즉시 다시 읽어서 확인
     const verifyRef = doc(db, "members", state.currentUser.studentId);
     const verifySnap = await getDoc(verifyRef);
     if (verifySnap.exists()) {
       const verifyData = verifySnap.data();
       console.log("[카카오 연동 해제] 저장 확인:", {
-        저장된_kakaoUserId: verifyData.kakaoUserId
+        저장된_kakaoUserId: verifyData.kakaoUserId,
       });
-      
+
       // state.membersData에서 해당 회원 찾아서 업데이트
       if (state.membersData && Array.isArray(state.membersData)) {
         const memberIndex = state.membersData.findIndex(
@@ -794,9 +878,9 @@ export async function unlinkKakaoAccount() {
           delete updatedMember._kakaoUserIdString;
           state.membersData[memberIndex] = updatedMember;
           console.log("[카카오 연동 해제] state.membersData 업데이트 완료:", {
-            studentId: state.currentUser.studentId
+            studentId: state.currentUser.studentId,
           });
-          
+
           // 회원 목록 강제 업데이트 (열려있지 않아도 시도)
           const { renderMembersAdmin } = await import("./dashboard.js");
           const subtabContainer = document.getElementById("subtab-container");
@@ -804,10 +888,14 @@ export async function unlinkKakaoAccount() {
             renderMembersAdmin(subtabContainer);
             console.log("[카카오 연동 해제] 회원 목록 강제 업데이트 완료");
           } else {
-            console.log("[카카오 연동 해제] subtab-container를 찾을 수 없음, Firebase 리스너가 자동 업데이트할 것임");
+            console.log(
+              "[카카오 연동 해제] subtab-container를 찾을 수 없음, Firebase 리스너가 자동 업데이트할 것임"
+            );
           }
         } else {
-          console.warn("[카카오 연동 해제] state.membersData에서 회원을 찾을 수 없음");
+          console.warn(
+            "[카카오 연동 해제] state.membersData에서 회원을 찾을 수 없음"
+          );
         }
       }
     }
@@ -826,15 +914,19 @@ export async function unlinkKakaoAccount() {
     console.log("[카카오 연동 해제] localStorage 업데이트 완료:", saved);
 
     // 카카오 로그아웃
-    if (window.Kakao && window.Kakao.Auth && window.Kakao.Auth.getAccessToken()) {
+    if (
+      window.Kakao &&
+      window.Kakao.Auth &&
+      window.Kakao.Auth.getAccessToken()
+    ) {
       window.Kakao.Auth.logout();
     }
 
     showAlert("✅", "카카오 계정 연동이 해제되었습니다.");
-    
+
     // 화면 갱신 및 회원 목록 업데이트
     scheduleRender();
-    
+
     // Firebase 리스너가 자동으로 업데이트하지만, 즉시 반영을 위해 약간의 지연 후 재렌더링
     setTimeout(async () => {
       const { renderMembersAdmin } = await import("./dashboard.js");
@@ -844,7 +936,7 @@ export async function unlinkKakaoAccount() {
         console.log("[카카오 연동 해제] 지연 후 회원 목록 업데이트 완료");
       }
     }, 500);
-    
+
     return true;
   } catch (error) {
     console.error("[auth] 카카오 연동 해제 실패:", error);
@@ -863,7 +955,7 @@ export async function loginWithKakao() {
     showAlert("😥", "카카오 SDK가 로드되지 않았습니다.");
     return false;
   }
-  
+
   // 전역 초기화 함수 사용 (중복 초기화 방지)
   if (Kakao.isInitialized()) {
     // 이미 초기화됨
@@ -879,7 +971,7 @@ export async function loginWithKakao() {
       }
     }
   }
-  
+
   if (!Kakao.isInitialized()) {
     showAlert("😥", "카카오 SDK가 초기화되지 않았습니다.");
     return false;
@@ -887,13 +979,17 @@ export async function loginWithKakao() {
 
   try {
     // 기존 카카오 세션 정리 (다른 계정 선택 가능하도록)
-    if (window.Kakao && window.Kakao.Auth && window.Kakao.Auth.getAccessToken()) {
+    if (
+      window.Kakao &&
+      window.Kakao.Auth &&
+      window.Kakao.Auth.getAccessToken()
+    ) {
       console.log("[카카오 로그인] 기존 카카오 세션 정리 중...");
       window.Kakao.Auth.logout();
       // 로그아웃 후 잠시 대기 (세션 정리 시간 확보)
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await new Promise((resolve) => setTimeout(resolve, 300));
     }
-    
+
     // 카카오 로그인 요청
     const authObj = await new Promise((resolve, reject) => {
       Kakao.Auth.login({
@@ -914,15 +1010,15 @@ export async function loginWithKakao() {
     // 카카오 ID는 숫자로 저장되어 있으므로 숫자로 검색
     const kakaoId = Number(userInfo.id);
     const kakaoIdString = String(userInfo.id);
-    
+
     console.log("[카카오 로그인] 검색할 카카오 ID:", {
       숫자: kakaoId,
-      문자열: kakaoIdString
+      문자열: kakaoIdString,
     });
 
     // 카카오 ID로 연동된 회원 찾기 (숫자와 문자열 모두 확인)
     const membersRef = collection(db, "members");
-    
+
     // 디버깅: 모든 회원의 kakaoUserId 확인
     const allMembersSnapshot = await getDocs(membersRef);
     const allKakaoUserIds = [];
@@ -933,40 +1029,50 @@ export async function loginWithKakao() {
           studentId: doc.id,
           kakaoUserId: data.kakaoUserId,
           타입: typeof data.kakaoUserId,
-          값: data.kakaoUserId
+          값: data.kakaoUserId,
         });
       }
     });
-    console.log("[카카오 로그인] Firebase에 저장된 모든 kakaoUserId:", allKakaoUserIds);
-    console.log("[카카오 로그인] 검색할 값:", { 숫자: kakaoId, 문자열: kakaoIdString });
-    
+    console.log(
+      "[카카오 로그인] Firebase에 저장된 모든 kakaoUserId:",
+      allKakaoUserIds
+    );
+    console.log("[카카오 로그인] 검색할 값:", {
+      숫자: kakaoId,
+      문자열: kakaoIdString,
+    });
+
     // 먼저 숫자로 검색 (일반적으로 숫자로 저장됨)
     let q = query(membersRef, where("kakaoUserId", "==", kakaoId));
     let querySnapshot = await getDocs(q);
-    
+
     console.log("[카카오 로그인] 숫자 검색 결과:", querySnapshot.size, "개");
     if (querySnapshot.size > 0) {
       querySnapshot.forEach((doc) => {
         console.log("[카카오 로그인] 찾은 회원:", {
           studentId: doc.id,
           kakaoUserId: doc.data().kakaoUserId,
-          타입: typeof doc.data().kakaoUserId
+          타입: typeof doc.data().kakaoUserId,
         });
       });
     }
-    
+
     // 숫자로 찾지 못하면 문자열로도 시도
     if (querySnapshot.empty) {
       console.log("[카카오 로그인] 문자열로 재검색:", kakaoIdString);
       q = query(membersRef, where("kakaoUserId", "==", kakaoIdString));
       querySnapshot = await getDocs(q);
-      console.log("[카카오 로그인] 문자열 검색 결과:", querySnapshot.size, "개");
+      console.log(
+        "[카카오 로그인] 문자열 검색 결과:",
+        querySnapshot.size,
+        "개"
+      );
       if (querySnapshot.size > 0) {
         querySnapshot.forEach((doc) => {
           console.log("[카카오 로그인] 찾은 회원:", {
             studentId: doc.id,
             kakaoUserId: doc.data().kakaoUserId,
-            타입: typeof doc.data().kakaoUserId
+            타입: typeof doc.data().kakaoUserId,
           });
         });
       }
@@ -1012,16 +1118,16 @@ export async function loginWithKakao() {
     const finalKakaoUserId = kakaoIdString; // localStorage에는 문자열로 저장
     const finalKakaoNickname = memberData.kakaoNickname || null;
     const finalKakaoProfileImage = memberData.kakaoProfileImage || null;
-    
+
     // 세션 저장 + 전역 상태 갱신 (카카오 정보 포함)
     localStorage.setItem(
       "foodieUser",
-      JSON.stringify({ 
-        studentId, 
-        name, 
+      JSON.stringify({
+        studentId,
+        name,
         kakaoUserId: finalKakaoUserId,
         kakaoNickname: finalKakaoNickname,
-        kakaoProfileImage: finalKakaoProfileImage
+        kakaoProfileImage: finalKakaoProfileImage,
       })
     );
     state.currentUser = {
@@ -1040,20 +1146,20 @@ export async function loginWithKakao() {
 
     console.log("[카카오 로그인] 로그인 완료, 화면 갱신 시작:", {
       studentId: state.currentUser?.studentId,
-      name: state.currentUser?.name
+      name: state.currentUser?.name,
     });
-    
+
     // ✅ 화면 갱신
     scheduleRender();
-    
+
     // 로그인 성공 알림 표시 후 페이지 새로고침
     showAlert("✅", "카카오 로그인 성공!");
-    
+
     // 페이지 새로고침 (화면 갱신을 위해)
     setTimeout(() => {
       window.location.reload();
     }, 500);
-    
+
     return true;
   } catch (error) {
     console.error("[auth] 카카오 로그인 실패:", error);

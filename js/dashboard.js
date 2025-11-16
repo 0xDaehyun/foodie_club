@@ -101,12 +101,17 @@ function renderHOFAdmin(container) {
         await unarchiveEvent(id);
       } else if (btn.dataset.act === "delete") {
         // 삭제하려는 이벤트 찾기
-        const event = (state.eventsData || []).find(ev => ev.id === id);
-        
+        const event = (state.eventsData || []).find((ev) => ev.id === id);
+
         // 미식회이고 리뷰가 있는 경우 삭제 방지
-        if (event && event.type === "tasting" && event.reviews && event.reviews.length > 0) {
+        if (
+          event &&
+          event.type === "tasting" &&
+          event.reviews &&
+          event.reviews.length > 0
+        ) {
           showAlert(
-            "⛔", 
+            "⛔",
             `<div class="text-left">
               <p class="font-bold mb-2">미식회 후기가 있어 삭제할 수 없습니다</p>
               <p class="text-sm">• 현재 <strong>${event.reviews.length}개의 후기</strong>가 작성되어 있습니다</p>
@@ -116,11 +121,14 @@ function renderHOFAdmin(container) {
           );
           return;
         }
-        
-        if (!confirm(
-          `정말로 삭제하시겠어요?\n\n⚠️ 주의:\n• 이벤트가 완전히 삭제됩니다\n• 내 활동 탭에서도 보이지 않게 됩니다\n• 이 작업은 되돌릴 수 없습니다\n\n계속하시겠습니까?`
-        )) return;
-        
+
+        if (
+          !confirm(
+            `정말로 삭제하시겠어요?\n\n⚠️ 주의:\n• 이벤트가 완전히 삭제됩니다\n• 내 활동 탭에서도 보이지 않게 됩니다\n• 이 작업은 되돌릴 수 없습니다\n\n계속하시겠습니까?`
+          )
+        )
+          return;
+
         await deleteEvent(id);
       }
     },
@@ -668,17 +676,23 @@ let memberSearchTerm = "";
 
 export function renderMembersAdmin(container) {
   console.log("[renderMembersAdmin] 시작, container:", container);
-  console.log("[renderMembersAdmin] state.membersData:", state.membersData?.length || 0, state.membersData);
-  
+  console.log(
+    "[renderMembersAdmin] state.membersData:",
+    state.membersData?.length || 0,
+    state.membersData
+  );
+
   if (!container) {
     console.error("[renderMembersAdmin] container가 없습니다!");
     return;
   }
-  
+
   // 회원 데이터가 없으면 로딩 메시지 표시 및 리스너 시작 시도
   if (!state.membersData || state.membersData.length === 0) {
-    console.log("[renderMembersAdmin] 회원 데이터가 없음, 로딩 메시지 표시 및 리스너 시작 시도");
-    
+    console.log(
+      "[renderMembersAdmin] 회원 데이터가 없음, 로딩 메시지 표시 및 리스너 시작 시도"
+    );
+
     // 로딩 메시지 표시 (자동 재접속 방지를 위해)
     container.innerHTML = `
       <div class="section">
@@ -690,76 +704,100 @@ export function renderMembersAdmin(container) {
         </div>
       </div>
     `;
-    console.log("[renderMembersAdmin] currentUser:", state.currentUser?.studentId);
-    console.log("[renderMembersAdmin] adminList:", state.adminList);
-    console.log("[renderMembersAdmin] adminList includes:", state.adminList?.includes(state.currentUser?.studentId));
-    
-    // 관리자 체크를 더 유연하게 - adminList가 아직 로드되지 않았을 수도 있음
-    const isAdmin = state.currentUser && (
-      state.adminList?.includes(state.currentUser.studentId) || 
-      state.currentUser.studentId === "202327942" // 임시로 회장 학번 체크
+    console.log(
+      "[renderMembersAdmin] currentUser:",
+      state.currentUser?.studentId
     );
-    
+    console.log("[renderMembersAdmin] adminList:", state.adminList);
+    console.log(
+      "[renderMembersAdmin] adminList includes:",
+      state.adminList?.includes(state.currentUser?.studentId)
+    );
+
+    // 관리자 체크를 더 유연하게 - adminList가 아직 로드되지 않았을 수도 있음
+    const isAdmin =
+      state.currentUser &&
+      (state.adminList?.includes(state.currentUser.studentId) ||
+        state.currentUser.studentId === "202327942"); // 임시로 회장 학번 체크
+
     // adminList가 비어있거나 관리자면 리스너 시작
     if (isAdmin || !state.adminList || state.adminList.length === 0) {
       console.log("[renderMembersAdmin] members 리스너 직접 설정 시도");
       // members 리스너만 직접 설정 (관리자 체크 우회)
       Promise.all([
         import("./firebase.js"),
-        import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js")
-      ]).then(async ([firebaseModule, firestoreModule]) => {
-        const { db } = firebaseModule;
-        const { collection, query, orderBy, onSnapshot } = firestoreModule;
-        const unsubAdmin = (window.unsubAdmin = window.unsubAdmin || {});
-        
-        if (!unsubAdmin.members) {
-          console.log("[renderMembersAdmin] members 리스너 직접 설정");
-          unsubAdmin.members = onSnapshot(
-            query(collection(db, "members"), orderBy("name", "asc")),
-            (snap) => {
-              state.membersData = snap.docs.map((d) => {
-                const data = d.data();
-                if (data.kakaoUserId !== undefined && data.kakaoUserId !== null) {
-                  data._kakaoUserIdString = String(data.kakaoUserId);
+        import(
+          "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js"
+        ),
+      ])
+        .then(async ([firebaseModule, firestoreModule]) => {
+          const { db } = firebaseModule;
+          const { collection, query, orderBy, onSnapshot } = firestoreModule;
+          const unsubAdmin = (window.unsubAdmin = window.unsubAdmin || {});
+
+          if (!unsubAdmin.members) {
+            console.log("[renderMembersAdmin] members 리스너 직접 설정");
+            unsubAdmin.members = onSnapshot(
+              query(collection(db, "members"), orderBy("name", "asc")),
+              (snap) => {
+                state.membersData = snap.docs.map((d) => {
+                  const data = d.data();
+                  if (
+                    data.kakaoUserId !== undefined &&
+                    data.kakaoUserId !== null
+                  ) {
+                    data._kakaoUserIdString = String(data.kakaoUserId);
+                  }
+                  return { id: d.id, ...data };
+                });
+                console.log(
+                  "[renderMembersAdmin] membersData 로드됨:",
+                  state.membersData.length,
+                  "개"
+                );
+                // 회원 관리 탭이 열려있으면 다시 렌더링
+                const subtabContainer =
+                  document.getElementById("subtab-container");
+                if (
+                  subtabContainer &&
+                  subtabContainer.innerHTML.includes("회원 관리")
+                ) {
+                  renderMembersAdmin(subtabContainer);
                 }
-                return { id: d.id, ...data };
-              });
-              console.log("[renderMembersAdmin] membersData 로드됨:", state.membersData.length, "개");
-              // 회원 관리 탭이 열려있으면 다시 렌더링
-              const subtabContainer = document.getElementById("subtab-container");
-              if (subtabContainer && subtabContainer.innerHTML.includes("회원 관리")) {
-                renderMembersAdmin(subtabContainer);
+              },
+              (err) => {
+                console.warn("members:", err?.message);
               }
-            },
-            (err) => {
-              console.warn("members:", err?.message);
-            }
-          );
-        } else {
-          console.log("[renderMembersAdmin] members 리스너가 이미 설정되어 있음");
-        }
-      }).catch((err) => {
-        console.error("[renderMembersAdmin] 리스너 설정 실패:", err);
-      });
-      
+            );
+          } else {
+            console.log(
+              "[renderMembersAdmin] members 리스너가 이미 설정되어 있음"
+            );
+          }
+        })
+        .catch((err) => {
+          console.error("[renderMembersAdmin] 리스너 설정 실패:", err);
+        });
+
       // startAdminListeners도 시도
-      import("./listeners.js").then(({ startAdminListeners }) => {
-        console.log("[renderMembersAdmin] startAdminListeners도 호출");
-        startAdminListeners();
-        // 데이터 로드 후 다시 렌더링 (최대 10초 대기, 무한 재시도 방지)
-        let retryCount = 0;
-        const maxRetries = 100; // 10초 (100ms * 100)
-        const checkInterval = setInterval(() => {
-          retryCount++;
-          if (state.membersData && state.membersData.length > 0) {
-            console.log("[renderMembersAdmin] 데이터 로드됨, 다시 렌더링");
-            clearInterval(checkInterval);
-            renderMembersAdmin(container);
-          } else if (retryCount >= maxRetries) {
-            console.warn("[renderMembersAdmin] 데이터 로드 타임아웃");
-            clearInterval(checkInterval);
-            // 타임아웃 시 에러 메시지 표시
-            container.innerHTML = `
+      import("./listeners.js")
+        .then(({ startAdminListeners }) => {
+          console.log("[renderMembersAdmin] startAdminListeners도 호출");
+          startAdminListeners();
+          // 데이터 로드 후 다시 렌더링 (최대 10초 대기, 무한 재시도 방지)
+          let retryCount = 0;
+          const maxRetries = 100; // 10초 (100ms * 100)
+          const checkInterval = setInterval(() => {
+            retryCount++;
+            if (state.membersData && state.membersData.length > 0) {
+              console.log("[renderMembersAdmin] 데이터 로드됨, 다시 렌더링");
+              clearInterval(checkInterval);
+              renderMembersAdmin(container);
+            } else if (retryCount >= maxRetries) {
+              console.warn("[renderMembersAdmin] 데이터 로드 타임아웃");
+              clearInterval(checkInterval);
+              // 타임아웃 시 에러 메시지 표시
+              container.innerHTML = `
               <div class="section">
                 <h3 class="text-xl font-bold text-gray-800 mb-4">회원 관리</h3>
                 <div class="text-center py-8 text-gray-500">
@@ -768,29 +806,55 @@ export function renderMembersAdmin(container) {
                 </div>
               </div>
             `;
-          }
-        }, 100);
-      }).catch((err) => {
-        console.error("[renderMembersAdmin] startAdminListeners import 실패:", err);
-      });
+            }
+          }, 100);
+        })
+        .catch((err) => {
+          console.error(
+            "[renderMembersAdmin] startAdminListeners import 실패:",
+            err
+          );
+        });
     } else {
       console.warn("[renderMembersAdmin] 관리자가 아님");
     }
   }
-  
+
   const pendingSet = (state.membersData || []).filter(
     (m) => (m.status || "pending") !== "active"
   );
   const activeSet = (state.membersData || []).filter(
     (m) => (m.status || "pending") === "active"
   );
-  console.log("[renderMembersAdmin] pendingSet:", pendingSet.length, "activeSet:", activeSet.length);
-  console.log("[renderMembersAdmin] membersCardHTML 함수 존재:", typeof membersCardHTML);
-  
-  // membersCardHTML 함수를 미리 호출하여 HTML 생성
-  const pendingHTML = membersCardHTML(pendingSet, true, memberSearchTerm);
-  const activeHTML = membersCardHTML(activeSet, false, memberSearchTerm);
-  console.log("[renderMembersAdmin] pendingHTML 길이:", pendingHTML.length, "activeHTML 길이:", activeHTML.length);
+  console.log(
+    "[renderMembersAdmin] pendingSet:",
+    pendingSet.length,
+    "activeSet:",
+    activeSet.length
+  );
+  console.log(
+    "[renderMembersAdmin] membersCardHTML 함수 존재:",
+    typeof membersCardHTML
+  );
+
+  // 처음에는 일부만 보여주고, 나머지는 "더보기"로 여는 구조
+  const MEMBERS_INITIAL_VISIBLE = 10;
+  const pendingHTML = membersCardHTML(
+    pendingSet.slice(0, MEMBERS_INITIAL_VISIBLE),
+    true,
+    memberSearchTerm
+  );
+  const activeHTML = membersCardHTML(
+    activeSet.slice(0, MEMBERS_INITIAL_VISIBLE),
+    false,
+    memberSearchTerm
+  );
+  console.log(
+    "[renderMembersAdmin] pendingHTML 길이:",
+    pendingHTML.length,
+    "activeHTML 길이:",
+    activeHTML.length
+  );
 
   container.innerHTML = `
     <div class="section">
@@ -798,8 +862,7 @@ export function renderMembersAdmin(container) {
 
       <div class="flex flex-wrap items-center gap-2 mb-3">
         <input id="member-search" class="px-3 py-2 border rounded flex-1 min-w-[200px]" placeholder="이름/학번/학과 검색">
-        <button id="members-export" class="px-3 py-2 bg-blue-600 text-white rounded"><i class="fas fa-file-csv mr-1"></i>CSV 다운로드(한글)</button>
-        <button id="members-delete-all" class="px-3 py-2 bg-red-600 text-white rounded"><i class="fas fa-trash mr-1"></i>회원 전체 삭제</button>
+        <button id="members-export" class="px-3 py-2 bg-blue-600 text-white rounded"><i class="fas fa-file-csv mr-1"></i>회원 명단 다운받기(CSV)</button>
       </div>
 
       <!-- 회원 목록 (카드 형태) -->
@@ -809,6 +872,17 @@ export function renderMembersAdmin(container) {
           <div id="members-list-pending" class="space-y-2">
             ${pendingHTML}
           </div>
+          ${
+            pendingSet.length > MEMBERS_INITIAL_VISIBLE
+              ? `<div class="mt-2 text-center">
+                   <button id="members-pending-load-more" class="px-3 py-1 text-xs bg-white border border-amber-300 text-amber-700 rounded-full hover:bg-amber-50">
+                     승인 대기 회원 더보기 (${
+                       pendingSet.length - MEMBERS_INITIAL_VISIBLE
+                     }명)
+                   </button>
+                 </div>`
+              : ""
+          }
         </div>
 
         <div>
@@ -816,6 +890,17 @@ export function renderMembersAdmin(container) {
           <div id="members-list-active" class="space-y-2">
             ${activeHTML}
           </div>
+          ${
+            activeSet.length > MEMBERS_INITIAL_VISIBLE
+              ? `<div class="mt-2 text-center">
+                   <button id="members-active-load-more" class="px-3 py-1 text-xs bg-white border border-emerald-300 text-emerald-700 rounded-full hover:bg-emerald-50">
+                     활동중 회원 더보기 (${
+                       activeSet.length - MEMBERS_INITIAL_VISIBLE
+                     }명)
+                   </button>
+                 </div>`
+              : ""
+          }
         </div>
       </div>
 
@@ -836,6 +921,31 @@ export function renderMembersAdmin(container) {
 
 
       <p class="text-xs text-gray-500 mt-2">* CSV는 UTF-8(BOM) 저장으로 엑셀에서 한글이 깨지지 않습니다.</p>
+
+      <!-- 회원 전체 삭제 (페이지 맨 아래, 강력 확인 필요) -->
+      <div class="mt-6 pt-4 border-t border-red-200 space-y-2">
+        <p class="text-xs text-red-600">
+          ⚠️ <b>회원 전체 삭제</b>는 되돌릴 수 없습니다. CSV로 백업한 뒤, 정말 초기화가 필요할 때만 사용하세요.
+        </p>
+        <p class="text-xs text-gray-600">
+          아래 입력창에 <b>"회원을 전체 삭제합니다"</b> 를 정확히 입력해야 버튼이 활성화됩니다.
+        </p>
+        <div class="flex flex-col md:flex-row gap-2 items-stretch md:items-center">
+          <input
+            id="members-delete-confirm"
+            type="text"
+            class="flex-1 px-3 py-2 border border-red-300 rounded text-xs"
+            placeholder='회원을 전체 삭제합니다'
+          >
+          <button
+            id="members-delete-all"
+            class="px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded text-xs md:text-sm font-semibold disabled:opacity-40 disabled:cursor-not-allowed"
+            disabled
+          >
+            <i class="fas fa-trash mr-1"></i>회원 전체 삭제
+          </button>
+        </div>
+      </div>
     </div>
   `;
 
@@ -849,46 +959,110 @@ export function renderMembersAdmin(container) {
     const activeNow = (state.membersData || []).filter(
       (m) => (m.status || "pending") === "active"
     );
-    
+
     // 카드 목록 업데이트
     const pendingList = container.querySelector("#members-list-pending");
     const activeList = container.querySelector("#members-list-active");
     if (pendingList) {
-      pendingList.innerHTML = membersCardHTML(pendingNow, true, memberSearchTerm);
+      // 검색 시에는 전체 결과 표시 (더보기 없이)
+      pendingList.innerHTML = membersCardHTML(
+        pendingNow,
+        true,
+        memberSearchTerm
+      );
     }
     if (activeList) {
-      activeList.innerHTML = membersCardHTML(activeNow, false, memberSearchTerm);
+      // 검색 시에는 전체 결과 표시 (더보기 없이)
+      activeList.innerHTML = membersCardHTML(
+        activeNow,
+        false,
+        memberSearchTerm
+      );
     }
   });
+
+  // "승인 대기 회원 더보기" 버튼: 전체 표시로 확장
+  const pendingLoadMoreBtn = container.querySelector(
+    "#members-pending-load-more"
+  );
+  if (pendingLoadMoreBtn) {
+    pendingLoadMoreBtn.addEventListener("click", () => {
+      const pendingList = container.querySelector("#members-list-pending");
+      if (pendingList) {
+        pendingList.innerHTML = membersCardHTML(
+          pendingSet,
+          true,
+          memberSearchTerm
+        );
+      }
+      pendingLoadMoreBtn.remove();
+    });
+  }
+
+  // "활동중 회원 더보기" 버튼: 전체 표시로 확장
+  const activeLoadMoreBtn = container.querySelector(
+    "#members-active-load-more"
+  );
+  if (activeLoadMoreBtn) {
+    activeLoadMoreBtn.addEventListener("click", () => {
+      const activeList = container.querySelector("#members-list-active");
+      if (activeList) {
+        activeList.innerHTML = membersCardHTML(
+          activeSet,
+          false,
+          memberSearchTerm
+        );
+      }
+      activeLoadMoreBtn.remove();
+    });
+  }
 
   container
     .querySelector("#members-export")
     .addEventListener("click", exportMembersCSV);
-  container
-    .querySelector("#members-delete-all")
-    .addEventListener("click", deleteAllMembers);
-  
+
+  // 회원 전체 삭제: 확인 문구가 정확히 입력되어야만 가능
+  const deleteConfirmInput = container.querySelector("#members-delete-confirm");
+  const deleteAllBtn = container.querySelector("#members-delete-all");
+  if (deleteConfirmInput && deleteAllBtn) {
+    const REQUIRED_PHRASE = "회원을 전체 삭제합니다";
+    const updateDeleteButtonState = () => {
+      deleteAllBtn.disabled = deleteConfirmInput.value.trim() !== REQUIRED_PHRASE;
+    };
+    updateDeleteButtonState();
+    deleteConfirmInput.addEventListener("input", updateDeleteButtonState);
+    deleteAllBtn.addEventListener("click", () => {
+      if (deleteAllBtn.disabled) return;
+      deleteAllMembers();
+    });
+  }
+
   // 회원 카드 클릭 이벤트
   container.addEventListener("click", (e) => {
     // 모달이 열려있거나 모달 내부 요소를 클릭한 경우 무시
     const modal = document.getElementById("member-detail-modal");
-    if (modal && !modal.classList.contains("hidden") && modal.style.display !== "none") {
+    if (
+      modal &&
+      !modal.classList.contains("hidden") &&
+      modal.style.display !== "none"
+    ) {
       // 모달이 열려있으면 회원 카드 클릭 무시
       if (modal.contains(e.target)) {
         return;
       }
     }
-    
+
     // 모달 내부 요소 클릭 무시
     if (e.target.closest("#member-detail-modal")) {
       return;
     }
-    
+
     console.log("[회원 카드] 클릭 이벤트:", e.target);
     const memberCard = e.target.closest(".member-card");
     console.log("[회원 카드] memberCard:", memberCard);
     if (memberCard) {
-      const studentId = memberCard.dataset.studentId || memberCard.dataset.studentid;
+      const studentId =
+        memberCard.dataset.studentId || memberCard.dataset.studentid;
       console.log("[회원 카드] studentId:", studentId);
       if (studentId) {
         console.log("[회원 카드] openMemberDetailModal 호출");
@@ -904,7 +1078,7 @@ export function renderMembersAdmin(container) {
       onMembersTableClick(e);
     }
   });
-  
+
   // 모달 닫기 버튼 (초기 로드 시, 나중에 openMemberDetailModal에서 재등록됨)
   const closeBtn = container.querySelector("#member-detail-close");
   const modal = container.querySelector("#member-detail-modal");
@@ -933,7 +1107,7 @@ function membersCardHTML(list, isPendingGroup, keyword) {
     );
     return kw ? s.some((v) => v.includes(kw)) : true;
   });
-  
+
   if (filtered.length === 0) {
     return `<div class="text-center py-8 text-gray-400">해당 항목이 없습니다.</div>`;
   }
@@ -943,10 +1117,16 @@ function membersCardHTML(list, isPendingGroup, keyword) {
       // kakaoUserId가 문자열, 숫자, 또는 빈 문자열일 수 있으므로 명확하게 확인
       // 숫자 0은 falsy이므로 명시적으로 확인
       // _kakaoUserIdString도 확인 (listeners.js에서 추가한 속성)
-      const hasKakaoUserId = m.kakaoUserId !== undefined && m.kakaoUserId !== null && m.kakaoUserId !== "";
-      const hasKakaoUserIdString = m._kakaoUserIdString !== undefined && m._kakaoUserIdString !== null && m._kakaoUserIdString !== "";
+      const hasKakaoUserId =
+        m.kakaoUserId !== undefined &&
+        m.kakaoUserId !== null &&
+        m.kakaoUserId !== "";
+      const hasKakaoUserIdString =
+        m._kakaoUserIdString !== undefined &&
+        m._kakaoUserIdString !== null &&
+        m._kakaoUserIdString !== "";
       const isKakaoLinked = !!(hasKakaoUserId || hasKakaoUserIdString);
-      
+
       // 디버깅: 특정 회원의 kakaoUserId 값 확인
       if (m.studentId && (hasKakaoUserId || hasKakaoUserIdString)) {
         console.log("[회원 목록] 카카오 연동 확인:", {
@@ -955,40 +1135,49 @@ function membersCardHTML(list, isPendingGroup, keyword) {
           kakaoUserId: m.kakaoUserId,
           kakaoUserId_타입: typeof m.kakaoUserId,
           _kakaoUserIdString: m._kakaoUserIdString,
-          isKakaoLinked
+          isKakaoLinked,
         });
       }
-      
+
       const profileImage = m.kakaoProfileImage || null;
-      
+
       return `
-        <div class="member-card bg-white border border-gray-200 rounded-lg p-4 cursor-pointer hover:bg-gray-50 hover:border-orange-300 transition-all shadow-sm hover:shadow-md" data-studentId="${m.studentId}">
+        <div class="member-card bg-white border border-gray-200 rounded-lg p-4 cursor-pointer hover:bg-gray-50 hover:border-orange-300 transition-all shadow-sm hover:shadow-md" data-studentId="${
+          m.studentId
+        }">
           <div class="flex items-center gap-3">
             <div class="relative flex-shrink-0">
               <div class="w-12 h-12 rounded-full bg-gradient-to-br from-orange-400 to-yellow-400 flex items-center justify-center text-white font-bold text-lg overflow-hidden">
-                ${profileImage 
-                  ? `<img src="${profileImage}" alt="프로필" class="w-full h-full object-cover" />`
-                  : (m.name?.charAt(0) || "U")
+                ${
+                  profileImage
+                    ? `<img src="${profileImage}" alt="프로필" class="w-full h-full object-cover" />`
+                    : m.name?.charAt(0) || "U"
                 }
               </div>
-              ${isKakaoLinked 
-                ? `<div class="absolute -bottom-1 -right-1 w-5 h-5 bg-yellow-400 rounded-full border-2 border-white flex items-center justify-center">
+              ${
+                isKakaoLinked
+                  ? `<div class="absolute -bottom-1 -right-1 w-5 h-5 bg-yellow-400 rounded-full border-2 border-white flex items-center justify-center">
                      <i class="fas fa-comment-dots text-[10px] text-gray-900"></i>
                    </div>`
-                : `<div class="absolute -bottom-1 -right-1 w-5 h-5 bg-gray-300 rounded-full border-2 border-white flex items-center justify-center">
+                  : `<div class="absolute -bottom-1 -right-1 w-5 h-5 bg-gray-300 rounded-full border-2 border-white flex items-center justify-center">
                      <i class="fas fa-user text-[10px] text-gray-600"></i>
                    </div>`
               }
             </div>
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-2 mb-1">
-                <span class="font-semibold text-gray-800 text-base">${saf(m.name || "")}</span>
-                ${isKakaoLinked 
-                  ? `<span class="text-[10px] px-1.5 py-0.5 bg-yellow-100 text-yellow-700 rounded-full font-medium">카카오 연동</span>`
-                  : `<span class="text-[10px] px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded-full font-medium">미연동</span>`
+                <span class="font-semibold text-gray-800 text-base">${saf(
+                  m.name || ""
+                )}</span>
+                ${
+                  isKakaoLinked
+                    ? `<span class="text-[10px] px-1.5 py-0.5 bg-yellow-100 text-yellow-700 rounded-full font-medium">카카오 연동</span>`
+                    : `<span class="text-[10px] px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded-full font-medium">미연동</span>`
                 }
               </div>
-              <div class="text-sm text-gray-500 font-mono">${saf(m.studentId || "")}</div>
+              <div class="text-sm text-gray-500 font-mono">${saf(
+                m.studentId || ""
+              )}</div>
             </div>
             <i class="fas fa-chevron-right text-gray-400 flex-shrink-0"></i>
           </div>
@@ -1001,14 +1190,20 @@ function membersCardHTML(list, isPendingGroup, keyword) {
 // 회원 상세 정보 모달 열기
 function openMemberDetailModal(studentId) {
   console.log("[openMemberDetailModal] 시작, studentId:", studentId);
-  console.log("[openMemberDetailModal] state.membersData:", state.membersData?.length || 0);
-  const m = (state.membersData || []).find((x) => (x.studentId || x.id) === studentId) || {};
+  console.log(
+    "[openMemberDetailModal] state.membersData:",
+    state.membersData?.length || 0
+  );
+  const m =
+    (state.membersData || []).find(
+      (x) => (x.studentId || x.id) === studentId
+    ) || {};
   console.log("[openMemberDetailModal] 찾은 회원:", m);
-  
+
   // 모달을 여러 곳에서 찾기 시도
   let modal = document.getElementById("member-detail-modal");
   let content = document.getElementById("member-detail-content");
-  
+
   // container 내부에서도 찾기 시도
   if (!modal) {
     const subtabContainer = document.getElementById("subtab-container");
@@ -1017,16 +1212,17 @@ function openMemberDetailModal(studentId) {
       content = subtabContainer.querySelector("#member-detail-content");
     }
   }
-  
+
   console.log("[openMemberDetailModal] modal:", modal, "content:", content);
-  
+
   if (!modal || !content) {
     console.error("[openMemberDetailModal] modal 또는 content를 찾을 수 없음");
     // 모달이 없으면 동적으로 생성
     console.log("[openMemberDetailModal] 모달을 동적으로 생성");
     const newModal = document.createElement("div");
     newModal.id = "member-detail-modal";
-    newModal.className = "fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4";
+    newModal.className =
+      "fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4";
     newModal.innerHTML = `
       <div class="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
         <div class="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between rounded-t-2xl">
@@ -1043,7 +1239,7 @@ function openMemberDetailModal(studentId) {
     document.body.appendChild(newModal);
     modal = newModal;
     content = newModal.querySelector("#member-detail-content");
-    
+
     // 닫기 버튼 이벤트
     const closeBtn = newModal.querySelector("#member-detail-close");
     if (closeBtn) {
@@ -1061,7 +1257,7 @@ function openMemberDetailModal(studentId) {
       }
     });
   }
-  
+
   const mapStatus = (s) =>
     ({
       active: "활동중",
@@ -1071,13 +1267,18 @@ function openMemberDetailModal(studentId) {
     }[s] ||
     s ||
     "-");
-  
+
   // kakaoUserId가 문자열, 숫자, 또는 빈 문자열일 수 있으므로 명확하게 확인
   // 숫자 0은 falsy이므로 명시적으로 확인
-  const isKakaoLinked = !!(m.kakaoUserId !== undefined && m.kakaoUserId !== null && m.kakaoUserId !== "");
+  const isKakaoLinked = !!(
+    m.kakaoUserId !== undefined &&
+    m.kakaoUserId !== null &&
+    m.kakaoUserId !== ""
+  );
   const profileImage = m.kakaoProfileImage || null;
-  const actionBtns = (m.status || "pending") !== "active"
-    ? `
+  const actionBtns =
+    (m.status || "pending") !== "active"
+      ? `
       <button class="w-full px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold mb-2" data-act="approve" data-id="${m.studentId}">
         <i class="fas fa-check mr-2"></i>승인
       </button>
@@ -1094,7 +1295,7 @@ function openMemberDetailModal(studentId) {
         <i class="fas fa-trash mr-2"></i>삭제
       </button>
     `
-    : `
+      : `
       <button class="w-full px-4 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold mb-2" data-act="block" data-id="${m.studentId}">
         <i class="fas fa-ban mr-2"></i>차단
       </button>
@@ -1105,32 +1306,37 @@ function openMemberDetailModal(studentId) {
         <i class="fas fa-trash mr-2"></i>삭제
       </button>
     `;
-  
+
   content.innerHTML = `
     <div class="space-y-6">
       <!-- 프로필 헤더 -->
       <div class="text-center">
         <div class="relative inline-block">
           <div class="w-20 h-20 rounded-full bg-gradient-to-br from-orange-400 to-yellow-400 flex items-center justify-center text-white text-3xl font-bold mx-auto mb-3 overflow-hidden">
-            ${profileImage 
-              ? `<img src="${profileImage}" alt="프로필" class="w-full h-full object-cover" />`
-              : (m.name?.charAt(0) || "U")
+            ${
+              profileImage
+                ? `<img src="${profileImage}" alt="프로필" class="w-full h-full object-cover" />`
+                : m.name?.charAt(0) || "U"
             }
           </div>
-          ${isKakaoLinked 
-            ? `<div class="absolute bottom-0 right-0 w-6 h-6 bg-yellow-400 rounded-full border-2 border-white flex items-center justify-center">
+          ${
+            isKakaoLinked
+              ? `<div class="absolute bottom-0 right-0 w-6 h-6 bg-yellow-400 rounded-full border-2 border-white flex items-center justify-center">
                  <i class="fas fa-comment-dots text-xs text-gray-900"></i>
                </div>`
-            : `<div class="absolute bottom-0 right-0 w-6 h-6 bg-gray-300 rounded-full border-2 border-white flex items-center justify-center">
+              : `<div class="absolute bottom-0 right-0 w-6 h-6 bg-gray-300 rounded-full border-2 border-white flex items-center justify-center">
                  <i class="fas fa-user text-xs text-gray-600"></i>
                </div>`
           }
         </div>
-        <h4 class="text-xl font-bold text-gray-800 mb-1">${saf(m.name || "")}</h4>
+        <h4 class="text-xl font-bold text-gray-800 mb-1">${saf(
+          m.name || ""
+        )}</h4>
         <p class="text-sm text-gray-500 font-mono">${saf(m.studentId || "")}</p>
-        ${isKakaoLinked 
-          ? `<span class="inline-block mt-2 text-xs px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full font-medium">카카오 계정 연동됨</span>`
-          : `<span class="inline-block mt-2 text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-full font-medium">카카오 계정 미연동</span>`
+        ${
+          isKakaoLinked
+            ? `<span class="inline-block mt-2 text-xs px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full font-medium">카카오 계정 연동됨</span>`
+            : `<span class="inline-block mt-2 text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-full font-medium">카카오 계정 미연동</span>`
         }
       </div>
       
@@ -1140,38 +1346,58 @@ function openMemberDetailModal(studentId) {
         <div class="space-y-3">
           <div class="flex justify-between items-center py-2 border-b border-gray-100">
             <span class="text-sm text-gray-600">이름</span>
-            <span class="text-sm font-medium text-gray-800">${saf(m.name || "")}</span>
+            <span class="text-sm font-medium text-gray-800">${saf(
+              m.name || ""
+            )}</span>
           </div>
           <div class="flex justify-between items-center py-2 border-b border-gray-100">
             <span class="text-sm text-gray-600">학번</span>
-            <span class="text-sm font-medium text-gray-800 font-mono">${saf(m.studentId || "")}</span>
+            <span class="text-sm font-medium text-gray-800 font-mono">${saf(
+              m.studentId || ""
+            )}</span>
           </div>
           <div class="flex justify-between items-center py-2 border-b border-gray-100">
             <span class="text-sm text-gray-600">성별</span>
-            <span class="text-sm font-medium text-gray-800">${saf(m.gender || "-")}</span>
+            <span class="text-sm font-medium text-gray-800">${saf(
+              m.gender || "-"
+            )}</span>
           </div>
           <div class="flex justify-between items-center py-2 border-b border-gray-100">
             <span class="text-sm text-gray-600">학년</span>
-            <span class="text-sm font-medium text-gray-800">${saf(m.year || "-")}</span>
+            <span class="text-sm font-medium text-gray-800">${saf(
+              m.year || "-"
+            )}</span>
           </div>
           <div class="flex justify-between items-center py-2 border-b border-gray-100">
             <span class="text-sm text-gray-600">단과대</span>
-            <span class="text-sm font-medium text-gray-800">${saf(m.college || "-")}</span>
+            <span class="text-sm font-medium text-gray-800">${saf(
+              m.college || "-"
+            )}</span>
           </div>
           <div class="flex justify-between items-center py-2 border-b border-gray-100">
             <span class="text-sm text-gray-600">학과</span>
-            <span class="text-sm font-medium text-gray-800">${saf(m.department || "-")}</span>
+            <span class="text-sm font-medium text-gray-800">${saf(
+              m.department || "-"
+            )}</span>
           </div>
           <div class="flex justify-between items-center py-2 border-b border-gray-100">
             <span class="text-sm text-gray-600">전화번호</span>
-            <span class="text-sm font-medium text-gray-800">${saf(m.phone || "-")}</span>
+            <span class="text-sm font-medium text-gray-800">${saf(
+              m.phone || "-"
+            )}</span>
           </div>
-          ${(m.status || "pending") !== "active" ? `
+          ${
+            (m.status || "pending") !== "active"
+              ? `
           <div class="flex justify-between items-center py-2 border-b border-gray-100">
             <span class="text-sm text-gray-600">상태</span>
-            <span class="text-sm font-medium text-gray-800">${mapStatus(m.status)}</span>
+            <span class="text-sm font-medium text-gray-800">${mapStatus(
+              m.status
+            )}</span>
           </div>
-          ` : ""}
+          `
+              : ""
+          }
         </div>
       </div>
       
@@ -1184,14 +1410,14 @@ function openMemberDetailModal(studentId) {
       </div>
     </div>
   `;
-  
+
   // 모달 표시
   if (modal.classList.contains("hidden")) {
     modal.classList.remove("hidden");
   }
   modal.style.display = "flex";
   console.log("[openMemberDetailModal] 모달 표시 완료");
-  
+
   // 닫기 버튼 이벤트 재등록 (기존 모달이 있을 때)
   const existingCloseBtn = modal.querySelector("#member-detail-close");
   if (existingCloseBtn) {
@@ -1205,7 +1431,7 @@ function openMemberDetailModal(studentId) {
       modal.style.display = "none";
     });
   }
-  
+
   // 모달 배경 클릭 시 닫기
   modal.addEventListener("click", (e) => {
     if (e.target === modal) {
@@ -1213,7 +1439,7 @@ function openMemberDetailModal(studentId) {
       modal.style.display = "none";
     }
   });
-  
+
   // 모달 내부 버튼 클릭 이벤트
   const newContent = document.getElementById("member-detail-content");
   if (newContent) {
@@ -1222,10 +1448,10 @@ function openMemberDetailModal(studentId) {
       if (!btn) return;
       const act = btn.dataset.act;
       const sid = btn.dataset.id;
-      
+
       // 모달 닫기
       modal.classList.add("hidden");
-      
+
       // 액션 실행
       if (act === "approve") return approveMember(sid);
       if (act === "reject") return updateMemberStatus(sid, "rejected");
@@ -1461,10 +1687,6 @@ function exportMembersCSV() {
   URL.revokeObjectURL(url);
 }
 async function deleteAllMembers() {
-  if (
-    !confirm("정말로 모든 회원을 삭제하시겠어요? 이 작업은 되돌릴 수 없습니다.")
-  )
-    return;
   try {
     const snap = await getDocs(collection(db, "members"));
     const batch = writeBatch(db);
