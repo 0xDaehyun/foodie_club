@@ -9090,18 +9090,39 @@
                 .slice()
                 .reverse()
                 .map((entry, index, arr) => {
+                  const member =
+                    (membersData || []).find(
+                      (m) => m.studentId === entry.studentId
+                    ) || null;
+                  const name = saf(member?.name || entry.name || "이름 없음");
+                  const profileImage = member?.kakaoProfileImage || null;
+                  const initials = name.charAt(0) || "F";
+                  const isMe =
+                    currentUser &&
+                    entry.studentId === currentUser.studentId;
                   const waitPositionLabel =
                     type === "waiting"
                       ? `<span class="inline-flex items-center justify-center bg-white/40 border border-white/60 text-[10px] font-semibold px-1.5 py-0.5 rounded-full text-orange-900">대기 ${
                           arr.length - index
                         }번</span>`
                       : "";
-                  return `<span class="${bgColor} ${textColor} px-2 py-1 rounded-full text-xs flex items-center gap-1">
-                          ${waitPositionLabel}
-                          <span class="text-xs">${saf(entry.name)}</span>
-                          <span class="${textColor} font-mono text-xs">(${maskStudentId(
-                    entry.studentId
-                  )})</span>
+                  return `<span class="${bgColor} ${textColor} px-2 py-1 rounded-full text-xs flex items-center gap-2 border border-white/60 shadow-sm">
+                          <div class="w-7 h-7 rounded-full overflow-hidden flex items-center justify-center bg-white/70 ${
+                            isMe ? "ring-2 ring-orange-500" : ""
+                          }">
+                            ${
+                              profileImage
+                                ? `<img src="${profileImage}" alt="${name}" class="w-full h-full object-cover">`
+                                : `<span class="text-xs font-bold text-orange-700">${initials}</span>`
+                            }
+                          </div>
+                          <div class="flex items-center gap-1">
+                            ${waitPositionLabel}
+                            <span class="text-xs font-semibold">${name}</span>
+                            <span class="${textColor} font-mono text-[11px]">(${maskStudentId(
+                              entry.studentId
+                            )})</span>
+                          </div>
                           ${
                             isFullAdmin()
                               ? `<button class="ml-1 text-red-600 hover:text-red-800 transition-colors" onclick="confirmRemoveParticipant('${ev.id}', '${entry.studentId}', '${type}', '${restaurantId}')" title="참가자 제외"><i class="fas fa-times"></i></button>`
