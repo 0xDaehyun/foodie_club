@@ -6213,15 +6213,38 @@
             blocksData !== undefined &&
             blocksData.length === 0;
 
+          // 상단에서 한 번만 카카오 연동 여부 계산 (헤더/내 정보 버튼 노출에 사용)
+          const hasKakaoAccount =
+            !!currentUser &&
+            !!(
+              currentUser.kakaoUserId ||
+              currentUser.kakaoNickname ||
+              currentUser.kakaoProfileImage
+            );
+
           el.main.innerHTML = `
                   <div class="mb-4 md:mb-6">
-                    <div class="flex items-center justify-between mb-4">
-                      <p class="text-gray-700 text-lg md:text-xl font-medium">
+                    <div class="flex items-center justify-between mb-4 gap-3">
+                      <p class="text-gray-700 text-lg md:text-xl font-medium flex items-center flex-wrap gap-2">
                         <span class="text-orange-600 font-bold text-4xl md:text-5xl">Foodie</span>
-                        <b id="userNameDisplay">${saf(
-                          currentUser.name
-                        )}</b>${getPositionSuffix()}님
+                        <span>
+                          <b id="userNameDisplay">${saf(
+                            currentUser.name
+                          )}</b>${getPositionSuffix()}님
+                        </span>
                       </p>
+                      ${
+                        !hasKakaoAccount
+                          ? `<button
+                              id="header-kakao-link-btn"
+                              type="button"
+                              class="inline-flex items-center gap-1.5 bg-[#FEE500] hover:bg-[#FDD835] text-gray-900 rounded-full px-4 py-1.5 text-xs md:text-sm font-semibold shadow-sm hover:shadow-md transition-colors whitespace-nowrap"
+                            >
+                              <i class="fas fa-comment mr-0.5"></i>
+                              <span>카카오 계정 연동하기</span>
+                            </button>`
+                          : ""
+                      }
                     </div>
 
                     ${
@@ -8663,7 +8686,13 @@
               (membersData || []).find((m) => m.studentId === a.studentId) ||
               null;
             const name = saf(member?.name || a.name || "이름 없음");
-            const profileImage = member?.kakaoProfileImage || null;
+            const profileImage =
+              member?.kakaoProfileImage ||
+              (currentUser &&
+              a.studentId === currentUser.studentId &&
+              currentUser.kakaoProfileImage
+                ? currentUser.kakaoProfileImage
+                : null);
             const initials = name.charAt(0) || "F";
 
             return `<span class="${bgColor} ${textColor} px-2 py-1 rounded-full text-xs flex items-center gap-1">
@@ -8723,7 +8752,13 @@
               (membersData || []).find((m) => m.studentId === a.studentId) ||
               null;
             const name = saf(member?.name || a.name || "이름 없음");
-            const profileImage = member?.kakaoProfileImage || null;
+            const profileImage =
+              member?.kakaoProfileImage ||
+              (currentUser &&
+              a.studentId === currentUser.studentId &&
+              currentUser.kakaoProfileImage
+                ? currentUser.kakaoProfileImage
+                : null);
             const initials = name.charAt(0) || "F";
 
             return `<span class="${bgColor} ${textColor} px-2 py-1 rounded-full text-xs flex items-center gap-1">
@@ -9102,37 +9137,69 @@
             ) => {
               const reversed = list.slice().reverse();
 
-              // 아바타 스트립용 (프로필/이니셜만)
+              // 아바타 스트립용 (프로필 + 이름, 회장단은 이름 아래에서 제외 가능)
               const avatarItems = reversed.map((entry) => {
                 const member =
                   (membersData || []).find(
                     (m) => m.studentId === entry.studentId
                   ) || null;
                 const name = saf(member?.name || entry.name || "이름 없음");
-                const profileImage = member?.kakaoProfileImage || null;
+                const profileImage =
+                  member?.kakaoProfileImage ||
+                  (currentUser &&
+                  entry.studentId === currentUser.studentId &&
+                  currentUser.kakaoProfileImage
+                    ? currentUser.kakaoProfileImage
+                    : null);
                 const initials = name.charAt(0) || "F";
                 const isMe =
                   currentUser && entry.studentId === currentUser.studentId;
+                const canRemove = isFullAdmin();
 
-                return `<div class="w-7 h-7 rounded-full overflow-hidden flex items-center justify-center bg-white/70 border border-orange-200 ${
-                  isMe ? "ring-2 ring-orange-500" : ""
-                }">
+                return `<div class="flex flex-col items-center min-w-[3.2rem]">
+                          <div class="w-7 h-7 rounded-full flex items-center justify-center bg-white/70 border border-orange-200 ${
+                            isMe ? "ring-2 ring-orange-500" : ""
+                          }">
+                            <div class="w-full h-full rounded-full overflow-hidden flex items-center justify-center">
+                              ${
+                                profileImage
+                                  ? `<img src="${profileImage}" alt="${name}" class="w-full h-full object-cover">`
+                                  : `<span class="text-xs font-bold text-orange-700">${initials}</span>`
+                              }
+                            </div>
+                          </div>
+                          <span class="mt-0.5 text-[10px] text-gray-700 max-w-[56px] truncate">
+                            ${name}
+                          </span>
                           ${
-                            profileImage
-                              ? `<img src="${profileImage}" alt="${name}" class="w-full h-full object-cover">`
-                              : `<span class="text-xs font-bold text-orange-700">${initials}</span>`
+                            canRemove
+                              ? `<button
+                                   class="mt-0.5 text-[10px] text-red-600 hover:text-red-700 underline-offset-2 hover:underline"
+                                   type="button"
+                                   onclick="event.stopPropagation(); confirmRemoveParticipant('${ev.id}', '${entry.studentId}', '${type}', '${restaurantId}')"
+                                 >
+                                   참가자 제외
+                                 </button>`
+                              : ""
                           }
                         </div>`;
               });
 
-              // 상세 칩 목록용 (이름 + 학번)
+              // 상세 칩 목록용 (이름 + 학년 + 학번)
               const detailItems = reversed.map((entry, index, arr) => {
                 const member =
                   (membersData || []).find(
                     (m) => m.studentId === entry.studentId
                   ) || null;
                 const name = saf(member?.name || entry.name || "이름 없음");
-                const profileImage = member?.kakaoProfileImage || null;
+                const yearLabel = member?.year ? `${member.year}학년` : "";
+                const profileImage =
+                  member?.kakaoProfileImage ||
+                  (currentUser &&
+                  entry.studentId === currentUser.studentId &&
+                  currentUser.kakaoProfileImage
+                    ? currentUser.kakaoProfileImage
+                    : null);
                 const initials = name.charAt(0) || "F";
                 const isMe =
                   currentUser && entry.studentId === currentUser.studentId;
@@ -9155,7 +9222,12 @@
                           <div class="flex items-center gap-1">
                             ${waitPositionLabel}
                             <span class="text-xs font-semibold">${name}</span>
-                            <span class="${textColor} font-mono text-[11px]">(${maskStudentId(
+                            ${
+                              yearLabel
+                                ? `<span class="text-[11px] text-gray-700 ml-0.5">${yearLabel}</span>`
+                                : ""
+                            }
+                            <span class="${textColor} font-mono text-[11px] ml-0.5">(${maskStudentId(
                   entry.studentId
                 )})</span>
                           </div>
@@ -9169,23 +9241,11 @@
 
               if (reversed.length === 0) return "";
 
-              const uniqueId = `restaurant-${restaurantId}-${type}`;
-
+              // 참가자 상세보기 버튼/영역 없이, 아바타 스트립만 사용
               return `
-                        <div class="flex items-center gap-1 mt-1 overflow-x-auto no-scrollbar">
+                        <div class="flex items-center gap-1 mt-3 pb-1 overflow-x-auto no-scrollbar">
                           ${avatarItems.join("")}
-                        </div>
-                        <div id="${uniqueId}-details" class="hidden flex flex-wrap gap-1 mt-2">
-                          ${detailItems.join("")}
-                        </div>
-                        <button
-                          class="mt-2 w-full text-sm text-orange-600 hover:text-orange-700 font-semibold py-2 px-3 bg-orange-50 hover:bg-orange-100 rounded-lg transition-all flex items-center justify-center gap-2 border border-orange-200"
-                          data-toggle-id="${uniqueId}"
-                          onclick="toggleRestaurantParticipantsDetails(event, '${uniqueId}')">
-                          <i class="fas fa-chevron-down"></i>
-                          <span>참가자 상세 보기</span>
-                        </button>
-                      `;
+                        </div>`;
             };
 
             const namesList =
@@ -9345,16 +9405,6 @@
                               <span class="px-2 py-1 rounded-full bg-orange-50 border border-orange-200 font-semibold text-gray-800">
                                 정원 ${cnt}/${cap}
                               </span>
-                              ${
-                                currentUser &&
-                                adminList.includes(currentUser.studentId)
-                                  ? `<span class="px-2 py-1 rounded-full bg-slate-50 border border-slate-200">
-                                      예약 ${cnt} · 대기 ${
-                                      (r.waiting || []).length
-                                    }
-                                    </span>`
-                                  : ""
-                              }
                             </div>
                           </div>
                           ${
@@ -10471,8 +10521,8 @@
           const generateQuickSummaryHTML = () => {
             return `
                 <div class="space-y-3 text-sm text-center">
-                  <div class="rounded-2xl border border-orange-100 bg-white px-4 py-3 shadow-sm">
-                    <div class="flex flex-col items-center gap-2">
+                  <div class="rounded-2xl border border-orange-100 bg-white px-4 pt-7 pb-3 shadow-sm">
+                    <div class="flex flex-col items-center gap-2 mt-2">
                       <div class="flex flex-wrap items-center justify-center gap-2">
                         ${
                           quickProfileImage
@@ -10509,34 +10559,17 @@
                     </div>
                     ${
                       !hasKakaoAccount
-                        ? `<div class="mt-3 pt-3 border-t border-orange-100">
+                        ? `<div class="mt-4">
                             <button
                               id="quick-kakao-link-btn"
                               type="button"
-                              class="w-full px-3 py-2 bg-[#FEE500] hover:bg-[#FDD835] text-gray-900 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center text-xs shadow-sm hover:shadow-md"
+                              class="inline-flex items-center gap-1.5 bg-[#FEE500] hover:bg-[#FDD835] text-gray-900 rounded-full px-4 py-1.5 text-xs md:text-sm font-semibold shadow-sm hover:shadow-md transition-colors"
                             >
-                              <svg
-                                class="w-4 h-4 mr-2"
-                                viewBox="0 0 24 24"
-                                fill="currentColor"
-                              >
-                                <path
-                                  d="M12 3c5.799 0 10.5 3.664 10.5 8.185 0 4.52-4.701 8.184-10.5 8.184a13.5 13.5 0 0 1-1.727-.11l-4.408 2.883c-.501.265-.678.236-.472-.413l.892-3.678c-2.88-1.46-4.785-3.99-4.785-6.866C1.5 6.665 6.201 3 12 3z"
-                                />
-                              </svg>
-                              카카오 계정 연동하기
+                              <i class="fas fa-comment mr-0.5"></i>
+                              <span>카카오 계정 연동하기</span>
                             </button>
                           </div>`
-                        : `<div class="mt-3 pt-3 border-t border-orange-100">
-                            <button
-                              id="quick-kakao-unlink-btn"
-                              type="button"
-                              class="w-full px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-semibold transition-all duration-200 flex items-center justify-center text-xs shadow-sm hover:shadow-md"
-                            >
-                              <i class="fas fa-unlink mr-2"></i>
-                              카카오 계정 연동 해지하기
-                            </button>
-                          </div>`
+                        : ""
                     }
                     <div class="flex flex-wrap items-center justify-center gap-2 text-[11px] text-gray-600 mt-2">
                       <span class="px-2 py-1 bg-orange-50 rounded-full border border-orange-200 font-semibold">
