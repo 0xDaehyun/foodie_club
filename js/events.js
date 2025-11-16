@@ -280,6 +280,77 @@ function tastingCardHTML(ev) {
     </div>
   `;
 
+  // 회원 정보 헬퍼 (카카오 프로필 등 조회)
+  const getMemberByStudentId = (studentId) => {
+    if (!studentId) return null;
+    return (state.membersData || []).find((m) => m.studentId === studentId) || null;
+  };
+
+  const buildAvatarChips = (list, options = {}) => {
+    const {
+      bgClass = "bg-orange-50",
+      textClass = "text-orange-900",
+      ringClass = "",
+      type = "reservations",
+    } = options;
+    if (!list || list.length === 0) return "";
+
+    const MAX_AVATARS = 6;
+    const items = list
+      .slice()
+      .reverse()
+      .map((a) => {
+        const member = getMemberByStudentId(a.studentId);
+        const name = saf(member?.name || a.name || "이름 없음");
+        const profileImage = member?.kakaoProfileImage || null;
+        const maskedId = a.studentId
+          ? `${a.studentId.slice(0, 4)}****`
+          : "";
+        const initials = name.charAt(0) || "F";
+        const isMe =
+          state.currentUser &&
+          a.studentId === state.currentUser.studentId;
+
+        return `
+          <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full ${bgClass} ${textClass} border border-white/60 shadow-sm">
+            <div class="w-7 h-7 rounded-full overflow-hidden flex items-center justify-center bg-white/70 ${isMe ? "ring-2 ring-orange-500" : ""} ${ringClass}">
+              ${
+                profileImage
+                  ? `<img src="${saf(
+                      profileImage
+                    )}" alt="${name}" class="w-full h-full object-cover">`
+                  : `<span class="text-xs font-bold text-orange-700">${initials}</span>`
+              }
+            </div>
+            <div class="flex flex-col leading-tight">
+              <span class="text-xs font-semibold truncate max-w-[120px]">${name}</span>
+              ${
+                maskedId
+                  ? `<span class="text-[10px] text-orange-700/80 font-mono">${maskedId}</span>`
+                  : ""
+              }
+            </div>
+          </div>
+        `;
+      });
+
+    const visible = items.slice(0, MAX_AVATARS).join("");
+    const hiddenCount = items.length - MAX_AVATARS;
+
+    return `
+      <div class="flex flex-wrap gap-2">
+        ${visible}
+        ${
+          hiddenCount > 0
+            ? `<div class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-white/80 border border-orange-200 text-[11px] font-semibold text-orange-700">
+                 +${hiddenCount}
+               </div>`
+            : ""
+        }
+      </div>
+    `;
+  };
+
   // 식당 카드들 - 세로로 나열
   const restaurantCards = (ev.restaurants || [])
     .map((r, index) => {
@@ -306,49 +377,17 @@ function tastingCardHTML(ev) {
           }
         </button>`;
 
-      const namesList = (r.reservations || [])
-        .slice()
-        .reverse()
-        .map(
-          (a) =>
-            `<div class="flex items-center justify-between py-1 px-2 hover:bg-gray-100 rounded">
-            <div class="flex items-center gap-2 min-w-0 flex-1">
-              <span class="font-mono text-[11px] text-gray-500 whitespace-nowrap">${
-                a.studentId ? `${a.studentId.slice(0, 4)}****` : ""
-              }</span>
-              <span class="text-xs truncate">${saf(a.name)}</span>
-            </div>
-            ${
-              isAdmin
-                ? `<button type="button" class="text-red-500 hover:text-red-700 text-xs" title="제거"><i class="fas fa-times"></i></button>`
-                : ""
-            }
-          </div>`
-        )
-        .join("");
+      const namesList = buildAvatarChips(r.reservations || [], {
+        bgClass: "bg-orange-50",
+        textClass: "text-orange-900",
+        type: "reservations",
+      });
 
-      const waitingList = (r.waiting || [])
-        .slice()
-        .reverse()
-        .map(
-          (a) =>
-            `<div class="flex items-center justify-between py-1 px-2 hover:bg-amber-50 rounded">
-            <div class="flex items-center gap-2 min-w-0 flex-1">
-              <span class="font-mono text-[11px] text-amber-600 whitespace-nowrap">${
-                a.studentId ? `${a.studentId.slice(0, 4)}****` : ""
-              }</span>
-              <span class="text-xs truncate text-amber-700">${saf(
-                a.name
-              )}</span>
-            </div>
-            ${
-              isAdmin
-                ? `<button type="button" class="text-red-500 hover:text-red-700 text-xs" title="제거"><i class="fas fa-times"></i></button>`
-                : ""
-            }
-          </div>`
-        )
-        .join("");
+      const waitingList = buildAvatarChips(r.waiting || [], {
+        bgClass: "bg-amber-50",
+        textClass: "text-amber-900",
+        type: "waiting",
+      });
 
       const participantsSectionId = `participants-${ev.id}-${r.id}`;
       const showParticipantsBtnId = `show-participants-${ev.id}-${r.id}`;
