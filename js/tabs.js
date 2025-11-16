@@ -532,10 +532,15 @@ function renderReservationTab(isAdmin) {
     const sectionId = btn.id.replace("show-participants-", "participants-");
     const section = document.getElementById(sectionId);
     const chevron = document.getElementById(`chevron-${sectionId}`);
+    const avatars = document.getElementById(`avatars-${sectionId}`);
     if (section && chevron) {
       const isHidden = section.classList.contains("hidden");
       section.classList.toggle("hidden", !isHidden);
       chevron.style.transform = isHidden ? "rotate(180deg)" : "rotate(0deg)";
+      // 접혀있을 때는 아바타 스트립 보이게, 펼치면 숨기기
+      if (avatars) {
+        avatars.classList.toggle("hidden", !isHidden ? false : true);
+      }
     }
   });
 

@@ -283,7 +283,9 @@ function tastingCardHTML(ev) {
   // 회원 정보 헬퍼 (카카오 프로필 등 조회)
   const getMemberByStudentId = (studentId) => {
     if (!studentId) return null;
-    return (state.membersData || []).find((m) => m.studentId === studentId) || null;
+    return (
+      (state.membersData || []).find((m) => m.studentId === studentId) || null
+    );
   };
 
   const buildAvatarChips = (list, options = {}) => {
@@ -303,17 +305,16 @@ function tastingCardHTML(ev) {
         const member = getMemberByStudentId(a.studentId);
         const name = saf(member?.name || a.name || "이름 없음");
         const profileImage = member?.kakaoProfileImage || null;
-        const maskedId = a.studentId
-          ? `${a.studentId.slice(0, 4)}****`
-          : "";
+        const maskedId = a.studentId ? `${a.studentId.slice(0, 4)}****` : "";
         const initials = name.charAt(0) || "F";
         const isMe =
-          state.currentUser &&
-          a.studentId === state.currentUser.studentId;
+          state.currentUser && a.studentId === state.currentUser.studentId;
 
         return `
           <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full ${bgClass} ${textClass} border border-white/60 shadow-sm">
-            <div class="w-7 h-7 rounded-full overflow-hidden flex items-center justify-center bg-white/70 ${isMe ? "ring-2 ring-orange-500" : ""} ${ringClass}">
+            <div class="w-7 h-7 rounded-full overflow-hidden flex items-center justify-center bg-white/70 ${
+              isMe ? "ring-2 ring-orange-500" : ""
+            } ${ringClass}">
               ${
                 profileImage
                   ? `<img src="${saf(
@@ -389,6 +390,14 @@ function tastingCardHTML(ev) {
         type: "waiting",
       });
 
+      // 접힐 때 상단에 보여줄 참가자 아바타 스트립 (예약자 기준)
+      const collapsedAvatars = buildAvatarChips(r.reservations || [], {
+        bgClass: "bg-white/80",
+        textClass: "text-gray-800",
+        ringClass: "",
+        type: "collapsed",
+      });
+
       const participantsSectionId = `participants-${ev.id}-${r.id}`;
       const showParticipantsBtnId = `show-participants-${ev.id}-${r.id}`;
 
@@ -434,11 +443,18 @@ function tastingCardHTML(ev) {
             </div>
           </div>
 
-          <!-- 참가자 목록 (관리자 또는 토글 가능) -->
+          <!-- 참가자 목록 (접힘: 아바타 스트립, 펼침: 상세 목록) -->
           ${
             cnt > 0 || waitCnt > 0 || isAdmin
               ? `
           <div class="mb-3">
+            ${
+              collapsedAvatars
+                ? `<div id="avatars-${participantsSectionId}" class="mb-2">
+              ${collapsedAvatars}
+            </div>`
+                : ""
+            }
             <button type="button" id="${showParticipantsBtnId}" class="w-full text-left text-sm font-semibold text-gray-700 hover:text-gray-900 flex items-center justify-between py-2 px-3 bg-gray-50 rounded-lg transition-colors border border-gray-200">
               <span><i class="fas fa-users mr-2"></i>참가자 ${
                 cnt > 0 ? `(${cnt}명)` : ""
