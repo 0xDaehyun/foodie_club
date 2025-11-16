@@ -10168,32 +10168,30 @@
         const myHistoryHTML = currentUser
           ? `
               <section id="my-activity-section" class="section mt-6">
-                <div class="bg-blue-50 border-2 border-blue-200 rounded-3xl p-5 md:p-6 space-y-5">
-                  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                    <div>
-                      <h3 class="text-xl font-extrabold text-blue-900 flex items-center gap-2">
-                        <i class="fas fa-circle-user text-blue-600"></i>최근 신청한 활동
-                      </h3>
-                    </div>
-                    <div class="flex items-center gap-2 text-xs text-blue-700 flex-wrap">
-                      <span class="px-2 py-1 bg-white rounded-full border border-blue-200 font-semibold">
-                        총 ${sortedMyEvents.length}건
-                      </span>
-                      ${
-                        stats.tasting
-                          ? `<span class="px-2 py-1 bg-white rounded-full border border-orange-200 text-orange-600 font-semibold">미식회 ${stats.tasting}</span>`
-                          : ""
-                      }
-                      ${
-                        stats.reviews
-                          ? `<span class="px-2 py-1 bg-white rounded-full border border-yellow-200 text-yellow-600 font-semibold"><i class="fas fa-star text-yellow-500 mr-1"></i>후기 ${stats.reviews}</span>`
-                          : ""
-                      }
-                    </div>
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                  <div>
+                    <h3 class="text-xl font-extrabold text-blue-900 flex items-center gap-2">
+                      <i class="fas fa-circle-user text-blue-600"></i>최근 신청한 활동
+                    </h3>
                   </div>
-                  <div class="rounded-3xl bg-white shadow-md border border-blue-100 p-4 md:p-5">
-                    ${latestEventHTML}
+                  <div class="flex items-center gap-2 text-xs text-blue-700 flex-wrap">
+                    <span class="px-2 py-1 bg-blue-50 rounded-full border border-blue-200 font-semibold">
+                      총 ${sortedMyEvents.length}건
+                    </span>
+                    ${
+                      stats.tasting
+                        ? `<span class="px-2 py-1 bg-orange-50 rounded-full border border-orange-200 text-orange-600 font-semibold">미식회 ${stats.tasting}</span>`
+                        : ""
+                    }
+                    ${
+                      stats.reviews
+                        ? `<span class="px-2 py-1 bg-yellow-50 rounded-full border border-yellow-200 text-yellow-600 font-semibold"><i class="fas fa-star text-yellow-500 mr-1"></i>후기 ${stats.reviews}</span>`
+                        : ""
+                    }
                   </div>
+                </div>
+                <div class="mt-4 space-y-4">
+                  ${latestEventHTML}
                   ${remainingEventsSection}
                 </div>
               </section>
