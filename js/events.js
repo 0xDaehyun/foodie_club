@@ -354,9 +354,9 @@ function tastingCardHTML(ev) {
       const showParticipantsBtnId = `show-participants-${ev.id}-${r.id}`;
 
       return `<div class="w-full bg-white border-2 border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
-      <div class="flex flex-col md:flex-row gap-4 p-4">
-        <!-- 식당 이미지 -->
-        <div class="md:w-1/3 flex-shrink-0">
+      <div class="flex flex-col gap-4 p-4">
+        <!-- 식당 이미지 (상단 전체 폭) -->
+        <div class="w-full">
           ${
             r.imageUrl
               ? `<div class="relative w-full h-40 md:h-full min-h-[160px] overflow-hidden rounded-lg">
@@ -372,8 +372,8 @@ function tastingCardHTML(ev) {
                 </div>`
           }
         </div>
-        
-        <!-- 식당 정보 -->
+
+        <!-- 식당 정보 (이미지 아래, 전체 폭) -->
         <div class="flex-1 flex flex-col">
           <div class="mb-3">
             <h4 class="text-xl font-bold text-gray-800 mb-1">${saf(r.name)}</h4>
