@@ -426,14 +426,14 @@ export function startPublicListeners(USE_DEMO_OFFLINE) {
         (snap.docs ? snap.docs.length > 0 : true);
       
       if (isFirstCheck) {
-        hasData = true;
-        clearTimeout(timeoutId);
+      hasData = true;
+      clearTimeout(timeoutId);
         isFirstCheck = false;
         listenerFn(snap);
         resolveOnce(); // 첫 데이터 수신 시 완료 처리
       } else {
         // 이후 업데이트는 그냥 처리
-        listenerFn(snap);
+      listenerFn(snap);
       }
     };
 

@@ -404,7 +404,9 @@ export async function linkKakaoAccount() {
     const kakaoIdString = String(userInfo.id); // 검색용 문자열 버전도 준비
     const kakaoNickname = userInfo.kakao_account?.profile?.nickname || null;
     const kakaoProfileImage =
-      userInfo.kakao_account?.profile?.profile_image_url || null;
+      userInfo.kakao_account?.profile?.profile_image_url ||
+      userInfo.properties?.profile_image ||
+      null;
 
     console.log("[카카오 연동] 저장할 정보:", {
       studentId: state.currentUser.studentId,

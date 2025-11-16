@@ -1997,18 +1997,6 @@
     >
       <header class="text-center mb-6 md:mb-10 relative">
         <div class="flex items-center justify-between gap-3 flex-wrap">
-          <!-- 뭐먹지 버튼 (맨 왼쪽) -->
-          <button
-            id="header-food-btn"
-            class="speech-bubble-btn"
-            style="margin-top: 0px"
-            aria-label="식사 추천 받기"
-            title="오늘 뭐먹을지 추천받기"
-          >
-            <span style="font-size: 14px" aria-hidden="true">🍽️</span>
-            <span>뭐먹지?</span>
-          </button>
-
           <!-- 접속자 명단과 조모임 순위 - 모든 화면에서 오른쪽 끝으로 밀착 -->
           <div
             id="game-buttons-container"
@@ -2037,17 +2025,17 @@
             >
               <span aria-hidden="true">🏅</span> 조모임
             </button>
-            <!-- 내 활동 버튼 -->
+            <!-- 내 정보 버튼 -->
             <button
               id="notification-badge"
               class="text-sm md:text-base bg-orange-500 text-white rounded-full px-3 py-1 hover:bg-orange-600 shadow-md hover:shadow-lg transition-all relative flex items-center gap-1.5"
-              aria-label="내 활동 열기"
+              aria-label="내 정보 열기"
               aria-expanded="false"
               aria-controls="notification-pop"
-              title="내 활동 열기"
+              title="내 정보 열기"
             >
               <i class="fas fa-user-circle" aria-hidden="true"></i>
-              <span class="font-semibold">내 활동</span>
+              <span class="font-semibold">내 정보</span>
               <span
                 id="notification-count"
                 class="hidden bg-red-600 text-white text-[10px] font-bold rounded-full px-1 py-0.5"
@@ -4086,7 +4074,7 @@
       let __renderQueued = false;
       let __isInitialLoading = true;
       let __loadingDataCount = 0;
-      const __expectedDataSources = 8; // blocks, roadmap, events, members, suggestions, history, positions, foodMenus
+      const __expectedDataSources = 7; // blocks, roadmap, events, members, suggestions, history, positions
 
       const scheduleRender = () => {
         if (__renderQueued) return;
@@ -5818,40 +5806,7 @@
           };
           addToQueue(setupEvents, "events");
         }
-        if (!unsubPublic.foodMenus) {
-          const setupFoodMenus = (resolveOnce) => {
-            let resolved = false;
-            const resolveOnceWrapper = () => {
-              if (!resolved) {
-                resolved = true;
-                resolveOnce();
-              }
-            };
-            unsubPublic.foodMenus = onSnapshot(
-              collection(db, "foodMenus"),
-              (snap) => {
-                markRealtimeHealthy();
-                foodMenusData = snap.docs.map((d) => ({
-                  id: d.id,
-                  ...d.data(),
-                }));
-                console.log("뭐먹지 메뉴 로드됨:", foodMenusData.length, "개");
-                if (__isInitialLoading) {
-                  __loadingDataCount++;
-                  checkLoadingComplete();
-                }
-                scheduleRender();
-                resolveOnceWrapper();
-              },
-              (err) => {
-                debugWarn("foodMenus:", err?.message);
-                handleRealtimeListenerError("foodMenus", err);
-                resolveOnceWrapper();
-              }
-            );
-          };
-          addToQueue(setupFoodMenus, "foodMenus");
-        }
+        // 뭐먹지 기능은 더 이상 사용하지 않으므로 foodMenus 리스너는 등록하지 않음
         // 알림 구독 (로그인한 사용자에게만)
         if (!unsubPublic.notifications && currentUser) {
           unsubPublic.notifications = onSnapshot(
@@ -6347,7 +6302,7 @@
                   <div class="mb-6 md:mb-8 bg-gradient-to-r from-gray-100 to-gray-50 rounded-2xl p-2 flex flex-nowrap justify-center gap-2 shadow-inner" id="tab-buttons">
                     <button type="button" data-tab="roadmap" class="tab-btn flex-1 py-4 sm:py-5 px-4 sm:px-5 md:px-7 rounded-xl font-bold active transition-all duration-300 ease-out whitespace-nowrap">
                       <i class="fas fa-utensils mr-1.5 sm:mr-2 text-base sm:text-lg md:text-xl"></i>
-                      <span class="text-base sm:text-lg md:text-xl">미식회 후기</span>
+                      <span class="text-base sm:text-lg md:text-xl">맛집 후기</span>
                     </button>
                     <button type="button" data-tab="reservation" class="tab-btn flex-1 py-4 sm:py-5 px-4 sm:px-5 md:px-7 rounded-xl font-bold transition-all duration-300 ease-out whitespace-nowrap ${
                       isPendingMember ? "hidden" : ""
@@ -6426,12 +6381,6 @@
                 renderRankList();
               });
           }
-          // 헤더의 뭐먹지 버튼 이벤트 리스너
-          document
-            .getElementById("header-food-btn")
-            .addEventListener("click", () => {
-              openFoodRecommendModal();
-            });
 
           document
             .getElementById("rank-close")
@@ -8438,6 +8387,45 @@
       };
 
       /* ===================== 신청 탭 ===================== */
+      /* ===================== 미식회 참가자 상세 토글 (신청 카드 전용) ===================== */
+      window.toggleRestaurantParticipantsDetails = function (event, uniqueId) {
+        if (event) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+
+        const detailDiv = document.getElementById(`${uniqueId}-details`);
+        if (!detailDiv) {
+          console.error("참가자 상세 목록을 찾을 수 없습니다:", uniqueId);
+          return;
+        }
+
+        let button = event ? event.currentTarget || event.target : null;
+        if (button && button.tagName !== "BUTTON") {
+          button = button.closest("button");
+        }
+        if (!button) {
+          console.error("참가자 상세 토글 버튼을 찾을 수 없습니다");
+          return;
+        }
+
+        const icon = button.querySelector("i");
+        const text = button.querySelector("span");
+        const isHidden = detailDiv.classList.contains("hidden");
+
+        if (isHidden) {
+          // 펼치기
+          detailDiv.classList.remove("hidden");
+          if (icon) icon.className = "fas fa-chevron-up";
+          if (text) text.textContent = "참가자 상세 접기";
+        } else {
+          // 접기
+          detailDiv.classList.add("hidden");
+          if (icon) icon.className = "fas fa-chevron-down";
+          if (text) text.textContent = "참가자 상세 보기";
+        }
+      };
+
       function computeEventStats(ev) {
         const getAll = () => {
           if (ev.type === "tasting") {
@@ -8670,20 +8658,33 @@
         const waitingListArr = (ev.waiting || []).slice().reverse();
 
         const createParticipantsList = (list, bgColor, textColor) => {
-          const items = list.map(
-            (a) =>
-              `<span class="${bgColor} ${textColor} px-2 py-1 rounded-full text-xs flex items-center gap-1">
-                    <span class="text-xs">${saf(a.name)}</span>
+          const items = list.map((a) => {
+            const member =
+              (membersData || []).find((m) => m.studentId === a.studentId) ||
+              null;
+            const name = saf(member?.name || a.name || "이름 없음");
+            const profileImage = member?.kakaoProfileImage || null;
+            const initials = name.charAt(0) || "F";
+
+            return `<span class="${bgColor} ${textColor} px-2 py-1 rounded-full text-xs flex items-center gap-1">
+                    <span class="w-6 h-6 rounded-full overflow-hidden flex items-center justify-center bg-white/70 border border-orange-200">
+                      ${
+                        profileImage
+                          ? `<img src="${profileImage}" alt="${name}" class="w-full h-full object-cover">`
+                          : `<span class="text-[10px] font-bold text-orange-700">${initials}</span>`
+                      }
+                    </span>
+                    <span class="text-xs">${name}</span>
                     <span class="${textColor} font-mono text-xs">(${maskStudentId(
-                a.studentId
-              )})</span>
+              a.studentId
+            )})</span>
                     ${
                       isFullAdmin()
                         ? `<button class="ml-1 text-red-600 hover:text-red-800 transition-colors" onclick="confirmRemoveParticipant('${ev.id}', '${a.studentId}', 'applicants')" title="참가자 제외"><i class="fas fa-times"></i></button>`
                         : ""
                     }
-                  </span>`
-          );
+                  </span>`;
+          });
 
           if (items.length <= 4) {
             return items.join("");
@@ -8715,22 +8716,35 @@
           "text-orange-800"
         );
 
-        // 대기자용 별도 함수 (다른 ID 사용)
+        // 대기자용 별도 함수 (다른 ID 사용, 카카오 프로필/이니셜 포함)
         const createWaitingList = (list, bgColor, textColor) => {
-          const items = list.map(
-            (a) =>
-              `<span class="${bgColor} ${textColor} px-2 py-1 rounded-full text-xs flex items-center gap-1">
-                    <span class="text-xs">${saf(a.name)}</span>
+          const items = list.map((a) => {
+            const member =
+              (membersData || []).find((m) => m.studentId === a.studentId) ||
+              null;
+            const name = saf(member?.name || a.name || "이름 없음");
+            const profileImage = member?.kakaoProfileImage || null;
+            const initials = name.charAt(0) || "F";
+
+            return `<span class="${bgColor} ${textColor} px-2 py-1 rounded-full text-xs flex items-center gap-1">
+                    <span class="w-6 h-6 rounded-full overflow-hidden flex items-center justify-center bg-white/70 border border-orange-200">
+                      ${
+                        profileImage
+                          ? `<img src="${profileImage}" alt="${name}" class="w-full h-full object-cover">`
+                          : `<span class="text-[10px] font-bold text-orange-700">${initials}</span>`
+                      }
+                    </span>
+                    <span class="text-xs">${name}</span>
                     <span class="${textColor} font-mono text-xs">(${maskStudentId(
-                a.studentId
-              )})</span>
+              a.studentId
+            )})</span>
                     ${
                       isFullAdmin()
                         ? `<button class="ml-1 text-red-600 hover:text-red-800 transition-colors" onclick="confirmRemoveParticipant('${ev.id}', '${a.studentId}', 'waiting')" title="대기자 제외"><i class="fas fa-times"></i></button>`
                         : ""
                     }
-                  </span>`
-          );
+                  </span>`;
+          });
 
           if (items.length <= 4) {
             return items.join("");
@@ -9078,7 +9092,7 @@
               );
             };
 
-            // 참가자 목록 생성 (4명 이상일 때 더보기 버튼) - 최신 신청자부터 표시
+            // 참가자 목록 생성 - 아바타 스트립(접힘) + 상세 목록(펼침)
             const createRestaurantParticipantsList = (
               list,
               bgColor,
@@ -9086,27 +9100,49 @@
               restaurantId,
               type
             ) => {
-              const items = list
-                .slice()
-                .reverse()
-                .map((entry, index, arr) => {
-                  const member =
-                    (membersData || []).find(
-                      (m) => m.studentId === entry.studentId
-                    ) || null;
-                  const name = saf(member?.name || entry.name || "이름 없음");
-                  const profileImage = member?.kakaoProfileImage || null;
-                  const initials = name.charAt(0) || "F";
-                  const isMe =
-                    currentUser &&
-                    entry.studentId === currentUser.studentId;
-                  const waitPositionLabel =
-                    type === "waiting"
-                      ? `<span class="inline-flex items-center justify-center bg-white/40 border border-white/60 text-[10px] font-semibold px-1.5 py-0.5 rounded-full text-orange-900">대기 ${
-                          arr.length - index
-                        }번</span>`
-                      : "";
-                  return `<span class="${bgColor} ${textColor} px-2 py-1 rounded-full text-xs flex items-center gap-2 border border-white/60 shadow-sm">
+              const reversed = list.slice().reverse();
+
+              // 아바타 스트립용 (프로필/이니셜만)
+              const avatarItems = reversed.map((entry) => {
+                const member =
+                  (membersData || []).find(
+                    (m) => m.studentId === entry.studentId
+                  ) || null;
+                const name = saf(member?.name || entry.name || "이름 없음");
+                const profileImage = member?.kakaoProfileImage || null;
+                const initials = name.charAt(0) || "F";
+                const isMe =
+                  currentUser && entry.studentId === currentUser.studentId;
+
+                return `<div class="w-7 h-7 rounded-full overflow-hidden flex items-center justify-center bg-white/70 border border-orange-200 ${
+                  isMe ? "ring-2 ring-orange-500" : ""
+                }">
+                          ${
+                            profileImage
+                              ? `<img src="${profileImage}" alt="${name}" class="w-full h-full object-cover">`
+                              : `<span class="text-xs font-bold text-orange-700">${initials}</span>`
+                          }
+                        </div>`;
+              });
+
+              // 상세 칩 목록용 (이름 + 학번)
+              const detailItems = reversed.map((entry, index, arr) => {
+                const member =
+                  (membersData || []).find(
+                    (m) => m.studentId === entry.studentId
+                  ) || null;
+                const name = saf(member?.name || entry.name || "이름 없음");
+                const profileImage = member?.kakaoProfileImage || null;
+                const initials = name.charAt(0) || "F";
+                const isMe =
+                  currentUser && entry.studentId === currentUser.studentId;
+                const waitPositionLabel =
+                  type === "waiting"
+                    ? `<span class="inline-flex items-center justify-center bg-white/40 border border-white/60 text-[10px] font-semibold px-1.5 py-0.5 rounded-full text-orange-900">대기 ${
+                        arr.length - index
+                      }번</span>`
+                    : "";
+                return `<span class="${bgColor} ${textColor} px-2 py-1 rounded-full text-xs flex items-center gap-2 border border-white/60 shadow-sm">
                           <div class="w-7 h-7 rounded-full overflow-hidden flex items-center justify-center bg-white/70 ${
                             isMe ? "ring-2 ring-orange-500" : ""
                           }">
@@ -9120,8 +9156,8 @@
                             ${waitPositionLabel}
                             <span class="text-xs font-semibold">${name}</span>
                             <span class="${textColor} font-mono text-[11px]">(${maskStudentId(
-                              entry.studentId
-                            )})</span>
+                  entry.studentId
+                )})</span>
                           </div>
                           ${
                             isFullAdmin()
@@ -9129,33 +9165,27 @@
                               : ""
                           }
                         </span>`;
-                });
+              });
 
-              if (items.length === 0) return "";
+              if (reversed.length === 0) return "";
 
-              const maxVisible = 2;
-              if (items.length <= maxVisible) {
-                return items.join("");
-              } else {
-                const visibleItems = items.slice(0, maxVisible).join("");
-                const hiddenItems = items.slice(maxVisible).join("");
-                const uniqueId = `restaurant-${restaurantId}-${type}`;
-                return `
-                        ${visibleItems}
-                        <div id="${uniqueId}-hidden" class="hidden flex flex-wrap gap-1">
-                          ${hiddenItems}
+              const uniqueId = `restaurant-${restaurantId}-${type}`;
+
+              return `
+                        <div class="flex items-center gap-1 mt-1 overflow-x-auto no-scrollbar">
+                          ${avatarItems.join("")}
+                        </div>
+                        <div id="${uniqueId}-details" class="hidden flex flex-wrap gap-1 mt-2">
+                          ${detailItems.join("")}
                         </div>
                         <button
                           class="mt-2 w-full text-sm text-orange-600 hover:text-orange-700 font-semibold py-2 px-3 bg-orange-50 hover:bg-orange-100 rounded-lg transition-all flex items-center justify-center gap-2 border border-orange-200"
                           data-toggle-id="${uniqueId}"
-                          onclick="toggleParticipantsList(event, '${uniqueId}', ${
-                  items.length - maxVisible
-                })">
+                          onclick="toggleRestaurantParticipantsDetails(event, '${uniqueId}')">
                           <i class="fas fa-chevron-down"></i>
-                          <span>외 ${items.length - maxVisible}명 더보기</span>
+                          <span>참가자 상세 보기</span>
                         </button>
                       `;
-              }
             };
 
             const namesList =
@@ -9838,6 +9868,48 @@
             applicantCount: (ev.applicants || []).length,
             waitingCount: (ev.waiting || []).length,
           };
+
+          /* ===================== 미식회 참가자 상세 토글 (신청 카드 전용) ===================== */
+          window.toggleRestaurantParticipantsDetails = function (
+            event,
+            uniqueId
+          ) {
+            if (event) {
+              event.preventDefault();
+              event.stopPropagation();
+            }
+
+            const detailDiv = document.getElementById(`${uniqueId}-details`);
+            if (!detailDiv) {
+              console.error("참가자 상세 목록을 찾을 수 없습니다:", uniqueId);
+              return;
+            }
+
+            let button = event ? event.currentTarget || event.target : null;
+            if (button && button.tagName !== "BUTTON") {
+              button = button.closest("button");
+            }
+            if (!button) {
+              console.error("참가자 상세 토글 버튼을 찾을 수 없습니다");
+              return;
+            }
+
+            const icon = button.querySelector("i");
+            const text = button.querySelector("span");
+            const isHidden = detailDiv.classList.contains("hidden");
+
+            if (isHidden) {
+              // 펼치기
+              detailDiv.classList.remove("hidden");
+              if (icon) icon.className = "fas fa-chevron-up";
+              if (text) text.textContent = "참가자 상세 접기";
+            } else {
+              // 접기
+              detailDiv.classList.add("hidden");
+              if (icon) icon.className = "fas fa-chevron-down";
+              if (text) text.textContent = "참가자 상세 보기";
+            }
+          };
         };
         window.getParticipationDetails = getParticipationDetails;
 
@@ -10041,7 +10113,13 @@
         };
 
         const profile = myProfileData || {};
+        // 항상 members 컬렉션에 저장된 프로필을 우선 사용 (다른 사람이 볼 때도 동일하게 보이도록)
+        const memberRecord =
+          (membersData || []).find(
+            (m) => m.studentId === (currentUser?.studentId || "")
+          ) || {};
         const quickProfileImage =
+          memberRecord.kakaoProfileImage ||
           (currentUser && currentUser.kakaoProfileImage) ||
           profile.kakaoProfileImage ||
           null;
@@ -25986,7 +26064,7 @@
                   <div class="mb-4">
                     <h3 class="text-lg sm:text-xl font-bold text-gray-800 mb-2">
                       <i class="fas fa-utensils mr-2 text-orange-600"></i>
-                      미식회 후기
+                      맛집 후기
                     </h3>
                     <p class="text-sm sm:text-base text-gray-600 mb-3">
                       <i class="fas fa-heart mr-1 text-orange-500"></i>
