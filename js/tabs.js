@@ -193,11 +193,11 @@ function renderReservationTab(isAdmin) {
         </div>
         
         <!-- 콘텐츠 섹션 -->
-        <div class="p-6">
+        <div class="pt-4 pb-6 px-4 sm:px-6">
           ${
             participatedEvents.length > 0
               ? `
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div class="flex flex-col gap-4">
             ${participatedEvents
               .map((ev) => {
                 const eventDate = new Date(ev.datetime);
@@ -251,7 +251,7 @@ function renderReservationTab(isAdmin) {
                     : "이벤트";
 
                 return `
-                <div class="bg-white rounded-xl p-5 border-2 border-orange-100 shadow-md hover:shadow-xl transition-all duration-200 hover:border-orange-300">
+                <div class="w-full bg-white rounded-xl p-4 sm:p-5 border-2 border-orange-100 shadow-md hover:shadow-xl transition-all duration-200 hover:border-orange-300">
                   <div class="flex items-start gap-4 mb-4">
                     <div class="text-3xl">${typeIcon}</div>
                     <div class="flex-1 min-w-0">
