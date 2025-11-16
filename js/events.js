@@ -111,13 +111,25 @@ function paymentInfoHTML(ev) {
       <div class="flex items-center justify-between mb-3">
         <div>
           <div class="font-bold text-orange-900 mb-1">💸 회비 입금 정보</div>
-          <div class="text-sm text-orange-800">회비: ${dues.amount ? formatKRW(dues.amount) : "확인 필요"}</div>
+          <div class="text-sm text-orange-800">회비: ${
+            dues.amount ? formatKRW(dues.amount) : "확인 필요"
+          }</div>
           <div class="text-sm text-orange-700 mt-1">${line || ""}${
       dues.holder ? ` (예금주 ${saf(dues.holder)})` : ""
     }</div>
-          ${dues.note ? `<div class="text-sm text-orange-700 mt-1">${saf(dues.note)}</div>` : ""}
+          ${
+            dues.note
+              ? `<div class="text-sm text-orange-700 mt-1">${saf(
+                  dues.note
+                )}</div>`
+              : ""
+          }
         </div>
-        <button type="button" onclick="navigator.clipboard.writeText('${saf(dues.bank || "")} ${saf(dues.number || "")}').then(() => alert('계좌번호가 복사되었습니다!'))" class="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors">
+        <button type="button" onclick="navigator.clipboard.writeText('${saf(
+          dues.bank || ""
+        )} ${saf(
+      dues.number || ""
+    )}').then(() => alert('계좌번호가 복사되었습니다!'))" class="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors">
           <i class="fas fa-copy mr-2"></i>계좌 복사하기
         </button>
       </div>
@@ -126,7 +138,7 @@ function paymentInfoHTML(ev) {
       </div>
     </div>`;
   }
-  
+
   // MT/총회인 경우 이벤트별 결제 정보 사용
   if (!(ev.type === "mt" || ev.type === "assembly")) return "";
   const p = ev.payment || {};
@@ -139,9 +151,17 @@ function paymentInfoHTML(ev) {
           <div class="text-sm text-amber-800">${line || ""}${
     p.holder ? ` (예금주 ${saf(p.holder)})` : ""
   }</div>
-          ${p.note ? `<div class="text-sm text-amber-700 mt-1">${saf(p.note)}</div>` : ""}
+          ${
+            p.note
+              ? `<div class="text-sm text-amber-700 mt-1">${saf(p.note)}</div>`
+              : ""
+          }
         </div>
-        <button type="button" onclick="navigator.clipboard.writeText('${saf(p.bank || "")} ${saf(p.number || "")}').then(() => alert('계좌번호가 복사되었습니다!'))" class="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors">
+        <button type="button" onclick="navigator.clipboard.writeText('${saf(
+          p.bank || ""
+        )} ${saf(
+    p.number || ""
+  )}').then(() => alert('계좌번호가 복사되었습니다!'))" class="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors">
           <i class="fas fa-copy mr-2"></i>계좌 복사하기
         </button>
       </div>
@@ -261,68 +281,79 @@ function tastingCardHTML(ev) {
   `;
 
   // 식당 카드들 - 세로로 나열
-  const restaurantCards = (ev.restaurants || []).map((r, index) => {
-    const cap = r.capacity ?? ev.limit ?? 0;
-    const cnt = (r.reservations || []).length;
-    const waitCnt = (r.waiting || []).length;
-    const mine = (r.reservations || [])
-      .concat(r.waiting || [])
-      .some((p) => p.studentId === state.currentUser?.studentId);
-    
-    const btn = mine
-      ? `<button type="button" class="w-full mt-auto bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 rounded-lg transition-colors" data-act="cancel-tasting" data-id="${ev.id}" data-rid="${r.id}">
+  const restaurantCards = (ev.restaurants || [])
+    .map((r, index) => {
+      const cap = r.capacity ?? ev.limit ?? 0;
+      const cnt = (r.reservations || []).length;
+      const waitCnt = (r.waiting || []).length;
+      const mine = (r.reservations || [])
+        .concat(r.waiting || [])
+        .some((p) => p.studentId === state.currentUser?.studentId);
+
+      const btn = mine
+        ? `<button type="button" class="w-full mt-auto bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 rounded-lg transition-colors" data-act="cancel-tasting" data-id="${ev.id}" data-rid="${r.id}">
           <i class="fas fa-times-circle mr-2"></i>신청 취소
         </button>`
-      : `<button type="button" class="w-full mt-auto ${
-          cnt < cap
-            ? "bg-green-600 hover:bg-green-700"
-            : "bg-amber-500 hover:bg-amber-600"
-        } text-white font-bold py-2.5 rounded-lg transition-colors" data-act="reserve-tasting" data-id="${
-          ev.id
-        }" data-rid="${r.id}">
+        : `<button type="button" class="w-full mt-auto ${
+            cnt < cap
+              ? "bg-green-600 hover:bg-green-700"
+              : "bg-amber-500 hover:bg-amber-600"
+          } text-white font-bold py-2.5 rounded-lg transition-colors" data-act="reserve-tasting" data-id="${
+            ev.id
+          }" data-rid="${r.id}">
           <i class="fas fa-${cnt < cap ? "check" : "clock"} mr-2"></i>${
-          cnt < cap ? "활동 신청" : "대기 신청"
-        }
+            cnt < cap ? "활동 신청" : "대기 신청"
+          }
         </button>`;
 
-    const namesList = (r.reservations || [])
-      .slice()
-      .reverse()
-      .map(
-        (a) =>
-          `<div class="flex items-center justify-between py-1 px-2 hover:bg-gray-100 rounded">
+      const namesList = (r.reservations || [])
+        .slice()
+        .reverse()
+        .map(
+          (a) =>
+            `<div class="flex items-center justify-between py-1 px-2 hover:bg-gray-100 rounded">
             <div class="flex items-center gap-2 min-w-0 flex-1">
               <span class="font-mono text-[11px] text-gray-500 whitespace-nowrap">${
                 a.studentId ? `${a.studentId.slice(0, 4)}****` : ""
               }</span>
               <span class="text-xs truncate">${saf(a.name)}</span>
             </div>
-            ${isAdmin ? `<button type="button" class="text-red-500 hover:text-red-700 text-xs" title="제거"><i class="fas fa-times"></i></button>` : ""}
+            ${
+              isAdmin
+                ? `<button type="button" class="text-red-500 hover:text-red-700 text-xs" title="제거"><i class="fas fa-times"></i></button>`
+                : ""
+            }
           </div>`
-      )
-      .join("");
-    
-    const waitingList = (r.waiting || [])
-      .slice()
-      .reverse()
-      .map(
-        (a) =>
-          `<div class="flex items-center justify-between py-1 px-2 hover:bg-amber-50 rounded">
+        )
+        .join("");
+
+      const waitingList = (r.waiting || [])
+        .slice()
+        .reverse()
+        .map(
+          (a) =>
+            `<div class="flex items-center justify-between py-1 px-2 hover:bg-amber-50 rounded">
             <div class="flex items-center gap-2 min-w-0 flex-1">
               <span class="font-mono text-[11px] text-amber-600 whitespace-nowrap">${
                 a.studentId ? `${a.studentId.slice(0, 4)}****` : ""
               }</span>
-              <span class="text-xs truncate text-amber-700">${saf(a.name)}</span>
+              <span class="text-xs truncate text-amber-700">${saf(
+                a.name
+              )}</span>
             </div>
-            ${isAdmin ? `<button type="button" class="text-red-500 hover:text-red-700 text-xs" title="제거"><i class="fas fa-times"></i></button>` : ""}
+            ${
+              isAdmin
+                ? `<button type="button" class="text-red-500 hover:text-red-700 text-xs" title="제거"><i class="fas fa-times"></i></button>`
+                : ""
+            }
           </div>`
-      )
-      .join("");
+        )
+        .join("");
 
-    const participantsSectionId = `participants-${ev.id}-${r.id}`;
-    const showParticipantsBtnId = `show-participants-${ev.id}-${r.id}`;
+      const participantsSectionId = `participants-${ev.id}-${r.id}`;
+      const showParticipantsBtnId = `show-participants-${ev.id}-${r.id}`;
 
-    return `<div class="bg-white border-2 border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+      return `<div class="w-full bg-white border-2 border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
       <div class="flex flex-col md:flex-row gap-4 p-4">
         <!-- 식당 이미지 -->
         <div class="md:w-1/3 flex-shrink-0">
@@ -330,8 +361,8 @@ function tastingCardHTML(ev) {
             r.imageUrl
               ? `<div class="relative w-full h-40 md:h-full min-h-[160px] overflow-hidden rounded-lg">
                   <img src="${saf(r.imageUrl)}" alt="${saf(
-                r.name
-              )}" class="w-full h-full object-cover" onerror="this.style.display='none'">
+                  r.name
+                )}" class="w-full h-full object-cover" onerror="this.style.display='none'">
                   <div class="absolute top-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full text-sm font-bold text-gray-800">
                     ${cnt}/${cap}명
                   </div>
@@ -353,7 +384,9 @@ function tastingCardHTML(ev) {
           <div class="mb-3">
             <div class="flex items-center justify-between text-sm text-gray-600 mb-1">
               <span>신청: ${cnt}/${cap}명</span>
-              <span class="text-amber-600">${waitCnt > 0 ? `대기: ${waitCnt}명` : ""}</span>
+              <span class="text-amber-600">${
+                waitCnt > 0 ? `대기: ${waitCnt}명` : ""
+              }</span>
             </div>
             <div class="w-full bg-gray-200 rounded-full h-3">
               <div class="bg-green-500 h-3 rounded-full transition-all" style="width:${
@@ -363,30 +396,41 @@ function tastingCardHTML(ev) {
           </div>
 
           <!-- 참가자 목록 (관리자 또는 토글 가능) -->
-          ${cnt > 0 || waitCnt > 0 || isAdmin
-            ? `
+          ${
+            cnt > 0 || waitCnt > 0 || isAdmin
+              ? `
           <div class="mb-3">
             <button type="button" id="${showParticipantsBtnId}" class="w-full text-left text-sm font-semibold text-gray-700 hover:text-gray-900 flex items-center justify-between py-2 px-3 bg-gray-50 rounded-lg transition-colors border border-gray-200">
-              <span><i class="fas fa-users mr-2"></i>참가자 ${cnt > 0 ? `(${cnt}명)` : ""} ${waitCnt > 0 ? `· 대기 ${waitCnt}명` : ""}</span>
+              <span><i class="fas fa-users mr-2"></i>참가자 ${
+                cnt > 0 ? `(${cnt}명)` : ""
+              } ${waitCnt > 0 ? `· 대기 ${waitCnt}명` : ""}</span>
               <i class="fas fa-chevron-down text-xs transition-transform" id="chevron-${participantsSectionId}"></i>
             </button>
             <div id="${participantsSectionId}" class="hidden mt-2 space-y-2">
-              ${cnt > 0
-                ? `<div class="bg-gray-50 rounded-lg p-3 max-h-40 overflow-y-auto border border-gray-200">
-                    ${namesList || '<div class="text-xs text-gray-400 text-center py-2">참가자 없음</div>'}
+              ${
+                cnt > 0
+                  ? `<div class="bg-gray-50 rounded-lg p-3 max-h-40 overflow-y-auto border border-gray-200">
+                    ${
+                      namesList ||
+                      '<div class="text-xs text-gray-400 text-center py-2">참가자 없음</div>'
+                    }
                   </div>`
-                : ""}
-              ${waitCnt > 0
-                ? `<div class="bg-amber-50 rounded-lg p-3 max-h-32 overflow-y-auto border border-amber-200">
+                  : ""
+              }
+              ${
+                waitCnt > 0
+                  ? `<div class="bg-amber-50 rounded-lg p-3 max-h-32 overflow-y-auto border border-amber-200">
                     <div class="text-xs text-amber-700 font-semibold mb-2">대기자</div>
                     ${waitingList}
                     <div class="text-xs text-amber-600 mt-2">※ 자리가 비면 자동으로 대기 → 참가로 전환됩니다</div>
                   </div>`
-                : ""}
+                  : ""
+              }
             </div>
           </div>
           `
-            : ""}
+              : ""
+          }
 
           <!-- 신청/취소 버튼 -->
           <div class="mt-auto">
@@ -395,24 +439,31 @@ function tastingCardHTML(ev) {
         </div>
       </div>
     </div>`;
-  }).join("");
+    })
+    .join("");
 
   return `<div class="section card-hover ${typeAccentClass(ev.type)}">
     <!-- 헤더 -->
     <div class="mb-4">
       <div class="flex items-start justify-between mb-2">
         <div class="flex-1">
-          <h3 class="text-2xl font-bold text-gray-800 mb-1">${saf(ev.title)}</h3>
+          <h3 class="text-2xl font-bold text-gray-800 mb-1">${saf(
+            ev.title
+          )}</h3>
           <p class="text-gray-600 flex items-center gap-2">
             <i class="fas fa-calendar-alt"></i>
-            <span>${ev.datetime ? new Date(ev.datetime).toLocaleString("ko-KR") : "-"}</span>
+            <span>${
+              ev.datetime ? new Date(ev.datetime).toLocaleString("ko-KR") : "-"
+            }</span>
           </p>
         </div>
         <div class="flex items-center gap-2">
           <span class="px-3 py-1 rounded-full text-xs font-semibold ${typeBadgeClass(
             ev.type
           )}">${typeLabel(ev.type)}</span>
-          <span class="text-xs text-gray-400">${statusLabel(ev.status || "open")}</span>
+          <span class="text-xs text-gray-400">${statusLabel(
+            ev.status || "open"
+          )}</span>
         </div>
       </div>
     </div>
@@ -768,11 +819,12 @@ export async function reserveGeneral(id) {
       if (lim === 0 || ev.applicants.length < lim) ev.applicants.push(entry);
       else ev.waiting.push(entry);
       tx.update(ref, { applicants: ev.applicants, waiting: ev.waiting });
-      
+
       // 알림 전송 (비동기, 트랜잭션 외부에서 처리)
       setTimeout(async () => {
         try {
-          const { notifyActivityReservation, notifyWaitlistToConfirmed } = await import("./kakao-notifications.js");
+          const { notifyActivityReservation, notifyWaitlistToConfirmed } =
+            await import("./kakao-notifications.js");
           const eventData = {
             title: ev.title,
             datetime: ev.datetime,
@@ -781,7 +833,7 @@ export async function reserveGeneral(id) {
           const userData = {
             kakaoUserId: state.currentUser?.kakaoUserId,
           };
-          
+
           if (wasWaiting) {
             // 대기순번으로 신청됨
             await notifyActivityReservation(eventData, userData);
@@ -809,11 +861,14 @@ export async function cancelGeneral(id) {
       ev.applicants ??= [];
       ev.waiting ??= [];
       const before = ev.applicants.length;
-      const wasInApplicants = ev.applicants.some(p => p.studentId === state.currentUser.studentId);
+      const wasInApplicants = ev.applicants.some(
+        (p) => p.studentId === state.currentUser.studentId
+      );
       ev.applicants = ev.applicants.filter(
         (p) => p.studentId !== state.currentUser.studentId
       );
-      const movedFromWaiting = ev.applicants.length < before && ev.waiting.length > 0;
+      const movedFromWaiting =
+        ev.applicants.length < before && ev.waiting.length > 0;
       if (ev.applicants.length < before) {
         if (ev.waiting.length > 0) {
           const movedUser = ev.waiting.shift();
@@ -824,30 +879,34 @@ export async function cancelGeneral(id) {
           (p) => p.studentId !== state.currentUser.studentId
         );
       tx.update(ref, { applicants: ev.applicants, waiting: ev.waiting });
-      
+
       // 알림 전송 (비동기, 트랜잭션 외부에서 처리)
       setTimeout(async () => {
         try {
-          const { notifyActivityCancellation, notifyWaitlistToConfirmed } = await import("./kakao-notifications.js");
+          const { notifyActivityCancellation, notifyWaitlistToConfirmed } =
+            await import("./kakao-notifications.js");
           const eventData = {
             title: ev.title,
             datetime: ev.datetime,
             location: ev.location,
           };
-          
+
           // 취소한 사용자에게 알림
           const cancelUserData = {
             kakaoUserId: state.currentUser?.kakaoUserId,
           };
           await notifyActivityCancellation(eventData, cancelUserData);
-          
+
           // 대기순번에서 확정된 사용자에게 알림
           if (movedFromWaiting) {
-            const movedUser = ev.applicants.find(p => 
-              !wasInApplicants && p.studentId !== state.currentUser.studentId
+            const movedUser = ev.applicants.find(
+              (p) =>
+                !wasInApplicants && p.studentId !== state.currentUser.studentId
             );
             if (movedUser?.kakaoUserId) {
-              await notifyWaitlistToConfirmed(eventData, { kakaoUserId: movedUser.kakaoUserId });
+              await notifyWaitlistToConfirmed(eventData, {
+                kakaoUserId: movedUser.kakaoUserId,
+              });
             }
           }
         } catch (error) {
@@ -891,11 +950,13 @@ export async function reserveTasting(id, rid) {
       else r.waiting.push(entry);
       ev.restaurants[idx] = r;
       tx.update(ref, { restaurants: ev.restaurants });
-      
+
       // 알림 전송 (비동기, 트랜잭션 외부에서 처리)
       setTimeout(async () => {
         try {
-          const { notifyActivityReservation } = await import("./kakao-notifications.js");
+          const { notifyActivityReservation } = await import(
+            "./kakao-notifications.js"
+          );
           const eventData = {
             title: ev.title,
             datetime: ev.datetime,
@@ -934,11 +995,14 @@ export async function cancelTasting(id, rid) {
       r.reservations ??= [];
       r.waiting ??= [];
       const before = r.reservations.length;
-      const wasInReservations = r.reservations.some(p => p.studentId === state.currentUser.studentId);
+      const wasInReservations = r.reservations.some(
+        (p) => p.studentId === state.currentUser.studentId
+      );
       r.reservations = r.reservations.filter(
         (p) => p.studentId !== state.currentUser.studentId
       );
-      const movedFromWaiting = r.reservations.length < before && r.waiting.length > 0;
+      const movedFromWaiting =
+        r.reservations.length < before && r.waiting.length > 0;
       if (r.reservations.length < before) {
         if (r.waiting.length > 0) {
           const movedUser = r.waiting.shift();
@@ -950,30 +1014,35 @@ export async function cancelTasting(id, rid) {
         );
       ev.restaurants[idx] = r;
       tx.update(ref, { restaurants: ev.restaurants });
-      
+
       // 알림 전송 (비동기, 트랜잭션 외부에서 처리)
       setTimeout(async () => {
         try {
-          const { notifyActivityCancellation, notifyWaitlistToConfirmed } = await import("./kakao-notifications.js");
+          const { notifyActivityCancellation, notifyWaitlistToConfirmed } =
+            await import("./kakao-notifications.js");
           const eventData = {
             title: ev.title,
             datetime: ev.datetime,
             location: r.name,
           };
-          
+
           // 취소한 사용자에게 알림
           const cancelUserData = {
             kakaoUserId: state.currentUser?.kakaoUserId,
           };
           await notifyActivityCancellation(eventData, cancelUserData);
-          
+
           // 대기순번에서 확정된 사용자에게 알림
           if (movedFromWaiting) {
-            const movedUser = r.reservations.find(p => 
-              !wasInReservations && p.studentId !== state.currentUser.studentId
+            const movedUser = r.reservations.find(
+              (p) =>
+                !wasInReservations &&
+                p.studentId !== state.currentUser.studentId
             );
             if (movedUser?.kakaoUserId) {
-              await notifyWaitlistToConfirmed(eventData, { kakaoUserId: movedUser.kakaoUserId });
+              await notifyWaitlistToConfirmed(eventData, {
+                kakaoUserId: movedUser.kakaoUserId,
+              });
             }
           }
         } catch (error) {

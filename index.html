@@ -257,43 +257,7 @@
           scrollbar-width: none;
         }
 
-        /* 미식회 리뷰 스크롤바 스타일 (데스크톱) */
-        .review-list::-webkit-scrollbar {
-          width: 8px;
-        }
-
-        .review-list::-webkit-scrollbar-track {
-          background: #fef3e2;
-          border-radius: 10px;
-        }
-
-        .review-list::-webkit-scrollbar-thumb {
-          background: #f97316;
-          border-radius: 10px;
-        }
-
-        .review-list::-webkit-scrollbar-thumb:hover {
-          background: #ea580c;
-        }
-
-        /* 미식회 식당 카드 컨테이너 스크롤바 스타일 */
-        #restaurant-cards-container::-webkit-scrollbar {
-          width: 8px;
-        }
-
-        #restaurant-cards-container::-webkit-scrollbar-track {
-          background: #fef3e2;
-          border-radius: 10px;
-        }
-
-        #restaurant-cards-container::-webkit-scrollbar-thumb {
-          background: #f97316;
-          border-radius: 10px;
-        }
-
-        #restaurant-cards-container::-webkit-scrollbar-thumb:hover {
-          background: #ea580c;
-        }
+        /* 미식회 식당/리뷰는 카드 내부 스크롤 없이 페이지 전체 스크롤만 사용 */
 
         /* 전체 화면 스크롤바 숨김 */
         body {
@@ -10204,11 +10168,8 @@
                   <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                     <div>
                       <h3 class="text-xl font-extrabold text-blue-900 flex items-center gap-2">
-                        <i class="fas fa-circle-user text-blue-600"></i>내 활동
+                        <i class="fas fa-circle-user text-blue-600"></i>최근 신청한 활동
                       </h3>
-                      <p class="text-sm text-blue-700">
-                        최근 신청한 활동
-                      </p>
                     </div>
                     <div class="flex items-center gap-2 text-xs text-blue-700 flex-wrap">
                       <span class="px-2 py-1 bg-white rounded-full border border-blue-200 font-semibold">
@@ -10243,8 +10204,13 @@
                       <div class="rounded-2xl border border-blue-100 bg-blue-50/70 px-3 py-3 space-y-2">
                         <div class="flex items-center justify-center gap-2">
                           <div class="font-semibold text-gray-800 truncate">
-                            ${saf(latestEvent.title || "최근 신청한 활동")}
-                          </div>
+                            다음일정 · ${saf(
+                              latestEvent.title || "최근 신청한 활동"
+                            )}${
+                participation.restaurantName
+                  ? ` - ${saf(participation.restaurantName)}`
+                  : ""
+              }
                           <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full ${
                             meta.chipClass
                           }">
@@ -10255,13 +10221,6 @@
                           <span><i class="fas fa-calendar-day text-blue-500 mr-1"></i>${formatDateTime(
                             latestEvent.datetime
                           )}</span>
-                          ${
-                            participation.restaurantName
-                              ? `<span><i class="fas fa-utensils text-orange-500 mr-1"></i>${saf(
-                                  participation.restaurantName
-                                )}</span>`
-                              : ""
-                          }
                           ${
                             participation.isWaitlisted
                               ? '<span class="px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700 font-semibold">대기중</span>'
@@ -10476,25 +10435,7 @@
                         stats.reviews
                       }</span>
                     </div>
-                    ${
-                      nextUpcoming
-                        ? `<div class="mt-2 rounded-xl bg-orange-50 border border-orange-100 px-3 py-2 text-xs text-gray-700">
-                            <div class="font-semibold text-gray-800 truncate">
-                              다음 일정: ${saf(
-                                nextUpcoming.title || "예정된 활동"
-                              )}
-                            </div>
-                            <div class="flex items-center justify-center gap-1 text-[11px] text-gray-500 mt-0.5">
-                              <i class="fas fa-clock text-orange-500"></i>${formatDateTime(
-                                nextUpcoming.datetime
-                              )}
-                  </div>
-                </div>`
-                        : ""
-                    }
-                  </div>
-                  <div class="text-center">
-                    ${quickEventSummaryHTML}
+                    ${""}
                   </div>
                 </div>
               `;
@@ -24591,6 +24532,18 @@
             '<i class="fas fa-spinner fa-spin text-2xl"></i><span class="text-lg">돌리는 중...</span>';
         }
 
+        // 메뉴 이름/식당 이름을 분리해서 표시하는 헬퍼
+        const getDisplayText = (menu) => {
+          if (menu.restaurantName && menu.menuName) {
+            return `${menu.restaurantName} · ${menu.menuName}`;
+          }
+          if (menu.name && menu.name.includes(" - ")) {
+            const [rest, m] = menu.name.split(" - ");
+            return `${rest} · ${m}`;
+          }
+          return menu.name || "메뉴";
+        };
+
         // 룰렛 애니메이션 (2초간 빠르게 메뉴 변경)
         const animationDuration = 2000;
         const intervalTime = 100;
@@ -24605,7 +24558,7 @@
             rouletteEmoji.style.animation = "pulse 0.1s ease";
           }
           if (rouletteText) {
-            rouletteText.textContent = randomMenu.name;
+            rouletteText.textContent = getDisplayText(randomMenu);
           }
         }, intervalTime);
 
@@ -24623,7 +24576,7 @@
             setTimeout(() => (rouletteEmoji.style.animation = ""), 600);
           }
           if (rouletteText) {
-            rouletteText.textContent = finalMenu.name;
+            rouletteText.textContent = getDisplayText(finalMenu);
             rouletteText.style.animation = "pulse 0.6s ease";
             setTimeout(() => (rouletteText.style.animation = ""), 600);
           }
@@ -24699,10 +24652,37 @@
               .toString()
               .padStart(2, "0")}`;
 
+            // 식당 이름과 메뉴를 분리해서 표시
+            const displayName =
+              menu.restaurantName && menu.menuName
+                ? `<div class="flex flex-col items-start">
+                     <span class="font-semibold text-gray-900">${saf(
+                       menu.restaurantName
+                     )}</span>
+                     <span class="text-xs text-gray-600">${saf(
+                       menu.menuName
+                     )}</span>
+                   </div>`
+                : menu.name && menu.name.includes(" - ")
+                ? (() => {
+                    const [restName, menuText] = menu.name.split(" - ");
+                    return `<div class="flex flex-col items-start">
+                      <span class="font-semibold text-gray-900">${saf(
+                        restName
+                      )}</span>
+                      <span class="text-xs text-gray-600">${saf(
+                        menuText
+                      )}</span>
+                    </div>`;
+                  })()
+                : `<span class="font-medium text-gray-900">${saf(
+                    menu.name || "메뉴"
+                  )}</span>`;
+
             return `
                   <div class="inline-flex items-center gap-2 bg-white px-3 py-2 rounded-lg border-2 border-orange-200 text-sm shadow-sm">
                     <span class="text-lg">${emoji}</span>
-                    <span class="font-medium">${menu.name}</span>
+                    ${displayName}
                     <span class="text-xs text-gray-400">${timeStr}</span>
                   </div>
                 `;
@@ -25494,6 +25474,31 @@
           }
         });
 
+        // 미식회 식당 카드 노출 개수 (초기 2개, 더보기 클릭 시 3개씩 추가)
+        const DEFAULT_TASTING_VISIBLE_COUNT = 2;
+        if (typeof window !== "undefined") {
+          if (
+            typeof window.tastingRestaurantsVisibleCount !== "number" ||
+            window.tastingRestaurantsVisibleCount <= 0
+          ) {
+            window.tastingRestaurantsVisibleCount =
+              DEFAULT_TASTING_VISIBLE_COUNT;
+          }
+        }
+        const currentVisibleCount =
+          typeof window !== "undefined" &&
+          typeof window.tastingRestaurantsVisibleCount === "number"
+            ? window.tastingRestaurantsVisibleCount
+            : DEFAULT_TASTING_VISIBLE_COUNT;
+        const clampedVisibleCount = Math.min(
+          currentVisibleCount,
+          tastingRestaurants.length
+        );
+        const visibleTastingRestaurants = tastingRestaurants.slice(
+          0,
+          clampedVisibleCount
+        );
+
         // 평균 별점 계산 함수
         const calculateAverageRating = (reviews) => {
           if (!reviews || reviews.length === 0) return 0;
@@ -25748,7 +25753,7 @@
                                 </p>
                               </div>
                               <div class="review-list-container relative">
-                                <div class="review-list max-h-96 overflow-y-auto pr-2 pb-4" data-event-id="${
+                                <div class="review-list pb-4" data-event-id="${
                                   restaurant.eventId
                                 }" data-restaurant-name="${saf(
                                   restaurant.restaurantName
@@ -25975,21 +25980,6 @@
                       }</span>개 식당
                     </div>
                   </div>
-                  
-                  ${
-                    tastingRestaurants.length > 1
-                      ? `<div class="my-4 text-center">
-                          <div class="inline-block bg-white/95 backdrop-blur-sm py-2 px-4 rounded-lg shadow-lg border-2 border-orange-200">
-                            <p class="text-xs sm:text-sm text-orange-600 font-semibold flex items-center justify-center gap-2 animate-pulse">
-                              <i class="fas fa-chevron-down"></i>
-                              스크롤하여 더 많은 식당 후기 보기
-                              <i class="fas fa-chevron-down"></i>
-                            </p>
-                          </div>
-                        </div>`
-                      : ""
-                  }
-
                   ${
                     tastingRestaurants.length > 0
                       ? `
@@ -26059,16 +26049,29 @@
                       : ""
                   }
 
-                  <!-- 미식회 식당 목록 -->
+                  <!-- 미식회 식당 목록 (페이지 전체 스크롤 사용) -->
                   <div id="restaurant-list-container">
                     ${
                       tastingRestaurants.length > 0
-                        ? `<div class="max-h-[70vh] overflow-y-auto pr-2" id="restaurant-cards-container" style="scrollbar-width: thin; scrollbar-color: #f97316 #fef3e2;">
-                            <div class="grid grid-cols-1 gap-4 sm:gap-6" id="restaurant-cards">${tastingRestaurants
+                        ? `<div id="restaurant-cards-container">
+                            <div class="grid grid-cols-1 gap-4 sm:gap-6" id="restaurant-cards">${visibleTastingRestaurants
                               .map((restaurant, index) =>
                                 createRestaurantCard(restaurant, index, false)
                               )
                               .join("")}</div>
+                            ${
+                              tastingRestaurants.length > clampedVisibleCount
+                                ? `<div class="mt-4 flex justify-center">
+                                    <button
+                                      id="load-more-restaurants-btn"
+                                      class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-orange-300 text-orange-700 bg-white hover:bg-orange-50 text-sm font-semibold shadow-sm"
+                                    >
+                                      <i class="fas fa-plus"></i>
+                                      더보기 (식당 후기 3개 더 보기)
+                                    </button>
+                                  </div>`
+                                : ""
+                            }
                           </div>`
                         : `<div class="text-center py-12 text-gray-400">
                             <i class="fas fa-utensils text-4xl mb-3"></i>
@@ -26092,6 +26095,29 @@
         );
 
         let currentCategory = "all"; // 현재 선택된 카테고리
+
+        // 더보기 버튼 이벤트 (검색/필터 이전 기본 목록용)
+        const loadMoreBtn = document.getElementById(
+          "load-more-restaurants-btn"
+        );
+        if (loadMoreBtn && tastingRestaurants.length > 0) {
+          loadMoreBtn.addEventListener("click", () => {
+            const INCREMENT = 3;
+            if (typeof window !== "undefined") {
+              const prev =
+                typeof window.tastingRestaurantsVisibleCount === "number"
+                  ? window.tastingRestaurantsVisibleCount
+                  : DEFAULT_TASTING_VISIBLE_COUNT;
+              const next = Math.min(
+                prev + INCREMENT,
+                tastingRestaurants.length
+              );
+              window.tastingRestaurantsVisibleCount = next;
+            }
+            // 더보기 클릭 시 검색/필터 상태를 초기화하고 다시 렌더링
+            renderRoadmapTab(isAdmin);
+          });
+        }
 
         if (searchInput && tastingRestaurants.length > 0) {
           // 검색 함수: 띄어쓰기 제거하고 소문자로 변환
