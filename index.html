@@ -3399,7 +3399,7 @@
         if (summaryEl) {
           summaryEl.innerHTML = html;
 
-          // 카카오 연동 버튼 이벤트 핸들러 연결
+          // 카카오 연동 버튼 이벤트 핸들러 연결 (내 정보 팝오버 내부)
           const quickKakaoLinkBtn = summaryEl.querySelector(
             "#quick-kakao-link-btn"
           );
@@ -6225,26 +6225,28 @@
           el.main.innerHTML = `
                   <div class="mb-4 md:mb-6">
                     <div class="flex items-center justify-between mb-4 gap-3">
-                      <p class="text-gray-700 text-lg md:text-xl font-medium flex items-center flex-wrap gap-2">
-                        <span class="text-orange-600 font-bold text-4xl md:text-5xl">Foodie</span>
-                        <span>
-                          <b id="userNameDisplay">${saf(
-                            currentUser.name
-                          )}</b>${getPositionSuffix()}님
-                        </span>
-                      </p>
-                      ${
-                        !hasKakaoAccount
-                          ? `<button
-                              id="header-kakao-link-btn"
-                              type="button"
-                              class="inline-flex items-center gap-1.5 bg-[#FEE500] hover:bg-[#FDD835] text-gray-900 rounded-full px-4 py-1.5 text-xs md:text-sm font-semibold shadow-sm hover:shadow-md transition-colors whitespace-nowrap"
-                            >
-                              <i class="fas fa-comment mr-0.5"></i>
-                              <span>카카오 계정 연동하기</span>
-                            </button>`
-                          : ""
-                      }
+                      <div class="flex items-center flex-wrap gap-3">
+                        <p class="text-gray-700 text-lg md:text-xl font-medium flex items-center flex-wrap gap-2">
+                          <span class="text-orange-600 font-bold text-4xl md:text-5xl">Foodie</span>
+                          <span>
+                            <b id="userNameDisplay">${saf(
+                              currentUser.name
+                            )}</b>${getPositionSuffix()}님
+                          </span>
+                        </p>
+                        ${
+                          !hasKakaoAccount
+                            ? `<button
+                                id="hero-kakao-link-btn"
+                                type="button"
+                                class="inline-flex items-center gap-1.5 bg-[#FEE500] hover:bg-[#FDD835] text-gray-900 rounded-full px-4 py-1.5 text-xs md:text-sm font-semibold shadow-sm hover:shadow-md transition-colors whitespace-nowrap"
+                              >
+                                <i class="fas fa-comment mr-0.5"></i>
+                                <span>카카오 연결</span>
+                              </button>`
+                            : ""
+                        }
+                      </div>
                     </div>
 
                     ${
@@ -9156,7 +9158,7 @@
                   currentUser && entry.studentId === currentUser.studentId;
                 const canRemove = isFullAdmin();
 
-                return `<div class="flex flex-col items-center min-w-[3.2rem]">
+                return `<div class="flex flex-col items-center min-w-[2.6rem]">
                           <div class="w-7 h-7 rounded-full flex items-center justify-center bg-white/70 border border-orange-200 ${
                             isMe ? "ring-2 ring-orange-500" : ""
                           }">
@@ -10569,7 +10571,16 @@
                               <span>카카오 계정 연동하기</span>
                             </button>
                           </div>`
-                        : ""
+                        : `<div class="mt-4">
+                             <button
+                               id="quick-kakao-unlink-btn"
+                               type="button"
+                               class="inline-flex items-center gap-1.5 bg-red-50 hover:bg-red-100 text-red-700 rounded-full px-4 py-1.5 text-xs md:text-sm font-semibold border border-red-300 shadow-sm hover:shadow-md transition-colors"
+                             >
+                               <i class="fas fa-unlink mr-0.5"></i>
+                               <span>카카오 연동 해지하기</span>
+                             </button>
+                           </div>`
                     }
                     <div class="flex flex-wrap items-center justify-center gap-2 text-[11px] text-gray-600 mt-2">
                       <span class="px-2 py-1 bg-orange-50 rounded-full border border-orange-200 font-semibold">
