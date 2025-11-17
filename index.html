@@ -536,6 +536,83 @@
         color: #f97316 !important;
       }
 
+      /* 세련된 버튼 로딩 애니메이션 */
+      .button-loader {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .button-loader-spinner {
+        width: 16px;
+        height: 16px;
+        border: 2.5px solid rgba(255, 255, 255, 0.3);
+        border-top-color: rgba(255, 255, 255, 1);
+        border-radius: 50%;
+        animation: button-spin 0.8s linear infinite;
+      }
+
+      @keyframes button-spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* 펄스 효과가 있는 로딩 텍스트 */
+      .button-loader-text {
+        animation: button-pulse 1.5s ease-in-out infinite;
+      }
+
+      @keyframes button-pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.7;
+        }
+      }
+
+      /* 더 세련된 점 3개 애니메이션 (대안) */
+      .button-loader-dots {
+        display: inline-flex;
+        gap: 4px;
+        align-items: center;
+      }
+
+      .button-loader-dots span {
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        background-color: currentColor;
+        animation: button-dot-bounce 1.4s ease-in-out infinite;
+      }
+
+      .button-loader-dots span:nth-child(1) {
+        animation-delay: 0s;
+      }
+
+      .button-loader-dots span:nth-child(2) {
+        animation-delay: 0.2s;
+      }
+
+      .button-loader-dots span:nth-child(3) {
+        animation-delay: 0.4s;
+      }
+
+      @keyframes button-dot-bounce {
+        0%,
+        80%,
+        100% {
+          transform: scale(0.8);
+          opacity: 0.5;
+        }
+        40% {
+          transform: scale(1.2);
+          opacity: 1;
+        }
+      }
+
       @keyframes rank-gradient-shift {
         0% {
           background-position: 0% 50%;
@@ -8709,6 +8786,7 @@
             const name = saf(member?.name || a.name || "이름 없음");
             const profileImage =
               member?.kakaoProfileImage ||
+              a?.kakaoProfileImage ||
               (currentUser &&
               a.studentId === currentUser.studentId &&
               currentUser.kakaoProfileImage
@@ -8775,6 +8853,7 @@
             const name = saf(member?.name || a.name || "이름 없음");
             const profileImage =
               member?.kakaoProfileImage ||
+              a?.kakaoProfileImage ||
               (currentUser &&
               a.studentId === currentUser.studentId &&
               currentUser.kakaoProfileImage
@@ -9167,6 +9246,7 @@
                 const name = saf(member?.name || entry.name || "이름 없음");
                 const profileImage =
                   member?.kakaoProfileImage ||
+                  entry?.kakaoProfileImage ||
                   (currentUser &&
                   entry.studentId === currentUser.studentId &&
                   currentUser.kakaoProfileImage
@@ -9216,6 +9296,7 @@
                 const yearLabel = member?.year ? `${member.year}학년` : "";
                 const profileImage =
                   member?.kakaoProfileImage ||
+                  entry?.kakaoProfileImage ||
                   (currentUser &&
                   entry.studentId === currentUser.studentId &&
                   currentUser.kakaoProfileImage
@@ -11570,6 +11651,9 @@
           college: p.college || "",
           department: p.department || "",
           phone: p.phone || "",
+          kakaoProfileImage: p.kakaoProfileImage || null,
+          kakaoNickname: p.kakaoNickname || null,
+          kakaoUserId: p.kakaoUserId || null,
         };
       }
 
@@ -11593,7 +11677,7 @@
         if (button) {
           button.disabled = true;
           button.innerHTML =
-            '<i class="fas fa-spinner fa-spin mr-2"></i>신청 중...';
+            '<div class="button-loader"><div class="button-loader-spinner"></div><span class="button-loader-text">신청 중...</span></div>';
         }
 
         const prof = pickProfileFields(await getCurrentMemberProfile());
@@ -11669,7 +11753,7 @@
         if (button) {
           button.disabled = true;
           button.innerHTML =
-            '<i class="fas fa-spinner fa-spin mr-2"></i>취소 중...';
+            '<div class="button-loader"><div class="button-loader-spinner"></div><span class="button-loader-text">취소 중...</span></div>';
         }
 
         try {
@@ -11738,7 +11822,7 @@
         if (button) {
           button.disabled = true;
           button.innerHTML =
-            '<i class="fas fa-spinner fa-spin mr-2"></i>취소 중...';
+            '<div class="button-loader"><div class="button-loader-spinner"></div><span class="button-loader-text">취소 중...</span></div>';
         }
 
         try {
@@ -11796,7 +11880,7 @@
         if (button) {
           button.disabled = true;
           button.innerHTML =
-            '<i class="fas fa-spinner fa-spin mr-2"></i>신청 중...';
+            '<div class="button-loader"><div class="button-loader-spinner"></div><span class="button-loader-text">신청 중...</span></div>';
         }
 
         const prof = pickProfileFields(await getCurrentMemberProfile());
@@ -11959,7 +12043,7 @@
         if (button) {
           button.disabled = true;
           button.innerHTML =
-            '<i class="fas fa-spinner fa-spin mr-2"></i>취소 중...';
+            '<div class="button-loader"><div class="button-loader-spinner"></div><span class="button-loader-text">취소 중...</span></div>';
         }
 
         try {
@@ -12028,7 +12112,7 @@
         if (button) {
           button.disabled = true;
           button.innerHTML =
-            '<i class="fas fa-spinner fa-spin mr-2"></i>취소 중...';
+            '<div class="button-loader"><div class="button-loader-spinner"></div><span class="button-loader-text">취소 중...</span></div>';
         }
 
         try {
