@@ -6407,6 +6407,25 @@
               });
           }
 
+          // 헤더 카카오 연결 버튼 이벤트 리스너
+          const heroKakaoLinkBtn = document.getElementById(
+            "hero-kakao-link-btn"
+          );
+          if (heroKakaoLinkBtn) {
+            heroKakaoLinkBtn.addEventListener("click", async (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              try {
+                const { linkKakaoAccount } = await import("./js/auth.js");
+                await linkKakaoAccount();
+                // 연동 성공 후 화면 갱신
+                scheduleRender();
+              } catch (error) {
+                console.error("헤더 카카오 연동 오류:", error);
+              }
+            });
+          }
+
           document
             .getElementById("rank-close")
             .addEventListener("click", () => {
