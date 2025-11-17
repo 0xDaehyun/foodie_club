@@ -11699,6 +11699,15 @@
               const entry = {
                 ...currentUser,
                 ...prof,
+                // 카카오 프로필 이미지는 currentUser 또는 prof에서 가져오되, null이 아닌 값을 우선 사용
+                kakaoProfileImage:
+                  prof.kakaoProfileImage ||
+                  currentUser?.kakaoProfileImage ||
+                  null,
+                kakaoNickname:
+                  prof.kakaoNickname || currentUser?.kakaoNickname || null,
+                kakaoUserId:
+                  prof.kakaoUserId || currentUser?.kakaoUserId || null,
                 timestamp: now,
                 appliedAt: now,
               };
@@ -11910,6 +11919,15 @@
               const entry = {
                 ...currentUser,
                 ...prof,
+                // 카카오 프로필 이미지는 currentUser 또는 prof에서 가져오되, null이 아닌 값을 우선 사용
+                kakaoProfileImage:
+                  prof.kakaoProfileImage ||
+                  currentUser?.kakaoProfileImage ||
+                  null,
+                kakaoNickname:
+                  prof.kakaoNickname || currentUser?.kakaoNickname || null,
+                kakaoUserId:
+                  prof.kakaoUserId || currentUser?.kakaoUserId || null,
                 timestamp: now,
                 appliedAt: now,
               };
@@ -28110,6 +28128,8 @@
               limit,
               status: "open",
               restaurants,
+              participantsVisibleToAll: true,
+              waitingVisibleToAll: true,
             });
             showAlert("🎉", "미식회가 성공적으로 생성되었습니다!");
           }
@@ -28208,6 +28228,12 @@
           status,
           applicants,
           waiting,
+          participantsVisibleToAll: isEditMode
+            ? existingEvent?.participantsVisibleToAll ?? true
+            : true,
+          waitingVisibleToAll: isEditMode
+            ? existingEvent?.waitingVisibleToAll ?? true
+            : true,
         };
 
         // MT/총회인 경우 회비 정보 추가
