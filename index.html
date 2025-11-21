@@ -59,6 +59,22 @@
     />
 
     <!-- Tailwind -->
+    <script>
+      // Initialize tailwind object before config (Tailwind CDN will use this)
+      window.tailwind = window.tailwind || {};
+      window.tailwind.config = {
+        future: {
+          hoverOnlyWhenSupported: true,
+        },
+        experimental: {
+          optimizeUniversalDefaults: true,
+        },
+        // CDN 사용 경고 무시
+        theme: {
+          extend: {},
+        },
+      };
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
 
     <!-- Loading Animation -->
@@ -311,20 +327,6 @@
         }
       }
     </style>
-    <script>
-      tailwind.config = {
-        future: {
-          hoverOnlyWhenSupported: true,
-        },
-        experimental: {
-          optimizeUniversalDefaults: true,
-        },
-        // CDN 사용 경고 무시
-        theme: {
-          extend: {},
-        },
-      };
-    </script>
 
     <!-- Fonts -->
     <link
@@ -337,6 +339,14 @@
 
     <!-- Kakao SDK -->
     <script src="https://developers.kakao.com/sdk/js/kakao.min.js"></script>
+
+    <!-- Naver Maps API -->
+    <!-- 네이버 클라우드 플랫폼에서 발급받은 Client ID를 입력하세요 -->
+    <!-- https://www.ncloud.com/product/applicationService/maps 에서 발급 가능 -->
+    <script
+      type="text/javascript"
+      src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=YOUR_CLIENT_ID"
+    ></script>
 
     <!-- XLSX -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -459,45 +469,53 @@
         text-align: center;
       }
 
-      .loading-foods {
-        display: flex;
-        gap: 18px;
+      /* 로딩바 애니메이션 */
+      #loading-progress-bar {
+        background: linear-gradient(
+          90deg,
+          #f97316 0%,
+          #fb923c 50%,
+          #f97316 100%
+        );
+        background-size: 200% 100%;
+        animation: loading-shimmer 1.5s ease-in-out infinite;
       }
 
-      .loading-foods .food-icon {
-        font-size: 2.6rem;
-        animation: food-bounce 1.2s ease-in-out infinite;
-        transform-origin: bottom center;
-        filter: drop-shadow(0 8px 12px rgba(15, 23, 42, 0.15));
-      }
-
-      .loading-foods .food-icon:nth-child(2) {
-        animation-delay: 0.15s;
-      }
-      .loading-foods .food-icon:nth-child(3) {
-        animation-delay: 0.3s;
-      }
-      .loading-foods .food-icon:nth-child(4) {
-        animation-delay: 0.45s;
-      }
-
-      @keyframes food-bounce {
-        0%,
-        100% {
-          transform: translateY(0);
+      @keyframes loading-shimmer {
+        0% {
+          background-position: 200% 0;
         }
-        40% {
-          transform: translateY(-14px);
+        100% {
+          background-position: -200% 0;
+        }
+      }
+
+      /* 로그인 화면 이모티콘 회전 애니메이션 */
+      #rotating-emoji,
+      #loading-rotating-emoji {
+        animation: emoji-fade 0.5s ease-in-out;
+        display: inline-block;
+      }
+
+      @keyframes emoji-fade {
+        0% {
+          opacity: 0;
+          transform: scale(0.8) rotate(-10deg);
         }
         50% {
-          transform: translateY(-10px);
+          opacity: 1;
+          transform: scale(1.1) rotate(5deg);
+        }
+        100% {
+          opacity: 1;
+          transform: scale(1) rotate(0deg);
         }
       }
 
       .loading-logo {
-        font-size: 1.8rem;
-        font-weight: 800;
-        letter-spacing: 2px;
+        font-size: 2.5rem;
+        font-weight: 900;
+        letter-spacing: 3px;
       }
 
       .loading-subtitle {
@@ -517,14 +535,10 @@
           padding: 24px 28px;
           gap: 16px;
         }
-        .loading-foods {
-          gap: 14px;
-        }
-        .loading-foods .food-icon {
-          font-size: 2.2rem;
-        }
         .loading-logo {
-          font-size: 1.6rem;
+          font-size: 2rem;
+          font-weight: 900;
+          letter-spacing: 2px;
         }
         .loading-subtitle {
           font-size: 0.9rem;
@@ -598,6 +612,23 @@
 
       .button-loader-dots span:nth-child(3) {
         animation-delay: 0.4s;
+      }
+
+      /* line-clamp 유틸리티 */
+      .line-clamp-1 {
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        line-clamp: 1;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
       }
 
       @keyframes button-dot-bounce {
@@ -2049,14 +2080,34 @@
       <!-- 심플하고 세련된 로딩 화면 -->
       <div class="modern-loader">
         <div class="loading-card">
-          <div class="loading-foods" aria-hidden="true">
-            <span class="food-icon">🍜</span>
-            <span class="food-icon">🍣</span>
-            <span class="food-icon">🍕</span>
-            <span class="food-icon">🍰</span>
-          </div>
           <div class="loading-logo logo-glow">Foodie</div>
-          <p class="loading-subtitle">전북대학교 맛집 탐방 동아리 ✨</p>
+          <p class="loading-subtitle flex items-center justify-center gap-1.5">
+            전북대학교 맛집 탐방 동아리
+            <span
+              id="loading-rotating-emoji"
+              class="inline-block text-base md:text-lg"
+              >✨</span
+            >
+          </p>
+
+          <!-- 로딩바 -->
+          <div class="w-full max-w-xs mt-2">
+            <div
+              class="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden mb-2"
+            >
+              <div
+                id="loading-progress-bar"
+                class="h-full bg-gradient-to-r from-orange-500 to-orange-600 rounded-full transition-all duration-300 ease-out"
+                style="width: 0%"
+              ></div>
+            </div>
+            <div class="text-center">
+              <span class="text-xs text-gray-600" id="loading-status"
+                >밥심 충전 중 🍚</span
+              >
+            </div>
+          </div>
+
           <button
             id="loading-retry-btn"
             type="button"
@@ -2190,21 +2241,18 @@
                     <h1 class="text-4xl md:text-5xl font-bold mb-2 logo-glow">
                       Foodie
                     </h1>
-                    <div class="flex justify-center gap-2 mt-2">
-                      <span class="text-xl">🍽️</span>
-                      <span class="text-xl">🍜</span>
-                      <span class="text-xl">🍕</span>
-                    </div>
                   </div>
 
                   <!-- 동아리 소개 -->
                   <p
-                    class="text-sm md:text-base text-gray-700 font-medium mb-1"
+                    class="text-lg md:text-xl lg:text-2xl text-gray-700 font-medium mb-4 flex items-center justify-center gap-1.5"
                   >
-                    전북대학교 맛집 탐방 동아리✨
-                  </p>
-                  <p class="text-xs md:text-sm text-gray-600 mb-4">
-                    함께 맛있는 추억을 만들어요
+                    전북대학교 맛집 탐방 동아리
+                    <span
+                      id="rotating-emoji"
+                      class="inline-block text-lg md:text-xl lg:text-2xl"
+                      >✨</span
+                    >
                   </p>
 
                   <!-- 구분선 -->
@@ -5243,10 +5291,56 @@
         ],
       };
 
+      // 로딩바 업데이트 함수
+      function updateLoadingBar(current, total, key) {
+        const progressBar = document.getElementById("loading-progress-bar");
+        const statusEl = document.getElementById("loading-status");
+
+        if (!progressBar || !statusEl) return;
+
+        const percentage = Math.min(Math.round((current / total) * 100), 100);
+        progressBar.style.width = `${percentage}%`;
+
+        const foodMessages = {
+          homeLayout: "밥상 차리는 중 🍽️",
+          admins: "주방장을 모시는 중 👨‍🍳",
+          signup: "식구 모으는 중 👨‍👩‍👧‍👦",
+          dues: "밥값 계산 중 💰",
+          blocks: "식단표 작성 중 📋",
+          customPositions: "석좌 배치 중 🪑",
+          roadmap: "맛집 지도 그리는 중 🗺️",
+          events: "미식회 메뉴 고르는 중 🍜",
+          notifications: "먹방 알림 설정 중 🔔",
+        };
+
+        const foodDetailMessages = [
+          "맛있는 정보를 모으는 중",
+          "식욕 돋우는 순간",
+          "밥심 충전 중",
+          "맛있는 추억을 준비 중",
+          "식탁 위를 준비하는 중",
+          "맛의 향기를 불러오는 중",
+        ];
+
+        if (key && foodMessages[key]) {
+          statusEl.textContent = foodMessages[key];
+        } else if (current === total) {
+          statusEl.textContent = "밥상 차림 완료 🎉";
+        } else {
+          const randomMessage =
+            foodDetailMessages[
+              Math.floor(Math.random() * foodDetailMessages.length)
+            ];
+          statusEl.textContent = `${randomMessage} 🍚`;
+        }
+      }
+
       function startPublicListeners() {
         // 순차 로딩을 위한 큐
         const listenerQueue = [];
         let isProcessing = false;
+        let loadedCount = 0;
+        const totalDataSources = Object.keys(unsubPublic).length;
 
         // 리스너를 큐에 추가하고 순차적으로 처리
         const addToQueue = (setupFn, key) => {
@@ -5265,13 +5359,38 @@
             const { setupFn, key } = listenerQueue.shift();
             await new Promise((resolve) => {
               console.log(`[순차 로딩] ${key} 데이터 로딩 시작...`);
+              updateLoadingBar(loadedCount, totalDataSources, key);
+
+              let isResolved = false;
+              let timeoutId = null;
 
               // 리스너 설정 함수를 래핑하여 완료 시 resolve
               const resolveOnce = () => {
+                if (isResolved) return; // 중복 호출 방지
+                isResolved = true;
+                if (timeoutId) clearTimeout(timeoutId);
+                loadedCount++;
                 console.log(`[순차 로딩] ${key} 데이터 로딩 완료`);
+                updateLoadingBar(loadedCount, totalDataSources, key);
                 // 다음 리스너를 위해 약간의 지연
                 setTimeout(resolve, 200);
               };
+
+              // 3초 타임아웃 설정
+              timeoutId = setTimeout(() => {
+                if (!isResolved) {
+                  isResolved = true;
+                  console.warn(
+                    `[순차 로딩] ${key} 데이터 로딩 타임아웃 (3초 초과) - 재접속 시도`
+                  );
+                  // 재접속 시도
+                  restartRealtimeListeners(`timeout:${key}`, true);
+                  // 타임아웃 발생해도 다음 단계로 진행 (재접속 후 다시 시도됨)
+                  loadedCount++;
+                  updateLoadingBar(loadedCount, totalDataSources, key);
+                  setTimeout(resolve, 200);
+                }
+              }, 3000);
 
               setupFn(resolveOnce);
             });
@@ -5279,6 +5398,9 @@
 
           isProcessing = false;
           console.log("[순차 로딩] 모든 데이터 로딩 완료");
+
+          // 로딩바 100%로 업데이트
+          updateLoadingBar(totalDataSources, totalDataSources, null);
 
           // 순차 로딩 완료 플래그 설정
           if (
@@ -6048,6 +6170,69 @@
             .getElementById("login-button")
             .addEventListener("click", login);
 
+          // 로그인 화면 이모티콘 회전 애니메이션
+          const rotatingEmoji = document.getElementById("rotating-emoji");
+          if (rotatingEmoji) {
+            const emojis = [
+              "✨",
+              "🍽️",
+              "🍜",
+              "🍕",
+              "🍣",
+              "🍰",
+              "🍔",
+              "🍗",
+              "🥘",
+              "🍲",
+            ];
+            let currentIndex = 0;
+
+            function rotateEmoji() {
+              currentIndex = (currentIndex + 1) % emojis.length;
+              rotatingEmoji.style.animation = "none";
+              setTimeout(() => {
+                rotatingEmoji.textContent = emojis[currentIndex];
+                rotatingEmoji.style.animation = "emoji-fade 0.5s ease-in-out";
+              }, 10);
+            }
+
+            // 1.5초마다 이모티콘 변경
+            setInterval(rotateEmoji, 1500);
+          }
+
+          // 로딩창 이모티콘 회전 애니메이션
+          const loadingRotatingEmoji = document.getElementById(
+            "loading-rotating-emoji"
+          );
+          if (loadingRotatingEmoji) {
+            const emojis = [
+              "✨",
+              "🍽️",
+              "🍜",
+              "🍕",
+              "🍣",
+              "🍰",
+              "🍔",
+              "🍗",
+              "🥘",
+              "🍲",
+            ];
+            let currentIndex = 0;
+
+            function rotateLoadingEmoji() {
+              currentIndex = (currentIndex + 1) % emojis.length;
+              loadingRotatingEmoji.style.animation = "none";
+              setTimeout(() => {
+                loadingRotatingEmoji.textContent = emojis[currentIndex];
+                loadingRotatingEmoji.style.animation =
+                  "emoji-fade 0.5s ease-in-out";
+              }, 10);
+            }
+
+            // 0.8초마다 이모티콘 변경 (로딩창은 더 빠르게)
+            setInterval(rotateLoadingEmoji, 800);
+          }
+
           // 문의하기 버튼 이벤트 리스너 (이벤트 위임 사용)
           document.addEventListener("click", (e) => {
             if (e.target.closest("#inquiry-button")) {
@@ -6301,9 +6486,9 @@
 
           el.main.innerHTML = `
                   <div class="mb-4 md:mb-6">
-                    <div class="flex items-center justify-between mb-4 gap-3">
-                      <div class="flex items-center flex-wrap gap-3">
-                        <p class="text-gray-700 text-lg md:text-xl font-medium flex items-center flex-wrap gap-2">
+                    <div class="flex items-end justify-between mb-4 gap-3">
+                      <div class="flex items-end flex-wrap gap-3">
+                        <p class="text-gray-700 text-lg md:text-xl font-medium flex items-end flex-wrap gap-2">
                           <span class="text-orange-600 font-bold text-4xl md:text-5xl">Foodie</span>
                           <span>
                             <b id="userNameDisplay">${saf(
@@ -6316,10 +6501,10 @@
                             ? `<button
                                 id="hero-kakao-link-btn"
                                 type="button"
-                                class="inline-flex items-center gap-1.5 bg-[#FEE500] hover:bg-[#FDD835] text-gray-900 rounded-full px-4 py-1.5 text-xs md:text-sm font-semibold shadow-sm hover:shadow-md transition-colors whitespace-nowrap"
+                                class="inline-flex items-center gap-1 bg-[#FEE500] hover:bg-[#FDD835] text-gray-900 rounded-full px-2.5 py-0.5 text-xs md:text-sm font-semibold shadow-sm hover:shadow-md transition-colors whitespace-nowrap"
                               >
-                                <i class="fas fa-comment mr-0.5"></i>
-                                <span>카카오 연결</span>
+                                <i class="fas fa-comment mr-0.5 text-xs"></i>
+                                <span>카카오 계정 연결</span>
                               </button>`
                             : ""
                         }
@@ -10952,513 +11137,6 @@
         if (act === "export-xlsx") return exportApplicantsXLSX(id);
       }
 
-      /* ===== 기존 이벤트 관리자 패널 (새로운 모달 구조로 대체됨) ===== */
-      // 이 함수는 더 이상 사용되지 않습니다. 새로운 모달 구조를 사용하세요.
-      function adminEventsPanelHTML_DEPRECATED(defaultType = null) {
-        return `<div class="section">
-                <!-- 현재 이벤트 목록 (맨 위로 이동) -->
-                <div class="mb-8 pb-6 border-b-2 border-gray-200">
-                  <div class="flex items-center gap-2 mb-4">
-                    <i class="fas fa-list text-gray-600 text-xl"></i>
-                    <h4 class="text-xl font-bold text-gray-800">생성된 이벤트 목록</h4>
-                  </div>
-                  <p class="text-sm text-gray-600 mb-4">
-                    <i class="fas fa-info-circle text-blue-500 mr-1"></i>
-                    만들어진 이벤트를 수정하거나 삭제할 수 있어요
-                  </p>
-                  <div class="space-y-3">${adminEventsListHTML()}</div>
-                </div>
-
-                <!-- 헤더 -->
-                <div class="bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl p-4 mb-6">
-                  <h3 class="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-2">
-                    <i class="fas fa-calendar-plus text-orange-600"></i>
-                    새 이벤트 만들기
-                  </h3>
-                  <p class="text-sm text-gray-600">
-                    <i class="fas fa-info-circle text-orange-500 mr-1"></i>
-                    순서대로 입력하시면 쉽게 이벤트를 만들 수 있어요!
-                  </p>
-                </div>
-
-                <!-- Step 1: 이벤트 유형 -->
-                <div class="bg-white border-2 border-orange-200 rounded-xl p-5 mb-4">
-                  <div class="flex items-center gap-2 mb-3">
-                    <span class="bg-orange-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">1</span>
-                    <h4 class="text-lg font-bold text-gray-800">어떤 종류의 이벤트인가요?</h4>
-                  </div>
-                  <select id="event-type" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg bg-white text-gray-900 hover:border-orange-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all text-base font-medium">
-                    <option value="tasting">🍽️ 미식회 (여러 식당 중 선택)</option>
-                    <option value="general">📌 일반 이벤트 (단일 활동)</option>
-                    <option value="mt">🏕️ MT (회비 입금 필요)</option>
-                    <option value="assembly">👥 총회 (회비 입금 필요)</option>
-                  </select>
-                  <p class="text-xs text-gray-500 mt-2 pl-10">💡 미식회는 여러 식당을 추가할 수 있어요</p>
-                </div>
-
-                <!-- Step 2: 기본 정보 -->
-                <div class="bg-white border-2 border-orange-200 rounded-xl p-5 mb-4">
-                  <div class="flex items-center gap-2 mb-4">
-                    <span class="bg-orange-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">2</span>
-                    <h4 class="text-lg font-bold text-gray-800">이벤트 기본 정보</h4>
-                  </div>
-                  <div class="space-y-4">
-                    <div>
-                      <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                        <i class="fas fa-heading text-orange-500"></i>
-                        이벤트 제목 <span class="text-red-500">*</span>
-                      </label>
-                      <input id="event-title" type="text" placeholder="예: 푸디 가을 미식회, 가을 MT" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all text-base" required>
-                    </div>
-                    <div>
-                      <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                        <i class="fas fa-calendar-alt text-orange-500"></i>
-                        이벤트 실시일 (언제 진행하나요?) <span class="text-red-500">*</span>
-                      </label>
-                      <input id="event-datetime" type="datetime-local" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all text-base" required>
-                      <p class="text-xs text-gray-500 mt-1 pl-6">📅 이벤트가 실제로 진행되는 날짜와 시간</p>
-                    </div>
-                    <div>
-                      <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                        <i class="fas fa-play text-orange-500"></i>
-                        신청 시작일 (언제부터 신청받나요?)
-                      </label>
-                      <input id="event-registration-start" type="datetime-local" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all text-base">
-                      <p class="text-xs text-gray-500 mt-1 pl-6">🚀 이 시간부터 신청이 시작됩니다 (비워두면 즉시 신청 가능)</p>
-                    </div>
-                    <div>
-                      <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                        <i class="fas fa-clock text-orange-500"></i>
-                        신청 마감일 (언제까지 신청받나요?) <span class="text-red-500">*</span>
-                      </label>
-                      <input id="event-deadline" type="datetime-local" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all text-base" required>
-                      <p class="text-xs text-gray-500 mt-1 pl-6">⏰ 이 시간 이후로는 신청할 수 없어요</p>
-                    </div>
-                    <div>
-                      <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                        <i class="fas fa-users text-orange-500"></i>
-                        최대 몇 명까지 참가할 수 있나요? <span class="text-red-500">*</span>
-                      </label>
-                      <input id="event-limit" type="number" min="1" placeholder="예: 30" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all text-base" required>
-                      <p class="text-xs text-gray-500 mt-1 pl-6">👥 정원을 초과하면 대기 신청으로 넘어갑니다</p>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Step 3: 공개 설정 및 알림 -->
-                <div class="bg-white border-2 border-orange-200 rounded-xl p-5 mb-4">
-                  <div class="flex items-center gap-2 mb-4">
-                    <span class="bg-orange-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">3</span>
-                    <h4 class="text-lg font-bold text-gray-800">공개 설정 및 알림</h4>
-                  </div>
-                  <div class="space-y-4">
-                    <div>
-                      <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                        <i class="fas fa-eye text-orange-500"></i>
-                        회원들에게 보여줄까요?
-                      </label>
-                      <div class="flex bg-gray-100 rounded-lg p-1.5 w-fit gap-1">
-                        <button type="button" id="status-open" class="px-4 py-2 text-sm font-bold rounded-lg transition-all bg-white text-orange-600 shadow-sm flex items-center gap-2">
-                          <i class="fas fa-globe"></i>공개
-                        </button>
-                        <button type="button" id="status-hidden" class="px-4 py-2 text-sm font-bold rounded-lg transition-all text-gray-600 hover:text-gray-800 hover:bg-white/50 flex items-center gap-2">
-                          <i class="fas fa-eye-slash"></i>숨김
-                        </button>
-                      </div>
-                      <input type="hidden" id="event-status" value="open">
-                      <p class="text-xs text-gray-500 mt-2 pl-6">🔒 "숨김"으로 설정하면 관리자만 볼 수 있어요</p>
-                    </div>
-                    <div>
-                      <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                        <i class="fas fa-bell text-orange-500"></i>
-                        자동 알림 설정
-                      </label>
-                      <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
-                        <div class="flex items-start gap-2">
-                          <input type="checkbox" id="enable-auto-post" class="mt-1 w-4 h-4 rounded border-gray-300 text-orange-600 focus:ring-orange-500" checked>
-                          <label for="enable-auto-post" class="text-sm font-medium text-gray-700 flex-1">
-                            자동으로 알림 글 올리기
-                            <p class="text-xs text-gray-500 font-normal mt-1">이벤트 하루 전에 회원들에게 알림을 보내요</p>
-                          </label>
-                        </div>
-                      </div>
-                      <div id="post-time-container" class="space-y-3 pl-6">
-                        <div class="flex items-center gap-3">
-                          <input type="radio" id="post-time-auto" name="post-time-type" value="auto" class="w-4 h-4 text-orange-600 focus:ring-orange-500" checked>
-                          <label for="post-time-auto" class="text-sm text-gray-700 flex items-center gap-2">
-                            <i class="fas fa-clock text-gray-400"></i>
-                            <span>이벤트 24시간 전 자동</span>
-                            <span class="bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs font-semibold">추천</span>
-                          </label>
-                        </div>
-                        <div class="flex items-center gap-3">
-                          <input type="radio" id="post-time-custom" name="post-time-type" value="custom" class="w-4 h-4 text-orange-600 focus:ring-orange-500">
-                          <label for="post-time-custom" class="text-sm text-gray-700 flex items-center gap-2">
-                            <i class="fas fa-calendar-check text-gray-400"></i>
-                            <span>직접 지정하기</span>
-                          </label>
-                        </div>
-                        <div class="pl-8">
-                          <input id="post-datetime" type="datetime-local" class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg text-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-200" disabled>
-                        </div>
-                      </div>
-                      <button type="button" id="test-announcement-btn" class="mt-3 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2 text-sm font-medium">
-                        <i class="fas fa-flask"></i>
-                        테스트 알림 미리보기
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Step 4: 회비 입금 정보 (MT/총회만) -->
-                <div id="payment-fields" class="hidden">
-                  <div class="bg-white border-2 border-orange-200 rounded-xl p-5 mb-4">
-                    <div class="flex items-center gap-2 mb-4">
-                      <span class="bg-orange-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">4</span>
-                      <h4 class="text-lg font-bold text-gray-800">💰 회비 입금 정보</h4>
-                    </div>
-                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
-                      <p class="text-xs text-yellow-800 flex items-center gap-2">
-                        <i class="fas fa-lightbulb"></i>
-                        시스템 설정의 계좌 정보가 자동으로 불러와집니다. 필요시 수정하세요.
-                      </p>
-                    </div>
-                    <div class="space-y-4">
-                      <div>
-                        <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                          <i class="fas fa-landmark text-orange-500"></i>
-                          은행명
-                        </label>
-                        <input id="pay-bank" type="text" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all text-base" placeholder="예: 국민은행, 신한은행">
-                      </div>
-                      <div>
-                        <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                          <i class="fas fa-credit-card text-orange-500"></i>
-                          계좌번호
-                        </label>
-                        <input id="pay-number" type="text" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all text-base" placeholder="000-000-000000">
-                      </div>
-                      <div>
-                        <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                          <i class="fas fa-user text-orange-500"></i>
-                          예금주
-                        </label>
-                        <input id="pay-holder" type="text" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all text-base" placeholder="홍길동">
-                      </div>
-                      <div>
-                        <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                          <i class="fas fa-comment-dots text-orange-500"></i>
-                          입금 안내 (선택사항)
-                        </label>
-                        <input id="pay-note" type="text" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all text-base" placeholder="예: 입금 시 이름 꼭 적어주세요">
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Step 4/5: 식당 관리 (미식회만) -->
-                <div id="tasting-fields">
-                  <div class="bg-white border-2 border-orange-200 rounded-xl p-5 mb-4">
-                    <div class="flex items-center gap-2 mb-4">
-                      <span class="bg-orange-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">4</span>
-                      <h4 class="text-lg font-bold text-gray-800">🍽️ 식당 추가하기</h4>
-                    </div>
-                    <div class="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
-                      <p class="text-xs text-green-800 flex items-center gap-2">
-                        <i class="fas fa-check-circle"></i>
-                        미식회는 최소 1개 이상의 식당을 추가해야 해요!
-                      </p>
-                    </div>
-                    <div id="event-restaurants-wrap" class="space-y-3 mb-4">${createRestaurantFieldHTML()}</div>
-                    <button id="add-restaurant-btn" type="button" class="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold py-3 px-4 rounded-lg transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2">
-                      <i class="fas fa-plus-circle text-lg"></i>
-                      <span>식당 추가하기</span>
-                    </button>
-                  </div>
-                </div>
-
-                <!-- 저장 버튼 -->
-                <div class="flex gap-3 mt-6">
-                  <button id="save-event-btn" type="button" class="flex-1 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold py-4 px-6 rounded-xl hover:from-orange-600 hover:to-orange-700 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center gap-3 text-lg">
-                    <i class="fas fa-check-circle text-xl"></i>
-                    <span>이벤트 만들기 완료!</span>
-                  </button>
-                  <button id="reset-event-btn" type="button" class="flex-none bg-gradient-to-r from-gray-500 to-gray-600 text-white font-bold py-4 px-6 rounded-xl hover:from-gray-600 hover:to-gray-700 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center gap-2">
-                    <i class="fas fa-redo"></i>
-                    <span>다시 작성</span>
-                  </button>
-                </div>
-              </div>`;
-      }
-      // 기존 bindAdminEventsPanel 함수는 새로운 모달 구조로 대체됨
-      function bindAdminEventsPanel_DEPRECATED() {
-        const wrap = document.getElementById("event-restaurants-wrap");
-        const eventType = document.getElementById("event-type");
-        const addRestaurantBtn = document.getElementById("add-restaurant-btn");
-        const saveEventBtn = document.getElementById("save-event-btn");
-        const resetEventBtn = document.getElementById("reset-event-btn");
-
-        // null 체크
-        if (
-          !wrap ||
-          !eventType ||
-          !addRestaurantBtn ||
-          !saveEventBtn ||
-          !resetEventBtn
-        ) {
-          console.warn("bindAdminEventsPanel: 일부 요소를 찾을 수 없습니다.");
-          return;
-        }
-
-        // 기존 onTypeChange는 새로운 모달 구조에서 사용되지 않음
-        // eventType.addEventListener("change", (e) => onTypeChange(e.target.value));
-        addRestaurantBtn.addEventListener("click", () => addRestaurantField());
-
-        // 기존 식당 필드들에 이벤트 바인딩
-        const existingRows = wrap.querySelectorAll(".restaurant-row");
-        existingRows.forEach((row) => bindRestaurantFieldEvents(row));
-
-        // 식당 삭제 버튼 이벤트
-        wrap.addEventListener("click", (e) => {
-          const row = e.target.closest(".restaurant-row");
-          if (!row) return;
-          if (e.target.closest(".remove-restaurant")) row.remove();
-        });
-        // 기존 createOrSaveEvent는 새로운 모달 구조에서 사용되지 않음
-        // saveEventBtn.addEventListener("click", () => createOrSaveEvent());
-        resetEventBtn.addEventListener("click", () => resetEventForm());
-
-        // 테스트 알림 게시 버튼
-        const testAnnouncementBtn = document.getElementById(
-          "test-announcement-btn"
-        );
-        if (testAnnouncementBtn) {
-          testAnnouncementBtn.addEventListener("click", async () => {
-            const testContent = `🧪 테스트 알림 🧪
-
-      📅 일시: ${new Date().toLocaleString("ko-KR")}
-      📝 제목: 테스트 이벤트
-
-      이것은 테스트용 알림입니다.
-      기능이 정상적으로 작동하는지 확인해보세요! 😊
-
-      #Foodie #테스트`;
-
-            try {
-              await postAnnouncement(testContent);
-            } catch (error) {
-              console.error("테스트 알림 게시 오류:", error);
-            }
-          });
-        }
-
-        // 게시일시 설정 이벤트 리스너
-        const enableAutoPost = document.getElementById("enable-auto-post");
-        const postTimeAuto = document.getElementById("post-time-auto");
-        const postTimeCustom = document.getElementById("post-time-custom");
-        const postDatetime = document.getElementById("post-datetime");
-        const postTimeContainer = document.getElementById(
-          "post-time-container"
-        );
-
-        if (
-          enableAutoPost &&
-          postTimeAuto &&
-          postTimeCustom &&
-          postDatetime &&
-          postTimeContainer
-        ) {
-          // 자동 알림 게시 사용/해제
-          enableAutoPost.addEventListener("change", (e) => {
-            postTimeContainer.style.opacity = e.target.checked ? "1" : "0.5";
-            postTimeContainer.style.pointerEvents = e.target.checked
-              ? "auto"
-              : "none";
-          });
-
-          // 게시 시간 타입 변경
-          postTimeAuto.addEventListener("change", () => {
-            if (postTimeAuto.checked) {
-              postDatetime.disabled = true;
-            }
-          });
-
-          postTimeCustom.addEventListener("change", () => {
-            if (postTimeCustom.checked) {
-              postDatetime.disabled = false;
-              // 이벤트 시간을 기본값으로 설정
-              const eventDatetime =
-                document.getElementById("event-datetime").value;
-              if (eventDatetime) {
-                const eventTime = new Date(eventDatetime);
-                const postTime = new Date(
-                  eventTime.getTime() - 24 * 60 * 60 * 1000
-                );
-                postDatetime.value = postTime.toISOString().slice(0, 16);
-              }
-            }
-          });
-
-          // 이벤트 시간 변경 시 자동 게시 시간 업데이트
-          const eventDatetime = document.getElementById("event-datetime");
-          if (eventDatetime) {
-            eventDatetime.addEventListener("change", () => {
-              if (postTimeAuto.checked) {
-                // 자동 모드에서는 변경하지 않음
-              } else if (postTimeCustom.checked && !postDatetime.value) {
-                // 커스텀 모드에서 게시 시간이 비어있으면 기본값 설정
-                const eventTime = new Date(eventDatetime.value);
-                const postTime = new Date(
-                  eventTime.getTime() - 24 * 60 * 60 * 1000
-                );
-                postDatetime.value = postTime.toISOString().slice(0, 16);
-              }
-            });
-          }
-        }
-
-        // 공개/숨김 토글 버튼 이벤트
-        const statusOpenBtn = document.getElementById("status-open");
-        const statusHiddenBtn = document.getElementById("status-hidden");
-        const statusInput = document.getElementById("event-status");
-
-        if (statusOpenBtn && statusHiddenBtn && statusInput) {
-          const updateStatusButtons = (status) => {
-            if (status === "open") {
-              statusOpenBtn.className =
-                "px-3 py-1 text-sm font-medium rounded-md transition-colors bg-white text-orange-600 shadow-sm";
-              statusHiddenBtn.className =
-                "px-3 py-1 text-sm font-medium rounded-md transition-colors text-gray-600 hover:text-gray-800";
-            } else {
-              statusOpenBtn.className =
-                "px-3 py-1 text-sm font-medium rounded-md transition-colors text-gray-600 hover:text-gray-800";
-              statusHiddenBtn.className =
-                "px-3 py-1 text-sm font-medium rounded-md transition-colors bg-white text-orange-600 shadow-sm";
-            }
-            statusInput.value = status;
-          };
-
-          statusOpenBtn.addEventListener("click", () =>
-            updateStatusButtons("open")
-          );
-          statusHiddenBtn.addEventListener("click", () =>
-            updateStatusButtons("archived")
-          );
-
-          // 초기 상태 설정
-          updateStatusButtons(statusInput.value);
-        }
-
-        // 기존 onTypeChange는 새로운 모달 구조에서 사용되지 않음
-        // onTypeChange(eventType.value);
-      }
-      // 기존 restaurantFieldHTML 함수는 새로운 createRestaurantFieldHTML로 대체됨
-      function restaurantFieldHTML_DEPRECATED(
-        n = "",
-        i = "",
-        c = "",
-        url = "",
-        id = "",
-        category = "기타"
-      ) {
-        const rid = id || `res_${Math.random().toString(36).slice(2, 9)}`;
-        return `<div class="restaurant-row bg-gradient-to-br from-white to-orange-50 border-2 border-orange-300 rounded-xl p-5 relative" data-id="${rid}">
-                <!-- 삭제 버튼 (우측 상단) -->
-                <button type="button" class="remove-restaurant absolute top-3 right-3 bg-red-500 hover:bg-red-600 text-white w-8 h-8 rounded-full transition-all shadow-md hover:shadow-lg flex items-center justify-center" title="이 식당 삭제">
-                  <i class="fas fa-trash text-sm"></i>
-                </button>
-
-                <div class="space-y-4">
-                  <!-- 카테고리 선택 (동적 생성) -->
-                  <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                      <i class="fas fa-tags text-orange-500"></i>
-                      음식 종류 <span class="text-red-500">*</span>
-                    </label>
-                    <select data-field="category" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all text-base bg-white" required>
-                      ${restaurantCategories
-                        .map(
-                          (cat) => `
-                        <option value="${cat.name}" ${
-                            category === cat.name ? "selected" : ""
-                          }>${cat.emoji} ${cat.name}</option>
-                      `
-                        )
-                        .join("")}
-                    </select>
-                    <p class="text-xs text-gray-500 mt-1 pl-6">🏷️ 식당의 음식 종류를 선택해주세요</p>
-                  </div>
-
-
-                  <!-- 입력 필드들 -->
-                  <div class="space-y-4">
-                    <div>
-                      <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                        <i class="fas fa-utensils text-orange-500"></i>
-                        식당 이름 <span class="text-red-500">*</span>
-                      </label>
-                      <input data-field="name" type="text" value="${saf(
-                        n
-                      )}" placeholder="예: 스시 맛집, 파스타 레스토랑" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all text-base" required>
-                    </div>
-
-                    <div>
-                      <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                        <i class="fas fa-users text-orange-500"></i>
-                        이 식당의 정원 <span class="text-red-500">*</span>
-                      </label>
-                      <input data-field="capacity" type="number" min="1" value="${saf(
-                        c
-                      )}" placeholder="예: 10" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all text-base" required>
-                      <p class="text-xs text-gray-500 mt-1 pl-6">👥 이 식당에 몇 명까지 갈 수 있나요?</p>
-                    </div>
-
-                    <div>
-                      <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                        <i class="fas fa-utensils text-orange-500"></i>
-                        대표 메뉴 <span class="text-red-500">*</span>
-                      </label>
-                      <textarea data-field="info" rows="3" placeholder="이 식당의 대표 메뉴를 알려주세요&#10;예: 토마토 파스타, 크림 리조또, 마르게리타 피자" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all text-base resize-none" required>${saf(
-                        i
-                      )}</textarea>
-                      <p class="text-xs text-gray-500 mt-1 pl-6">🍽️ 이 식당에서 꼭 먹어봐야 할 메뉴를 적어주세요</p>
-                    </div>
-                  </div>
-                </div>
-              </div>`;
-      }
-      // 기존 onTypeChange 함수는 새로운 모달 구조에서 bindEventForm으로 대체됨
-      function onTypeChange_DEPRECATED(type) {
-        const tastingFields = document.getElementById("tasting-fields");
-        const paymentFields = document.getElementById("payment-fields");
-
-        if (!tastingFields || !paymentFields) {
-          console.warn("onTypeChange: 필수 DOM 요소를 찾을 수 없습니다.");
-          return;
-        }
-
-        tastingFields.classList.toggle("hidden", type !== "tasting");
-        paymentFields.classList.toggle(
-          "hidden",
-          !(type === "mt" || type === "assembly")
-        );
-
-        if (type === "mt" || type === "assembly") {
-          const d = duesSettings || {};
-          const payBank = document.getElementById("pay-bank");
-          const payNumber = document.getElementById("pay-number");
-          const payHolder = document.getElementById("pay-holder");
-          const payNote = document.getElementById("pay-note");
-
-          if (payBank && !payBank.value) payBank.value = d.bank || "";
-          if (payNumber && !payNumber.value) payNumber.value = d.number || "";
-          if (payHolder && !payHolder.value) payHolder.value = d.holder || "";
-          if (payNote && !payNote.value) {
-            payNote.value =
-              (d.amount ? `회비 ${formatKRW(d.amount)} ` : "") + (d.note || "");
-          }
-        }
-      }
       function adminEventsListHTML() {
         if (eventsData.length === 0) return `<p class="text-gray-500">없음</p>`;
         return eventsData
@@ -12636,202 +12314,6 @@
       }
 
       /* ===== 이벤트 저장/보관/삭제/재게시 ===== */
-      // 기존 createOrSaveEvent 함수는 새로운 saveEvent와 saveTastingEvent로 대체됨
-      async function createOrSaveEvent_DEPRECATED() {
-        const type = document.getElementById("event-type").value;
-        const title = document.getElementById("event-title").value.trim();
-        const datetime = document.getElementById("event-datetime").value;
-        const deadline = document.getElementById("event-deadline").value;
-        const limit =
-          parseInt(document.getElementById("event-limit").value, 10) || 0;
-        const status = document.getElementById("event-status").value;
-        if (!type || !title || !datetime || !deadline || !limit)
-          return showAlert(
-            "😥",
-            "타입/제목/실시일/마감일/정원을 모두 입력해주세요."
-          );
-
-        let payment = null;
-        if (type === "mt" || type === "assembly") {
-          const b = document.getElementById("pay-bank").value.trim();
-          const n = document.getElementById("pay-number").value.trim();
-          const h = document.getElementById("pay-holder").value.trim();
-          const a = document.getElementById("pay-amount").value.trim();
-          const note = document.getElementById("pay-note").value.trim();
-          const d = duesSettings || {};
-          payment = {
-            bank: b || d.bank || "",
-            number: n || d.number || "",
-            holder: h || d.holder || "",
-            amount: a ? parseInt(a) : d.amount ? parseInt(d.amount) : null,
-            note:
-              note ||
-              (d.amount ? `회비 ${formatKRW(d.amount)} ` : "") + (d.note || ""),
-          };
-        }
-        try {
-          if (!editingEventId) {
-            if (type === "tasting") {
-              const rows = [
-                ...document.querySelectorAll(
-                  "#event-restaurants-wrap .restaurant-row"
-                ),
-              ];
-              const restaurants = rows
-                .map((row) => {
-                  const categoryValue =
-                    row.querySelector("[data-field='category']")?.value ||
-                    "기타";
-                  // restaurantCategories에 존재하는 카테고리인지 확인
-                  const categoryExists = restaurantCategories.some(
-                    (cat) => cat.name === categoryValue
-                  );
-                  const finalCategory = categoryExists ? categoryValue : "기타";
-
-                  return {
-                    id: row.getAttribute("data-id"),
-                    name: row.querySelector("[data-field='name']").value.trim(),
-                    info: row.querySelector("[data-field='info']").value.trim(),
-                    imageUrl: "",
-                    capacity:
-                      parseInt(
-                        row.querySelector("[data-field='capacity']").value,
-                        10
-                      ) || limit,
-                    category: finalCategory,
-                    reservations: [],
-                    waiting: [],
-                  };
-                })
-                .filter((r) => r.name && r.capacity > 0);
-              if (restaurants.length === 0)
-                return showAlert("😥", "식당을 최소 1개 이상 추가해주세요.");
-              await addDoc(collection(db, "events"), {
-                type,
-                title,
-                datetime,
-                deadline,
-                limit,
-                status,
-                restaurants,
-              });
-            } else {
-              const base = {
-                type,
-                title,
-                datetime,
-                deadline,
-                limit,
-                status,
-                applicants: [],
-                waiting: [],
-              };
-              if (payment) base.payment = payment;
-              await addDoc(collection(db, "events"), base);
-            }
-            showAlert("🎉", "이벤트가 생성되었습니다.");
-
-            // 자동 글 올리기 기능
-            const enableAutoPost =
-              document.getElementById("enable-auto-post")?.checked;
-            if (enableAutoPost) {
-              const postTimeType = document.querySelector(
-                'input[name="post-time-type"]:checked'
-              )?.value;
-              let customPostTime = null;
-
-              if (postTimeType === "custom") {
-                const postDatetime =
-                  document.getElementById("post-datetime")?.value;
-                if (postDatetime) {
-                  customPostTime = postDatetime;
-                }
-              }
-
-              await scheduleAutoPost(type, title, datetime, customPostTime);
-            }
-
-            closeEventModal();
-            // 이벤트 목록 새로고침 (전체 페이지 렌더링)
-            renderAll();
-          } else {
-            const ref = doc(db, "events", editingEventId);
-            const snap = await getDoc(ref);
-            if (!snap.exists()) throw new Error("not found");
-            const prev = snap.data();
-            if (type === "tasting") {
-              const map = new Map(
-                (prev.restaurants || []).map((r) => [r.id, r])
-              );
-              const rows = [
-                ...document.querySelectorAll(
-                  "#event-restaurants-wrap .restaurant-row"
-                ),
-              ];
-              const restaurants = rows
-                .map((row) => {
-                  const idAttr = row.getAttribute("data-id");
-                  const old = map.get(idAttr);
-                  const categoryValue =
-                    row.querySelector("[data-field='category']")?.value ||
-                    "기타";
-                  // restaurantCategories에 존재하는 카테고리인지 확인
-                  const categoryExists = restaurantCategories.some(
-                    (cat) => cat.name === categoryValue
-                  );
-                  const finalCategory = categoryExists ? categoryValue : "기타";
-
-                  return {
-                    id: idAttr,
-                    name: row.querySelector("[data-field='name']").value.trim(),
-                    info: row.querySelector("[data-field='info']").value.trim(),
-                    imageUrl:
-                      row
-                        .querySelector("[data-field='imageUrl']")
-                        ?.value.trim() || "",
-                    capacity:
-                      parseInt(
-                        row.querySelector("[data-field='capacity']").value,
-                        10
-                      ) || limit,
-                    category: finalCategory,
-                    reservations: old?.reservations || [],
-                    waiting: old?.waiting || [],
-                  };
-                })
-                .filter((r) => r.name && r.capacity > 0);
-              await updateDoc(ref, {
-                type,
-                title,
-                datetime,
-                deadline,
-                limit,
-                status,
-                restaurants,
-              });
-            } else {
-              const payload = {
-                type,
-                title,
-                datetime,
-                deadline,
-                limit,
-                status,
-              };
-              if (payment) payload.payment = payment;
-              await updateDoc(ref, payload);
-            }
-            showAlert("✅", "이벤트가 수정되었습니다.");
-            closeEventModal();
-            // 이벤트 목록 새로고침 (전체 페이지 렌더링)
-            renderAll();
-          }
-          resetEventForm();
-        } catch (error) {
-          console.error("이벤트 저장 오류:", error);
-          showAlert("😥", `저장 중 오류가 발생했습니다: ${error.message}`);
-        }
-      }
       // 기존 resetEventForm 함수는 새로운 구조로 대체됨
       async function closeEvent(id) {
         if (
@@ -25266,107 +24748,6 @@
         );
       });
 
-      // 기존 슬롯머신 관련 함수들 삭제됨
-
-      /* ===== 문의하기 탭 (DEPRECATED - 새 시스템으로 대체됨) ===== */
-
-      /* ===== 문의 모달 (DEPRECATED) ===== */
-      function openInquiryModal_DEPRECATED() {
-        const modal = document.getElementById("inquiry-modal");
-        modal.classList.remove("hidden");
-        renderInquiryList_DEPRECATED();
-        setupInquirySubmit();
-      }
-
-      function renderInquiryList_DEPRECATED() {
-        const isAdmin =
-          currentUser && adminList.includes(currentUser.studentId);
-        const listContainer = document.getElementById("modal-suggestions-list");
-
-        const list = (suggestionsData || [])
-          .map(
-            (s) => `
-                <div class="border rounded-lg p-4 bg-white shadow-sm hover:shadow-md transition-shadow">
-                  <div class="text-sm text-gray-500 flex items-center justify-between mb-2">
-                    <span class="font-medium">
-                      <i class="fas fa-user-circle mr-1 text-orange-500"></i>
-                      ${saf(s.name || "익명")} · ${
-              s.timestamp?.toDate
-                ? s.timestamp.toDate().toLocaleDateString()
-                : ""
-            }
-                    </span>
-                    ${
-                      isAdmin
-                        ? `<button class="delete-suggestion px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600" data-id="${s.id}">삭제</button>`
-                        : ""
-                    }
-                  </div>
-                  <p class="text-gray-800">${saf(s.content || "")}</p>
-                </div>
-              `
-          )
-          .join("");
-
-        listContainer.innerHTML =
-          list ||
-          '<p class="text-gray-400 text-center py-4">아직 문의가 없습니다.</p>';
-
-        // 삭제 버튼 이벤트 리스너
-        if (isAdmin) {
-          document.querySelectorAll(".delete-suggestion").forEach((btn) => {
-            btn.addEventListener("click", async () => {
-              const id = btn.dataset.id;
-              if (!id) return;
-              if (!confirm("이 문의를 삭제하시겠습니까?")) return;
-              try {
-                await deleteDoc(doc(db, "suggestions", id));
-                showAlert("✅", "삭제되었습니다.");
-                renderInquiryList();
-              } catch (err) {
-                console.warn(err);
-                showAlert("😥", "삭제 실패");
-              }
-            });
-          });
-        }
-      }
-
-      function setupInquirySubmit() {
-        const submitBtn = document.getElementById("modal-sug-submit");
-        const titleInput = document.getElementById("modal-sug-title");
-        const textInput = document.getElementById("modal-sug-text");
-
-        // 이전 이벤트 리스너 제거를 위해 복제
-        const newSubmitBtn = submitBtn.cloneNode(true);
-        submitBtn.parentNode.replaceChild(newSubmitBtn, submitBtn);
-
-        newSubmitBtn.onclick = async () => {
-          const title = titleInput.value.trim();
-          const text = textInput.value.trim();
-
-          if (!text) return showAlert("😥", "내용을 입력해주세요.");
-
-          try {
-            await addDoc(collection(db, "suggestions"), {
-              studentId: currentUser?.studentId || "",
-              name: currentUser?.name || "익명",
-              title,
-              text,
-              timestamp: serverTimestamp(),
-            });
-
-            titleInput.value = "";
-            textInput.value = "";
-            showAlert("✅", "문의가 접수되었습니다. 고마워요!");
-            renderInquiryList(); // 목록 다시 렌더링
-          } catch (e) {
-            console.warn(e);
-            showAlert("😥", "등록 실패");
-          }
-        };
-      }
-
       function renderSuggestionsTab(isAdmin) {
         const c = document.getElementById("suggestions-tab");
         if (!c) return;
@@ -25656,6 +25037,27 @@
         });
       }
 
+      // 별 아이콘 생성 함수 (전역에서 사용 가능하도록)
+      function renderStars(rating) {
+        const fullStars = Math.floor(rating);
+        const hasHalfStar = rating % 1 >= 0.5;
+        let stars = "";
+        for (let i = 0; i < fullStars; i++) {
+          stars +=
+            '<i class="fas fa-star text-yellow-400 text-base sm:text-lg"></i>';
+        }
+        if (hasHalfStar) {
+          stars +=
+            '<i class="fas fa-star-half-alt text-yellow-400 text-base sm:text-lg"></i>';
+        }
+        const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+        for (let i = 0; i < emptyStars; i++) {
+          stars +=
+            '<i class="far fa-star text-gray-300 text-base sm:text-lg"></i>';
+        }
+        return stars;
+      }
+
       /* ===== 로드맵 탭 ===== */
       function renderRoadmapTab(isAdmin) {
         const c = document.getElementById("roadmap-tab");
@@ -25689,6 +25091,8 @@
 
         // 미식회의 경우 식당 정보 추출 (리뷰가 있는 식당만)
         const tastingRestaurants = [];
+        // 전역에서 접근 가능하도록 저장
+        window.tastingRestaurantsData = tastingRestaurants;
         tastingEvents.forEach((ev) => {
           if (ev.restaurants && ev.restaurants.length > 0) {
             ev.restaurants.forEach((restaurant) => {
@@ -25735,6 +25139,43 @@
           }
         });
 
+        // 평균 별점 계산 함수
+        const calculateAverageRating = (reviews) => {
+          if (!reviews || reviews.length === 0) return 0;
+          const sum = reviews.reduce((acc, r) => acc + (r.rating || 0), 0);
+          return (sum / reviews.length).toFixed(1);
+        };
+
+        // 정렬 함수 (초기 렌더링에도 사용)
+        const sortRestaurantsForDisplay = (
+          restaurants,
+          sortType = "latest"
+        ) => {
+          const sorted = [...restaurants];
+          if (sortType === "latest") {
+            // 최신순: 이벤트 날짜 기준 내림차순
+            return sorted.sort((a, b) => {
+              const dateA = new Date(a.eventDate || 0).getTime();
+              const dateB = new Date(b.eventDate || 0).getTime();
+              return dateB - dateA; // 최신순 (내림차순)
+            });
+          } else if (sortType === "rating") {
+            // 별점순: 평균 별점 기준 내림차순
+            return sorted.sort((a, b) => {
+              const avgA = calculateAverageRating(a.reviews || []);
+              const avgB = calculateAverageRating(b.reviews || []);
+              return parseFloat(avgB) - parseFloat(avgA); // 높은 별점순 (내림차순)
+            });
+          }
+          return sorted;
+        };
+
+        // 초기 렌더링 시 최신순으로 정렬
+        const sortedTastingRestaurants = sortRestaurantsForDisplay(
+          tastingRestaurants,
+          "latest"
+        );
+
         // 미식회 식당 카드 노출 개수 (초기 2개, 더보기 클릭 시 3개씩 추가)
         const DEFAULT_TASTING_VISIBLE_COUNT = 2;
         if (typeof window !== "undefined") {
@@ -25753,40 +25194,14 @@
             : DEFAULT_TASTING_VISIBLE_COUNT;
         const clampedVisibleCount = Math.min(
           currentVisibleCount,
-          tastingRestaurants.length
+          sortedTastingRestaurants.length
         );
-        const visibleTastingRestaurants = tastingRestaurants.slice(
+        const visibleTastingRestaurants = sortedTastingRestaurants.slice(
           0,
           clampedVisibleCount
         );
 
-        // 평균 별점 계산 함수
-        const calculateAverageRating = (reviews) => {
-          if (!reviews || reviews.length === 0) return 0;
-          const sum = reviews.reduce((acc, r) => acc + (r.rating || 0), 0);
-          return (sum / reviews.length).toFixed(1);
-        };
-
-        // 별 아이콘 생성 함수
-        const renderStars = (rating) => {
-          const fullStars = Math.floor(rating);
-          const hasHalfStar = rating % 1 >= 0.5;
-          let stars = "";
-          for (let i = 0; i < fullStars; i++) {
-            stars +=
-              '<i class="fas fa-star text-yellow-400 text-base sm:text-lg"></i>';
-          }
-          if (hasHalfStar) {
-            stars +=
-              '<i class="fas fa-star-half-alt text-yellow-400 text-base sm:text-lg"></i>';
-          }
-          const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
-          for (let i = 0; i < emptyStars; i++) {
-            stars +=
-              '<i class="far fa-star text-gray-300 text-base sm:text-lg"></i>';
-          }
-          return stars;
-        };
+        // renderStars 함수는 전역에서 정의됨
 
         // 카테고리별 이모티콘 반환 함수 (동적으로 처리)
         const getCategoryEmoji = (category) => {
@@ -25834,13 +25249,27 @@
             : "일시 미정";
 
           return `
-                  <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 group" data-restaurant-id="${
-                    restaurant.eventId
-                  }">
+                  <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 group" 
+                       data-restaurant-id="${restaurant.eventId}"
+                       data-restaurant-name="${saf(
+                         restaurant.restaurantName || ""
+                       )}"
+                       data-restaurant-info="${saf(
+                         restaurant.restaurantInfo || ""
+                       )}"
+                       data-restaurant-category="${saf(
+                         restaurant.restaurantCategory || ""
+                       )}"
+                       data-restaurant-image="${saf(
+                         restaurant.restaurantImage || ""
+                       )}"
+                       data-event-date="${restaurantEventDateLabel}"
+                       data-avg-rating="${avgRating}"
+                       data-review-count="${reviewCount}">
                     ${
                       restaurant.restaurantImage
                         ? `
-                      <div class="w-full h-48 overflow-hidden relative">
+                      <div class="w-full h-32 overflow-hidden relative">
                         <img
                           src="${saf(restaurant.restaurantImage)}"
                           alt="${saf(restaurant.restaurantName)}"
@@ -25851,14 +25280,15 @@
                           isAdmin
                             ? `
                           <button
-                            class="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg text-xs font-semibold shadow-lg transition-colors"
+                            class="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded-lg text-xs font-semibold shadow-lg transition-colors z-10"
                             data-action="delete-restaurant"
                             data-event-id="${restaurant.eventId}"
-                                  data-restaurant-name="${saf(
-                                    restaurant.restaurantName
-                                  )}"
+                            data-restaurant-name="${saf(
+                              restaurant.restaurantName
+                            )}"
+                            onclick="event.stopPropagation();"
                             title="식당 삭제">
-                            <i class="fas fa-trash mr-1"></i>식당 삭제
+                            <i class="fas fa-trash"></i>
                           </button>
                         `
                             : ""
@@ -25868,89 +25298,38 @@
                         : ""
                     }
 
-                    <div class="p-4 sm:p-6">
-                      <div class="mb-3 sm:mb-4">
-                        <div class="flex items-start justify-between mb-3">
-                          <div class="flex-1">
-                            <div class="mb-2">
-                              <div class="flex items-center gap-2 mb-2">
-                                <i class="fas fa-store text-orange-600 text-sm"></i>
-                                <span class="text-xs sm:text-sm font-semibold text-orange-700 uppercase tracking-wide">식당 이름</span>
-                              </div>
-                              <div class="flex flex-wrap items-start gap-3 w-full">
-                                <div class="flex items-center gap-2 min-w-0 flex-1">
-                                  <span class="text-2xl sm:text-3xl flex-shrink-0">${categoryEmoji}</span>
-                                  <h4 class="text-xl sm:text-2xl font-bold text-gray-800 flex items-center gap-2 truncate">
-                                    ${saf(
-                                      restaurant.restaurantName ||
-                                        "(식당 이름 없음)"
-                                    )}
-                                    ${
-                                      isNearlyFull
-                                        ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-semibold rounded-full bg-red-500/10 text-red-600 border border-red-200">
-                                            <i class="fas fa-fire text-red-500"></i>마감 임박!
-                                          </span>`
-                                        : ""
-                                    }
-                                  </h4>
-                                </div>
-                                <span class="inline-flex items-center gap-2 px-3 py-1.5 bg-white/80 border border-orange-200 rounded-xl text-xs sm:text-sm text-gray-600 shadow-sm w-full sm:w-auto min-w-[9rem]">
-                                  <i class="fas fa-calendar text-orange-500"></i>
-                                  ${restaurantEventDateLabel}
-                                </span>
-                              </div>
+                    <div class="p-3 sm:p-4">
+                      <div class="mb-2">
+                        <div class="flex items-start justify-between mb-2">
+                          <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2 mb-1">
+                              <span class="text-xl flex-shrink-0">${categoryEmoji}</span>
+                              <h4 class="text-base sm:text-lg font-bold text-gray-800 truncate">
+                                ${saf(
+                                  restaurant.restaurantName ||
+                                    "(식당 이름 없음)"
+                                )}
+                              </h4>
                             </div>
-                          ${
-                            restaurant.restaurantCategory
-                              ? `<span class="inline-flex items-center gap-2 bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-xs font-semibold">
-                                  <i class="fas fa-tags text-orange-500"></i>${restaurant.restaurantCategory}
-                                </span>`
-                              : ""
-                          }
+                            <div class="flex items-center gap-2 flex-wrap">
+                              ${
+                                restaurant.restaurantCategory
+                                  ? `<span class="inline-flex items-center gap-1 bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full text-xs font-semibold">
+                                      ${restaurant.restaurantCategory}
+                                    </span>`
+                                  : ""
+                              }
+                              <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">
+                                <i class="fas fa-calendar text-orange-500"></i>
+                                ${restaurantEventDateLabel}
+                              </span>
+                            </div>
                           </div>
-                          ${
-                            isAdmin && !restaurant.restaurantImage
-                              ? `
-                            <button
-                              class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg text-xs font-semibold shadow transition-colors ml-2"
-                              data-action="delete-restaurant"
-                              data-event-id="${restaurant.eventId}"
-                                    data-restaurant-name="${saf(
-                                      restaurant.restaurantName
-                                    )}"
-                              title="식당 삭제">
-                              <i class="fas fa-trash mr-1"></i>삭제
-                            </button>
-                          `
-                              : ""
-                          }
                         </div>
                         ${
                           restaurant.restaurantInfo
-                            ? `<div class="mb-4 mt-3 bg-gradient-to-r from-orange-50 to-yellow-50 rounded-xl p-4 sm:p-5 border-2 border-orange-300 shadow-md">
-                                <div class="flex items-center justify-between mb-3">
-                                  <div class="flex items-center gap-2">
-                                    <i class="fas fa-utensils text-orange-600 text-lg"></i>
-                                    <span class="text-sm sm:text-base font-bold text-orange-900">대표 메뉴</span>
-                                  </div>
-                                  ${
-                                    isAdmin
-                                      ? `<button
-                                          class="text-xs sm:text-sm text-orange-700 hover:text-orange-800 transition-colors bg-white px-2 py-1 rounded-lg border border-orange-300"
-                                          onclick="openRestaurantEditModal('${
-                                            restaurant.eventId
-                                          }', '${saf(
-                                          restaurant.restaurantName
-                                        )}', '${saf(
-                                          restaurant.restaurantInfo
-                                        ).replace(/'/g, "\\'")}')"
-                                          title="대표 메뉴 수정">
-                                          <i class="fas fa-edit mr-1"></i>수정
-                                        </button>`
-                                      : ""
-                                  }
-                                </div>
-                                <p class="text-base sm:text-lg text-gray-900 leading-relaxed font-bold">${saf(
+                            ? `<div class="mt-2 bg-gradient-to-r from-orange-50 to-yellow-50 rounded-lg p-2 border border-orange-200">
+                                <p class="text-sm text-gray-900 font-medium line-clamp-2">${saf(
                                   restaurant.restaurantInfo
                                 )}</p>
                               </div>`
@@ -25990,106 +25369,144 @@
                         }
                       </div>
 
+                      <!-- 지도 섹션 (메뉴와 후기 사이) -->
+                      <div class="mt-3 mb-2">
+                        <div class="flex items-center gap-1 mb-1">
+                          <i class="fas fa-map-marker-alt text-orange-500 text-xs"></i>
+                          <span class="text-xs font-semibold text-gray-700">위치</span>
+                        </div>
+                        <div id="restaurant-map-${restaurant.eventId}-${index}" 
+                             class="w-full h-32 rounded-lg overflow-hidden border border-gray-200 bg-gray-100" 
+                             style="min-height: 128px;">
+                          <div class="w-full h-full flex items-center justify-center text-gray-400 text-xs">
+                            <i class="fas fa-map mr-1"></i>
+                            <span>지도 로딩 중...</span>
+                          </div>
+                        </div>
+                      </div>
+
                       ${
                         reviewCount > 0
                           ? `
-                        <div class="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl p-4 sm:p-5 mb-4 border-2 border-orange-200 shadow-sm">
-                          <div class="flex items-center justify-between mb-3">
-                            <div class="flex items-center gap-3">
-                              <div class="flex items-center gap-1">
+                        <div class="mt-2 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg p-2 border border-orange-200">
+                          <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center gap-2">
+                              <div class="flex items-center gap-0.5">
                                 ${renderStars(parseFloat(avgRating))}
                               </div>
-                              <span class="text-xl sm:text-2xl font-bold text-gray-800">${avgRating}</span>
+                              <span class="text-sm font-bold text-gray-800">${avgRating}</span>
                             </div>
-                            <span class="text-sm sm:text-base text-gray-700 font-semibold bg-white px-3 py-1.5 rounded-full shadow-sm">${reviewCount}명 평가</span>
+                            <span class="text-xs text-gray-600 bg-white px-2 py-0.5 rounded-full">${reviewCount}명</span>
                           </div>
+                          ${(() => {
+                            const validReviews = restaurant.reviews.filter(
+                              (r) => r.comment && r.comment.trim()
+                            );
+                            if (validReviews.length === 0) return "";
 
-                          ${
-                            restaurant.reviews.length > 0
-                              ? `
-                            <div class="mt-3 space-y-3">
-                              <div class="mb-3">
-                                <p class="text-sm sm:text-base font-bold text-gray-800 flex items-center">
-                                  <i class="fas fa-comment-dots mr-2 text-orange-500"></i>후기
-                                </p>
-                              </div>
-                              <div class="review-list-container relative">
-                                <div class="review-list pb-4" data-event-id="${
+                            const firstReview = validReviews[0];
+                            const reviewText = saf(firstReview.comment || "");
+                            // 두 줄 이상인지 확인 (대략 60자 이상이면 두 줄로 간주)
+                            const isLongReview =
+                              reviewText.length > 60 ||
+                              reviewText.split("\n").length > 2;
+                            const hasMoreReviews = validReviews.length > 1;
+
+                            return `
+                                <div class="review-content-wrapper" data-restaurant-id="${
                                   restaurant.eventId
-                                }" data-restaurant-name="${saf(
-                                  restaurant.restaurantName
-                                )}" data-show-all="false" style="scrollbar-width: thin; scrollbar-color: #f97316 #fef3e2;">
-                                ${restaurant.reviews
-                                  .filter((r) => r.comment && r.comment.trim())
-                                  .slice(0, 1)
-                                  .map(
-                                    (r) => `
-                                  <div class="bg-white rounded-xl p-4 sm:p-5 border-2 border-orange-100 shadow-md hover:shadow-lg transition-shadow relative review-item mb-3">
-                                    <div class="flex items-center justify-between mb-3">
-                                      <span class="text-sm sm:text-base font-bold text-gray-800 flex items-center">
-                                        <i class="fas fa-user-circle mr-2 text-orange-500 text-lg sm:text-xl"></i>
+                                }" data-restaurant-index="${index}">
+                                  <div class="review-item">
+                                    <div class="flex items-center justify-between mb-1">
+                                      <span class="text-xs font-semibold text-gray-700 flex items-center">
+                                        <i class="fas fa-user-circle mr-1 text-orange-500"></i>
                                         익명
                                       </span>
-                                      <div class="flex items-center gap-2">
-                                        <div class="flex items-center gap-1">
-                                          ${renderStars(r.rating || 0)}
-                                        </div>
+                                      <div class="flex items-center gap-1">
+                                        ${renderStars(firstReview.rating || 0)}
+                                      </div>
+                                    </div>
+                                    <p class="text-xs text-gray-700 leading-relaxed whitespace-pre-wrap review-text ${
+                                      isLongReview &&
+                                      !restaurant._showAllReviews
+                                        ? "line-clamp-2"
+                                        : ""
+                                    }">${reviewText}</p>
+                                  </div>
+                                  ${
+                                    isLongReview || hasMoreReviews
+                                      ? `
+                                    <button 
+                                      class="mt-2 text-xs text-orange-600 hover:text-orange-700 font-semibold flex items-center gap-1 show-all-reviews-btn ${
+                                        restaurant._showAllReviews
+                                          ? "hidden"
+                                          : ""
+                                      }"
+                                      data-restaurant-id="${restaurant.eventId}"
+                                      data-restaurant-index="${index}"
+                                      onclick="event.stopPropagation(); toggleRestaurantReviews('${
+                                        restaurant.eventId
+                                      }', ${index});"
+                                    >
+                                      <i class="fas fa-chevron-down text-xs"></i>
+                                      후기 전체 보기 (${validReviews.length}개)
+                                    </button>
+                                    <div class="all-reviews-content hidden mt-2" id="all-reviews-${
+                                      restaurant.eventId
+                                    }-${index}">
+                                      ${validReviews
+                                        .map(
+                                          (r, idx) => `
                                         ${
-                                          isAdmin
+                                          idx > 0
                                             ? `
-                                          <button
-                                            class="text-red-500 hover:text-red-700 transition-colors p-1"
-                                            data-action="delete-review"
-                                            data-event-id="${restaurant.eventId}"
-                                            data-student-id="${r.studentId}"
-                                            title="후기 삭제">
-                                            <i class="fas fa-trash text-sm"></i>
-                                          </button>
+                                          <div class="review-item mt-3 pt-3 border-t border-orange-200">
+                                            <div class="flex items-center justify-between mb-1">
+                                              <span class="text-xs font-semibold text-gray-700 flex items-center">
+                                                <i class="fas fa-user-circle mr-1 text-orange-500"></i>
+                                                익명
+                                              </span>
+                                              <div class="flex items-center gap-1">
+                                                ${renderStars(r.rating || 0)}
+                                              </div>
+                                            </div>
+                                            <p class="text-xs text-gray-700 leading-relaxed whitespace-pre-wrap">${saf(
+                                              r.comment || ""
+                                            )}</p>
+                                          </div>
                                         `
                                             : ""
                                         }
-                                      </div>
+                                      `
+                                        )
+                                        .join("")}
+                                      <button 
+                                        class="mt-2 text-xs text-gray-600 hover:text-gray-700 font-semibold flex items-center gap-1 hide-reviews-btn"
+                                        data-restaurant-id="${
+                                          restaurant.eventId
+                                        }"
+                                        data-restaurant-index="${index}"
+                                        onclick="event.stopPropagation(); toggleRestaurantReviews('${
+                                          restaurant.eventId
+                                        }', ${index});"
+                                      >
+                                        <i class="fas fa-chevron-up text-xs"></i>
+                                        후기 접기
+                                      </button>
                                     </div>
-                                    <p class="text-sm sm:text-base text-gray-700 leading-relaxed whitespace-pre-wrap">${saf(
-                                      r.comment
-                                    )}</p>
-                                  </div>
-                                `
-                                  )
-                                  .join("")}
+                                  `
+                                      : ""
+                                  }
                                 </div>
-                              </div>
-                              ${
-                                restaurant.reviews.filter(
-                                  (r) => r.comment && r.comment.trim()
-                                ).length > 1
-                                  ? `<button
-                                      class="w-full text-sm sm:text-base text-orange-600 hover:text-orange-700 font-bold text-center mt-3 py-3 sm:py-2 bg-orange-50 hover:bg-orange-100 rounded-xl transition-colors border-2 border-orange-200 shadow-sm"
-                                      data-action="toggle-reviews"
-                                      data-event-id="${restaurant.eventId}"
-                                      data-restaurant-name="${saf(
-                                        restaurant.restaurantName
-                                      )}">
-                                      <i class="fas fa-chevron-down mr-2"></i>
-                                      외 ${
-                                        restaurant.reviews.filter(
-                                          (r) => r.comment && r.comment.trim()
-                                        ).length - 1
-                                      }개 후기 더 보기
-                                    </button>`
-                                  : ""
-                              }
-                            </div>
-                          `
-                              : ""
-                          }
+                              `;
+                          })()}
                         </div>
                       `
                           : `
-                        <div class="bg-gray-50 rounded-lg p-4 text-center">
-                          <p class="text-sm text-gray-500">
+                        <div class="mt-2 bg-gray-50 rounded-lg p-2 text-center">
+                          <p class="text-xs text-gray-500">
                             <i class="fas fa-info-circle mr-1"></i>
-                            아직 평가가 없습니다
+                            평가 없음
                           </p>
                         </div>
                       `
@@ -26235,40 +25652,50 @@
                       <i class="fas fa-heart mr-1 text-orange-500"></i>
                       Foodie 회원들과 함께했던 미식회
                     </p>
+                    <div class="flex items-center flex-wrap gap-3">
                     <div class="text-sm sm:text-base text-gray-600 bg-orange-50 border border-orange-200 rounded-lg px-3 py-2 inline-block">
                       총 <span class="font-bold text-orange-600">${
-                        tastingRestaurants.length
+                        sortedTastingRestaurants.length
                       }</span>개 식당
+                    </div>
+                      <div class="flex items-center gap-2">
+                        <button
+                          id="sort-latest-btn"
+                          class="sort-btn active px-3 py-1.5 rounded-full bg-orange-500 text-white text-xs sm:text-sm font-medium hover:bg-orange-600 transition-colors"
+                          data-sort="latest"
+                        >
+                          <i class="fas fa-clock mr-1"></i>최신순
+                        </button>
+                        <button
+                          id="sort-rating-btn"
+                          class="sort-btn px-3 py-1.5 rounded-full bg-gray-200 text-gray-700 text-xs sm:text-sm font-medium hover:bg-gray-300 transition-colors"
+                          data-sort="rating"
+                        >
+                          <i class="fas fa-star mr-1"></i>별점순
+                        </button>
+                      </div>
                     </div>
                   </div>
                   ${
-                    tastingRestaurants.length > 0
+                    sortedTastingRestaurants.length > 0
                       ? `
                   <!-- 카테고리 필터 (동적 생성) -->
                   <div class="mb-4">
-                    <div class="flex flex-wrap items-center gap-2">
+                    <div class="grid grid-cols-4 gap-2 items-center">
                       <button
-                        class="category-filter-btn bg-orange-500 text-white rounded-full px-3 py-2 sm:py-1 hover:bg-orange-600 transition-colors font-medium text-sm"
+                        class="category-filter-btn bg-orange-500 text-white rounded-full px-2 py-1 hover:bg-orange-600 transition-colors font-medium text-xs flex items-center justify-center gap-1"
                         data-category="all">
                         <span class="category-emoji" aria-hidden="true">🏠</span>
-                        <span class="category-label">전체 (${
-                          tastingRestaurants.length
-                        })</span>
+                        <span class="category-label">전체</span>
                       </button>
                       ${restaurantCategories
                         .map(
                           (cat) => `
                         <button
-                          class="category-filter-btn bg-gray-200 text-gray-700 rounded-full px-3 py-2 sm:py-1 hover:bg-orange-500 hover:text-white transition-colors font-medium text-sm"
+                          class="category-filter-btn bg-gray-200 text-gray-700 rounded-full px-2 py-1 hover:bg-orange-500 hover:text-white transition-colors font-medium text-xs flex items-center justify-center gap-1"
                           data-category="${cat.name}">
-                          <span class="category-emoji" aria-hidden="true">${
-                            cat.emoji
-                          }</span>
-                          <span class="category-label">${cat.name} (${
-                            tastingRestaurants.filter(
-                              (r) => r.restaurantCategory === cat.name
-                            ).length
-                          })</span>
+                          <span class="category-emoji" aria-hidden="true">${cat.emoji}</span>
+                          <span class="category-label">${cat.name}</span>
                         </button>
                       `
                         )
@@ -26313,7 +25740,7 @@
                   <!-- 미식회 식당 목록 (페이지 전체 스크롤 사용) -->
                   <div id="restaurant-list-container">
                     ${
-                      tastingRestaurants.length > 0
+                      sortedTastingRestaurants.length > 0
                         ? `<div id="restaurant-cards-container">
                             <div class="grid grid-cols-1 gap-4 sm:gap-6" id="restaurant-cards">${visibleTastingRestaurants
                               .map((restaurant, index) =>
@@ -26321,7 +25748,8 @@
                               )
                               .join("")}</div>
                             ${
-                              tastingRestaurants.length > clampedVisibleCount
+                              sortedTastingRestaurants.length >
+                              clampedVisibleCount
                                 ? `<div class="mt-4 flex justify-center">
                                     <button
                                       id="load-more-restaurants-btn"
@@ -26343,6 +25771,35 @@
                 </div>
               `;
 
+        // 후기 토글 함수 (전역 스코프로 설정)
+        window.toggleRestaurantReviews = function (eventId, index) {
+          const allReviewsContent = document.getElementById(
+            `all-reviews-${eventId}-${index}`
+          );
+          const showAllBtn = document.querySelector(
+            `.show-all-reviews-btn[data-restaurant-id="${eventId}"][data-restaurant-index="${index}"]`
+          );
+          const reviewText = document.querySelector(
+            `[data-restaurant-id="${eventId}"][data-restaurant-index="${index}"] .review-text`
+          );
+
+          if (!allReviewsContent) return;
+
+          const isHidden = allReviewsContent.classList.contains("hidden");
+
+          if (isHidden) {
+            // 후기 전체 보기
+            allReviewsContent.classList.remove("hidden");
+            if (showAllBtn) showAllBtn.classList.add("hidden");
+            if (reviewText) reviewText.classList.remove("line-clamp-2");
+          } else {
+            // 후기 접기
+            allReviewsContent.classList.add("hidden");
+            if (showAllBtn) showAllBtn.classList.remove("hidden");
+            if (reviewText) reviewText.classList.add("line-clamp-2");
+          }
+        };
+
         // 검색 및 필터 기능
         const searchInput = document.getElementById("restaurant-search-input");
         const clearSearchBtn = document.getElementById("clear-search-btn");
@@ -26356,12 +25813,330 @@
         );
 
         let currentCategory = "all"; // 현재 선택된 카테고리
+        let currentSort = "latest"; // 현재 정렬 방식: "latest" 또는 "rating"
+
+        // 식당 카드의 지도 초기화 함수
+        const initializeRestaurantMaps = (restaurants) => {
+          if (
+            typeof naver === "undefined" ||
+            !naver.maps ||
+            !naver.maps.Service
+          ) {
+            // 네이버 지도 API가 로드되지 않은 경우
+            // 모든 지도 컨테이너에 에러 메시지 표시
+            restaurants.forEach((restaurant, index) => {
+              const mapContainerId = `restaurant-map-${restaurant.eventId}-${index}`;
+              const mapContainer = document.getElementById(mapContainerId);
+              if (mapContainer) {
+                mapContainer.innerHTML = `
+                  <div class="bg-gray-100 rounded-lg p-4 text-center text-gray-500 h-full flex items-center justify-center">
+                    <div>
+                      <i class="fas fa-map text-2xl mb-1"></i>
+                      <p class="text-xs">지도를 불러올 수 없습니다</p>
+                    </div>
+                  </div>
+                `;
+              }
+            });
+            return;
+          }
+
+          restaurants.forEach((restaurant, index) => {
+            const mapContainerId = `restaurant-map-${restaurant.eventId}-${index}`;
+            const mapContainer = document.getElementById(mapContainerId);
+
+            if (!mapContainer) return;
+
+            // 식당 이름으로 주소 검색
+            if (!naver.maps.Service || !naver.maps.Service.geocode) {
+              mapContainer.innerHTML = `
+                <div class="bg-gray-100 rounded-lg p-4 text-center text-gray-500 h-full flex items-center justify-center">
+                  <div>
+                    <i class="fas fa-map text-2xl mb-1"></i>
+                    <p class="text-xs">지도 서비스를 사용할 수 없습니다</p>
+                  </div>
+                </div>
+              `;
+              return;
+            }
+
+            naver.maps.Service.geocode(
+              {
+                query: restaurant.restaurantName,
+              },
+              function (status, response) {
+                if (status === naver.maps.Service.Status.ERROR) {
+                  mapContainer.innerHTML = `
+                    <div class="bg-gray-100 rounded-lg p-4 text-center text-gray-500 h-full flex items-center justify-center">
+                      <div>
+                        <i class="fas fa-map text-2xl mb-1"></i>
+                        <p class="text-xs">위치를 찾을 수 없습니다</p>
+                      </div>
+                    </div>
+                  `;
+                  return;
+                }
+
+                if (response.v2.meta.totalCount === 0) {
+                  mapContainer.innerHTML = `
+                    <div class="bg-gray-100 rounded-lg p-4 text-center text-gray-500 h-full flex items-center justify-center">
+                      <div>
+                        <i class="fas fa-map text-2xl mb-1"></i>
+                        <p class="text-xs">위치 정보가 없습니다</p>
+                      </div>
+                    </div>
+                  `;
+                  return;
+                }
+
+                const item = response.v2.addresses[0];
+                const point = new naver.maps.LatLng(
+                  parseFloat(item.y),
+                  parseFloat(item.x)
+                );
+
+                const map = new naver.maps.Map(mapContainer, {
+                  center: point,
+                  zoom: 16,
+                });
+
+                const marker = new naver.maps.Marker({
+                  position: point,
+                  map: map,
+                });
+
+                const infoWindow = new naver.maps.InfoWindow({
+                  content: `<div style="padding:8px;min-width:120px;text-align:center;font-size:12px;"><b>${saf(
+                    restaurant.restaurantName
+                  )}</b><br><span style="font-size:10px;">${
+                    item.roadAddress || item.jibunAddress
+                  }</span></div>`,
+                });
+
+                naver.maps.Event.addListener(marker, "click", function () {
+                  if (infoWindow.getMap()) {
+                    infoWindow.close();
+                  } else {
+                    infoWindow.open(map, marker);
+                  }
+                });
+              }
+            );
+          });
+        };
+
+        // 정렬 함수
+        const sortRestaurants = (restaurants, sortType) => {
+          const sorted = [...restaurants];
+          if (sortType === "latest") {
+            // 최신순: 이벤트 날짜 기준 내림차순
+            return sorted.sort((a, b) => {
+              const dateA = new Date(a.eventDate || 0).getTime();
+              const dateB = new Date(b.eventDate || 0).getTime();
+              return dateB - dateA; // 최신순 (내림차순)
+            });
+          } else if (sortType === "rating") {
+            // 별점순: 평균 별점 기준 내림차순
+            return sorted.sort((a, b) => {
+              const avgA = calculateAverageRating(a.reviews || []);
+              const avgB = calculateAverageRating(b.reviews || []);
+              return parseFloat(avgB) - parseFloat(avgA); // 높은 별점순 (내림차순)
+            });
+          }
+          return sorted;
+        };
+
+        // 검색 함수: 띄어쓰기 제거하고 소문자로 변환
+        const normalizeSearchText = (text) => {
+          return (text || "").toLowerCase().replace(/\s+/g, "");
+        };
+
+        // 검색 및 필터링 함수 (조건문 밖에서 정의하여 정렬 버튼에서도 호출 가능)
+        const performSearch = () => {
+          if (!restaurantCardsContainer) return;
+
+          const searchTerm =
+            searchInput && searchInput.value
+              ? searchInput.value.trim().toLowerCase()
+              : "";
+          const normalizedSearchTerm = normalizeSearchText(searchTerm);
+
+          // 검색어가 있으면 초기화 버튼 표시
+          if (clearSearchBtn) {
+            if (searchTerm) {
+              clearSearchBtn.classList.remove("hidden");
+            } else {
+              clearSearchBtn.classList.add("hidden");
+            }
+          }
+
+          // 카테고리 필터링 (정렬된 목록 사용)
+          let filtered = sortedTastingRestaurants;
+          if (currentCategory !== "all") {
+            filtered = filtered.filter(
+              (r) => r.restaurantCategory === currentCategory
+            );
+          }
+
+          // 검색 필터링: 식당 이름, 대표 메뉴, 리뷰 내용 모두 검색
+          const filteredRestaurants = searchTerm
+            ? filtered.filter((r) => {
+                // 식당 이름 검색
+                const nameMatch = normalizedSearchTerm
+                  ? normalizeSearchText(r.restaurantName).includes(
+                      normalizedSearchTerm
+                    )
+                  : false;
+
+                // 대표 메뉴 검색
+                const menuMatch =
+                  normalizedSearchTerm && r.restaurantInfo
+                    ? normalizeSearchText(r.restaurantInfo).includes(
+                        normalizedSearchTerm
+                      )
+                    : false;
+
+                // 리뷰 내용 검색
+                const reviewMatch =
+                  normalizedSearchTerm && r.reviews && r.reviews.length > 0
+                    ? r.reviews.some(
+                        (review) =>
+                          review.comment &&
+                          normalizeSearchText(review.comment).includes(
+                            normalizedSearchTerm
+                          )
+                      )
+                    : false;
+
+                return nameMatch || menuMatch || reviewMatch;
+              })
+            : filtered;
+
+          // 정렬 적용
+          const sortedRestaurants = sortRestaurants(
+            filteredRestaurants,
+            currentSort
+          );
+
+          // 검색 결과 카운트 표시
+          if (searchResultCount) {
+            if (searchTerm) {
+              searchResultCount.innerHTML = `
+                      <i class="fas fa-search mr-1"></i>
+                      검색 결과: <span class="font-bold text-orange-600">${
+                        sortedRestaurants.length
+                      }</span>개 식당
+                      ${
+                        sortedRestaurants.length === 0
+                          ? '<span class="text-red-500 ml-2">(검색 결과가 없습니다)</span>'
+                          : ""
+                      }
+                    `;
+            } else {
+              searchResultCount.innerHTML = "";
+            }
+          }
+
+          // 결과 렌더링
+          if (sortedRestaurants.length > 0) {
+            restaurantCardsContainer.innerHTML = sortedRestaurants
+              .map((restaurant, index) =>
+                createRestaurantCard(restaurant, index)
+              )
+              .join("");
+            // 지도 초기화
+            initializeRestaurantMaps(sortedRestaurants);
+          } else if (searchTerm) {
+            restaurantCardsContainer.innerHTML = `
+                    <div class="col-span-2 text-center py-12 text-gray-400">
+                      <i class="fas fa-search text-4xl mb-3"></i>
+                      <p class="text-lg font-semibold mb-2">"${saf(
+                        searchTerm
+                      )}" 검색 결과가 없습니다</p>
+                      <p class="text-sm">다른 키워드로 검색해보세요 (식당 이름, 대표 메뉴, 리뷰 내용)</p>
+                    </div>
+                  `;
+          } else if (currentCategory !== "all") {
+            // 카테고리만 선택되고 검색어가 없을 때 빈 결과 표시
+            // restaurantCategories에서 카테고리 정보 찾기
+            const categoryInfo = restaurantCategories.find(
+              (cat) => cat.name === currentCategory
+            );
+            const categoryName = categoryInfo
+              ? `${categoryInfo.emoji} ${categoryInfo.name}`
+              : "🍽️ 기타";
+            restaurantCardsContainer.innerHTML = `
+                    <div class="col-span-2 text-center py-12 text-gray-400">
+                      <i class="fas fa-utensils text-4xl mb-3"></i>
+                      <p class="text-lg font-semibold mb-2">${categoryName} 카테고리에 식당이 없습니다</p>
+                      <p class="text-sm">다른 카테고리를 선택해보세요</p>
+                    </div>
+                  `;
+          } else {
+            // 기본 상태 (전체 표시)
+            restaurantCardsContainer.innerHTML = sortedRestaurants
+              .map((restaurant, index) =>
+                createRestaurantCard(restaurant, index)
+              )
+              .join("");
+            // 지도 초기화
+            initializeRestaurantMaps(sortedRestaurants);
+          }
+        };
+
+        // 정렬 버튼 이벤트 리스너
+        const sortLatestBtn = document.getElementById("sort-latest-btn");
+        const sortRatingBtn = document.getElementById("sort-rating-btn");
+
+        if (sortLatestBtn && sortRatingBtn) {
+          const updateSortButtons = (activeSort) => {
+            if (activeSort === "latest") {
+              sortLatestBtn.classList.add(
+                "active",
+                "bg-orange-500",
+                "text-white"
+              );
+              sortLatestBtn.classList.remove("bg-gray-200", "text-gray-700");
+              sortRatingBtn.classList.remove(
+                "active",
+                "bg-orange-500",
+                "text-white"
+              );
+              sortRatingBtn.classList.add("bg-gray-200", "text-gray-700");
+            } else {
+              sortRatingBtn.classList.add(
+                "active",
+                "bg-orange-500",
+                "text-white"
+              );
+              sortRatingBtn.classList.remove("bg-gray-200", "text-gray-700");
+              sortLatestBtn.classList.remove(
+                "active",
+                "bg-orange-500",
+                "text-white"
+              );
+              sortLatestBtn.classList.add("bg-gray-200", "text-gray-700");
+            }
+          };
+
+          sortLatestBtn.addEventListener("click", () => {
+            currentSort = "latest";
+            updateSortButtons("latest");
+            performSearch();
+          });
+
+          sortRatingBtn.addEventListener("click", () => {
+            currentSort = "rating";
+            updateSortButtons("rating");
+            performSearch();
+          });
+        }
 
         // 더보기 버튼 이벤트 (검색/필터 이전 기본 목록용)
         const loadMoreBtn = document.getElementById(
           "load-more-restaurants-btn"
         );
-        if (loadMoreBtn && tastingRestaurants.length > 0) {
+        if (loadMoreBtn && sortedTastingRestaurants.length > 0) {
           loadMoreBtn.addEventListener("click", () => {
             const INCREMENT = 3;
             if (typeof window !== "undefined") {
@@ -26371,7 +26146,7 @@
                   : DEFAULT_TASTING_VISIBLE_COUNT;
               const next = Math.min(
                 prev + INCREMENT,
-                tastingRestaurants.length
+                sortedTastingRestaurants.length
               );
               window.tastingRestaurantsVisibleCount = next;
             }
@@ -26380,125 +26155,7 @@
           });
         }
 
-        if (searchInput && tastingRestaurants.length > 0) {
-          // 검색 함수: 띄어쓰기 제거하고 소문자로 변환
-          const normalizeSearchText = (text) => {
-            return (text || "").toLowerCase().replace(/\s+/g, "");
-          };
-
-          const performSearch = () => {
-            const searchTerm = searchInput.value.trim().toLowerCase();
-            const normalizedSearchTerm = normalizeSearchText(searchTerm);
-
-            // 검색어가 있으면 초기화 버튼 표시
-            if (searchTerm) {
-              clearSearchBtn.classList.remove("hidden");
-            } else {
-              clearSearchBtn.classList.add("hidden");
-            }
-
-            // 카테고리 필터링
-            let filtered = tastingRestaurants;
-            if (currentCategory !== "all") {
-              filtered = filtered.filter(
-                (r) => r.restaurantCategory === currentCategory
-              );
-            }
-
-            // 검색 필터링: 식당 이름, 대표 메뉴, 리뷰 내용 모두 검색
-            const filteredRestaurants = searchTerm
-              ? filtered.filter((r) => {
-                  // 식당 이름 검색
-                  const nameMatch = normalizedSearchTerm
-                    ? normalizeSearchText(r.restaurantName).includes(
-                        normalizedSearchTerm
-                      )
-                    : false;
-
-                  // 대표 메뉴 검색
-                  const menuMatch =
-                    normalizedSearchTerm && r.restaurantInfo
-                      ? normalizeSearchText(r.restaurantInfo).includes(
-                          normalizedSearchTerm
-                        )
-                      : false;
-
-                  // 리뷰 내용 검색
-                  const reviewMatch =
-                    normalizedSearchTerm && r.reviews && r.reviews.length > 0
-                      ? r.reviews.some(
-                          (review) =>
-                            review.comment &&
-                            normalizeSearchText(review.comment).includes(
-                              normalizedSearchTerm
-                            )
-                        )
-                      : false;
-
-                  return nameMatch || menuMatch || reviewMatch;
-                })
-              : filtered;
-
-            // 검색 결과 카운트 표시
-            if (searchTerm) {
-              searchResultCount.innerHTML = `
-                      <i class="fas fa-search mr-1"></i>
-                      검색 결과: <span class="font-bold text-orange-600">${
-                        filteredRestaurants.length
-                      }</span>개 식당
-                      ${
-                        filteredRestaurants.length === 0
-                          ? '<span class="text-red-500 ml-2">(검색 결과가 없습니다)</span>'
-                          : ""
-                      }
-                    `;
-            } else {
-              searchResultCount.innerHTML = "";
-            }
-
-            // 결과 렌더링
-            if (filteredRestaurants.length > 0) {
-              restaurantCardsContainer.innerHTML = filteredRestaurants
-                .map((restaurant, index) =>
-                  createRestaurantCard(restaurant, index)
-                )
-                .join("");
-            } else if (searchTerm) {
-              restaurantCardsContainer.innerHTML = `
-                      <div class="col-span-2 text-center py-12 text-gray-400">
-                        <i class="fas fa-search text-4xl mb-3"></i>
-                        <p class="text-lg font-semibold mb-2">"${saf(
-                          searchTerm
-                        )}" 검색 결과가 없습니다</p>
-                        <p class="text-sm">다른 키워드로 검색해보세요 (식당 이름, 대표 메뉴, 리뷰 내용)</p>
-                      </div>
-                    `;
-            } else if (currentCategory !== "all") {
-              // 카테고리만 선택되고 검색어가 없을 때 빈 결과 표시
-              // restaurantCategories에서 카테고리 정보 찾기
-              const categoryInfo = restaurantCategories.find(
-                (cat) => cat.name === currentCategory
-              );
-              const categoryName = categoryInfo
-                ? `${categoryInfo.emoji} ${categoryInfo.name}`
-                : "🍽️ 기타";
-              restaurantCardsContainer.innerHTML = `
-                      <div class="col-span-2 text-center py-12 text-gray-400">
-                        <i class="fas fa-utensils text-4xl mb-3"></i>
-                        <p class="text-lg font-semibold mb-2">${categoryName} 카테고리에 식당이 없습니다</p>
-                        <p class="text-sm">다른 카테고리를 선택해보세요</p>
-                      </div>
-                    `;
-            } else {
-              // 기본 상태 (전체 표시)
-              restaurantCardsContainer.innerHTML = filteredRestaurants
-                .map((restaurant, index) =>
-                  createRestaurantCard(restaurant, index)
-                )
-                .join("");
-            }
-          };
-
+        if (searchInput && sortedTastingRestaurants.length > 0) {
           // 실시간 검색
           searchInput.addEventListener("input", performSearch);
 
@@ -26726,120 +26383,7 @@
           });
         }
 
-        // 후기 더보기/접기 버튼 이벤트
-        c.addEventListener("click", (e) => {
-          const toggleBtn = e.target.closest("[data-action='toggle-reviews']");
-          if (toggleBtn) {
-            const eventId = toggleBtn.dataset.eventId;
-            const restaurantName = toggleBtn.dataset.restaurantName;
-
-            // data 속성으로 직접 찾기
-            const reviewList = c.querySelector(
-              `.review-list[data-event-id="${eventId}"][data-restaurant-name="${restaurantName}"]`
-            );
-
-            if (!reviewList) return;
-
-            const isShowingAll = reviewList.dataset.showAll === "true";
-
-            // 해당 식당의 모든 후기 가져오기
-            const restaurant = tastingRestaurants.find(
-              (r) =>
-                r.eventId === eventId && r.restaurantName === restaurantName
-            );
-
-            if (!restaurant) return;
-
-            const allReviews = restaurant.reviews.filter(
-              (r) => r.comment && r.comment.trim()
-            );
-
-            if (isShowingAll) {
-              // 접기 - 1개만 보여주기
-              reviewList.innerHTML = allReviews
-                .slice(0, 1)
-                .map(
-                  (r) => `
-                        <div class="bg-white rounded-xl p-4 sm:p-5 border-2 border-orange-100 shadow-md hover:shadow-lg transition-shadow relative review-item mb-3">
-                          <div class="flex items-center justify-between mb-3">
-                            <span class="text-sm sm:text-base font-bold text-gray-800 flex items-center">
-                              <i class="fas fa-user-circle mr-2 text-orange-500 text-lg sm:text-xl"></i>
-                              익명
-                            </span>
-                            <div class="flex items-center gap-2">
-                              <div class="flex items-center gap-1">
-                                ${renderStars(r.rating || 0)}
-                              </div>
-                              ${
-                                isAdmin
-                                  ? `
-                                <button
-                                  class="text-red-500 hover:text-red-700 transition-colors p-1"
-                                  data-action="delete-review"
-                                  data-event-id="${restaurant.eventId}"
-                                  data-student-id="${r.studentId}"
-                                  title="후기 삭제">
-                                  <i class="fas fa-trash text-sm"></i>
-                                </button>
-                              `
-                                  : ""
-                              }
-                            </div>
-                          </div>
-                          <p class="text-sm sm:text-base text-gray-700 leading-relaxed whitespace-pre-wrap">${saf(
-                            r.comment
-                          )}</p>
-                        </div>
-                      `
-                )
-                .join("");
-              reviewList.dataset.showAll = "false";
-              toggleBtn.innerHTML = `<i class="fas fa-chevron-down mr-2"></i>외 ${
-                allReviews.length - 1
-              }개 후기 더 보기`;
-            } else {
-              // 펼치기 - 모든 후기 보여주기
-              reviewList.innerHTML = allReviews
-                .map(
-                  (r) => `
-                        <div class="bg-white rounded-xl p-4 sm:p-5 border-2 border-orange-100 shadow-md hover:shadow-lg transition-shadow relative review-item mb-3">
-                          <div class="flex items-center justify-between mb-3">
-                            <span class="text-sm sm:text-base font-bold text-gray-800 flex items-center">
-                              <i class="fas fa-user-circle mr-2 text-orange-500 text-lg sm:text-xl"></i>
-                              익명
-                            </span>
-                            <div class="flex items-center gap-2">
-                              <div class="flex items-center gap-1">
-                                ${renderStars(r.rating || 0)}
-                              </div>
-                              ${
-                                isAdmin
-                                  ? `
-                                <button
-                                  class="text-red-500 hover:text-red-700 transition-colors p-1"
-                                  data-action="delete-review"
-                                  data-event-id="${restaurant.eventId}"
-                                  data-student-id="${r.studentId}"
-                                  title="후기 삭제">
-                                  <i class="fas fa-trash text-sm"></i>
-                                </button>
-                              `
-                                  : ""
-                              }
-                            </div>
-                          </div>
-                          <p class="text-sm sm:text-base text-gray-700 leading-relaxed whitespace-pre-wrap">${saf(
-                            r.comment
-                          )}</p>
-                        </div>
-                      `
-                )
-                .join("");
-              reviewList.dataset.showAll = "true";
-              toggleBtn.innerHTML = `<i class="fas fa-chevron-up mr-2"></i>후기 접기`;
-            }
-          }
-        });
+        // 식당 카드 클릭 이벤트 제거 (모달 열기 기능 제거)
       }
 
       /* ===== 명예의 전당 관리자 ===== */
@@ -29059,6 +28603,281 @@
         document.getElementById("review-modal").classList.add("hidden");
       }
 
+      // 식당 상세 정보 모달 열기
+      function openRestaurantDetailModal(restaurant) {
+        const modal = document.getElementById("restaurant-detail-modal");
+        const content = document.getElementById("restaurant-detail-content");
+        const title = document.getElementById("restaurant-detail-title");
+
+        if (!modal || !content || !title) return;
+
+        title.textContent = restaurant.name || "식당 정보";
+
+        // 해당 식당의 전체 리뷰 가져오기
+        let fullRestaurant = null;
+        if (
+          typeof window.tastingRestaurantsData !== "undefined" &&
+          Array.isArray(window.tastingRestaurantsData)
+        ) {
+          fullRestaurant = window.tastingRestaurantsData.find(
+            (r) =>
+              r.eventId === restaurant.id &&
+              r.restaurantName === restaurant.name
+          );
+        }
+
+        const reviews = fullRestaurant?.reviews || [];
+        const allReviews = reviews.filter((r) => r.comment && r.comment.trim());
+
+        // 네이버 지도 API를 사용하여 식당 위치 검색
+        const mapContainerId = "restaurant-map-container";
+        let mapHTML = "";
+
+        if (typeof naver !== "undefined" && naver.maps) {
+          mapHTML = `
+            <div class="mb-6">
+              <h4 class="text-lg font-bold text-gray-800 mb-3 flex items-center">
+                <i class="fas fa-map-marker-alt text-orange-500 mr-2"></i>
+                위치
+              </h4>
+              <div id="${mapContainerId}" style="width:100%;height:400px;border-radius:12px;overflow:hidden;"></div>
+            </div>
+          `;
+        } else {
+          mapHTML = `
+            <div class="mb-6">
+              <h4 class="text-lg font-bold text-gray-800 mb-3 flex items-center">
+                <i class="fas fa-map-marker-alt text-orange-500 mr-2"></i>
+                위치
+              </h4>
+              <div class="bg-gray-100 rounded-lg p-8 text-center text-gray-500">
+                <i class="fas fa-map text-4xl mb-2"></i>
+                <p>지도를 불러올 수 없습니다</p>
+              </div>
+            </div>
+          `;
+        }
+
+        content.innerHTML = `
+          <div class="space-y-6">
+            ${
+              restaurant.image
+                ? `
+              <div class="w-full h-64 overflow-hidden rounded-xl">
+                <img src="${saf(restaurant.image)}" alt="${saf(
+                    restaurant.name
+                  )}" class="w-full h-full object-cover">
+              </div>
+            `
+                : ""
+            }
+            
+            <div>
+              <h3 class="text-2xl font-bold text-gray-800 mb-2">${saf(
+                restaurant.name
+              )}</h3>
+              <div class="flex items-center gap-3 mb-4">
+                ${
+                  restaurant.category
+                    ? `
+                  <span class="inline-flex items-center gap-1 bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-sm font-semibold">
+                    ${restaurant.category}
+                  </span>
+                `
+                    : ""
+                }
+                <span class="inline-flex items-center gap-1 text-gray-600 text-sm">
+                  <i class="fas fa-calendar text-orange-500"></i>
+                  ${restaurant.eventDate}
+                </span>
+              </div>
+              ${
+                restaurant.info
+                  ? `
+                <div class="bg-gradient-to-r from-orange-50 to-yellow-50 rounded-xl p-4 border border-orange-200 mb-4">
+                  <div class="flex items-center gap-2 mb-2">
+                    <i class="fas fa-utensils text-orange-600"></i>
+                    <span class="font-bold text-orange-900">대표 메뉴</span>
+                  </div>
+                  <p class="text-gray-900 font-medium">${saf(
+                    restaurant.info
+                  )}</p>
+                </div>
+              `
+                  : ""
+              }
+            </div>
+            
+            <!-- 지도 섹션 (메뉴와 리뷰 사이) -->
+            ${mapHTML}
+            
+            ${
+              parseFloat(restaurant.avgRating) > 0
+                ? `
+              <div class="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl p-4 border border-orange-200">
+                <div class="flex items-center justify-between mb-4">
+                  <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-1">
+                      ${renderStars(parseFloat(restaurant.avgRating))}
+                    </div>
+                    <span class="text-2xl font-bold text-gray-800">${
+                      restaurant.avgRating
+                    }</span>
+                  </div>
+                  <span class="text-sm text-gray-600 bg-white px-3 py-1.5 rounded-full">${
+                    restaurant.reviewCount
+                  }명 평가</span>
+                </div>
+                
+                ${
+                  allReviews.length > 0
+                    ? `
+                  <div class="mt-4 space-y-3">
+                    <p class="text-base font-bold text-gray-800 mb-3 flex items-center">
+                      <i class="fas fa-comment-dots mr-2 text-orange-500"></i>
+                      후기 (${allReviews.length}개)
+                    </p>
+                    <div class="space-y-3 max-h-96 overflow-y-auto">
+                      ${allReviews
+                        .map(
+                          (r) => `
+                        <div class="bg-white rounded-xl p-4 border-2 border-orange-100 shadow-sm">
+                          <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm font-bold text-gray-800 flex items-center">
+                              <i class="fas fa-user-circle mr-2 text-orange-500"></i>
+                              익명
+                            </span>
+                            <div class="flex items-center gap-1">
+                              ${renderStars(r.rating || 0)}
+                            </div>
+                          </div>
+                          <p class="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">${saf(
+                            r.comment
+                          )}</p>
+                        </div>
+                      `
+                        )
+                        .join("")}
+                    </div>
+                  </div>
+                `
+                    : ""
+                }
+              </div>
+            `
+                : `
+              <div class="bg-gray-50 rounded-lg p-4 text-center">
+                <p class="text-sm text-gray-500">
+                  <i class="fas fa-info-circle mr-1"></i>
+                  아직 평가가 없습니다
+                </p>
+              </div>
+            `
+            }
+          </div>
+        `;
+
+        // 네이버 지도 초기화
+        if (typeof naver !== "undefined" && naver.maps) {
+          setTimeout(() => {
+            const mapContainer = document.getElementById(mapContainerId);
+            if (mapContainer) {
+              // 식당 이름으로 주소 검색
+              naver.maps.Service.geocode(
+                {
+                  query: restaurant.name,
+                },
+                function (status, response) {
+                  if (status === naver.maps.Service.Status.ERROR) {
+                    mapContainer.innerHTML = `
+                    <div class="bg-gray-100 rounded-lg p-8 text-center text-gray-500 h-full flex items-center justify-center">
+                      <div>
+                        <i class="fas fa-map text-4xl mb-2"></i>
+                        <p>위치를 찾을 수 없습니다</p>
+                      </div>
+                    </div>
+                  `;
+                    return;
+                  }
+
+                  if (response.v2.meta.totalCount === 0) {
+                    mapContainer.innerHTML = `
+                    <div class="bg-gray-100 rounded-lg p-8 text-center text-gray-500 h-full flex items-center justify-center">
+                      <div>
+                        <i class="fas fa-map text-4xl mb-2"></i>
+                        <p>위치 정보가 없습니다</p>
+                      </div>
+                    </div>
+                  `;
+                    return;
+                  }
+
+                  const item = response.v2.addresses[0];
+                  const point = new naver.maps.LatLng(
+                    parseFloat(item.y),
+                    parseFloat(item.x)
+                  );
+
+                  const map = new naver.maps.Map(mapContainer, {
+                    center: point,
+                    zoom: 15,
+                  });
+
+                  const marker = new naver.maps.Marker({
+                    position: point,
+                    map: map,
+                  });
+
+                  const infoWindow = new naver.maps.InfoWindow({
+                    content: `<div style="padding:10px;min-width:150px;text-align:center;"><b>${saf(
+                      restaurant.name
+                    )}</b><br>${item.roadAddress || item.jibunAddress}</div>`,
+                  });
+
+                  naver.maps.Event.addListener(marker, "click", function () {
+                    if (infoWindow.getMap()) {
+                      infoWindow.close();
+                    } else {
+                      infoWindow.open(map, marker);
+                    }
+                  });
+
+                  infoWindow.open(map, marker);
+                }
+              );
+            }
+          }, 100);
+        }
+
+        modal.classList.remove("hidden");
+      }
+
+      // 식당 상세 정보 모달 닫기
+      function closeRestaurantDetailModal() {
+        const modal = document.getElementById("restaurant-detail-modal");
+        if (modal) {
+          modal.classList.add("hidden");
+        }
+      }
+
+      // 모달 닫기 이벤트
+      document.addEventListener("DOMContentLoaded", function () {
+        const closeBtn = document.getElementById("restaurant-detail-close");
+        const modal = document.getElementById("restaurant-detail-modal");
+
+        if (closeBtn) {
+          closeBtn.addEventListener("click", closeRestaurantDetailModal);
+        }
+
+        if (modal) {
+          modal.addEventListener("click", function (e) {
+            if (e.target === modal) {
+              closeRestaurantDetailModal();
+            }
+          });
+        }
+      });
+
       // 평가 모달 이벤트 리스너
       document.addEventListener("click", (e) => {
         if (
@@ -30145,6 +29964,50 @@
         </div>
         <div id="review-modal-content">
           <!-- 평가 폼이 여기에 동적으로 로드됩니다 -->
+        </div>
+      </div>
+    </div>
+
+    <!-- 식당 상세 정보 모달 -->
+    <div
+      id="restaurant-detail-modal"
+      class="hidden fixed inset-0 bg-black/50 flex justify-center items-center px-4 z-[9998] overflow-y-auto"
+    >
+      <div
+        class="bg-white rounded-2xl shadow-xl max-w-4xl w-full my-8 relative"
+      >
+        <div
+          class="sticky top-0 bg-white z-10 border-b border-gray-200 px-6 py-4 rounded-t-2xl"
+        >
+          <div class="flex justify-between items-center">
+            <h3
+              id="restaurant-detail-title"
+              class="text-2xl font-bold text-gray-800"
+            >
+              식당 정보
+            </h3>
+            <button
+              id="restaurant-detail-close"
+              class="text-gray-500 hover:text-gray-700 hover:bg-gray-100 p-2 rounded-full transition-colors"
+            >
+              <svg
+                class="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                ></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div id="restaurant-detail-content" class="p-6">
+          <!-- 식당 상세 정보가 여기에 동적으로 로드됩니다 -->
         </div>
       </div>
     </div>
