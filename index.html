@@ -6560,6 +6560,209 @@
                         : ""
                     }
 
+                    ${(() => {
+                      // 사용자가 신청한 가장 최근 활동 찾기
+                      if (
+                        !currentUser ||
+                        !eventsData ||
+                        eventsData.length === 0
+                      )
+                        return "";
+
+                      // 신청한 활동들 필터링
+                      const participatedEvents = eventsData.filter((ev) => {
+                        if (ev.status === "deleted") return false;
+
+                        // 일반 신청자 확인
+                        const isApplicant = ev.applicants?.some(
+                          (a) => a.studentId === currentUser.studentId
+                        );
+
+                        // 미식회 식당 신청자 확인
+                        let isRestaurantApplicant = false;
+                        if (ev.type === "tasting" && ev.restaurants) {
+                          isRestaurantApplicant = ev.restaurants.some((r) =>
+                            r.reservations?.some(
+                              (res) => res.studentId === currentUser.studentId
+                            )
+                          );
+                        }
+
+                        return isApplicant || isRestaurantApplicant;
+                      });
+
+                      if (participatedEvents.length === 0) return "";
+
+                      // 가장 최근 활동 (날짜순 정렬)
+                      const sortedEvents = participatedEvents.sort((a, b) => {
+                        const dateA = new Date(a.datetime || 0).getTime();
+                        const dateB = new Date(b.datetime || 0).getTime();
+                        return dateB - dateA; // 최신순
+                      });
+
+                      const latestEvent = sortedEvents[0];
+                      const eventDate = new Date(latestEvent.datetime);
+                      const dateStr = eventDate.toLocaleDateString("ko-KR", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      });
+                      const timeStr = eventDate.toLocaleTimeString("ko-KR", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      });
+
+                      const typeIcon =
+                        latestEvent.type === "tasting"
+                          ? "🍽️"
+                          : latestEvent.type === "mt"
+                          ? "🏕️"
+                          : latestEvent.type === "assembly"
+                          ? "🎤"
+                          : "📅";
+
+                      const typeLabel =
+                        latestEvent.type === "tasting"
+                          ? "미식회"
+                          : latestEvent.type === "mt"
+                          ? "MT"
+                          : latestEvent.type === "assembly"
+                          ? "총회"
+                          : "이벤트";
+
+                      // 미식회인 경우 신청한 식당명 찾기
+                      let restaurantName = "";
+                      if (
+                        latestEvent.type === "tasting" &&
+                        latestEvent.restaurants
+                      ) {
+                        for (const restaurant of latestEvent.restaurants) {
+                          if (
+                            restaurant.reservations?.some(
+                              (res) => res.studentId === currentUser.studentId
+                            )
+                          ) {
+                            restaurantName = restaurant.name;
+                            break;
+                          }
+                        }
+                      }
+
+                      // 상태에 따른 배지 (이벤트 날짜 기준)
+                      let statusBadge = "";
+                      const now = new Date();
+                      const eventDateTime = new Date(latestEvent.datetime || 0);
+
+                      if (eventDateTime.getTime() > now.getTime()) {
+                        // 이벤트 시간 전이면 "신청 완료"
+                        statusBadge =
+                          '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">신청 완료</span>';
+                      } else {
+                        // 이벤트 시간이 지났으면 "활동 완료"
+                        statusBadge =
+                          '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700">활동 완료</span>';
+                      }
+
+                      // 후기 작성 여부 확인 (미식회만)
+                      const hasReview =
+                        latestEvent.type === "tasting" &&
+                        latestEvent.reviews?.some(
+                          (r) => r.studentId === currentUser.studentId
+                        );
+                      // 이벤트 날짜 기준으로 후기 작성 가능 여부 확인
+                      const eventDateTimeForReview = new Date(
+                        latestEvent.datetime || 0
+                      );
+                      const canWriteReview =
+                        latestEvent.type === "tasting" &&
+                        eventDateTimeForReview.getTime() <= now.getTime(); // 이벤트 시간이 지났을 때만 후기 작성 가능
+
+                      // 미식회인 경우 식당 이름을 제목으로 사용
+                      const displayTitle =
+                        latestEvent.type === "tasting" && restaurantName
+                          ? restaurantName
+                          : saf(latestEvent.title || "제목 없음");
+
+                      return `
+                          <!-- 최근 신청 활동 정보 -->
+                          <div class="bg-gradient-to-r from-orange-50 to-yellow-50 border-2 border-orange-200 rounded-xl p-4 md:p-5 mb-4 md:mb-6 shadow-sm">
+                            <div class="flex items-start gap-3">
+                              <div class="flex-shrink-0 text-3xl">${typeIcon}</div>
+                              <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2 mb-2 flex-wrap">
+                                  <h3 class="text-base md:text-lg font-bold text-gray-800">
+                                    ${displayTitle}
+                                  </h3>
+                                  ${statusBadge}
+                                </div>
+                                <div class="flex flex-col gap-1 text-sm text-gray-600 mb-3">
+                                  <div class="flex items-center gap-2">
+                                    <i class="fas fa-tag text-orange-500 text-xs"></i>
+                                    <span class="font-medium">${typeLabel}</span>
+                                  </div>
+                                  <div class="flex items-center gap-2">
+                                    <i class="fas fa-calendar-alt text-orange-500 text-xs"></i>
+                                    <span>${dateStr} ${timeStr}</span>
+                                  </div>
+                                  ${
+                                    latestEvent.type === "tasting" &&
+                                    restaurantName
+                                      ? `
+                                    <div class="flex items-center gap-2">
+                                      <i class="fas fa-info-circle text-orange-500 text-xs"></i>
+                                      <span class="text-xs text-gray-500">미식회: ${saf(
+                                        latestEvent.title || "제목 없음"
+                                      )}</span>
+                                    </div>
+                                  `
+                                      : ""
+                                  }
+                                </div>
+                                ${
+                                  latestEvent.type === "mt" ||
+                                  latestEvent.type === "assembly"
+                                    ? paymentInfoHTML(latestEvent)
+                                    : ""
+                                }
+                                ${
+                                  canWriteReview
+                                    ? `
+                                  <div class="flex items-center gap-2 pt-3 border-t border-orange-200">
+                                    ${
+                                      hasReview
+                                        ? `
+                                      <span class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
+                                        <i class="fas fa-check-circle"></i>
+                                        후기 작성됨
+                                      </span>
+                                      <button
+                                        onclick="if(typeof window.openReviewModal === 'function') window.openReviewModal('${latestEvent.id}'); else console.error('openReviewModal is not defined');"
+                                        class="inline-flex items-center gap-1.5 px-4 py-1.5 bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold rounded-full transition-colors shadow-sm hover:shadow-md"
+                                      >
+                                        <i class="fas fa-edit"></i>
+                                        후기 수정하기
+                                      </button>
+                                    `
+                                        : `
+                                      <button
+                                        onclick="if(typeof window.openReviewModal === 'function') window.openReviewModal('${latestEvent.id}'); else console.error('openReviewModal is not defined');"
+                                        class="inline-flex items-center gap-1.5 px-4 py-1.5 bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold rounded-full transition-colors shadow-sm hover:shadow-md"
+                                      >
+                                        <i class="fas fa-star"></i>
+                                        후기 작성하기
+                                      </button>
+                                    `
+                                    }
+                                  </div>
+                                `
+                                    : ""
+                                }
+                              </div>
+                            </div>
+                          </div>
+                        `;
+                    })()}
+
                     <!-- 로그인 후 블록 표시 영역 (로드맵 위) -->
                     <div id="main-dynamic-blocks" class="space-y-4 md:space-y-6 mb-6"></div>
 
@@ -25389,6 +25592,7 @@
                         reviewCount > 0
                           ? `
                         <div class="mt-2 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg p-2 border border-orange-200">
+                          <!-- 전체 별점만 표시 -->
                           <div class="flex items-center justify-between mb-2">
                             <div class="flex items-center gap-2">
                               <div class="flex items-center gap-0.5">
@@ -25417,14 +25621,9 @@
                                   restaurant.eventId
                                 }" data-restaurant-index="${index}">
                                   <div class="review-item">
-                                    <div class="flex items-center justify-between mb-1">
-                                      <span class="text-xs font-semibold text-gray-700 flex items-center">
-                                        <i class="fas fa-user-circle mr-1 text-orange-500"></i>
-                                        익명
-                                      </span>
-                                      <div class="flex items-center gap-1">
-                                        ${renderStars(firstReview.rating || 0)}
-                                      </div>
+                                    <div class="flex items-center gap-2 mb-1">
+                                      <i class="fas fa-user-circle text-orange-500 text-lg"></i>
+                                      <span class="text-xs font-semibold text-gray-700">익명</span>
                                     </div>
                                     <p class="text-xs text-gray-700 leading-relaxed whitespace-pre-wrap review-text ${
                                       isLongReview &&
@@ -25437,7 +25636,7 @@
                                     isLongReview || hasMoreReviews
                                       ? `
                                     <button 
-                                      class="mt-2 text-xs text-orange-600 hover:text-orange-700 font-semibold flex items-center gap-1 show-all-reviews-btn ${
+                                      class="mt-3 w-full px-3 py-2 bg-white hover:bg-orange-50 border border-orange-300 text-orange-600 hover:text-orange-700 text-xs font-semibold rounded-lg transition-colors shadow-sm hover:shadow-md flex items-center justify-center gap-2 show-all-reviews-btn ${
                                         restaurant._showAllReviews
                                           ? "hidden"
                                           : ""
@@ -25448,7 +25647,7 @@
                                         restaurant.eventId
                                       }', ${index});"
                                     >
-                                      <i class="fas fa-chevron-down text-xs"></i>
+                                      <i class="fas fa-chevron-down"></i>
                                       후기 전체 보기 (${validReviews.length}개)
                                     </button>
                                     <div class="all-reviews-content hidden mt-2" id="all-reviews-${
@@ -25461,14 +25660,9 @@
                                           idx > 0
                                             ? `
                                           <div class="review-item mt-3 pt-3 border-t border-orange-200">
-                                            <div class="flex items-center justify-between mb-1">
-                                              <span class="text-xs font-semibold text-gray-700 flex items-center">
-                                                <i class="fas fa-user-circle mr-1 text-orange-500"></i>
-                                                익명
-                                              </span>
-                                              <div class="flex items-center gap-1">
-                                                ${renderStars(r.rating || 0)}
-                                              </div>
+                                            <div class="flex items-center gap-2 mb-1">
+                                              <i class="fas fa-user-circle text-orange-500 text-lg"></i>
+                                              <span class="text-xs font-semibold text-gray-700">익명</span>
                                             </div>
                                             <p class="text-xs text-gray-700 leading-relaxed whitespace-pre-wrap">${saf(
                                               r.comment || ""
@@ -25481,7 +25675,7 @@
                                         )
                                         .join("")}
                                       <button 
-                                        class="mt-2 text-xs text-gray-600 hover:text-gray-700 font-semibold flex items-center gap-1 hide-reviews-btn"
+                                        class="mt-3 w-full px-3 py-2 bg-gray-100 hover:bg-gray-200 border border-gray-300 text-gray-700 hover:text-gray-900 text-xs font-semibold rounded-lg transition-colors shadow-sm hover:shadow-md flex items-center justify-center gap-2 hide-reviews-btn"
                                         data-restaurant-id="${
                                           restaurant.eventId
                                         }"
@@ -25490,7 +25684,7 @@
                                           restaurant.eventId
                                         }', ${index});"
                                       >
-                                        <i class="fas fa-chevron-up text-xs"></i>
+                                        <i class="fas fa-chevron-up"></i>
                                         후기 접기
                                       </button>
                                     </div>
@@ -25817,111 +26011,20 @@
 
         // 식당 카드의 지도 초기화 함수
         const initializeRestaurantMaps = (restaurants) => {
-          if (
-            typeof naver === "undefined" ||
-            !naver.maps ||
-            !naver.maps.Service
-          ) {
-            // 네이버 지도 API가 로드되지 않은 경우
-            // 모든 지도 컨테이너에 에러 메시지 표시
-            restaurants.forEach((restaurant, index) => {
-              const mapContainerId = `restaurant-map-${restaurant.eventId}-${index}`;
-              const mapContainer = document.getElementById(mapContainerId);
-              if (mapContainer) {
-                mapContainer.innerHTML = `
-                  <div class="bg-gray-100 rounded-lg p-4 text-center text-gray-500 h-full flex items-center justify-center">
-                    <div>
-                      <i class="fas fa-map text-2xl mb-1"></i>
-                      <p class="text-xs">지도를 불러올 수 없습니다</p>
-                    </div>
-                  </div>
-                `;
-              }
-            });
-            return;
-          }
-
+          // 모든 지도 컨테이너에 준비중 메시지 표시
           restaurants.forEach((restaurant, index) => {
             const mapContainerId = `restaurant-map-${restaurant.eventId}-${index}`;
             const mapContainer = document.getElementById(mapContainerId);
-
-            if (!mapContainer) return;
-
-            // 식당 이름으로 주소 검색
-            if (!naver.maps.Service || !naver.maps.Service.geocode) {
+            if (mapContainer) {
               mapContainer.innerHTML = `
                 <div class="bg-gray-100 rounded-lg p-4 text-center text-gray-500 h-full flex items-center justify-center">
                   <div>
                     <i class="fas fa-map text-2xl mb-1"></i>
-                    <p class="text-xs">지도 서비스를 사용할 수 없습니다</p>
+                    <p class="text-xs">지도 서비스는 준비중입니다!</p>
                   </div>
                 </div>
               `;
-              return;
             }
-
-            naver.maps.Service.geocode(
-              {
-                query: restaurant.restaurantName,
-              },
-              function (status, response) {
-                if (status === naver.maps.Service.Status.ERROR) {
-                  mapContainer.innerHTML = `
-                    <div class="bg-gray-100 rounded-lg p-4 text-center text-gray-500 h-full flex items-center justify-center">
-                      <div>
-                        <i class="fas fa-map text-2xl mb-1"></i>
-                        <p class="text-xs">위치를 찾을 수 없습니다</p>
-                      </div>
-                    </div>
-                  `;
-                  return;
-                }
-
-                if (response.v2.meta.totalCount === 0) {
-                  mapContainer.innerHTML = `
-                    <div class="bg-gray-100 rounded-lg p-4 text-center text-gray-500 h-full flex items-center justify-center">
-                      <div>
-                        <i class="fas fa-map text-2xl mb-1"></i>
-                        <p class="text-xs">위치 정보가 없습니다</p>
-                      </div>
-                    </div>
-                  `;
-                  return;
-                }
-
-                const item = response.v2.addresses[0];
-                const point = new naver.maps.LatLng(
-                  parseFloat(item.y),
-                  parseFloat(item.x)
-                );
-
-                const map = new naver.maps.Map(mapContainer, {
-                  center: point,
-                  zoom: 16,
-                });
-
-                const marker = new naver.maps.Marker({
-                  position: point,
-                  map: map,
-                });
-
-                const infoWindow = new naver.maps.InfoWindow({
-                  content: `<div style="padding:8px;min-width:120px;text-align:center;font-size:12px;"><b>${saf(
-                    restaurant.restaurantName
-                  )}</b><br><span style="font-size:10px;">${
-                    item.roadAddress || item.jibunAddress
-                  }</span></div>`,
-                });
-
-                naver.maps.Event.addListener(marker, "click", function () {
-                  if (infoWindow.getMap()) {
-                    infoWindow.close();
-                  } else {
-                    infoWindow.open(map, marker);
-                  }
-                });
-              }
-            );
           });
         };
 
@@ -28218,7 +28321,7 @@
       }
 
       /* ===== 평가 작성 기능 ===== */
-      function openReviewModal(eventId) {
+      window.openReviewModal = function (eventId) {
         const event = eventsData.find((e) => e.id === eventId);
         if (!event) return;
 
@@ -28529,7 +28632,7 @@
           .addEventListener("click", closeReviewModal);
 
         document.getElementById("review-modal").classList.remove("hidden");
-      }
+      };
 
       async function saveEventReview(eventId, rating, comment) {
         const eventRef = doc(db, "events", eventId);
