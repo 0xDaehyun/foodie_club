@@ -21,6 +21,7 @@
 
 - [🌟 프로젝트 소개](#-프로젝트-소개)
 - [✨ 주요 기능](#-주요-기능)
+- [📁 프로젝트 구조](#-프로젝트-구조)
 - [🛠️ 기술 스택](#️-기술-스택)
 - [🚀 시작하기](#-시작하기)
 - [📱 화면 구성](#-화면-구성)
@@ -35,10 +36,11 @@
 
 ### 🎯 프로젝트 목표
 
-- **맛집 정보 공유**: 동아리원들이 발견한 맛집 정보를 체계적으로 관리
+- **맛집 정보 공유**: 동아리원들이 발견한 맛집 정보를 체계적으로 관리하고 검색
 - **일정 관리**: 미식회, MT, 총회 등 동아리 활동 일정을 효율적으로 관리
-- **커뮤니티 활성화**: 조모임 랭킹 시스템을 통한 동아리원 간 소통 증진
+- **커뮤니티 활성화**: 조모임 랭킹 시스템과 조짜기 기능을 통한 동아리원 간 소통 증진
 - **관리 효율성**: 관리자 도구를 통한 동아리 운영 자동화
+- **실시간 알림**: 카카오톡 알림을 통한 이벤트 및 회비 안내
 
 ---
 
@@ -46,22 +48,86 @@
 
 ### 🍽️ **미식회 & 이벤트 관리**
 
-- 📅 **일정 관리**: 달력 형태의 직관적인 일정 표시
-- 📝 **신청 시스템**: 이벤트별 참가 신청 및 관리
+- 📅 **일정 관리**: 달력 형태의 직관적인 일정 표시 및 관리
+- 📝 **신청 시스템**: 이벤트별 참가 신청 및 관리 (정원, 대기자 포함)
 - 👥 **인원 관리**: 정원 설정 및 대기자 관리
+- 🍴 **식당 관리**: 미식회별 여러 식당 등록 및 관리
+- 🔍 **식당 검색**: 식당 이름, 대표 메뉴, 리뷰 내용으로 검색 가능
+- ⭐ **리뷰 시스템**: 미식회 후기 작성 및 별점 평가
 - 📊 **통계**: 참가 현황 및 인기도 분석
+
+### 💰 **회비 관리 (MT/총회)**
+
+- 💸 **입금 정보 표시**: MT/총회 신청 시 회비 입금 정보 자동 표시
+- 📋 **계좌 정보**: 은행명, 계좌번호, 예금주 정보 제공
+- 📋 **복사 기능**: 계좌번호 클릭 또는 버튼으로 간편 복사
+- 💬 **카카오 알림**: 회비 입금 정보 자동 카카오톡 알림
+
+### 👥 **조모임 & 팀 구성**
+
+- 🏅 **조모임 랭킹**: 조모임 활동 기반 랭킹 시스템
+- 🎯 **조짜기 기능**: 
+  - 성별/학과 균형 맞추기 옵션
+  - 수동/자동 조장 설정
+  - 라운드 로빈 방식의 공정한 조 편성
+  - 조 편성 결과 확인 및 재편성
 
 ### 📚 **커뮤니티 기능**
 
 - 📢 **공지사항**: 중요한 소식 및 업데이트 알림
-- 💬 **소통 공간**: 동아리원 간 자유로운 소통
+- 💬 **Q&A**: 자주 묻는 질문 관리
 - 👤 **회원 관리**: 회원가입, 승인, 정보 관리
 - 🔐 **권한 관리**: 관리자 및 일반 회원 권한 구분
+- 📍 **실시간 접속자**: 현재 접속 중인 회원 표시
+
+### 📱 **알림 시스템**
+
+- 💬 **카카오톡 알림**: 
+  - 이벤트 신청 완료 알림
+  - MT/총회 회비 입금 정보 알림
+  - 미식회 신청 알림
+- 🔔 **자동 알림**: 이벤트 타입별 자동 알림 전송
 
 ### 📱 **반응형 디자인**
 
 - 💻 **데스크톱**: 전체 기능을 활용한 완전한 경험
 - 📱 **모바일**: 터치 최적화된 직관적인 인터페이스
+
+---
+
+## 📁 프로젝트 구조
+
+```
+프로젝트 루트/
+├── index.html              # 메인 HTML 파일
+├── styles.css              # 전역 스타일
+├── firebase.json           # Firebase 호스팅 설정
+├── js/
+│   ├── config/             # 설정 파일
+│   │   ├── firebase-config.js    # Firebase 설정
+│   │   └── kakao-config.js       # 카카오 SDK 설정
+│   ├── features/           # 기능별 모듈
+│   │   ├── notifications/
+│   │   │   └── kakao-notify.js   # 카카오 알림 모듈
+│   │   ├── dashboard/      # 대시보드 기능
+│   │   ├── events/         # 이벤트 관리
+│   │   ├── reviews/        # 리뷰 기능
+│   │   └── roadmap/        # 일정 관리
+│   ├── auth/               # 인증 관련
+│   ├── core/               # 핵심 기능
+│   ├── ui/                  # UI 컴포넌트
+│   ├── utils/               # 유틸리티 함수
+│   ├── auth.js              # 인증 로직
+│   ├── dashboard.js         # 대시보드
+│   ├── events.js            # 이벤트 관리
+│   ├── main.js              # 메인 로직
+│   └── ...                  # 기타 모듈
+├── icons/                   # 아이콘 파일
+├── FIREBASE_HOSTING_GUIDE.md    # Firebase 배포 가이드
+├── FIREBASE_MIGRATION_GUIDE.md   # Firebase 마이그레이션 가이드
+├── MODULARIZATION_GUIDE.md       # 모듈화 가이드
+└── README.md                # 프로젝트 문서
+```
 
 ---
 
@@ -71,21 +137,23 @@
 
 - **HTML5** - 시맨틱 마크업
 - **CSS3** - 스타일링 및 애니메이션
-- **JavaScript (ES6+)** - 동적 기능 구현
+- **JavaScript (ES6+)** - 동적 기능 구현 (모듈화 구조)
 - **Tailwind CSS** - 유틸리티 퍼스트 CSS 프레임워크
 
 ### **Backend & Database**
 
-- **Firebase Authentication** - 사용자 인증
+- **Firebase Authentication** - 사용자 인증 (익명 인증)
 - **Cloud Firestore** - 실시간 데이터베이스
+- **Firebase Storage** - 파일 저장 (식당 이미지 등)
 - **Firebase Hosting** - 웹 호스팅
 
-### **외부 라이브러리**
+### **외부 라이브러리 & API**
 
 - **Font Awesome** - 아이콘
 - **html2canvas** - 캘린더 이미지 다운로드
 - **DOMPurify** - XSS 방지
 - **XLSX** - 엑셀 파일 처리
+- **Kakao SDK** - 카카오 로그인 및 메시지 전송
 
 ---
 
@@ -95,35 +163,55 @@
 
 - 웹 브라우저 (Chrome, Firefox, Safari, Edge)
 - 인터넷 연결
+- Firebase 프로젝트 (배포 시)
 
 ### 🔧 설치 및 실행
 
 1. **저장소 클론**
 
    ```bash
-   git clone https://github.com/your-username/foodie-website.git
-   cd foodie-website
+   git clone https://github.com/0xDaehyun/foodie_club.git
+   cd foodie_club
    ```
 
 2. **Firebase 설정**
 
    - Firebase 프로젝트 생성
-   - `firebase-config.js` 파일에 설정 정보 입력
+   - `js/config/firebase-config.js` 파일에 Firebase 설정 정보 입력
+   - `js/config/kakao-config.js` 파일에 카카오 JavaScript 키 입력
 
-3. **웹 서버 실행**
+3. **로컬 개발 서버 실행**
 
    ```bash
-   # 간단한 로컬 서버 실행 (Python 3)
+   # Python 3 사용
    python -m http.server 8000
 
-   # 또는 Node.js 서버
+   # 또는 Node.js 사용
    npx serve .
+
+   # 또는 Firebase CLI 사용
+   firebase serve
    ```
 
 4. **브라우저에서 접속**
    ```
    http://localhost:8000
    ```
+
+### 🚀 배포
+
+Firebase Hosting을 통한 배포 방법은 [FIREBASE_HOSTING_GUIDE.md](./FIREBASE_HOSTING_GUIDE.md)를 참조하세요.
+
+```bash
+# Firebase CLI 설치
+npm install -g firebase-tools
+
+# Firebase 로그인
+firebase login
+
+# 배포
+firebase deploy --only hosting
+```
 
 ---
 
@@ -134,18 +222,31 @@
 - 로그인/회원가입 폼
 - 현재 접속자 목록
 - 조모임 랭킹 (로그인 시)
+- 최근 신청한 활동 정보 표시
+- 공지사항 및 Q&A 블록
 
-### 📅 **일정 관리**
+### 📅 **일정 관리 (로드맵)**
 
 - 달력 형태의 일정 표시
 - 이벤트 상세 정보 및 신청
 - 관리자용 일정 추가/수정 기능
+- 이벤트 타입별 필터링 (미식회, MT, 총회, 일반 이벤트)
+
+### 🍽️ **미식회 리뷰**
+
+- 식당별 리뷰 작성 및 별점 평가
+- 식당 검색 및 필터링
+- 카테고리별 식당 분류
+- 최신순/별점순 정렬
 
 ### 👥 **관리자 패널**
 
 - 회원 관리 및 승인
 - 이벤트 생성 및 관리
+- 조모임 랭킹 관리
+- 공지사항 및 Q&A 관리
 - 통계 및 분석 도구
+- 회비/계좌 정보 설정
 
 ---
 
@@ -157,18 +258,21 @@
 - **빠른 로딩**: 최적화된 코드로 빠른 페이지 로딩
 - **반응형 디자인**: 모든 기기에서 완벽한 경험
 - **접근성**: 다양한 사용자를 고려한 접근성 설계
+- **실시간 업데이트**: Firebase를 통한 실시간 데이터 동기화
 
 ### 🔒 **보안**
 
 - **XSS 방지**: DOMPurify를 통한 안전한 HTML 처리
 - **권한 관리**: 역할 기반 접근 제어
 - **데이터 검증**: 입력 데이터 유효성 검사
+- **익명 인증**: Firebase 익명 인증을 통한 사용자 식별
 
 ### ⚡ **성능**
 
 - **실시간 업데이트**: Firebase를 통한 실시간 데이터 동기화
 - **캐싱**: 로컬 스토리지를 활용한 데이터 캐싱
 - **최적화**: 불필요한 리렌더링 방지
+- **모듈화**: 기능별 모듈 분리로 유지보수성 향상
 
 ---
 
@@ -176,10 +280,10 @@
 
 ### 🎯 **개발자: 회장 이대현**
 
--  총괄 개발 및 기획
--  데이터베이스 설계
--  UI/UX 디자인 및 기획
--  콘텐츠 및 마케팅
+- 총괄 개발 및 기획
+- 데이터베이스 설계
+- UI/UX 디자인 및 기획
+- 콘텐츠 및 마케팅
 
 ### 🙏 **특별 감사**
 
@@ -193,21 +297,30 @@
 
 - [ ] 모바일 앱 개발
 - [ ] 실시간 채팅 기능 추가
-- [ ] 맛집 리뷰 시스템 구축
+- [ ] 지도 서비스 연동 (식당 위치 표시)
 
 ### 🌟 **장기 계획**
 
-- [ ] 페이먼트 시스템 연결 후 결제 시스템 구현
-- [ ] 소셜 로그인 연동
+- [ ] 결제 시스템 구현
+- [ ] 소셜 로그인 추가 연동 (구글, 네이버)
 - [ ] 다국어 지원
+- [ ] PWA (Progressive Web App) 지원
 
 ---
 
 ## 📞 문의 및 지원
 
 - **이메일**: leedaehyun11@naver.com
-- **GitHub Issues**: [Issues 페이지](https://github.com/your-username/foodie-website/issues)
+- **GitHub**: [0xDaehyun/foodie_club](https://github.com/0xDaehyun/foodie_club)
 - **동아리 연락처**: 전북대학교 Foodie 동아리 인스타그램
+
+---
+
+## 📚 관련 문서
+
+- [Firebase Hosting 배포 가이드](./FIREBASE_HOSTING_GUIDE.md)
+- [Firebase 마이그레이션 가이드](./FIREBASE_MIGRATION_GUIDE.md)
+- [모듈화 가이드](./MODULARIZATION_GUIDE.md)
 
 ---
 
@@ -226,11 +339,11 @@
 
 ### 📊 프로젝트 통계
 
-![GitHub stars](https://img.shields.io/github/stars/your-username/foodie-website?style=social)
-![GitHub forks](https://img.shields.io/github/forks/your-username/foodie-website?style=social)
-![GitHub issues](https://img.shields.io/github/issues/your-username/foodie-website)
-![GitHub pull requests](https://img.shields.io/github/issues-pr/your-username/foodie-website)
+![GitHub stars](https://img.shields.io/github/stars/0xDaehyun/foodie_club?style=social)
+![GitHub forks](https://img.shields.io/github/forks/0xDaehyun/foodie_club?style=social)
+![GitHub issues](https://img.shields.io/github/issues/0xDaehyun/foodie_club)
+![GitHub pull requests](https://img.shields.io/github/issues-pr/0xDaehyun/foodie_club)
 
-![GitHub last commit](https://img.shields.io/github/last-commit/your-username/foodie-website)
-![GitHub contributors](https://img.shields.io/github/contributors/your-username/foodie-website)
-![GitHub repo size](https://img.shields.io/github/repo-size/your-username/foodie-website)
+![GitHub last commit](https://img.shields.io/github/last-commit/0xDaehyun/foodie_club)
+![GitHub contributors](https://img.shields.io/github/contributors/0xDaehyun/foodie_club)
+![GitHub repo size](https://img.shields.io/github/repo-size/0xDaehyun/foodie_club)
