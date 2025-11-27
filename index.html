@@ -11334,7 +11334,9 @@
         if (act === "admin-unpost") return unpostEvent(id);
         if (act === "group-maker") {
           console.log("🎯 조짜기 버튼 클릭됨:", id);
-          return openGroupMakerModal(id);
+          return window.openGroupMakerModal
+            ? window.openGroupMakerModal(id)
+            : showAlert("😥", "조짜기 기능을 불러올 수 없습니다.");
         }
         if (act === "admin-delete") return deleteEvent(id);
         if (act === "export-xlsx") return exportApplicantsXLSX(id);
@@ -28185,7 +28187,9 @@
             showAlert("🔒", "관리자만 이벤트를 관리할 수 있습니다.");
             return;
           }
-          return openGroupMakerModal(id);
+          return window.openGroupMakerModal
+            ? window.openGroupMakerModal(id)
+            : showAlert("😥", "조짜기 기능을 불러올 수 없습니다.");
         }
         if (act === "admin-delete") {
           if (!isFullAdmin()) {
