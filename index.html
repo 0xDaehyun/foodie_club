@@ -4488,6 +4488,19 @@
       const isKakaoTalkInAppBrowser = /KAKAOTALK/i.test(navigator.userAgent);
       debugLog("카카오톡 인앱 브라우저:", isKakaoTalkInAppBrowser);
 
+      // 로딩 진행률 관리 (먼저 정의 - updateLoadingProgress 호출 전에 필요)
+      let loadingProgress = 0;
+      function updateLoadingProgress(step, text) {
+        // 신버전 로딩 화면은 CSS 애니메이션만 사용하므로 진행률 업데이트 불필요
+        // step이 2면 완료로 간주
+        if (step === 2 || step >= 100) {
+          loadingProgress = 100;
+        } else {
+          loadingProgress = Math.min(90, step * 30);
+        }
+        debugLog(`로딩 진행률: ${loadingProgress}% - ${text || ""}`);
+      }
+
       const checkLoadingComplete = () => {
         debugLog(
           `로딩 완료 체크: ${__loadingDataCount}/${__expectedDataSources}, 초기로딩: ${__isInitialLoading}`
@@ -8694,246 +8707,10 @@
           });
       }
 
-      // 로드맵 일정 수정 모달
-      window.openRoadmapEventEditModal = function (eventId, eventIndex) {
-        const event = roadmapData.find((e) => e.id === eventId);
-        if (!event) return;
-
-        const modalHTML = `
-                <div id="roadmap-event-edit-modal" class="fixed inset-0 bg-black/60 flex justify-center items-center px-4 z-50">
-                  <div class="bg-white p-6 md:p-7 rounded-2xl shadow-xl max-w-md w-full">
-                    <h3 class="text-xl font-bold text-gray-800 mb-4">로드맵 일정 수정</h3>
-                    <div class="space-y-4">
-                      <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">일정 제목</label>
-                        <input id="roadmap-event-edit-name" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500" value="${saf(
-                          event.activityName
-                        )}" placeholder="일정 제목">
-                      </div>
-                      <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">날짜</label>
-                        <input id="roadmap-event-edit-date" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500" value="${
-                          event.activityDate
-                        }">
-                      </div>
-                      <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">설명</label>
-                        <textarea id="roadmap-event-edit-description" rows="5" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500" placeholder="일정 설명을 입력하세요&#10;줄바꿈이 가능합니다">${saf(
-                          event.description || ""
-                        )}</textarea>
-                        <p class="text-xs text-gray-500 mt-1">💡 Enter 키로 줄바꿈이 가능합니다</p>
-                      </div>
-                      <div>
-                        <label class="flex items-center gap-2">
-                          <input id="roadmap-event-edit-admin-only" type="checkbox" class="w-4 h-4 text-orange-600 bg-white border border-gray-300 rounded focus:ring-orange-500 focus:ring-2" ${
-                            event.isAdminOnly ? "checked" : ""
-                          }>
-                          <span class="text-sm font-medium text-gray-700">관리자만 보이도록 설정</span>
-                        </label>
-                        <p class="text-xs text-gray-500 mt-1">체크하면 일반 회원에게는 보이지 않습니다</p>
-                      </div>
-                      <input id="roadmap-event-edit-id" type="hidden" value="${eventId}">
-                    </div>
-                    <div class="flex gap-3 mt-6">
-                      <button id="roadmap-event-edit-save" class="flex-1 bg-orange-500 text-white py-2 px-4 rounded-lg hover:bg-orange-600 transition-colors">
-                        <i class="fas fa-save mr-2"></i>수정
-                      </button>
-                      <button id="roadmap-event-edit-cancel" class="flex-1 bg-gray-500 text-white py-2 px-4 rounded-lg hover:bg-gray-600 transition-colors">
-                        취소
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              `;
-
-        // 기존 모달 제거
-        const existingModal = document.getElementById(
-          "roadmap-event-edit-modal"
-        );
-        if (existingModal) existingModal.remove();
-
-        document.body.insertAdjacentHTML("beforeend", modalHTML);
-
-        // 이벤트 리스너 추가
-        document
-          .getElementById("roadmap-event-edit-save")
-          .addEventListener("click", async () => {
-            const eventId = document.getElementById(
-              "roadmap-event-edit-id"
-            ).value;
-            const name = document
-              .getElementById("roadmap-event-edit-name")
-              .value.trim();
-            const date = document.getElementById(
-              "roadmap-event-edit-date"
-            ).value;
-            const description = document.getElementById(
-              "roadmap-event-edit-description"
-            ).value;
-            const isAdminOnly = document.getElementById(
-              "roadmap-event-edit-admin-only"
-            ).checked;
-
-            if (!name) {
-              showAlert("😥", "일정 제목을 입력해주세요.");
-              return;
-            }
-
-            if (!date) {
-              showAlert("😥", "날짜를 선택해주세요.");
-              return;
-            }
-
-            try {
-              console.log("로드맵 수정 시도:", {
-                eventId,
-                name,
-                date,
-                description,
-              });
-              console.log("현재 roadmapData:", roadmapData);
-              console.log(
-                "찾으려는 이벤트:",
-                roadmapData.find((e) => e.id === eventId)
-              );
-
-              // 문서 존재 여부 확인
-              const docRef = doc(db, "roadmap", eventId);
-              const docSnap = await getDoc(docRef);
-
-              console.log("문서 존재 여부:", docSnap.exists());
-              console.log(
-                "문서 데이터:",
-                docSnap.exists() ? docSnap.data() : "문서 없음"
-              );
-
-              if (!docSnap.exists()) {
-                showAlert("😥", "수정하려는 일정을 찾을 수 없습니다.");
-                return;
-              }
-
-              await updateDoc(docRef, {
-                activityName: name,
-                activityDate: date,
-                description: description,
-                isAdminOnly: isAdminOnly,
-              });
-              showAlert("✅", "로드맵 일정이 수정되었습니다.");
-              document.getElementById("roadmap-event-edit-modal").remove();
-              // 수정 후 로드맵 새로고침 (onSnapshot으로 자동 업데이트됨)
-            } catch (error) {
-              console.error("일정 수정 오류:", error);
-              if (error.code === "not-found") {
-                showAlert("😥", "수정하려는 일정을 찾을 수 없습니다.");
-              } else {
-                showAlert("😥", "일정 수정에 실패했습니다.");
-              }
-            }
-          });
-
-        document
-          .getElementById("roadmap-event-edit-cancel")
-          .addEventListener("click", () => {
-            document.getElementById("roadmap-event-edit-modal").remove();
-          });
-      };
+      // 로드맵 일정 수정 모달은 js/features/events/event-detail-modal.js로 이동됨
 
       /* ===================== 참가자 더보기 토글 ===================== */
-      window.toggleParticipantsList = function (event, uniqueId, hiddenCount) {
-        if (event) {
-          event.preventDefault();
-          event.stopPropagation();
-        }
-
-        const hiddenDiv = document.getElementById(`${uniqueId}-hidden`);
-        if (!hiddenDiv) {
-          console.error("숨겨진 참가자 목록을 찾을 수 없습니다:", uniqueId);
-          return;
-        }
-
-        // event.target 또는 event.currentTarget 사용
-        let button = event ? event.currentTarget || event.target : null;
-
-        // 버튼이 클릭된 요소가 아니라면 가장 가까운 button 찾기
-        if (button && button.tagName !== "BUTTON") {
-          button = button.closest("button");
-        }
-
-        if (!button) {
-          console.error("버튼을 찾을 수 없습니다");
-          return;
-        }
-
-        const icon = button.querySelector("i");
-        const text = button.querySelector("span");
-
-        if (!icon || !text) {
-          // 폴백: innerHTML로 직접 변경 (정상 작동)
-          const isHidden = hiddenDiv.classList.contains("hidden");
-          if (isHidden) {
-            hiddenDiv.classList.remove("hidden");
-            button.innerHTML = `<i class="fas fa-chevron-up"></i><span>접기</span>`;
-          } else {
-            hiddenDiv.classList.add("hidden");
-            button.innerHTML = `<i class="fas fa-chevron-down"></i><span>외 ${hiddenCount}명 더보기</span>`;
-          }
-          return;
-        }
-
-        const isHidden = hiddenDiv.classList.contains("hidden");
-
-        if (isHidden) {
-          // 펼치기
-          hiddenDiv.classList.remove("hidden");
-          icon.className = "fas fa-chevron-up";
-          text.textContent = "접기";
-        } else {
-          // 접기
-          hiddenDiv.classList.add("hidden");
-          icon.className = "fas fa-chevron-down";
-          text.textContent = `외 ${hiddenCount}명 더보기`;
-        }
-      };
-
-      /* ===================== 신청 탭 ===================== */
-      /* ===================== 미식회 참가자 상세 토글 (신청 카드 전용) ===================== */
-      window.toggleRestaurantParticipantsDetails = function (event, uniqueId) {
-        if (event) {
-          event.preventDefault();
-          event.stopPropagation();
-        }
-
-        const detailDiv = document.getElementById(`${uniqueId}-details`);
-        if (!detailDiv) {
-          console.error("참가자 상세 목록을 찾을 수 없습니다:", uniqueId);
-          return;
-        }
-
-        let button = event ? event.currentTarget || event.target : null;
-        if (button && button.tagName !== "BUTTON") {
-          button = button.closest("button");
-        }
-        if (!button) {
-          console.error("참가자 상세 토글 버튼을 찾을 수 없습니다");
-          return;
-        }
-
-        const icon = button.querySelector("i");
-        const text = button.querySelector("span");
-        const isHidden = detailDiv.classList.contains("hidden");
-
-        if (isHidden) {
-          // 펼치기
-          detailDiv.classList.remove("hidden");
-          if (icon) icon.className = "fas fa-chevron-up";
-          if (text) text.textContent = "참가자 상세 접기";
-        } else {
-          // 접기
-          detailDiv.classList.add("hidden");
-          if (icon) icon.className = "fas fa-chevron-down";
-          if (text) text.textContent = "참가자 상세 보기";
-        }
-      };
+      // toggleParticipantsList와 toggleRestaurantParticipantsDetails는 js/features/events/participants.js로 이동됨
 
       function computeEventStats(ev) {
         const getAll = () => {
@@ -10263,195 +10040,22 @@
           return saf(String(value));
         };
 
-        const getParticipationDetails = (ev) => {
-          if (!currentUser?.studentId) {
-            return {
-              restaurantName: "",
-              companionsLine: "",
-              isWaitlisted: false,
-              myEntry: null,
-              waitPosition: null,
-              restaurantInfo: null,
-              restaurantId: null,
-              applicantCount: (ev.applicants || []).length,
-              waitingCount: (ev.waiting || []).length,
-            };
-          }
-
-          const sid = currentUser.studentId;
-          let restaurantName = "";
-          let restaurantInfo = null;
-          let isWaitlisted = false;
-          let waitPosition = null;
-          let myEntry = null;
-          const companionNames = [];
-
-          if (ev.type === "tasting" && Array.isArray(ev.restaurants)) {
-            for (const restaurant of ev.restaurants) {
-              const restaurantId =
-                restaurant.id ||
-                restaurant.rid ||
-                restaurant.restaurantId ||
-                restaurant.name ||
-                "";
-              const reservations = restaurant.reservations || [];
-              const waitings = restaurant.waiting || [];
-              const reservationIndex = reservations.findIndex(
-                (res) => res.studentId === sid
-              );
-
-              if (reservationIndex >= 0) {
-                restaurantName = restaurant.name || "";
-                myEntry = reservations[reservationIndex];
-                restaurantInfo = {
-                  id: restaurantId || null,
-                  name: restaurant.name || "",
-                  capacity: restaurant.capacity ?? reservations.length,
-                  reservations: reservations.length,
-                  waiting: waitings.length,
-                };
-                reservations.forEach((res) => {
-                  if (res.studentId !== sid) {
-                    companionNames.push(
-                      res.name || maskStudentIdGlobal(res.studentId)
-                    );
-                  }
-                });
-                break;
-              }
-
-              const waitingIndex = waitings.findIndex(
-                (res) => res.studentId === sid
-              );
-              if (waitingIndex >= 0) {
-                restaurantName = restaurant.name || "";
-                isWaitlisted = true;
-                waitPosition = waitingIndex + 1;
-                myEntry = waitings[waitingIndex];
-                restaurantInfo = {
-                  id: restaurantId || null,
-                  name: restaurant.name || "",
-                  capacity: restaurant.capacity ?? reservations.length,
-                  reservations: reservations.length,
-                  waiting: waitings.length,
-                };
-                waitings.forEach((res) => {
-                  if (res.studentId !== sid) {
-                    companionNames.push(
-                      res.name || maskStudentIdGlobal(res.studentId)
-                    );
-                  }
-                });
-                break;
-              }
-            }
-          } else {
-            const applicants = ev.applicants || [];
-            const waiting = ev.waiting || [];
-            const applicantIndex = applicants.findIndex(
-              (applicant) => applicant.studentId === sid
-            );
-            const waitingIndex = waiting.findIndex(
-              (applicant) => applicant.studentId === sid
-            );
-
-            if (applicantIndex >= 0) {
-              myEntry = applicants[applicantIndex];
-              applicants.forEach((applicant, index) => {
-                if (applicant.studentId !== sid) {
-                  companionNames.push(
-                    applicant.name || maskStudentIdGlobal(applicant.studentId)
-                  );
-                }
+        // getParticipationDetails는 js/features/events/participants.js로 이동됨
+        // getParticipationDetails는 전역 함수로 접근
+        const getParticipationDetails =
+          typeof window.getParticipationDetails === "function"
+            ? window.getParticipationDetails
+            : () => ({
+                restaurantName: "",
+                companionsLine: "",
+                isWaitlisted: false,
+                myEntry: null,
+                waitPosition: null,
+                restaurantInfo: null,
+                restaurantId: null,
+                applicantCount: 0,
+                waitingCount: 0,
               });
-            } else if (waitingIndex >= 0) {
-              myEntry = waiting[waitingIndex];
-              isWaitlisted = true;
-              waitPosition = waitingIndex + 1;
-              waiting.forEach((applicant) => {
-                if (applicant.studentId !== sid) {
-                  companionNames.push(
-                    applicant.name || maskStudentIdGlobal(applicant.studentId)
-                  );
-                }
-              });
-            } else {
-              applicants.forEach((applicant) => {
-                companionNames.push(
-                  applicant.name || maskStudentIdGlobal(applicant.studentId)
-                );
-              });
-            }
-          }
-
-          let companionsLine = "";
-          if (companionNames.length > 0) {
-            const uniqueNames = [
-              ...new Set(companionNames.filter((name) => !!name)),
-            ].map((name) => saf(name));
-            const displayNames = uniqueNames.slice(0, 3).join(", ");
-            const extraCount =
-              uniqueNames.length > 3 ? ` 외 ${uniqueNames.length - 3}명` : "";
-            companionsLine = `함께한 회원: ${displayNames}${extraCount}`;
-          } else if (isWaitlisted) {
-            companionsLine = "대기 목록에 등록되어 있습니다.";
-          }
-
-          return {
-            restaurantName,
-            companionsLine,
-            isWaitlisted,
-            myEntry,
-            waitPosition,
-            restaurantInfo,
-            restaurantId: restaurantInfo?.id || null,
-            applicantCount: (ev.applicants || []).length,
-            waitingCount: (ev.waiting || []).length,
-          };
-
-          /* ===================== 미식회 참가자 상세 토글 (신청 카드 전용) ===================== */
-          window.toggleRestaurantParticipantsDetails = function (
-            event,
-            uniqueId
-          ) {
-            if (event) {
-              event.preventDefault();
-              event.stopPropagation();
-            }
-
-            const detailDiv = document.getElementById(`${uniqueId}-details`);
-            if (!detailDiv) {
-              console.error("참가자 상세 목록을 찾을 수 없습니다:", uniqueId);
-              return;
-            }
-
-            let button = event ? event.currentTarget || event.target : null;
-            if (button && button.tagName !== "BUTTON") {
-              button = button.closest("button");
-            }
-            if (!button) {
-              console.error("참가자 상세 토글 버튼을 찾을 수 없습니다");
-              return;
-            }
-
-            const icon = button.querySelector("i");
-            const text = button.querySelector("span");
-            const isHidden = detailDiv.classList.contains("hidden");
-
-            if (isHidden) {
-              // 펼치기
-              detailDiv.classList.remove("hidden");
-              if (icon) icon.className = "fas fa-chevron-up";
-              if (text) text.textContent = "참가자 상세 접기";
-            } else {
-              // 접기
-              detailDiv.classList.add("hidden");
-              if (icon) icon.className = "fas fa-chevron-down";
-              if (text) text.textContent = "참가자 상세 보기";
-            }
-          };
-        };
-        window.getParticipationDetails = getParticipationDetails;
 
         const renderRatingStars = (rating) => {
           if (rating == null || Number.isNaN(Number(rating))) return "";
@@ -11329,7 +10933,10 @@
         if (act === "admin-reopen") return reopenEvent(id);
         if (act === "admin-archive") return archiveEvent(id);
         if (act === "admin-unarchive") return unarchiveEvent(id);
-        if (act === "admin-add-participant") return openAddParticipantModal(id);
+        if (act === "admin-add-participant")
+          return window.openAddParticipantModal
+            ? window.openAddParticipantModal(id)
+            : showAlert("오류", "참가자 추가 기능을 불러올 수 없습니다.");
         if (act === "admin-complete") return completeEvent(id);
         if (act === "admin-unpost") return unpostEvent(id);
         if (act === "group-maker") {
@@ -12064,194 +11671,7 @@
       }
 
       // 전역 스코프에 노출 (onclick 핸들러에서 사용)
-      window.confirmRemoveParticipant = async function (
-        eventId,
-        studentId,
-        listType,
-        restaurantId = null
-      ) {
-        // 회장단 권한 체크
-        if (!isFullAdmin()) {
-          showAlert("🔒", "회장단만 참가자를 제외할 수 있습니다.");
-          return;
-        }
-
-        // 이벤트 정보 가져오기
-        const event = eventsData.find((e) => e.id === eventId);
-        if (!event) {
-          showAlert("😥", "이벤트를 찾을 수 없습니다.");
-          return;
-        }
-
-        // 참가자 정보 찾기
-        let participant = null;
-        let participantName = "";
-
-        if (restaurantId) {
-          // 미식회 경우
-          const restaurant = event.restaurants?.find(
-            (r) => r.id === restaurantId
-          );
-          if (!restaurant) {
-            showAlert("😥", "식당을 찾을 수 없습니다.");
-            return;
-          }
-          const list =
-            listType === "reservations"
-              ? restaurant.reservations
-              : restaurant.waiting;
-          participant = list?.find((p) => p.studentId === studentId);
-          participantName = participant?.name || "";
-        } else {
-          // 일반 이벤트 경우
-          const list =
-            listType === "applicants" ? event.applicants : event.waiting;
-          participant = list?.find((p) => p.studentId === studentId);
-          participantName = participant?.name || "";
-        }
-
-        if (!participant) {
-          showAlert("😥", "참가자를 찾을 수 없습니다.");
-          return;
-        }
-
-        // 확인 문구
-        const confirmMsg = `해당 참가자를 제외시키겠습니까?\n\n이름: ${participantName} (${maskStudentIdGlobal(
-          studentId
-        )})\n이벤트: ${event.title}`;
-
-        if (!confirm(confirmMsg)) {
-          return;
-        }
-
-        // 제외 실행
-        await removeParticipant(eventId, studentId, listType, restaurantId);
-      };
-
-      async function removeParticipant(
-        eventId,
-        studentId,
-        listType,
-        restaurantId = null
-      ) {
-        let wasRemoved = false;
-        let eventTitle = "";
-
-        try {
-          await runTransaction(
-            db,
-            async (tx) => {
-              const ref = doc(db, "events", eventId);
-              const snap = await tx.get(ref);
-              const ev = snap.data();
-              eventTitle = ev.title;
-
-              if (restaurantId) {
-                // 미식회 경우
-                const idx = ev.restaurants.findIndex(
-                  (r) => r.id === restaurantId
-                );
-                if (idx === -1) throw new Error("restaurant not found");
-                const r = ev.restaurants[idx];
-
-                // 참가자 찾기 및 제외
-                const before =
-                  listType === "reservations"
-                    ? r.reservations?.length
-                    : r.waiting?.length;
-
-                if (listType === "reservations") {
-                  r.reservations = r.reservations.filter(
-                    (p) => p.studentId !== studentId
-                  );
-                } else {
-                  r.waiting = r.waiting.filter(
-                    (p) => p.studentId !== studentId
-                  );
-                }
-
-                ev.restaurants[idx] = r;
-                tx.update(ref, { restaurants: ev.restaurants });
-
-                wasRemoved =
-                  (listType === "reservations"
-                    ? r.reservations.length
-                    : r.waiting.length) < before;
-              } else {
-                // 일반 이벤트 경우
-                const before =
-                  listType === "applicants"
-                    ? ev.applicants?.length
-                    : ev.waiting?.length;
-
-                if (listType === "applicants") {
-                  ev.applicants = ev.applicants.filter(
-                    (p) => p.studentId !== studentId
-                  );
-                } else {
-                  ev.waiting = ev.waiting.filter(
-                    (p) => p.studentId !== studentId
-                  );
-                }
-
-                tx.update(ref, {
-                  applicants: ev.applicants,
-                  waiting: ev.waiting,
-                });
-
-                wasRemoved =
-                  (listType === "applicants"
-                    ? ev.applicants.length
-                    : ev.waiting.length) < before;
-              }
-            },
-            TRANSACTION_OPTIONS
-          );
-
-          // transaction 완료 후 알림 전송
-          if (wasRemoved) {
-            await sendRemovalNotification(eventId, studentId, eventTitle);
-          }
-
-          showAlert("✅", "참가자가 제외되었습니다.");
-          renderReservationTab(isFullAdmin());
-        } catch (error) {
-          console.error("참가자 제외 오류:", error);
-          if (error?.code === "resource-exhausted")
-            showAlert(
-              "😥",
-              "요청이 너무 많아 잠시 후 다시 시도해주세요.<br>불편을 드려 죄송합니다."
-            );
-          else showAlert("😥", "참가자 제외 실패");
-        }
-      }
-
-      async function sendRemovalNotification(eventId, studentId, eventTitle) {
-        try {
-          console.log("📤 참가자 제외 알림 전송 시도:", {
-            eventId,
-            studentId,
-            eventTitle,
-          });
-
-          // 알림 데이터 생성
-          const notificationData = {
-            type: "participant_removed",
-            eventId: eventId,
-            eventTitle: eventTitle,
-            studentId: studentId,
-            message: `안녕하세요. ${eventTitle} 이벤트에서 참가자에서 제외되었습니다. 문의사항이 있으시면 운영진에게 연락해주세요.`,
-            createdAt: new Date().toISOString(),
-            read: false,
-          };
-
-          // 알림 저장 (notifications 컬렉션 사용)
-          await addDoc(collection(db, "notifications"), notificationData);
-          console.log("✅ 참가자 제외 알림 전송 성공");
-        } catch (error) {
-          console.error("❌ 알림 전송 실패:", error);
-        }
-      }
+      // confirmRemoveParticipant, removeParticipant, sendRemovalNotification은 js/features/events/participants.js로 이동됨
 
       /* ===== 알림 UI 렌더링 ===== */
       function renderNotifications() {
@@ -12706,8 +12126,9 @@
       }
       window.unarchiveEvent = unarchiveEvent;
 
+      // openAddParticipantModal은 js/features/events/participants.js로 이동됨
       // 보관된 이벤트에 참가자 추가 모달 열기
-      async function openAddParticipantModal(eventId) {
+      async function openAddParticipantModal_OLD(eventId) {
         // 이미 열려 있는 참가자 수정 모달이 있다면 제거
         closeAddParticipantModal();
 
@@ -13077,7 +12498,6 @@
           searchParticipants(searchInput.value);
         }
       }
-      window.openAddParticipantModal = openAddParticipantModal;
 
       // 참가자 추가 모달 닫기
       function closeAddParticipantModal() {
@@ -13595,565 +13015,7 @@
           showAlert("😥", `활동 삭제에 실패했습니다: ${error.message}`);
         }
       }
-      // ==================== 조짜기 기능 (새 버전 - 간단명료) ====================
-
-      // 조장 선택기 업데이트 (먼저 정의)
-      function updateLeaderSelectorsNew(
-        participants,
-        groupCount,
-        preserveSelections = false
-      ) {
-        const container = document.getElementById("leader-selectors-new");
-        if (!container) return;
-
-        // 기존 선택 정보 저장 (preserveSelections가 true일 때만)
-        const previousSelections = {};
-        if (preserveSelections) {
-          container.querySelectorAll(".leader-select-new").forEach((select) => {
-            if (select.value) {
-              previousSelections[select.dataset.group] = select.value;
-            }
-          });
-        }
-
-        // 모든 선택기에서 선택된 조장들 수집
-        const selectedLeaders = new Set(Object.values(previousSelections));
-
-        container.innerHTML = "";
-        for (let i = 1; i <= groupCount; i++) {
-          const currentSelection = previousSelections[i] || "";
-
-          container.innerHTML += `
-                  <div class="flex items-center gap-2 p-2 bg-white border rounded-lg">
-                    <div class="w-10 h-10 bg-gradient-to-br from-yellow-400 to-orange-400 rounded-full flex items-center justify-center text-white font-bold">
-                      ${i}
-                    </div>
-                    <select class="leader-select-new flex-1 px-3 py-2 border rounded-lg text-sm focus:border-yellow-400" data-group="${i}">
-                      <option value="">조장 선택</option>
-                      ${participants
-                        .map((p) => {
-                          // 이미 다른 조에서 선택된 조장은 비활성화 (현재 조의 선택은 제외)
-                          const isSelected =
-                            selectedLeaders.has(p.studentId) &&
-                            currentSelection !== p.studentId;
-                          const selectedAttr =
-                            currentSelection === p.studentId ? "selected" : "";
-                          const disabledAttr = isSelected ? "disabled" : "";
-                          const label = isSelected
-                            ? `${p.name} (이미 선택됨)`
-                            : `${p.name} (${p.gender}/${p.college})`;
-                          return `<option value="${p.studentId}" ${selectedAttr} ${disabledAttr}>${label}</option>`;
-                        })
-                        .join("")}
-                    </select>
-                  </div>
-                `;
-        }
-
-        // 조장 선택 시 다른 선택기 업데이트
-        container.querySelectorAll(".leader-select-new").forEach((select) => {
-          select.addEventListener("change", () => {
-            updateLeaderSelectorsNew(participants, groupCount, true);
-          });
-        });
-      }
-
-      // 조 생성 알고리즘 (라운드 로빈)
-      function createGroupsNew(
-        participants,
-        groupCount,
-        genderBalance,
-        collegeMix,
-        leaderMode
-      ) {
-        const groups = Array.from({ length: groupCount }, () => []);
-        // 기존 isLeader 플래그 제거하고 복사
-        const members = participants.map((p) => {
-          const clean = { ...p };
-          delete clean.isLeader;
-          return clean;
-        });
-
-        // 1. 수동 조장 선택
-        const selectedLeaders = new Set();
-        const manualLeaderAssignments = []; // 조장 할당 정보 저장
-
-        if (leaderMode === "manual") {
-          document.querySelectorAll(".leader-select-new").forEach((select) => {
-            const leaderStudentId = select.value;
-            if (leaderStudentId && !selectedLeaders.has(leaderStudentId)) {
-              selectedLeaders.add(leaderStudentId);
-              const leaderIdx = members.findIndex(
-                (p) => p.studentId === leaderStudentId
-              );
-              if (leaderIdx >= 0) {
-                const leader = members.splice(leaderIdx, 1)[0];
-                leader.isLeader = true;
-                const groupIdx = parseInt(select.dataset.group) - 1;
-
-                // 조장을 맨 앞에 배치
-                groups[groupIdx].unshift(leader);
-
-                manualLeaderAssignments.push({
-                  studentId: leaderStudentId,
-                  name: leader.name,
-                  groupIdx: groupIdx,
-                });
-
-                console.log(
-                  `👑 조장 배치: ${leader.name} → ${groupIdx + 1}조 (맨 앞)`
-                );
-              }
-            }
-          });
-
-          if (manualLeaderAssignments.length > 0) {
-            console.log("✅ 수동 조장 배치 완료:", manualLeaderAssignments);
-          }
-        }
-
-        // 2. 나머지 인원 배치
-        // 조장이 배치된 조를 고려하여 가장 적은 인원을 가진 조부터 배치
-        const getSmallestGroupIdx = () => {
-          const sizes = groups.map((g, idx) => ({ idx, size: g.length }));
-          // 조장이 없는 조를 우선 선택
-          const groupsWithoutLeader = sizes.filter(
-            (s) => !groups[s.idx].some((m) => m.isLeader)
-          );
-          if (groupsWithoutLeader.length > 0) {
-            // 조장이 없는 조 중 가장 작은 조
-            groupsWithoutLeader.sort((a, b) => a.size - b.size);
-            return groupsWithoutLeader[0].idx;
-          }
-          // 모든 조에 조장이 있으면 가장 작은 조
-          sizes.sort((a, b) => a.size - b.size);
-          return sizes[0].idx;
-        };
-
-        if (genderBalance && collegeMix) {
-          // 성별 + 학과 균형
-          const byGenderCollege = {};
-          members.forEach((p) => {
-            const key = `${p.gender}-${p.college || "기타"}`;
-            if (!byGenderCollege[key]) byGenderCollege[key] = [];
-            byGenderCollege[key].push(p);
-          });
-
-          Object.values(byGenderCollege).forEach((list) =>
-            list.sort(() => Math.random() - 0.5)
-          );
-
-          Object.keys(byGenderCollege)
-            .sort()
-            .forEach((key) => {
-              byGenderCollege[key].forEach((member) => {
-                const smallestIdx = getSmallestGroupIdx();
-                groups[smallestIdx].push(member);
-              });
-            });
-        } else if (genderBalance) {
-          // 성별만 균형
-          const males = members
-            .filter((p) => p.gender === "남성")
-            .sort(() => Math.random() - 0.5);
-          const females = members
-            .filter((p) => p.gender === "여성")
-            .sort(() => Math.random() - 0.5);
-          const others = members
-            .filter((p) => p.gender !== "남성" && p.gender !== "여성")
-            .sort(() => Math.random() - 0.5);
-
-          [males, females, others].forEach((list) => {
-            list.forEach((member) => {
-              const smallestIdx = getSmallestGroupIdx();
-              groups[smallestIdx].push(member);
-            });
-          });
-        } else if (collegeMix) {
-          // 학과만 균형
-          const byCollege = {};
-          members.forEach((p) => {
-            const college = p.college || "기타";
-            if (!byCollege[college]) byCollege[college] = [];
-            byCollege[college].push(p);
-          });
-
-          Object.values(byCollege).forEach((list) =>
-            list.sort(() => Math.random() - 0.5)
-          );
-
-          Object.keys(byCollege)
-            .sort()
-            .forEach((college) => {
-              byCollege[college].forEach((member) => {
-                const smallestIdx = getSmallestGroupIdx();
-                groups[smallestIdx].push(member);
-              });
-            });
-        } else {
-          // 무작위
-          members.sort(() => Math.random() - 0.5);
-          members.forEach((member) => {
-            const smallestIdx = getSmallestGroupIdx();
-            groups[smallestIdx].push(member);
-          });
-        }
-
-        // 3. 인원 균형 맞추기
-        for (let iter = 0; iter < 10; iter++) {
-          const sizes = groups.map((g) => g.length);
-          const maxSize = Math.max(...sizes);
-          const minSize = Math.min(...sizes);
-          if (maxSize - minSize <= 1) break;
-
-          const maxIdx = sizes.indexOf(maxSize);
-          const minIdx = sizes.indexOf(minSize);
-          const memberToMove = groups[maxIdx]
-            .slice()
-            .reverse()
-            .find((m) => !m.isLeader);
-
-          if (memberToMove) {
-            groups[maxIdx].splice(groups[maxIdx].indexOf(memberToMove), 1);
-            groups[minIdx].push(memberToMove);
-          }
-        }
-
-        // 4. 자동 조장 설정 (또는 수동 모드에서 조장 미선택 시 자동 설정)
-        if (leaderMode === "auto" || leaderMode === "manual") {
-          groups.forEach((group, idx) => {
-            if (group.length > 0 && !group.some((m) => m.isLeader)) {
-              group[0].isLeader = true;
-              console.log(`👑 자동 조장 설정: ${group[0].name} → ${idx + 1}조`);
-            }
-          });
-        }
-
-        // 5. 조장을 맨 앞으로 (안전장치)
-        groups.forEach((group, idx) => {
-          const leaderIdx = group.findIndex((m) => m.isLeader);
-          if (leaderIdx > 0) {
-            console.log(
-              `⚠️ 조장이 ${leaderIdx + 1}번째에 있음. 맨 앞으로 이동: ${
-                group[leaderIdx].name
-              } (${idx + 1}조)`
-            );
-            const [leader] = group.splice(leaderIdx, 1);
-            group.unshift(leader);
-          } else if (leaderIdx === 0) {
-            console.log(
-              `✅ ${idx + 1}조 조장 확인: ${group[0].name} (이미 맨 앞)`
-            );
-          }
-        });
-
-        // 최종 결과 로그
-        console.log("🎯 최종 조 편성 결과:");
-        groups.forEach((group, idx) => {
-          const leader = group.find((m) => m.isLeader);
-          console.log(
-            `${idx + 1}조 (${group.length}명): 조장=${
-              leader?.name || "없음"
-            }, 멤버=[${group.map((m) => m.name).join(", ")}]`
-          );
-        });
-
-        return groups;
-      }
-
-      // 결과 표시
-      function showGroupResultsNew(eventId, groups) {
-        const ev = eventsData.find((e) => e.id === eventId);
-        const totalMembers = groups.reduce((sum, g) => sum + g.length, 0);
-
-        const resultsHTML = `
-                <div id="group-results-modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
-                  <div class="bg-white rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col">
-                    <div class="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-4 flex justify-between items-center">
-                      <div>
-                        <h3 class="text-2xl font-bold text-white">조 편성 결과</h3>
-                        <p class="text-purple-100 text-sm">${
-                          ev.title
-                        } - 총 ${totalMembers}명 / ${groups.length}개 조</p>
-                      </div>
-                      <button onclick="document.getElementById('group-results-modal').remove()" class="text-white hover:bg-white hover:bg-opacity-20 rounded-full p-2">
-                        <i class="fas fa-times text-xl"></i>
-                      </button>
-                    </div>
-
-                    <div class="p-6 overflow-y-auto flex-1">
-                      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        ${groups
-                          .map(
-                            (group, idx) => `
-                          <div class="border-2 border-purple-200 rounded-xl p-4 hover:shadow-lg transition-shadow">
-                            <div class="flex items-center justify-between mb-3">
-                              <h4 class="text-xl font-bold text-purple-600">${
-                                idx + 1
-                              }조</h4>
-                              <span class="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-bold">${
-                                group.length
-                              }명</span>
-                            </div>
-                            <div class="space-y-2">
-                              ${group
-                                .map(
-                                  (member) => `
-                                <div class="flex items-center gap-2 p-2 bg-gray-50 rounded-lg hover:bg-gray-100">
-                                  ${
-                                    member.isLeader
-                                      ? '<i class="fas fa-crown text-yellow-500 text-lg"></i>'
-                                      : '<div class="w-5"></div>'
-                                  }
-                                  <div class="flex-1 min-w-0">
-                                    <div class="font-semibold text-gray-900">${
-                                      member.name
-                                    }</div>
-                                    <div class="text-xs text-gray-500">${
-                                      member.gender
-                                    } / ${member.college}</div>
-                                  </div>
-                                </div>
-                              `
-                                )
-                                .join("")}
-                            </div>
-                          </div>
-                        `
-                          )
-                          .join("")}
-                      </div>
-                    </div>
-
-                    <div class="px-6 py-4 bg-gray-50 border-t flex gap-3">
-                      <button onclick="document.getElementById('group-results-modal').remove(); openGroupMakerModal('${eventId}')"
-                        class="px-6 py-3 border-2 border-purple-300 text-purple-700 rounded-xl hover:bg-purple-50 font-semibold">
-                        <i class="fas fa-redo mr-2"></i>다시 짜기
-                      </button>
-                      <button onclick="document.getElementById('group-results-modal').remove()"
-                        class="flex-1 bg-gray-500 text-white px-6 py-3 rounded-xl hover:bg-gray-600 font-semibold">
-                        <i class="fas fa-check mr-2"></i>확인
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              `;
-
-        document.body.insertAdjacentHTML("beforeend", resultsHTML);
-      }
-
-      // 조짜기 모달 열기
-      window.openGroupMakerModal = async function (eventId) {
-        const ev = eventsData.find((e) => e.id === eventId);
-        if (!ev) return showAlert("😥", "이벤트를 찾을 수 없습니다.");
-
-        // 참가자 목록 수집
-        let participants = [];
-        if (ev.type === "tasting") {
-          (ev.restaurants || []).forEach((r) => {
-            (r.reservations || []).forEach((p) => {
-              if (!participants.find((x) => x.studentId === p.studentId)) {
-                participants.push(p);
-              }
-            });
-          });
-        } else {
-          participants = ev.applicants || [];
-        }
-
-        if (participants.length === 0) {
-          return showAlert("😥", "참가자가 없습니다.");
-        }
-
-        // 기존 모달들 모두 제거
-        document.getElementById("group-maker-modal")?.remove();
-        document.getElementById("group-results-modal")?.remove();
-
-        // 간단한 모달 HTML
-        const modalHTML = `
-                              <div id="group-maker-modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
-                  <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
-                                  <div class="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-4 flex justify-between items-center">
-                                      <div>
-                                        <h3 class="text-2xl font-bold text-white">팀 구성하기</h3>
-                        <p class="text-purple-100 text-sm">참가자 ${participants.length}명을 조로 나눕니다</p>
-                                      </div>
-                      <button type="button" id="group-maker-close-btn" class="text-white hover:bg-white hover:bg-opacity-20 rounded-full p-2 transition-colors">
-                          <i class="fas fa-times text-xl"></i>
-                        </button>
-                      </div>
-
-                    <div class="p-6 overflow-y-auto flex-1 space-y-4">
-                      <div class="border-2 border-gray-200 rounded-xl p-4">
-                        <label class="block text-lg font-bold text-gray-800 mb-2">
-                          <i class="fas fa-users mr-2 text-purple-600"></i>조 개수
-                        </label>
-                        <input type="number" id="group-count-new" min="2" max="10" value="3"
-                          class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg text-lg font-bold focus:border-purple-500">
-                      </div>
-
-                      <div class="border-2 border-gray-200 rounded-xl p-4">
-                        <label class="block text-lg font-bold text-gray-800 mb-3">
-                          <i class="fas fa-balance-scale mr-2 text-blue-600"></i>균형 옵션
-                        </label>
-                        <div class="space-y-2">
-                          <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" id="gender-balance-new" checked class="w-5 h-5">
-                            <span>성별 균형 맞추기</span>
-                          </label>
-                          <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" id="college-mix-new" checked class="w-5 h-5">
-                            <span>학과 고르게 섞기</span>
-                          </label>
-                        </div>
-                      </div>
-
-                      <div class="border-2 border-gray-200 rounded-xl p-4">
-                        <label class="block text-lg font-bold text-gray-800 mb-3">
-                          <i class="fas fa-crown mr-2 text-yellow-600"></i>조장 설정
-                        </label>
-                        <div class="space-y-2 mb-3">
-                          <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="radio" name="leader-mode-new" value="manual" checked class="w-5 h-5">
-                            <span>수동으로 선택</span>
-                          </label>
-                          <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="radio" name="leader-mode-new" value="auto" class="w-5 h-5">
-                            <span>자동 설정 (각 조 첫 번째 사람)</span>
-                          </label>
-                          <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="radio" name="leader-mode-new" value="none" class="w-5 h-5">
-                            <span>조장 없음</span>
-                          </label>
-                        </div>
-
-                        <div id="manual-leader-area-new">
-                          <div id="leader-selectors-new" class="space-y-2 max-h-60 overflow-y-auto"></div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div class="px-6 py-4 bg-gray-50 border-t flex gap-3">
-                      <button type="button" id="group-maker-cancel-btn" class="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-white hover:border-gray-400 transition-colors font-semibold">
-                        <i class="fas fa-times mr-2"></i>취소
-                      </button>
-                      <button type="button" id="generate-groups-btn" class="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-6 py-3 rounded-xl hover:from-purple-700 hover:to-indigo-700 transition-all font-semibold shadow-lg">
-                        <i class="fas fa-magic mr-2"></i>팀 구성하기 시작!
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              `;
-
-        document.body.insertAdjacentHTML("beforeend", modalHTML);
-
-        // 이벤트 리스너 설정
-        setTimeout(() => {
-          // 현재 입력된 조 개수 가져오기 (기본값 3)
-          const initialGroupCount =
-            parseInt(document.getElementById("group-count-new").value) || 3;
-          updateLeaderSelectorsNew(participants, initialGroupCount);
-
-          // 닫기 버튼 이벤트 리스너
-          const closeBtn = document.getElementById("group-maker-close-btn");
-          if (closeBtn) {
-            closeBtn.addEventListener("click", () => {
-              console.log("🔴 닫기 버튼 클릭됨");
-              closeGroupMakerModal();
-            });
-          }
-
-          // 취소 버튼 이벤트 리스너
-          const cancelBtn = document.getElementById("group-maker-cancel-btn");
-          if (cancelBtn) {
-            cancelBtn.addEventListener("click", () => {
-              console.log("🔴 취소 버튼 클릭됨");
-              closeGroupMakerModal();
-            });
-          }
-
-          // 모달 배경 클릭으로 닫기
-          const modal = document.getElementById("group-maker-modal");
-          if (modal) {
-            modal.addEventListener("click", (e) => {
-              if (e.target === modal) {
-                console.log("🔴 모달 배경 클릭으로 닫기");
-                closeGroupMakerModal();
-              }
-            });
-          }
-
-          document
-            .getElementById("group-count-new")
-            ?.addEventListener("input", (e) => {
-              updateLeaderSelectorsNew(
-                participants,
-                parseInt(e.target.value) || 3,
-                true // 선택 정보 보존
-              );
-            });
-
-          document
-            .querySelectorAll('input[name="leader-mode-new"]')
-            .forEach((radio) => {
-              radio.addEventListener("change", () => {
-                const area = document.getElementById("manual-leader-area-new");
-                area.style.display =
-                  radio.value === "manual" ? "block" : "none";
-                if (radio.value === "manual") {
-                  updateLeaderSelectorsNew(
-                    participants,
-                    parseInt(
-                      document.getElementById("group-count-new").value
-                    ) || 3,
-                    true // 선택 정보 보존
-                  );
-                }
-              });
-            });
-
-          // 조 짜기 버튼
-          document
-            .getElementById("generate-groups-btn")
-            ?.addEventListener("click", () => {
-              console.log("🔵 조 짜기 버튼 클릭됨");
-
-              // 옵셔널 체이닝과 기본값 사용으로 안전하게 처리
-              const groupCount =
-                parseInt(document.getElementById("group-count-new")?.value) ||
-                3;
-              const genderBalance =
-                document.getElementById("gender-balance-new")?.checked ?? true;
-              const collegeMix =
-                document.getElementById("college-mix-new")?.checked ?? true;
-              const leaderMode =
-                document.querySelector('input[name="leader-mode-new"]:checked')
-                  ?.value || "none";
-
-              console.log("✅ 조 짜기 설정:", {
-                groupCount,
-                genderBalance,
-                collegeMix,
-                leaderMode,
-              });
-
-              const groups = createGroupsNew(
-                participants,
-                groupCount,
-                genderBalance,
-                collegeMix,
-                leaderMode
-              );
-              closeGroupMakerModal();
-              showGroupResultsNew(eventId, groups);
-            });
-        }, 50);
-      };
-
-      // 모달 닫기
-      window.closeGroupMakerModal = function () {
-        document.getElementById("group-maker-modal")?.remove();
-      };
+      // 조짜기 기능은 js/features/groups/group-maker.js로 모듈화됨
 
       // 기존 복잡한 조짜기 관련 함수들은 아래에 주석 처리됨 (사용 안함)
       /*
@@ -17644,7 +16506,7 @@
                       <i class="fas fa-ban mr-1"></i>활동 취소
                     </button>`;
 
-        const participantManageButton = `<button type="button" class="px-3 py-1.5 text-xs bg-green-500 hover:bg-green-600 text-white rounded-full transition-colors" data-act="admin-add-participant" data-id="${ev.id}" onclick="openAddParticipantModal('${ev.id}')">
+        const participantManageButton = `<button type="button" class="px-3 py-1.5 text-xs bg-green-500 hover:bg-green-600 text-white rounded-full transition-colors" data-act="admin-add-participant" data-id="${ev.id}" onclick="if(typeof window.openAddParticipantModal === 'function') window.openAddParticipantModal('${ev.id}'); else console.error('openAddParticipantModal is not defined');">
                   <i class="fas fa-user-edit mr-1"></i>참가자 수정
                 </button>`;
         const groupButton = `<button type="button" class="px-3 py-1.5 text-xs bg-purple-500 hover:bg-purple-600 text-white rounded-full transition-colors" data-act="group-maker" data-id="${ev.id}">
@@ -21564,20 +20426,7 @@
               `;
 
         // 아코디언 토글 함수 등록
-        window.toggleActivityDetails = function (eventId) {
-          const details = document.getElementById(`details-${eventId}`);
-          const chevron = document.getElementById(`chevron-${eventId}`);
-
-          if (details && chevron) {
-            if (details.classList.contains("hidden")) {
-              details.classList.remove("hidden");
-              chevron.style.transform = "rotate(180deg)";
-            } else {
-              details.classList.add("hidden");
-              chevron.style.transform = "rotate(0deg)";
-            }
-          }
-        };
+        // toggleActivityDetails는 js/features/roadmap/roadmap-events.js로 이동됨
 
         // 평가 작성 이벤트 바인딩
         c.addEventListener("click", async (e) => {
@@ -21828,104 +20677,7 @@
         return calendarHTML;
       }
 
-      window.openAddEventModal = function (selectedDate) {
-        // 회장단(풀 어드민)만 새 일정 추가 가능
-        if (!currentUser || !isFullAdmin()) {
-          showAlert("ℹ️", "푸디 캘린더는 회장단만 수정/추가할 수 있습니다.");
-          return;
-        }
-
-        const modal = document.createElement("div");
-        modal.className =
-          "fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50";
-        modal.innerHTML = `
-                <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-                  <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-bold text-gray-800">새 일정 추가</h3>
-                    <button onclick="this.closest('.fixed').remove()" class="text-gray-500 hover:text-gray-700">
-                      <i class="fas fa-times"></i>
-                    </button>
-                  </div>
-
-                  <form id="calendar-add-event-form">
-                    <div class="mb-4">
-                      <label class="block text-sm font-medium text-gray-700 mb-1">일정명</label>
-                      <input
-                        id="calendar-event-name"
-                        type="text"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                        placeholder="일정명을 입력하세요"
-                        required
-                      >
-                    </div>
-
-                    <div class="mb-4">
-                      <label class="block text-sm font-medium text-gray-700 mb-1">날짜</label>
-                      <input
-                        id="calendar-event-date"
-                        type="date"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                        value="${selectedDate}"
-                        required
-                      >
-                    </div>
-
-                    <div class="mb-4">
-                      <label class="block text-sm font-medium text-gray-700 mb-1">설명</label>
-                      <textarea
-                        id="calendar-event-description"
-                        rows="5"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                        placeholder="일정 설명을 입력하세요&#10;줄바꿈이 가능합니다"
-                      ></textarea>
-                      <p class="text-xs text-gray-500 mt-1">💡 Enter 키로 줄바꿈이 가능합니다</p>
-                    </div>
-
-                    <div class="flex justify-end gap-2">
-                      <button
-                        type="button"
-                        onclick="this.closest('.fixed').remove()"
-                        class="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
-                      >
-                        취소
-                      </button>
-                      <button
-                        type="submit"
-                        class="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600"
-                      >
-                        일정 추가
-                      </button>
-                    </div>
-                  </form>
-                </div>
-              `;
-
-        document.body.appendChild(modal);
-
-        // 폼 제출 이벤트 처리
-        modal
-          .querySelector("#calendar-add-event-form")
-          .addEventListener("submit", function (e) {
-            e.preventDefault();
-
-            const name = document.getElementById("calendar-event-name").value;
-            const date = document.getElementById("calendar-event-date").value;
-            const description = document.getElementById(
-              "calendar-event-description"
-            ).value;
-
-            if (!name || !date) {
-              showAlert("😥", "일정명과 날짜는 필수입니다.");
-              return;
-            }
-
-            // 일정 추가 로직 (여기에 실제 추가 코드 구현)
-            console.log("새 일정 추가:", { name, date, description });
-            showAlert("✅", "일정이 추가되었습니다!");
-
-            modal.remove();
-          });
-      };
+      // openAddEventModal은 js/features/roadmap/roadmap-events.js로 이동됨
 
       // 달력 월 변경 함수
       let currentCalendarYear = new Date().getFullYear();
@@ -22300,685 +21052,11 @@
       }
 
       // 달력 이벤트 상세 정보 표시 함수
-      function showEventDetails(eventId) {
-        // 기존 모달이 있으면 먼저 제거
-        const existingModal = document.getElementById("event-detail-modal");
-        if (existingModal) {
-          existingModal.remove();
-        }
+      // showEventDetails는 js/features/events/event-detail-modal.js로 이동됨
 
-        const event = roadmapData.find((item) => item.id === eventId);
-        if (!event) return;
+      // 이벤트 상세 정보 표시 함수 (eventsData용)는 js/features/events/event-detail-modal.js로 이동됨
 
-        const activityDate = event.activityDate || getTodayString();
-        const d = parseDate(activityDate);
-        const formattedDate = d.toLocaleDateString("ko-KR", {
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-          weekday: "long",
-        });
-
-        const title = event.activityName || event.title || "일정 없음";
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        let statusText = "";
-        let statusClass = "";
-        if (d < today) {
-          statusText = "완료된 일정";
-          statusClass = "text-red-600";
-        } else if (d.getTime() === today.getTime()) {
-          statusText = "오늘의 일정";
-          statusClass = "text-green-600";
-        } else {
-          statusText = "예정된 일정";
-          statusClass = "text-orange-600";
-        }
-
-        const modalHTML = `
-                <div id="event-detail-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                  <div class="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-                    <div class="p-6">
-                      <div class="flex justify-between items-start mb-4">
-                        <h3 class="text-xl font-bold text-gray-800">일정 상세 정보</h3>
-                        <button onclick="closeEventDetailModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
-                          <i class="fas fa-times text-xl"></i>
-                        </button>
-                      </div>
-
-                      <div class="space-y-4">
-                        <div class="bg-gradient-to-r from-orange-50 to-orange-100 rounded-lg p-4">
-                          <h4 class="font-semibold text-gray-800 mb-2">${saf(
-                            title
-                          )}</h4>
-                          <div class="flex items-center gap-2 text-sm">
-                            <i class="fas fa-calendar text-orange-500"></i>
-                            <span class="text-gray-600">${formattedDate}</span>
-                          </div>
-                          <div class="flex items-center gap-2 text-sm mt-2">
-                            <i class="fas fa-info-circle text-blue-500"></i>
-                            <span class="${statusClass} font-medium">${statusText}</span>
-                          </div>
-                        </div>
-
-                        ${
-                          event.description
-                            ? `
-                          <div class="bg-gray-50 rounded-lg p-4">
-                            <h5 class="font-medium text-gray-700 mb-2">상세 설명</h5>
-                            <p class="text-gray-600 text-sm whitespace-pre-wrap">${saf(
-                              event.description
-                            )}</p>
-                          </div>
-                        `
-                            : ""
-                        }
-
-                        <div class="flex gap-2">
-                          ${
-                            currentUser &&
-                            adminList.includes(currentUser.studentId)
-                              ? `
-                            <button onclick="openRoadmapEventEditModal('${eventId}', 0); closeEventDetailModal();"
-                                    class="flex-1 bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors">
-                              <i class="fas fa-edit mr-2"></i>수정
-                            </button>
-                            <button onclick="deleteRoadmapEvent('${eventId}'); closeEventDetailModal();"
-                                    class="flex-1 bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 transition-colors">
-                              <i class="fas fa-trash mr-2"></i>삭제
-                            </button>
-                          `
-                              : ""
-                          }
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              `;
-
-        document.body.insertAdjacentHTML("beforeend", modalHTML);
-      }
-
-      // 전역에서 접근 가능하도록 노출
-      window.showEventDetails = showEventDetails;
-
-      // 이벤트 상세 정보 표시 함수 (eventsData용)
-      window.showEventDetailModal = function (eventId) {
-        const ev = eventsData.find((e) => e.id === eventId);
-        if (!ev) {
-          showAlert("😥", "이벤트를 찾을 수 없습니다.");
-          return;
-        }
-
-        // 금액 포맷팅 함수
-        const formatKRW = (n) => {
-          const v = Number(n || 0);
-          return isNaN(v) ? "" : v.toLocaleString("ko-KR") + "원";
-        };
-
-        // 기존 모달이 있으면 먼저 제거
-        const existingModal = document.getElementById(
-          "event-detail-modal-main"
-        );
-        if (existingModal) {
-          existingModal.remove();
-        }
-
-        const eventDate = ev.datetime
-          ? new Date(ev.datetime).toLocaleString("ko-KR", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-              weekday: "long",
-              hour: "2-digit",
-              minute: "2-digit",
-            })
-          : "미정";
-
-        const deadlineDate = ev.deadline
-          ? new Date(ev.deadline).toLocaleString("ko-KR", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-              weekday: "long",
-              hour: "2-digit",
-              minute: "2-digit",
-            })
-          : "미설정";
-
-        const typeLabel =
-          ev.type === "tasting"
-            ? "🍽️ 미식회"
-            : ev.type === "mt"
-            ? "🏕️ MT"
-            : ev.type === "assembly"
-            ? "🎤 총회"
-            : "📅 이벤트";
-
-        const formatDateTimeLocal = (value) => {
-          if (!value) return "-";
-          const date = value instanceof Date ? value : new Date(value);
-          if (Number.isNaN(date.getTime())) return "-";
-          return date.toLocaleString("ko-KR", {
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-          });
-        };
-
-        const sid = currentUser?.studentId;
-        let myApplicationHTML = "";
-
-        if (sid) {
-          const defaultBadgeClass =
-            "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold";
-          const getDisplayName = (entry) => {
-            if (!entry) return "익명";
-            return (
-              entry.name ||
-              entry.displayName ||
-              (entry.studentId ? maskStudentIdGlobal(entry.studentId) : "익명")
-            );
-          };
-
-          const makeRow = (icon, label, content) => `
-                  <div class="flex items-start gap-2 bg-white rounded-lg px-3 py-2 border border-blue-100">
-                    <i class="fas ${icon} text-blue-500 mt-0.5"></i>
-                    <div>
-                      <div class="text-[11px] text-blue-600">${label}</div>
-                      <div class="text-sm font-semibold text-gray-800 leading-snug">${content}</div>
-                    </div>
-                  </div>
-                `;
-
-          let myEntry = null;
-          let myStatus = "";
-          let myStatusClass = `${defaultBadgeClass} bg-blue-100 text-blue-700`;
-          let myRestaurant = null;
-          let waitPosition = null;
-          let companions = [];
-
-          if (ev.type === "tasting") {
-            (ev.restaurants || []).some((restaurant) => {
-              const reservations = restaurant.reservations || [];
-              const waiting = restaurant.waiting || [];
-              const reservationIdx = reservations.findIndex(
-                (r) => r.studentId === sid
-              );
-              if (reservationIdx >= 0) {
-                myEntry = reservations[reservationIdx];
-                myStatus = "신청 확정";
-                myRestaurant = restaurant;
-                companions = reservations
-                  .filter((r) => r.studentId !== sid)
-                  .map((r) => getDisplayName(r));
-                return true;
-              }
-              const waitingIdx = waiting.findIndex((r) => r.studentId === sid);
-              if (waitingIdx >= 0) {
-                myEntry = waiting[waitingIdx];
-                myStatus = "대기중";
-                myStatusClass = `${defaultBadgeClass} bg-yellow-100 text-yellow-700`;
-                waitPosition = waitingIdx + 1;
-                myRestaurant = restaurant;
-                companions = waiting
-                  .filter((r) => r.studentId !== sid)
-                  .map((r) => getDisplayName(r));
-                return true;
-              }
-              return false;
-            });
-          } else {
-            const applicants = ev.applicants || [];
-            const waiting = ev.waiting || [];
-            const applicantIdx = applicants.findIndex(
-              (a) => a.studentId === sid
-            );
-            if (applicantIdx >= 0) {
-              myEntry = applicants[applicantIdx];
-              myStatus = "신청 확정";
-              companions = applicants
-                .filter((a) => a.studentId !== sid)
-                .map((a) => getDisplayName(a));
-            } else {
-              const waitingIdx = waiting.findIndex((a) => a.studentId === sid);
-              if (waitingIdx >= 0) {
-                myEntry = waiting[waitingIdx];
-                myStatus = "대기중";
-                myStatusClass = `${defaultBadgeClass} bg-yellow-100 text-yellow-700`;
-                waitPosition = waitingIdx + 1;
-                companions = waiting
-                  .filter((a) => a.studentId !== sid)
-                  .map((a) => getDisplayName(a));
-              }
-            }
-          }
-
-          if (myEntry || myStatus) {
-            companions = [...new Set(companions.filter((name) => !!name))];
-            const applicantName =
-              getDisplayName(myEntry) || currentUser?.name || "익명";
-            const appliedAt =
-              myEntry?.appliedAt ||
-              myEntry?.applied_at ||
-              myEntry?.timestamp ||
-              myEntry?.createdAt;
-
-            const infoRows = [];
-
-            infoRows.push(
-              makeRow(
-                "fa-id-card",
-                "신청자",
-                `${saf(applicantName)} (${saf(sid)})`
-              )
-            );
-
-            if (myStatus) {
-              const statusBadge = `<span class="${myStatusClass}">${saf(
-                myStatus
-              )}${waitPosition ? ` (${waitPosition}번)` : ""}</span>`;
-              infoRows.push(makeRow("fa-flag", "신청 상태", statusBadge));
-            }
-
-            if (appliedAt) {
-              infoRows.push(
-                makeRow(
-                  "fa-clock",
-                  "신청 일시",
-                  saf(formatDateTimeLocal(appliedAt))
-                )
-              );
-            }
-
-            if (myRestaurant) {
-              const capacity =
-                myRestaurant.capacity ??
-                ev.limit ??
-                myRestaurant.reservations?.length ??
-                0;
-              const reservedCount = myRestaurant.reservations?.length ?? 0;
-              infoRows.push(
-                makeRow(
-                  "fa-utensils",
-                  "신청 식당",
-                  `${saf(
-                    myRestaurant.name || "식당 미정"
-                  )} (${reservedCount}/${capacity}명)`
-                )
-              );
-            }
-
-            if (waitPosition && myStatus === "대기중") {
-              infoRows.push(
-                makeRow("fa-list-ol", "대기 순번", `${waitPosition}번`)
-              );
-            }
-
-            if (companions.length > 0) {
-              const companionChips = companions
-                .slice(0, 6)
-                .map(
-                  (name) => `
-                          <span class="px-2 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-medium">
-                            ${saf(name)}
-                          </span>
-                        `
-                )
-                .join("");
-              const extraCompanions =
-                companions.length > 6
-                  ? `<span class="px-2 py-1 rounded-full bg-blue-50 text-blue-500 text-xs font-medium">
-                            +${companions.length - 6}
-                          </span>`
-                  : "";
-
-              infoRows.push(`
-                      <div class="flex flex-col gap-2 bg-white rounded-lg px-3 py-2 border border-blue-100">
-                        <div class="flex items-center gap-2 text-[11px] text-blue-600">
-                          <i class="fas fa-users"></i>
-                          함께 신청한 인원
-                        </div>
-                        <div class="flex flex-wrap gap-1">
-                          ${companionChips}${extraCompanions}
-                        </div>
-                      </div>
-                    `);
-            }
-
-            myApplicationHTML = `
-                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-3">
-                      <h5 class="font-semibold text-blue-900 flex items-center gap-2">
-                        <i class="fas fa-user-check text-blue-600"></i>내 신청 정보
-                      </h5>
-                      <div class="grid grid-cols-1 gap-2">
-                        ${infoRows.join("")}
-                      </div>
-                    </div>
-                  `;
-          } else {
-            myApplicationHTML = `
-                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-700">
-                      현재 계정으로 신청한 내역을 찾을 수 없습니다.
-                    </div>
-                  `;
-          }
-        }
-
-        const modalHTML = `
-                <div id="event-detail-modal-main" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                  <div class="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-                    <div class="p-6">
-                      <div class="flex justify-between items-start mb-4">
-                        <h3 class="text-xl font-bold text-gray-800">이벤트 상세 정보</h3>
-                        <button onclick="closeEventDetailModalMain()" class="text-gray-400 hover:text-gray-600 transition-colors">
-                          <i class="fas fa-times text-xl"></i>
-                        </button>
-                      </div>
-
-                      <div class="space-y-4">
-                        <div class="bg-gradient-to-r from-orange-50 to-orange-100 rounded-lg p-4">
-                          <h4 class="font-semibold text-gray-800 mb-3">${saf(
-                            ev.title
-                          )}</h4>
-                          <div class="space-y-2">
-                            <div class="flex items-center gap-2 text-sm">
-                              <i class="fas fa-tag text-orange-500"></i>
-                              <span class="text-gray-700">${typeLabel}</span>
-                            </div>
-                            <div class="flex items-center gap-2 text-sm font-bold text-orange-700">
-                              <i class="fas fa-calendar-check text-orange-600"></i>
-                              <span>실시일: ${eventDate}</span>
-                            </div>
-                            <div class="flex items-center gap-2 text-sm font-bold text-red-700">
-                              <i class="fas fa-clock text-red-600"></i>
-                              <span>마감일: ${deadlineDate}</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        ${myApplicationHTML}
-
-                        ${
-                          ev.description
-                            ? `
-                          <div class="bg-gray-50 rounded-lg p-4">
-                            <h5 class="font-medium text-gray-700 mb-2">상세 설명</h5>
-                            <p class="text-gray-600 text-sm whitespace-pre-wrap">${saf(
-                              ev.description
-                            )}</p>
-                          </div>
-                        `
-                            : ""
-                        }
-
-                        ${
-                          (ev.type === "mt" || ev.type === "assembly") &&
-                          ev.payment
-                            ? `
-                          <div class="bg-amber-50 rounded-lg p-4 border-2 border-amber-200">
-                            <h5 class="font-semibold text-amber-900 mb-3 flex items-center">
-                              <i class="fas fa-wallet mr-2 text-amber-600"></i>입금 정보
-                            </h5>
-                            <div class="space-y-3">
-                              ${
-                                ev.payment.amount
-                                  ? `
-                              <div class="flex items-center gap-2 text-sm">
-                                <i class="fas fa-won-sign text-amber-600"></i>
-                                <span class="text-gray-700 font-medium">입금 금액:</span>
-                                <span class="text-gray-800 font-bold text-lg">${formatKRW(
-                                  ev.payment.amount
-                                )}</span>
-                              </div>
-                              `
-                                  : ""
-                              }
-                              ${
-                                ev.payment.bank && ev.payment.number
-                                  ? `
-                              <div class="flex items-center gap-2 text-sm">
-                                <i class="fas fa-university text-amber-600"></i>
-                                <span class="text-gray-700 font-medium">입금 계좌:</span>
-                                <span class="text-gray-800 font-semibold">${saf(
-                                  ev.payment.bank
-                                )} ${saf(ev.payment.number)}</span>
-                                ${
-                                  ev.payment.holder
-                                    ? `<span class="text-gray-600 text-xs">(예금주: ${saf(
-                                        ev.payment.holder
-                                      )})</span>`
-                                    : ""
-                                }
-                              </div>
-                              `
-                                  : ""
-                              }
-                              ${
-                                ev.payment.bank && ev.payment.number
-                                  ? `
-                              <div class="flex justify-end">
-                                <button
-                                  type="button"
-                                  onclick="navigator.clipboard.writeText('${saf(
-                                    ev.payment.bank || ""
-                                  )} ${saf(
-                                      ev.payment.number || ""
-                                    )}').then(() => alert('계좌번호가 복사되었습니다!'))"
-                                  class="bg-amber-600 hover:bg-amber-700 text-white px-3 py-1 rounded text-xs transition-colors"
-                                >
-                                  <i class="fas fa-copy mr-1"></i>계좌번호 복사
-                                </button>
-                              </div>
-                              `
-                                  : ""
-                              }
-                              ${
-                                ev.payment.note
-                                  ? `
-                              <div class="text-sm text-amber-800 bg-amber-100 p-2 rounded">
-                                <i class="fas fa-info-circle mr-1"></i>${saf(
-                                  ev.payment.note
-                                )}
-                              </div>
-                              `
-                                  : ""
-                              }
-                            </div>
-                          </div>
-                        `
-                            : ""
-                        }
-
-                        ${
-                          ev.type === "tasting" &&
-                          ev.restaurants &&
-                          ev.restaurants.length > 0
-                            ? `
-                          <div class="bg-orange-50 rounded-lg p-4 border-2 border-orange-200">
-                            <h5 class="font-semibold text-gray-800 mb-3 flex items-center">
-                              <i class="fas fa-utensils mr-2 text-orange-600"></i>식당별 신청 현황
-                            </h5>
-                            <div class="space-y-3">
-                              ${ev.restaurants
-                                .map((restaurant) => {
-                                  const reservations =
-                                    restaurant.reservations || [];
-                                  const waiting = restaurant.waiting || [];
-                                  const capacity =
-                                    restaurant.capacity || ev.limit || 0;
-
-                                  // 신청한 사람 이름 찾기
-                                  const participantNames = reservations
-                                    .slice()
-                                    .reverse()
-                                    .map((res) => {
-                                      const member = membersData?.find(
-                                        (m) => m.studentId === res.studentId
-                                      );
-                                      return (
-                                        member?.name ||
-                                        res.name ||
-                                        res.studentId ||
-                                        "익명"
-                                      );
-                                    });
-
-                                  const waitingNames = waiting
-                                    .slice()
-                                    .reverse()
-                                    .map((wait) => {
-                                      const member = membersData?.find(
-                                        (m) => m.studentId === wait.studentId
-                                      );
-                                      return (
-                                        member?.name ||
-                                        wait.name ||
-                                        wait.studentId ||
-                                        "익명"
-                                      );
-                                    });
-
-                                  // 현재 사용자가 신청한 식당인지 확인
-                                  const isMyRestaurant =
-                                    currentUser &&
-                                    reservations.some(
-                                      (res) =>
-                                        res.studentId === currentUser.studentId
-                                    );
-
-                                  return `
-                                  <div class="bg-white rounded-lg p-3 border ${
-                                    isMyRestaurant
-                                      ? "border-orange-500 border-2"
-                                      : "border-gray-200"
-                                  }">
-                                    <div class="flex items-center justify-between mb-2">
-                                      <h6 class="font-semibold text-gray-800 flex items-center">
-                                        ${
-                                          isMyRestaurant
-                                            ? '<i class="fas fa-check-circle text-orange-600 mr-2"></i>'
-                                            : ""
-                                        }
-                                        ${saf(restaurant.name || "식당명 없음")}
-                                      </h6>
-                                      <span class="text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded-full">
-                                        ${reservations.length}/${capacity}명
-                                        ${
-                                          waiting.length > 0
-                                            ? ` (+${waiting.length}명 대기)`
-                                            : ""
-                                        }
-                                      </span>
-                                    </div>
-                                    ${
-                                      participantNames.length > 0
-                                        ? `
-                                      <div class="mt-2">
-                                        <p class="text-xs font-semibold text-gray-600 mb-1">참가자:</p>
-                                        <div class="flex flex-wrap gap-1">
-                                          ${participantNames
-                                            .map(
-                                              (name) => `
-                                            <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">${saf(
-                                              name
-                                            )}</span>
-                                          `
-                                            )
-                                            .join("")}
-                                        </div>
-                                      </div>
-                                      `
-                                        : ""
-                                    }
-                                    ${
-                                      waitingNames.length > 0
-                                        ? `
-                                      <div class="mt-2">
-                                        <p class="text-xs font-semibold text-amber-600 mb-1">대기자:</p>
-                                        <div class="flex flex-wrap gap-1">
-                                          ${waitingNames
-                                            .map(
-                                              (name) => `
-                                            <span class="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded-full">${saf(
-                                              name
-                                            )}</span>
-                                          `
-                                            )
-                                            .join("")}
-                                        </div>
-                                      </div>
-                                      `
-                                        : ""
-                                    }
-                                  </div>
-                                `;
-                                })
-                                .join("")}
-                            </div>
-                          </div>
-                        `
-                            : `
-                        <div class="bg-gray-50 rounded-lg p-4">
-                          <h5 class="font-medium text-gray-700 mb-2">신청 현황</h5>
-                          <p class="text-gray-600 text-sm">참가자: ${
-                            (ev.applicants || []).length
-                          }명 / ${ev.limit || 0}명</p>
-                          ${
-                            (ev.waiting || []).length > 0
-                              ? `<p class="text-gray-600 text-sm mt-1">대기자: ${ev.waiting.length}명</p>`
-                              : ""
-                          }
-                          ${
-                            ev.applicants && ev.applicants.length > 0
-                              ? `
-                              <div class="mt-3">
-                                <p class="text-xs font-semibold text-gray-600 mb-1">참가자 목록:</p>
-                                <div class="flex flex-wrap gap-1">
-                                  ${ev.applicants
-                                    .slice()
-                                    .reverse()
-                                    .map((app) => {
-                                      const member = membersData?.find(
-                                        (m) => m.studentId === app.studentId
-                                      );
-                                      const name =
-                                        member?.name ||
-                                        app.name ||
-                                        app.studentId ||
-                                        "익명";
-                                      return `<span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">${saf(
-                                        name
-                                      )}</span>`;
-                                    })
-                                    .join("")}
-                                </div>
-                              </div>
-                              `
-                              : ""
-                          }
-                        </div>
-                        `
-                        }
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              `;
-
-        document.body.insertAdjacentHTML("beforeend", modalHTML);
-      };
-
-      window.closeEventDetailModalMain = function () {
-        const modal = document.getElementById("event-detail-modal-main");
-        if (modal) {
-          modal.remove();
-        }
-      };
+      // closeEventDetailModalMain은 js/features/events/event-detail-modal.js로 이동됨
 
       // 참가자 목록 공개 여부 토글 함수 (회장단 전용) - 모두에게 보이기/회장단만
       window.toggleParticipantsPublicVisibility = async function (
@@ -23057,42 +21135,7 @@
         }
       };
 
-      // 달력 이벤트 상세 모달 닫기 함수
-      window.closeEventDetailModal = function () {
-        const modal = document.getElementById("event-detail-modal");
-        if (modal) {
-          modal.remove();
-        }
-      };
-
-      // 로드맵 일정 삭제 함수
-      window.deleteRoadmapEvent = async function (eventId) {
-        if (!confirm("정말로 이 로드맵 일정을 삭제하시겠습니까?")) {
-          return;
-        }
-
-        try {
-          // 문서 존재 여부 확인
-          const docRef = doc(db, "roadmap", eventId);
-          const docSnap = await getDoc(docRef);
-
-          if (!docSnap.exists()) {
-            showAlert("😥", "삭제하려는 일정을 찾을 수 없습니다.");
-            return;
-          }
-
-          await deleteDoc(docRef);
-          showAlert("✅", "로드맵 일정이 삭제되었습니다.");
-          renderHorizontalRoadmap(); // 로드맵 다시 렌더링
-        } catch (error) {
-          console.error("로드맵 삭제 오류:", error);
-          if (error.code === "not-found") {
-            showAlert("😥", "삭제하려는 일정을 찾을 수 없습니다.");
-          } else {
-            showAlert("😥", "로드맵 일정 삭제에 실패했습니다.");
-          }
-        }
-      };
+      // closeEventDetailModal과 deleteRoadmapEvent는 js/features/events/event-detail-modal.js로 이동됨
 
       // 로드맵 일정 추가 모달 (새로운 함수)
       function openRoadmapAddModal() {
@@ -26858,8 +24901,7 @@
       /* ===== 전역: 에디터 모달 밖 클릭 시 닫힘 방지(명시 버튼만) ===== */
       // 이미 각 사용처에서 cancel과 save 핸들러를 지정함
 
-      // 로딩 진행률 관리
-      let loadingProgress = 0;
+      // 로딩 진행률 관리 (위에서 이미 정의됨, 중복 제거)
       const totalLoadingSteps = 2; // 총 로딩 단계 수 (간소화)
 
       // 신버전 로딩 화면: CSS 애니메이션만 사용
@@ -26876,20 +24918,7 @@
         loadingAnimationComplete = true;
       }
 
-      function updateLoadingProgress(step, text) {
-        // 신버전 로딩 화면은 CSS 애니메이션만 사용하므로 진행률 업데이트 불필요
-        // step이 2면 완료로 간주
-        if (step === 2 || step >= 100) {
-          loadingProgress = 100;
-          setTimeout(() => {
-            stopLoadingAnimation();
-          }, 500);
-        } else {
-          loadingProgress = Math.min(90, step * 30);
-        }
-
-        debugLog(`로딩 진행률: ${loadingProgress}% - ${text || ""}`);
-      }
+      // updateLoadingProgress는 위에서 이미 정의됨 (중복 제거)
 
       // 순차 로딩 완료 플래그
       let sequentialLoadingComplete = false;
@@ -30254,6 +28283,66 @@
           showAlert("😥", "직책 리셋에 실패했습니다.");
         }
       }
+    </script>
+
+    <!-- 모듈 import -->
+    <script type="module">
+      import {
+        openGroupMakerModal,
+        closeGroupMakerModal,
+      } from "./js/features/groups/group-maker.js";
+
+      import {
+        showEventDetails,
+        showEventDetailModal,
+        closeEventDetailModalMain,
+        closeEventDetailModal,
+        openRoadmapEventEditModal,
+        deleteRoadmapEvent,
+      } from "./js/features/events/event-detail-modal.js";
+
+      import {
+        toggleActivityDetails,
+        openAddEventModal,
+      } from "./js/features/roadmap/roadmap-events.js";
+
+      import {
+        toggleParticipantsList,
+        toggleRestaurantParticipantsDetails,
+        getParticipationDetails,
+        confirmRemoveParticipant,
+        openAddParticipantModal,
+        closeAddParticipantModal,
+        addParticipantToEventQuick,
+        removeParticipantFromEvent,
+        toggleParticipantsPublicVisibility,
+        toggleRestaurantParticipantsPublicVisibility,
+      } from "./js/features/events/participants.js";
+
+      // HTML onclick에서 사용하기 위해 window에 할당
+      window.openGroupMakerModal = openGroupMakerModal;
+      window.closeGroupMakerModal = closeGroupMakerModal;
+      window.showEventDetails = showEventDetails;
+      window.showEventDetailModal = showEventDetailModal;
+      window.closeEventDetailModalMain = closeEventDetailModalMain;
+      window.closeEventDetailModal = closeEventDetailModal;
+      window.openRoadmapEventEditModal = openRoadmapEventEditModal;
+      window.deleteRoadmapEvent = deleteRoadmapEvent;
+      window.toggleActivityDetails = toggleActivityDetails;
+      window.openAddEventModal = openAddEventModal;
+      window.toggleParticipantsList = toggleParticipantsList;
+      window.toggleRestaurantParticipantsDetails =
+        toggleRestaurantParticipantsDetails;
+      window.getParticipationDetails = getParticipationDetails;
+      window.confirmRemoveParticipant = confirmRemoveParticipant;
+      window.openAddParticipantModal = openAddParticipantModal;
+      window.closeAddParticipantModal = closeAddParticipantModal;
+      window.addParticipantToEventQuick = addParticipantToEventQuick;
+      window.removeParticipantFromEvent = removeParticipantFromEvent;
+      window.toggleParticipantsPublicVisibility =
+        toggleParticipantsPublicVisibility;
+      window.toggleRestaurantParticipantsPublicVisibility =
+        toggleRestaurantParticipantsPublicVisibility;
     </script>
   </body>
 </html>

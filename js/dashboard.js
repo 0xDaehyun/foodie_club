@@ -1276,6 +1276,9 @@ function openMemberDetailModal(studentId) {
     m.kakaoUserId !== ""
   );
   const profileImage = m.kakaoProfileImage || null;
+  // 관리자 여부 확인
+  const isAlreadyAdmin = state.adminList?.includes(m.studentId) || false;
+  
   const actionBtns =
     (m.status || "pending") !== "active"
     ? `
@@ -1291,6 +1294,15 @@ function openMemberDetailModal(studentId) {
       <button class="w-full px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold mb-2" data-act="edit" data-id="${m.studentId}">
         <i class="fas fa-pen mr-2"></i>수정
       </button>
+      ${
+        isAlreadyAdmin
+          ? `<button class="w-full px-4 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold mb-2" data-act="remove-admin" data-id="${m.studentId}">
+               <i class="fas fa-user-times mr-2"></i>관리자 해제
+             </button>`
+          : `<button class="w-full px-4 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold mb-2" data-act="set-admin" data-id="${m.studentId}">
+               <i class="fas fa-user-shield mr-2"></i>관리자 임명
+             </button>`
+      }
       <button class="w-full px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold" data-act="delete" data-id="${m.studentId}">
         <i class="fas fa-trash mr-2"></i>삭제
       </button>
@@ -1302,6 +1314,15 @@ function openMemberDetailModal(studentId) {
       <button class="w-full px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold mb-2" data-act="edit" data-id="${m.studentId}">
         <i class="fas fa-pen mr-2"></i>수정
       </button>
+      ${
+        isAlreadyAdmin
+          ? `<button class="w-full px-4 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold mb-2" data-act="remove-admin" data-id="${m.studentId}">
+               <i class="fas fa-user-times mr-2"></i>관리자 해제
+             </button>`
+          : `<button class="w-full px-4 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold mb-2" data-act="set-admin" data-id="${m.studentId}">
+               <i class="fas fa-user-shield mr-2"></i>관리자 임명
+             </button>`
+      }
       <button class="w-full px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold" data-act="delete" data-id="${m.studentId}">
         <i class="fas fa-trash mr-2"></i>삭제
       </button>
@@ -1333,11 +1354,20 @@ function openMemberDetailModal(studentId) {
           m.name || ""
         )}</h4>
         <p class="text-sm text-gray-500 font-mono">${saf(m.studentId || "")}</p>
-        ${
-          isKakaoLinked
-          ? `<span class="inline-block mt-2 text-xs px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full font-medium">카카오 계정 연동됨</span>`
-          : `<span class="inline-block mt-2 text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-full font-medium">카카오 계정 미연동</span>`
-        }
+        <div class="flex items-center justify-center gap-2 mt-2 flex-wrap">
+          ${
+            isAlreadyAdmin
+              ? `<span class="inline-block text-xs px-2 py-1 bg-purple-100 text-purple-700 rounded-full font-medium">
+                   <i class="fas fa-user-shield mr-1"></i>관리자
+                 </span>`
+              : ""
+          }
+          ${
+            isKakaoLinked
+            ? `<span class="inline-block text-xs px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full font-medium">카카오 계정 연동됨</span>`
+            : `<span class="inline-block text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-full font-medium">카카오 계정 미연동</span>`
+          }
+        </div>
       </div>
       
       <!-- 기본 정보 -->
@@ -1458,7 +1488,151 @@ function openMemberDetailModal(studentId) {
       if (act === "block") return updateMemberStatus(sid, "blocked");
       if (act === "delete") return deleteMember(sid);
       if (act === "edit") return openMemberEditModal(sid);
+      if (act === "set-admin") return setMemberAsAdmin(sid);
+      if (act === "remove-admin") return removeMemberFromAdmin(sid);
     });
+  }
+}
+
+// 관리자 임명 함수
+async function setMemberAsAdmin(studentId) {
+  try {
+    // 확인 메시지
+    const member = (state.membersData || []).find(
+      (m) => (m.studentId || m.id) === studentId
+    );
+    const memberName = member?.name || studentId;
+    
+    if (
+      !confirm(
+        `${memberName}(${studentId}) 회원을 관리자로 임명하시겠습니까?\n\n관리자는 다음 권한을 갖게 됩니다:\n• 이벤트 생성/수정/삭제\n• 회원 관리\n• 시스템 설정 변경`
+      )
+    ) {
+      return;
+    }
+
+    // Firebase에서 현재 관리자 목록 가져오기
+    const { db } = await import("./firebase.js");
+    const { doc, getDoc, updateDoc } = await import(
+      "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js"
+    );
+
+    const adminDocRef = doc(db, "admins", "list");
+    const adminDoc = await getDoc(adminDocRef);
+    
+    let currentAdmins = [];
+    if (adminDoc.exists()) {
+      currentAdmins = adminDoc.data().studentIds || [];
+    }
+
+    // 이미 관리자인지 확인
+    if (currentAdmins.includes(studentId)) {
+      showAlert("ℹ️", "이미 관리자로 등록된 회원입니다.");
+      return;
+    }
+
+    // 관리자 목록에 추가
+    currentAdmins.push(studentId);
+    await updateDoc(adminDocRef, {
+      studentIds: currentAdmins,
+    });
+
+    // state 업데이트
+    state.adminList = currentAdmins;
+
+    showAlert("✅", `${memberName} 회원이 관리자로 임명되었습니다.`);
+    
+    // 모달 새로고침 (관리자 상태 반영)
+    setTimeout(() => {
+      openMemberDetailModal(studentId);
+    }, 500);
+  } catch (error) {
+    console.error("관리자 임명 오류:", error);
+    showAlert("😥", "관리자 임명에 실패했습니다: " + (error.message || error));
+  }
+}
+
+// 관리자 해제 함수
+async function removeMemberFromAdmin(studentId) {
+  try {
+    // 확인 메시지
+    const member = (state.membersData || []).find(
+      (m) => (m.studentId || m.id) === studentId
+    );
+    const memberName = member?.name || studentId;
+    
+    // 자기 자신을 해제하려는 경우 경고
+    if (state.currentUser?.studentId === studentId) {
+      if (
+        !confirm(
+          `⚠️ 경고: 자신의 관리자 권한을 해제하려고 합니다.\n\n이 작업을 수행하면 관리자 기능을 사용할 수 없게 됩니다.\n\n정말로 계속하시겠습니까?`
+        )
+      ) {
+        return;
+      }
+    } else {
+      if (
+        !confirm(
+          `${memberName}(${studentId}) 회원의 관리자 권한을 해제하시겠습니까?`
+        )
+      ) {
+        return;
+      }
+    }
+
+    // Firebase에서 현재 관리자 목록 가져오기
+    const { db } = await import("./firebase.js");
+    const { doc, getDoc, updateDoc } = await import(
+      "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js"
+    );
+
+    const adminDocRef = doc(db, "admins", "list");
+    const adminDoc = await getDoc(adminDocRef);
+    
+    let currentAdmins = [];
+    if (adminDoc.exists()) {
+      currentAdmins = adminDoc.data().studentIds || [];
+    }
+
+    // 관리자 목록에서 제거
+    const updatedAdmins = currentAdmins.filter((id) => id !== studentId);
+    
+    // 최소 1명의 관리자는 남아있어야 함
+    if (updatedAdmins.length === 0) {
+      showAlert(
+        "⚠️",
+        "최소 1명의 관리자가 필요합니다. 다른 관리자를 먼저 임명한 후 다시 시도해주세요."
+      );
+      return;
+    }
+
+    await updateDoc(adminDocRef, {
+      studentIds: updatedAdmins,
+    });
+
+    // state 업데이트
+    state.adminList = updatedAdmins;
+
+    showAlert("✅", `${memberName} 회원의 관리자 권한이 해제되었습니다.`);
+    
+    // 자기 자신을 해제한 경우 로그아웃 처리
+    if (state.currentUser?.studentId === studentId) {
+      showAlert(
+        "ℹ️",
+        "관리자 권한이 해제되어 로그아웃됩니다. 페이지가 새로고침됩니다."
+      );
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+    } else {
+      // 모달 새로고침 (관리자 상태 반영)
+      setTimeout(() => {
+        openMemberDetailModal(studentId);
+      }, 500);
+    }
+  } catch (error) {
+    console.error("관리자 해제 오류:", error);
+    showAlert("😥", "관리자 해제에 실패했습니다: " + (error.message || error));
   }
 }
 
