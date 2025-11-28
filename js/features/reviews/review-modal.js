@@ -3,8 +3,7 @@
 
 import { state } from "../../state.js";
 import { showAlert, saf } from "../../utils.js";
-import { db } from "../../firebase.js";
-import { doc, runTransaction, getDoc } from "firebase/firestore";
+import { db, doc, runTransaction, getDoc } from "../../firebase.js";
 
 const TRANSACTION_OPTIONS = { maxAttempts: 1 };
 

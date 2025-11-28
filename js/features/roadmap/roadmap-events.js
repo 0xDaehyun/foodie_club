@@ -3,8 +3,7 @@
 
 import { state } from "../../state.js";
 import { showAlert, saf } from "../../utils.js";
-import { db } from "../../firebase.js";
-import { collection, addDoc, doc, getDoc, updateDoc, deleteDoc } from "firebase/firestore";
+import { db, collection, addDoc, doc, getDoc, updateDoc, deleteDoc } from "../../firebase.js";
 
 // 활동 상세 토글
 export function toggleActivityDetails(eventId) {

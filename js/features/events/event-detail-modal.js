@@ -3,8 +3,7 @@
 
 import { state } from "../../state.js";
 import { showAlert, saf } from "../../utils.js";
-import { db } from "../../firebase.js";
-import { doc, getDoc, updateDoc, deleteDoc } from "firebase/firestore";
+import { db, doc, getDoc, updateDoc, deleteDoc } from "../../firebase.js";
 
 // 유틸리티 함수들
 const formatKRW = (n) => {
